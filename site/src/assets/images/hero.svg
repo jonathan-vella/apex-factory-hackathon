@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Cloud shape -->
+  <ellipse cx="200" cy="120" rx="120" ry="60" fill="#0078d4" opacity="0.15"/>
+  <ellipse cx="150" cy="130" rx="80" ry="50" fill="#0078d4" opacity="0.1"/>
+  <ellipse cx="260" cy="125" rx="90" ry="55" fill="#0078d4" opacity="0.1"/>
+
+  <!-- Server stack -->
+  <rect x="60" y="180" width="60" height="40" rx="4" fill="#0078d4" opacity="0.8"/>
+  <rect x="60" y="225" width="60" height="40" rx="4" fill="#0078d4" opacity="0.6"/>
+  <line x1="70" y1="195" x2="80" y2="195" stroke="#fff" stroke-width="2"/>
+  <line x1="70" y1="240" x2="80" y2="240" stroke="#fff" stroke-width="2"/>
+
+  <!-- AI brain / agent icon -->
+  <circle cx="200" cy="200" r="35" fill="#0078d4" opacity="0.9"/>
+  <path d="M185 200 a15 15 0 0 1 30 0" stroke="#fff" stroke-width="2" fill="none"/>
+  <circle cx="192" cy="193" r="3" fill="#fff"/>
+  <circle cx="208" cy="193" r="3" fill="#fff"/>
+  <path d="M195 208 q5 5 10 0" stroke="#fff" stroke-width="1.5" fill="none"/>
+
+  <!-- Azure cloud -->
+  <rect x="280" y="180" width="60" height="40" rx="8" fill="#0078d4" opacity="0.8"/>
+  <rect x="280" y="225" width="60" height="40" rx="8" fill="#50e6ff" opacity="0.6"/>
+  <text x="310" y="205" text-anchor="middle" fill="#fff" font-size="12" font-family="sans-serif">Azure</text>
+  <text x="310" y="250" text-anchor="middle" fill="#0078d4" font-size="10" font-family="sans-serif">IaC</text>
+
+  <!-- Arrows -->
+  <path d="M125 210 L160 210" stroke="#0078d4" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M240 210 L275 210" stroke="#0078d4" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="#0078d4"/>
+    </marker>
+  </defs>
+</svg>

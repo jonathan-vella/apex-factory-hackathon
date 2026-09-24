@@ -1,0 +1,101 @@
+---
+title: Home
+description: A two-day partner hackathon to modernize an app and database with Azure and GitHub Copilot.
+template: splash
+---
+
+import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+<section class="landing-hero not-content">
+  <div class="landing-hero__copy">
+    <p class="landing-eyebrow">2-day partner hackathon</p>
+    <h1>
+      <span>Partner </span>
+      <span>Modernization </span>
+      <span>Factory</span>
+    </h1>
+    <p class="landing-hero__tagline">Modernize today. Enable AI tomorrow.</p>
+    <p class="landing-hero__purpose">
+      Teams build a secure Azure foundation, deploy a CoE archetype with APEX,
+      and modernize the app and database with GitHub Copilot and Azure Arc.
+    </p>
+    <p class="landing-hero__purpose">
+      They keep reusable assets for customer delivery.
+    </p>
+    <a class="landing-hero__scroll not-content" href="#scenario">
+      <span class="landing-hero__scroll-label">Explore the scenario</span>
+    </a>
+  </div>
+</section>
+
+<section id="scenario" class="landing-section scenario-frame not-content">
+  <div class="scenario-frame__head">
+    <div class="section-label">Scenario</div>
+    <h2>Modernize Contoso University</h2>
+    <p>A familiar legacy system becomes a reusable Azure modernization pattern.</p>
+  </div>
+  <div class="scenario-frame__body">
+    <div class="scenario-frame__columns">
+      <div class="scenario-panel">
+        <div class="scenario-panel__label">Starting point</div>
+        <p>
+          Contoso University runs its student system on ASP.NET MVC and .NET
+          Framework 4.8 on IIS and SQL Server in its own datacenter. It wants to
+          move to Azure and modernize so its data is ready for future AI use
+          cases.
+        </p>
+      </div>
+      <div class="scenario-panel scenario-panel--tasks">
+        <div class="scenario-panel__label">What the team does</div>
+        <ul class="scenario-checklist">
+          <li>Build a secure foundation.</li>
+          <li>Assess with GitHub Copilot and Azure Arc.</li>
+          <li>Deploy the CoE archetype with APEX.</li>
+          <li>Modernize the app and migrate data to SQL Managed Instance.</li>
+          <li>Optimize the database and package reusable assets.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="landing-section scenario-frame explore-section not-content">
+  <div class="scenario-frame__head">
+    <div class="section-label">Start here</div>
+    <h2>Explore the kit</h2>
+  </div>
+  <div class="scenario-frame__body">
+    <CardGrid>
+      <LinkCard
+        title="Getting Started"
+        description="Pre-work, setup and how the event runs."
+        href="/getting-started/"
+      />
+      <LinkCard
+        title="Challenges"
+        description="The challenges in order, with time boxes and points."
+        href="/challenges/"
+      />
+      <LinkCard
+        title="Modules"
+        description="What each module takes in and hands on."
+        href="/modules/"
+      />
+      <LinkCard
+        title="Guides"
+        description="GitHub Copilot, APEX and Azure Arc guides."
+        href="/guides/"
+      />
+      <LinkCard
+        title="Reference"
+        description="Glossary, naming, IP plan and troubleshooting."
+        href="/reference/"
+      />
+      <LinkCard
+        title="About"
+        description="Agenda, audience and feedback."
+        href="/about/"
+      />
+    </CardGrid>
+  </div>
+</section>

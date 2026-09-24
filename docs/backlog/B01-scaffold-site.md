@@ -21,7 +21,7 @@ The site pages are placeholders. B11 writes the content.
 
 ## Before you start
 
-1. `node --version` prints `v24.` followed by any minor version.
+1. `node --version` prints `v24.` or any later major version. The repository's version files remain pinned to Node 24.
 2. `gh api repos/jonathan-vella/apex-factory-hackathon/pages` fails with `Not Found (HTTP 404)`, because Pages isn't set up yet. If it succeeds, skip enabling Pages in requirement 18.
 3. `gh api repos/jonathan-vella/apex-microhack/commits/f95c470ed23016e0267097489174a050471f379c --jq .sha` prints that SHA.
 
