@@ -4,6 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # New versions wait out the quarantine on Microsoft's CFS package feed.
+    cooldown:
+      default-days: 14
     groups:
       npm-all:
         patterns:
@@ -13,6 +16,8 @@ updates:
     directory: "/site"
     schedule:
       interval: "weekly"
+    cooldown:
+      default-days: 14
     groups:
       npm-site-all:
         patterns:
