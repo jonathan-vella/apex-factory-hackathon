@@ -63,7 +63,7 @@ The deployment configures both VMs through run commands. Each downloads its scri
 | `vm-dev01` | `dev-04-first-logon` | `Register-DevFirstLogon.ps1` | A logon task that installs the VS Code extensions for each user (see below) |
 | `vm-dev01` | `dev-05-versions` | `Write-DevVersions.ps1` | The installed versions, in `C:\LabTools\versions.txt` |
 
-VS Code extensions install per user, so they install when you sign in, not during the deployment: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot modernization for .NET, GitHub Copilot upgrade, C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. The first sign-in takes a minute or two longer while they install.
+VS Code extensions install per user, so they install when you sign in, not during the deployment: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot upgrade, C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. The first sign-in takes a minute or two longer while they install.
 
 The app's `Web.config` connects to SQL Server as `contosoapp` with the password in plain text, and has `debug="true"`. Both are deliberate: they're findings for the assessment.
 

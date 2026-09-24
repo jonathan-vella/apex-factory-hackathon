@@ -23,7 +23,6 @@ $code = 'C:\Program Files\Microsoft VS Code\bin\code.cmd'
 $extensions = @(
     'GitHub.copilot'
     'GitHub.copilot-chat'
-    'ms-dotnettools.vscode-dotnet-modernize'
     'ms-dotnettools.upgrade-agent'
     'ms-dotnettools.csdevkit'
     'ms-mssql.mssql'
