@@ -35,14 +35,26 @@ function Get-SsmsPath {
     return (& $vswhere -products 'Microsoft.VisualStudio.Product.SSMS' -property installationPath | Select-Object -First 1)
 }
 
+function Wait-VsInstaller {
+    # A second run of this script must not start an install while another is still running.
+    $names = 'vs_SSMS*', 'vs_BuildTools*', 'vs_setup_bootstrapper', 'vs_installer', 'vs_installershell'
+    for ($i = 0; Get-Process -Name $names -ErrorAction SilentlyContinue; $i++) {
+        if ($i -eq 0) { Write-LabLog 'Waiting for a running Visual Studio installer to finish.' }
+        if ($i -ge 360) { throw 'A Visual Studio installer is still running after 60 minutes.' }
+        Start-Sleep -Seconds 10
+    }
+}
+
 try {
     New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
+    Wait-VsInstaller
     if (Get-SsmsPath) {
         Write-LabLog 'SSMS 22 is already installed.'
         exit 0
     }
 
-    $bootstrapper = Join-Path $downloadDir 'vs_SSMS.exe'
+    # A unique name avoids a lock on a previous download (seen on the first validation run).
+    $bootstrapper = Join-Path $downloadDir "vs_SSMS-$([guid]::NewGuid().ToString('N')).exe"
     Invoke-WebRequest -Uri 'https://aka.ms/ssms/22/release/vs_SSMS.exe' -OutFile $bootstrapper -UseBasicParsing
     Write-LabLog 'Installing SSMS 22.'
     $process = Start-Process -FilePath $bootstrapper -ArgumentList '--quiet', '--wait', '--norestart', '--nocache' -PassThru -WindowStyle Hidden

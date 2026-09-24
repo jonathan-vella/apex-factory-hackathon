@@ -37,8 +37,19 @@ function Get-BuildToolsPath {
     return (& $vswhere -products 'Microsoft.VisualStudio.Product.BuildTools' -requires $workload -property installationPath | Select-Object -First 1)
 }
 
+function Wait-VsInstaller {
+    # A second run of this script must not start an install while another is still running.
+    $names = 'vs_SSMS*', 'vs_BuildTools*', 'vs_setup_bootstrapper', 'vs_installer', 'vs_installershell'
+    for ($i = 0; Get-Process -Name $names -ErrorAction SilentlyContinue; $i++) {
+        if ($i -eq 0) { Write-LabLog 'Waiting for a running Visual Studio installer to finish.' }
+        if ($i -ge 360) { throw 'A Visual Studio installer is still running after 60 minutes.' }
+        Start-Sleep -Seconds 10
+    }
+}
+
 try {
     New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
+    Wait-VsInstaller
     if (Get-BuildToolsPath) {
         Write-LabLog "Build Tools with $workload are already installed."
         exit 0

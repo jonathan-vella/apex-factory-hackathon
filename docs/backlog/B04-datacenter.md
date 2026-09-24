@@ -97,7 +97,7 @@
 12. **`vm-dev01`**, in this order:
     1. Create `C:\src`. The dev VM has no data disk.
     2. Install machine-wide, silently, from the vendors' official download locations: Visual Studio Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone, on the machine `PATH`), the .NET 10 SDK, the .NET Framework 4.8 Developer Pack, Visual Studio Build Tools (current release) with the web build tools workload and its recommended components, NuGet CLI, and SSMS 22. 🔎 VERIFY the Build Tools workload ID on [Visual Studio Build Tools workload and component IDs](https://learn.microsoft.com/visualstudio/install/workload-component-id-vs-build-tools).
-    3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot app modernization for .NET, C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the app modernization extension on [GitHub Copilot app modernization for .NET](https://learn.microsoft.com/dotnet/core/porting/github-copilot-app-modernization/overview).
+    3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot app modernization for .NET (now two Marketplace extensions: GitHub Copilot modernization for .NET, `ms-dotnettools.vscode-dotnet-modernize`, and GitHub Copilot upgrade, `ms-dotnettools.upgrade-agent`; install both), C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the app modernization extension on [GitHub Copilot app modernization for .NET](https://learn.microsoft.com/dotnet/core/porting/github-copilot-app-modernization/overview).
     4. Write the installed versions to `C:\LabTools\versions.txt`.
 13. Don't use winget: it isn't available to SYSTEM in a run command.
 
@@ -115,7 +115,7 @@
     | On | Check |
     |---|---|
     | Azure | Both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP. The disks match requirement 2: `vm-app01` has its P30 data disk, and `vm-dev01` has no data disk and its OS disk at performance tier P30. No public IPs in `rg-datacenter` apart from `pip-nat-datacenter` |
-    | `vm-app01` | `http://localhost/` returns 200 and contains "Contoso University"; `F:` exists; SQL data files are on `F:`; `ContosoUniversity` has the app's tables and at least 9 students; HADR is enabled; trace flags 1800 and 9567 are on; the MSMQ queue exists |
+    | `vm-app01` | `http://localhost/` returns 200 and contains "Contoso University"; `F:` exists; SQL data files are on `F:`; `ContosoUniversity` has the app's tables and at least 8 students (the app's seed data); HADR is enabled; trace flags 1800 and 9567 are on; the MSMQ queue exists |
     | `vm-dev01` | `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, `dotnet` (SDK 10), `code`, `msbuild` and SSMS are installed; outbound HTTPS to `github.com` works |
 
 ### Documentation
@@ -144,7 +144,7 @@
 ```powershell
 az bicep build --file infra/datacenter/main.bicep --stdout | Out-Null
 az bicep lint --file infra/datacenter/main.bicep
-Invoke-ScriptAnalyzer -Path scripts, infra/datacenter/scripts -Recurse
+'scripts', 'infra/datacenter/scripts' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_ -Recurse }
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 ./scripts/Test-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex; $LASTEXITCODE
 npm run check
