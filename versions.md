@@ -9,3 +9,5 @@ This manifest records the versions and source commit used by the kit. Tooling ve
 | Starlight | `^0.42.1` | `site/package.json` | 2026-09-24 |
 | APEX microhack tooling source | `f95c470` | Repository tooling and site scaffold | 2026-09-24 |
 | PSScriptAnalyzer | 1.25.0 | `scripts/Test-Preflight.ps1` | 2026-09-24 |
+| Contoso University (upstream sample) | `7c1bf47` | `app/ContosoUniversity` (B03) | 2026-09-24 |
+| .NET Framework | `4.8` | Legacy app and its build (B03) | 2026-09-24 |

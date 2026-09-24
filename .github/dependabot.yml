@@ -31,3 +31,11 @@ updates:
       actions-all:
         patterns:
           - "*"
+
+  # The legacy app stays outdated on purpose: it's the modernization starting state.
+  - package-ecosystem: "nuget"
+    directory: "/app/ContosoUniversity"
+    schedule:
+      interval: "weekly"
+    ignore:
+      - dependency-name: "*"
