@@ -1,0 +1,135 @@
+name: Build legacy app
+
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - ".github/workflows/build-legacy.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - ".github/workflows/build-legacy.yml"
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-legacy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build legacy app
+    if: github.repository == 'jonathan-vella/apex-factory-hackathon'
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: app/ContosoUniversity
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up MSBuild
+        uses: microsoft/setup-msbuild@v3
+
+      - name: Set up NuGet
+        uses: NuGet/setup-nuget@v4
+
+      - name: Restore
+        run: nuget restore ContosoUniversity.sln -NonInteractive
+
+      - name: Build
+        run: msbuild ContosoUniversity.sln /p:Configuration=Release /m /nologo /verbosity:minimal
+
+      - name: Package
+        run: |
+          $stage = Join-Path $env:RUNNER_TEMP 'package'
+          $zip = Join-Path $env:RUNNER_TEMP 'ContosoUniversity-legacy.zip'
+          Remove-Item $stage, $zip -Recurse -Force -ErrorAction SilentlyContinue
+
+          $source = (Get-Location).Path
+          $excludedDirs = 'obj', 'packages', 'Properties', '.vs'
+          $excludedFiles = '*.cs', '*.csproj', '*.user', '*.sln', 'packages.config', '*.md', '.gitignore'
+
+          $files = Get-ChildItem -Path $source -Recurse -File -Force | Where-Object {
+            $relative = [IO.Path]::GetRelativePath($source, $_.FullName)
+            $parts = $relative -split '[\\/]'
+            $name = $_.Name
+            $inExcludedDir = $parts.Count -gt 1 -and ($parts[0..($parts.Count - 2)] | Where-Object { $excludedDirs -contains $_ })
+            $isExcludedFile = $excludedFiles | Where-Object { $name -like $_ }
+            -not $inExcludedDir -and -not $isExcludedFile
+          }
+
+          foreach ($file in $files) {
+            $relative = [IO.Path]::GetRelativePath($source, $file.FullName)
+            $target = Join-Path $stage $relative
+            New-Item -ItemType Directory -Path (Split-Path $target) -Force | Out-Null
+            Copy-Item -LiteralPath $file.FullName -Destination $target
+          }
+
+          $bootstrap = Join-Path $source 'packages/bootstrap.5.3.3/content/Content'
+          foreach ($css in 'bootstrap.css', 'bootstrap.min.css') {
+            Copy-Item -LiteralPath (Join-Path $bootstrap $css) -Destination (Join-Path $stage "Content/$css")
+          }
+
+          [IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip)
+          "ZIP_PATH=$zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      - name: Check package
+        run: |
+          $archive = [IO.Compression.ZipFile]::OpenRead($env:ZIP_PATH)
+          try {
+            $entries = @($archive.Entries | ForEach-Object { $_.FullName -replace '\\', '/' })
+          } finally {
+            $archive.Dispose()
+          }
+
+          $required = 'Web.config', 'Global.asax', 'Views/Web.config', 'Views/Home/Index.cshtml',
+            'bin/ContosoUniversity.dll', 'Content/bootstrap.css', 'Content/Site.css'
+          $missing = @($required | Where-Object { $entries -cnotcontains $_ })
+          $notAllowed = @($entries | Where-Object { $_ -match '\.(cs|csproj|sln)$' })
+
+          if ($missing.Count -or $notAllowed.Count) {
+            $missing | ForEach-Object { "::error::Missing from package: $_" }
+            $notAllowed | ForEach-Object { "::error::Not allowed in package: $_" }
+            exit 1
+          }
+
+          "Package OK: $($entries.Count) entries."
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ContosoUniversity-legacy
+          path: ${{ env.ZIP_PATH }}
+          if-no-files-found: error
+
+      - name: Publish release
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          $notes = @"
+          Deployable package of the legacy Contoso University app, built from commit $env:GITHUB_SHA.
+
+          The datacenter kit (B04) deploys it to ``vm-app01``.
+          "@
+
+          gh release view legacy-v1 *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload legacy-v1 $env:ZIP_PATH --clobber
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+            gh release edit legacy-v1 --notes $notes
+          } else {
+            gh release create legacy-v1 $env:ZIP_PATH --title 'Legacy Contoso University package' --target $env:GITHUB_SHA --notes $notes
+          }
+          exit $LASTEXITCODE
