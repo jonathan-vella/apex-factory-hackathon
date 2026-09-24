@@ -12,7 +12,8 @@ permissions:
 jobs:
   auto-merge:
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
+    # npm updates stay manual: CI installs from public npm, but local restores can still be quarantined.
+    if: github.actor == 'dependabot[bot]' && !startsWith(github.head_ref, 'dependabot/npm_and_yarn/')
     steps:
       - name: Approve PR
         run: gh pr review --approve "$PR_URL"
