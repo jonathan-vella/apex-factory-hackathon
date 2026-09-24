@@ -23,7 +23,7 @@ $code = 'C:\Program Files\Microsoft VS Code\bin\code.cmd'
 $extensions = @(
     'GitHub.copilot'
     'GitHub.copilot-chat'
-    'ms-dotnettools.upgrade-agent'
+    'vscjava.migrate-java-to-azure'
     'ms-dotnettools.csdevkit'
     'ms-mssql.mssql'
     'ms-vscode.powershell'
