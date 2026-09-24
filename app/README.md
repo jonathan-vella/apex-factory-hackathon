@@ -9,6 +9,7 @@
 | Repo and folder | [Azure-Samples/dotnet-migration-copilot-samples, `ContosoUniversity`](https://github.com/Azure-Samples/dotnet-migration-copilot-samples/tree/7c1bf47b7e2627fe5a1c764716638815d35e0282/ContosoUniversity) |
 | Commit | `7c1bf47b7e2627fe5a1c764716638815d35e0282` |
 | Changes | None |
+| Licence | MIT, [`app/LICENSE`](LICENSE). Upstream has no LICENSE file at that commit |
 
 ## Legacy dependencies
 

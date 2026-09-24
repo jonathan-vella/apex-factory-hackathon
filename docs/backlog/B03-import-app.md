@@ -35,7 +35,7 @@
 
 3. `app/README.md` describes the legacy starting state:
    - What it is: an ASP.NET MVC 5 app on .NET Framework 4.8, with EF Core 3.1, SQL Server, MSMQ and local file uploads.
-   - A source table: repo and folder (linked at the commit), the full commit SHA, and "Changes: none".
+   - A source table: repo and folder (linked at the commit), the full commit SHA, "Changes: none", and the licence (MIT, `app/LICENSE`, noting that upstream has no LICENSE file at that commit).
    - A legacy dependencies table, with where each one lives and its modernization target:
 
      | Dependency | Where | Target |
@@ -65,19 +65,19 @@
 
 ### Records
 
-10. `NOTICE` lists `app/ContosoUniversity`, copied unchanged from the `ContosoUniversity` folder of `Azure-Samples/dotnet-migration-copilot-samples` at the full commit SHA.
+10. `NOTICE` lists `app/ContosoUniversity`, copied unchanged from the `ContosoUniversity` folder of `Azure-Samples/dotnet-migration-copilot-samples` at the full commit SHA (MIT, see `app/LICENSE`). `app/LICENSE` holds the standard MIT License text with `Copyright (c) Microsoft Corporation.`
 11. `versions.md` gets two rows, validated today: Contoso University (upstream sample) at `7c1bf47`, used in `app/ContosoUniversity` (B03); and .NET Framework `4.8`, used by the legacy app and its build (B03).
 
 ### PR
 
 12. `npm run check` passes. It doesn't lint `app/`: B01 excluded it.
-13. The PR changes exactly 95 files: the 90 app files, `app/README.md`, `build-legacy.yml`, `dependabot.yml`, `NOTICE` and `versions.md`.
+13. The PR changes exactly 96 files: the 90 app files, `app/README.md`, `app/LICENSE`, `build-legacy.yml`, `dependabot.yml`, `NOTICE` and `versions.md`.
 14. The **Build legacy app** check passes on the PR. Copy its `Package OK:` line into the PR body. If the build fails, stop and report the error: don't change the app to make it build.
 15. The PR body carries this after-merge checklist for the owner: the "Build legacy app" run on `main` succeeded; `gh release view legacy-v1 --json assets -q '.assets[].name'` prints `ContosoUniversity-legacy.zip`.
 
 ## Deliverables
 
-- `app/ContosoUniversity/` (90 files, unchanged from upstream) and `app/README.md`.
+- `app/ContosoUniversity/` (90 files, unchanged from upstream), `app/README.md` and `app/LICENSE`.
 - `.github/workflows/build-legacy.yml`.
 - Changes to `.github/dependabot.yml`, `NOTICE` and `versions.md`.
 
@@ -89,13 +89,13 @@ npm run check
 gh pr checks --watch
 ```
 
-- The count is `90`.
+- The count is `90`, and `app/LICENSE` exists. With it and the other deliverables, the PR changes 96 files.
 - `npm run check` passes.
 - **Build legacy app** passes on the PR and prints `Package OK:`.
 
 ## Done when
 
-- [ ] `app/ContosoUniversity/` matches upstream exactly, and `app/README.md` exists.
+- [ ] `app/ContosoUniversity/` matches upstream exactly, and `app/README.md` and `app/LICENSE` exist.
 - [ ] The workflow builds, checks, uploads and (outside PRs) publishes the package as described.
 - [ ] Dependabot ignores the app's NuGet packages.
 - [ ] `NOTICE` and `versions.md` have the new entries.
@@ -122,5 +122,6 @@ feat: import Contoso University and build the legacy package
 - **Release updates:** later changes to `app/` on `main` replace the zip in the same `legacy-v1` release. The tag stays on the first commit, and the notes name the latest one.
 - **Dependabot:** `ignore` applies to both version and security updates. Dependabot alerts still list the app's vulnerable packages. That's expected: the assessment should find them too.
 - **Views compile at run time** with the C# 5 compiler in .NET Framework, because `Web.config` has no `system.codedom` section. The upstream views use only C# 5 syntax, which is one more reason not to touch them.
+- **Licence:** upstream has no LICENSE file at `7c1bf47`, so `app/LICENSE` records MIT (Copyright Microsoft Corporation), as the owner approved. It sits in `app/`, outside the unchanged upstream folder.
 - **Database:** the app calls `EnsureCreated()` and seeds a small data set (9 students, 8 courses, 12 enrollments) at `Application_Start`. B04 relies on this to create the schema; B05 adds volume.
 - **MSMQ:** `BaseController` creates a `NotificationService` whose constructor calls `MessageQueue.Exists`/`Create` without a try/catch, so the app won't start without MSMQ. B04 installs it and pre-creates the queue.

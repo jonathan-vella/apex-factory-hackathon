@@ -7,4 +7,4 @@ Third-party material:
 
 - Repository tooling and the site scaffold are adapted from [jonathan-vella/apex-microhack](https://github.com/jonathan-vella/apex-microhack) (MIT).
 - `.vale/styles/Microsoft` is from [errata-ai/Microsoft](https://github.com/errata-ai/Microsoft) (MIT).
-- `app/ContosoUniversity` is copied unchanged from the `ContosoUniversity` folder of [Azure-Samples/dotnet-migration-copilot-samples](https://github.com/Azure-Samples/dotnet-migration-copilot-samples/tree/7c1bf47b7e2627fe5a1c764716638815d35e0282/ContosoUniversity) at commit `7c1bf47b7e2627fe5a1c764716638815d35e0282`.
+- `app/ContosoUniversity` is copied unchanged from the `ContosoUniversity` folder of [Azure-Samples/dotnet-migration-copilot-samples](https://github.com/Azure-Samples/dotnet-migration-copilot-samples/tree/7c1bf47b7e2627fe5a1c764716638815d35e0282/ContosoUniversity) at commit `7c1bf47b7e2627fe5a1c764716638815d35e0282` (MIT, see `app/LICENSE`). Upstream has no LICENSE file at that commit.
