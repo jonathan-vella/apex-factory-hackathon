@@ -1,10 +1,7 @@
 export default {
-  globs: ["**/*.md", "#node_modules"],
-  ignores: ["app/**", "archetype/**"],
-  gitignore: true,
+  globs: ["src/content/docs/**/*.md"],
   config: {
     default: true,
-    MD012: false,
     MD013: false,
     MD024: false,
     MD025: {
@@ -15,7 +12,6 @@ export default {
     MD033: false,
     MD036: false,
     MD040: false,
-    MD046: false,
     MD060: false,
   },
 };

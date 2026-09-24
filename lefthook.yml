@@ -1,0 +1,11 @@
+pre-commit:
+  jobs:
+    - name: markdownlint
+      glob: "**/*.md"
+      run: npm run lint:md -- --no-globs {staged_files}
+    - name: prettier
+      glob: "site/**/*.{js,mjs,ts,astro}"
+      run: npm run format:check
+    - name: eslint
+      glob: "site/**/*.{js,mjs,ts,astro}"
+      run: cd site && npm run lint:code

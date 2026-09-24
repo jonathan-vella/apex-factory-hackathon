@@ -1,0 +1,9 @@
+Partner Modernization Factory hackathon
+Copyright (c) 2026 Jonathan Vella
+
+This kit is licensed under the MIT License. See LICENSE.
+
+Third-party material:
+
+- Repository tooling and the site scaffold are adapted from [jonathan-vella/apex-microhack](https://github.com/jonathan-vella/apex-microhack) (MIT).
+- `.vale/styles/Microsoft` is from [errata-ai/Microsoft](https://github.com/errata-ai/Microsoft) (MIT).

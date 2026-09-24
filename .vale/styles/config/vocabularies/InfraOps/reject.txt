@@ -1,0 +1,7 @@
+# Words to reject (placeholder — no rejects currently)
+# Vale ignore list
+.github/
+node_modules/
+site/dist/
+site/node_modules/
+tmp/
