@@ -5,7 +5,7 @@
 | Date | In progress (started 2026-09-24) |
 | Result | Pending: set after run 2 |
 | Region | swedencentral |
-| Versions | .NET 10 SDK `10.0.401`; GitHub Copilot modernization `1.24.26091501` (marketplace, 2026-09-24); GitHub Copilot upgrade `1.1.539` (marketplace, 2026-09-24); VS Code `1.139.0` on `vm-dev01`. Versions used in each run are in [run1.md](run1.md) and [run2.md](run2.md) |
+| Versions | .NET 10 SDK `10.0.401`; GitHub Copilot modernization `1.24.26091501` (marketplace, 2026-09-24); VS Code `1.139.0` on `vm-dev01`. Versions used in each run are in [run1.md](run1.md) and [run2.md](run2.md) |
 
 ## Question
 

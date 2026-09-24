@@ -55,25 +55,44 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
    az account set --subscription '<workload-subscription-id>'
    ```
 
-3. Clone the repo, or reuse the existing clone, and create the run branch from the commit in the table above:
+3. Use the existing clone in `C:\src\apex-factory-hackathon` (clone it there only if it's missing). Check that it's clean, fetch, and create the run branch from the commit in the table above:
 
    ```powershell
    if (-not (Test-Path C:\src\apex-factory-hackathon)) { git clone https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\apex-factory-hackathon }
    Set-Location C:\src\apex-factory-hackathon
-   git status --short        # must print nothing; commit or stash anything left from a manual assessment
-   git fetch origin
-   git switch -c spike/b06-run1 <run-1-commit>
-   git diff --stat origin/main -- app/ContosoUniversity   # must print nothing
+   git status --short
    ```
 
-   For run 2, use `spike/b06-run2` and the run 2 commit.
+   `git status --short` must print nothing. **If it prints anything, stop and tell the executor**: don't commit, stash or delete anything. Otherwise:
 
-4. Open the folder in VS Code: `code C:\src\apex-factory-hackathon`. Sign in to GitHub in VS Code (**Accounts** menu, bottom left) with the account that has the Copilot seat. Check that Copilot Chat opens in **Agent** mode.
-5. Check the extensions under **Extensions** (Ctrl+Shift+X):
-   - **GitHub Copilot modernization** (`vscjava.migrate-java-to-azure`) is installed. It adds the **GitHub Copilot modernization** view to the Activity Bar and the `modernize` agent to Copilot Chat.
-   - Install **GitHub Copilot upgrade** (`ms-dotnettools.upgrade-agent`), which the datacenter doesn't install: `code --install-extension ms-dotnettools.upgrade-agent`. It adds the `Upgrade` agent that step 3 uses. Restart VS Code.
-   - Record both extension versions, and the VS Code, Copilot Chat and C# Dev Kit versions, in the results sheet.
-6. Check that the spike services resolve privately (each prints a `10.10.n.128/27` address):
+   ```powershell
+   git fetch origin
+   git switch -c spike/b06-run1 <run-1-commit>
+   git diff --stat <run-1-commit> origin/main -- app/ContosoUniversity
+   ```
+
+   The last command must print nothing: `app/ContosoUniversity` is unchanged from `main`. For run 2, use `spike/b06-run2` and the run 2 commit.
+
+4. **Run 1 only: save the earlier manual assessment.** The assessment you ran by hand on 2026-09-24 left its output in `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\`, which git ignores. Copy its report into the spike folder, then move the whole folder out of the repo so run 1's assessment starts clean:
+
+   ```powershell
+   $manual = 'C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize'
+   $target = 'C:\src\apex-factory-hackathon\docs\spikes\B06-ghcp-golden-path\assessment\manual-2026-09-24'
+   New-Item -ItemType Directory -Force $target | Out-Null
+   Copy-Item "$manual\assessment\reports\report-20260924145927\*" $target -Recurse
+   Copy-Item "$manual\assessment\engines\dotnet-appcat\result\report.json" (Join-Path $target 'appcat-report.json')
+   Move-Item $manual 'C:\src\b06-manual-assessment'
+   git add docs/spikes/B06-ghcp-golden-path/assessment
+   git commit -m "run1: step 1 save the manual assessment"
+   ```
+
+   The target folder then holds `report.json`, `solution.json` and `appcat-report.json`.
+
+5. Open the folder in VS Code: `code C:\src\apex-factory-hackathon`. Sign in to GitHub in VS Code (**Accounts** menu, bottom left) with the account that has the Copilot seat. Check that Copilot Chat opens in **Agent** mode.
+6. Check the extensions under **Extensions** (Ctrl+Shift+X):
+   - **GitHub Copilot modernization** (`vscjava.migrate-java-to-azure`) is installed. It's the only modernization extension the kit uses. It adds the **GitHub Copilot modernization** view to the Activity Bar and the `modernize` agent to Copilot Chat, which covers the assessment, the .NET upgrade and the migration tasks.
+   - Record its version, and the VS Code, Copilot Chat and C# Dev Kit versions, in the results sheet.
+7. Check that the spike services resolve privately (each prints a `10.10.n.128/27` address):
 
    ```powershell
    'stuni<suffix>b06.blob.core.windows.net','sbns-uni-<suffix>-b06.servicebus.windows.net','cruni<suffix>b06.azurecr.io','kv-uni-<suffix>-b06.vault.azure.net' | ForEach-Object { Resolve-DnsName $_ -Type A | Where-Object IPAddress | Select-Object -Last 1 Name, IPAddress }
@@ -86,14 +105,14 @@ Model: balanced (Sonnet- or Terra-class).
 1. Keep the repo root open in VS Code. Pick the balanced model in the Copilot Chat model picker.
 2. Open the **GitHub Copilot modernization** view in the Activity Bar. In **QUICKSTART**, select **Start Assessment**, then **Run Assessment** on the **Assessment reports** page. If it asks which project, pick `app/ContosoUniversity`.
 3. Wait for the report. Read it: note the issues it finds for local files, MSMQ, the database, the plaintext connection string and `System.Web`, and the migration tasks it recommends.
-4. Save the report into the spike folder: export it from the report page if it offers an export, and copy the report files Copilot wrote (look under `.github/appmod`) into `docs/spikes/B06-ghcp-golden-path/assessment/run1/` (run 2: `run2/`).
+4. Save the report into the spike folder. The modernization extension writes it to `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\assessment\reports\report-<timestamp>\`, which git ignores. Copy the new report folder's files to `docs\spikes\B06-ghcp-golden-path\assessment\run1\` (run 2: `run2\`), plus `...\.github\modernize\assessment\engines\dotnet-appcat\result\report.json` as `appcat-report.json`. If the report page offers an export (HTML or Markdown), save that there too. `git add docs/spikes/B06-ghcp-golden-path/assessment` so the ignored source folder doesn't matter.
 5. Commit: `run1: step 2 assessment`.
 
 ## Step 3: C6 upgrade to .NET 10
 
 Model: planning with the most capable model (Opus- or Sol-class); execution with an efficient model at maximum reasoning effort (Luna-class).
 
-1. In Copilot Chat, pick the **Upgrade** agent in the agent picker, and the planning model.
+1. In Copilot Chat, pick the `modernize` agent in the agent picker, and the planning model.
 2. Prompt:
 
    ```text

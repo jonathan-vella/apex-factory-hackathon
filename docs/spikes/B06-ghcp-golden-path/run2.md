@@ -11,7 +11,6 @@ Filled in by the owner during run 2 of the [protocol](protocol.md). One row per 
 | VS Code | |
 | GitHub Copilot Chat | |
 | GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | |
-| GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) | |
 | C# Dev Kit | |
 | .NET SDK (`dotnet --version`) | |
 | Copilot CLI (optional section) | |
