@@ -40,7 +40,7 @@ Runbooks are specs. They say what to build, the decisions that are already made 
   - delete anything you didn't create in this item: Azure resources, files, branches or releases;
   - force-push, rewrite history or change repo settings, unless a requirement does exactly that;
   - do anything the runbook doesn't cover.
-- Never commit secrets, passwords, tokens, keys, connection strings that contain a password, tenant IDs, subscription IDs, object IDs or real public IPs. Keep local values in `.local/settings.json`, which is gitignored (format in [README.md](README.md#local-settings)). Reports use placeholders such as `<subscription-id>`.
+- Never commit secrets, passwords, tokens, keys, connection strings that contain a password, tenant IDs, subscription IDs, object IDs or real public IPs. The one exception is the datacenter's fixed, documented lab password (`labadmin` and `contosoapp`, see [README.md](README.md#secrets)): it's datacenter-only, because the datacenter has no public IPs, is reachable only through Bastion behind Entra ID and RBAC, and is a throwaway lab, never production. Keep local values in `.local/settings.json`, which is gitignored (format in [README.md](README.md#local-settings)). Reports use placeholders such as `<subscription-id>`.
 - Keep runbooks true. If the owner approves a deviation, update this item's runbook in the same PR so that a re-run works. Don't edit other runbooks. List any problems you find in them under **Follow-ups** in the PR.
 
 ## 3. Validate for real

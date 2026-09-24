@@ -9,8 +9,11 @@ legacy Contoso University, SQL Server 2022 Developer, MSMQ), vm-dev01 (Windows 1
 developer tools), a private VNet with a NAT gateway for outbound traffic and Bastion Developer.
 Nothing is reachable from the internet. The run takes up to 60 minutes and is unattended.
 
-The first run generates the labadmin and contosoapp passwords and saves them in
-$HOME/.apex-factory/<subscription-id>/datacenter.json. Re-runs reuse them and converge.
+labadmin (both VMs) and the SQL login contosoapp use the fixed, documented lab password
+FactoryLab-2026-Pw unless you pass -AdminPassword or -SqlAppPassword. The datacenter has no public IPs
+and is reachable only through Bastion, so a documented lab password is acceptable here, and only here.
+The script saves the values it deploys in $HOME/.apex-factory/<subscription-id>/datacenter.json.
+Re-runs converge an existing datacenter to those values.
 
 Azure Hybrid Benefit is on by default for vm-app01 (licenseType Windows_Server). It assumes you hold
 eligible Windows Server licences with Software Assurance or subscriptions. Use -NoHybridBenefit to
@@ -30,6 +33,10 @@ The Windows 11 Enterprise image SKU for vm-dev01.
 The git ref of this repo that the VMs download their configuration scripts from.
 .PARAMETER NoHybridBenefit
 Deploy vm-app01 without Azure Hybrid Benefit.
+.PARAMETER AdminPassword
+Overrides the lab password for labadmin on both VMs.
+.PARAMETER SqlAppPassword
+Overrides the lab password for the SQL login contosoapp.
 .EXAMPLE
 ./scripts/Deploy-Datacenter.ps1 -SubscriptionId '<workload-subscription-id>' -MemberIndex 1
 .EXAMPLE
@@ -49,7 +56,9 @@ param(
     [string] $DevImageSku = 'win11-25h2-ent',
     [ValidatePattern('^[A-Za-z0-9._/-]+$')]
     [string] $ScriptsRef = 'main',
-    [switch] $NoHybridBenefit
+    [switch] $NoHybridBenefit,
+    [securestring] $AdminPassword,
+    [securestring] $SqlAppPassword
 )
 
 $ErrorActionPreference = 'Stop'
@@ -60,6 +69,10 @@ $template = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '
 $secretsDir = Join-Path -Path $HOME -ChildPath '.apex-factory' -AdditionalChildPath $SubscriptionId
 $secretsFile = Join-Path -Path $secretsDir -ChildPath 'datacenter.json'
 $hybridBenefit = -not $NoHybridBenefit.IsPresent
+# Fixed, documented lab password: see docs/backlog/README.md, Secrets.
+$labPassword = 'FactoryLab-2026-Pw'
+$adminPasswordOverride = $AdminPassword
+$sqlAppPasswordOverride = $SqlAppPassword
 
 function Invoke-AzureCli {
     param([string[]] $Arguments)
@@ -75,43 +88,33 @@ function Invoke-AzureCli {
     }
 }
 
-function Get-RandomPassword {
-    # Letters and digits only: they survive every layer (ARM, run command parameters, connection strings).
-    $upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ'
-    $lower = 'abcdefghijkmnopqrstuvwxyz'
-    $digits = '23456789'
-    $all = $upper + $lower + $digits
-    $chars = @(
-        $upper[[System.Security.Cryptography.RandomNumberGenerator]::GetInt32($upper.Length)]
-        $lower[[System.Security.Cryptography.RandomNumberGenerator]::GetInt32($lower.Length)]
-        $digits[[System.Security.Cryptography.RandomNumberGenerator]::GetInt32($digits.Length)]
-    )
-    $chars += 1..21 | ForEach-Object { $all[[System.Security.Cryptography.RandomNumberGenerator]::GetInt32($all.Length)] }
-    return -join ($chars | Sort-Object { [System.Security.Cryptography.RandomNumberGenerator]::GetInt32([int]::MaxValue) })
+function ConvertTo-PlainText {
+    param([securestring] $Value, [string] $Default)
+    if (-not $Value) {
+        return $Default
+    }
+    return [System.Net.NetworkCredential]::new('', $Value).Password
 }
 
-function Get-DatacenterSecret {
-    if (Test-Path $secretsFile) {
-        Write-Information "Reusing the passwords in $secretsFile."
-        return Get-Content $secretsFile -Raw | ConvertFrom-Json
-    }
+function Save-DatacenterSecret {
     New-Item -ItemType Directory -Force -Path $secretsDir | Out-Null
     $secrets = [ordered]@{
         adminUsername = 'labadmin'
-        adminPassword = Get-RandomPassword
+        adminPassword = ConvertTo-PlainText -Value $adminPasswordOverride -Default $labPassword
         sqlAppLogin = 'contosoapp'
-        sqlAppPassword = Get-RandomPassword
+        sqlAppPassword = ConvertTo-PlainText -Value $sqlAppPasswordOverride -Default $labPassword
     }
     $secrets | ConvertTo-Json | Set-Content -Path $secretsFile -Encoding utf8NoBOM
     if (-not $IsWindows) {
         [System.IO.File]::SetUnixFileMode($secretsFile, [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserWrite)
     }
-    Write-Information "Generated the passwords and saved them in $secretsFile."
+    $source = if ($adminPasswordOverride -or $sqlAppPasswordOverride) { 'with your overrides' } else { 'the documented lab password' }
+    Write-Information "Credentials ($source) saved in $secretsFile."
     return [pscustomobject] $secrets
 }
 
 $null = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $SubscriptionId)
-$secrets = Get-DatacenterSecret
+$secrets = Save-DatacenterSecret
 
 $ahbText = if ($hybridBenefit) {
     'ON for vm-app01 (Windows_Server). This assumes you hold eligible Windows Server licences with Software Assurance or subscriptions. Deploy with -NoHybridBenefit if you do not.'
@@ -194,7 +197,8 @@ The datacenter is deployed ($([int] $elapsed.TotalMinutes) minutes).
 
 Connect: in the Azure portal, open $resourceGroup > vm-dev01 > Connect > Bastion, and sign in as
   labadmin. Bastion Developer allows one session at a time. VS Code extensions install at first logon.
-Passwords: $secretsFile
+Credentials: labadmin and the SQL login contosoapp use the documented lab password unless you overrode it.
+  They're saved in $secretsFile
 Test:  ./scripts/Test-Datacenter.ps1 -SubscriptionId <subscription-id> -MemberIndex $MemberIndex
 Stop when idle (you still pay for disks, about `$0.48/hour):
   az vm deallocate --subscription <subscription-id> -g $resourceGroup -n vm-app01 --no-wait

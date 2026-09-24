@@ -114,6 +114,7 @@ Both subscriptions also hold unrelated resources. Items only touch what they cre
 | Suffix | 4–6 lowercase letters and digits, unique per member |
 | Database and app login | `ContosoUniversity`, SQL login `contosoapp` (source only) |
 | VM admin | `labadmin` |
+| Datacenter lab password | `FactoryLab-2026-Pw`, for `labadmin` on the datacenter VMs and the SQL login `contosoapp`. Fixed and documented: see **Secrets** |
 
 Connection strings use the app VM's IP, `10.10.n.4`, not its name, because name resolution changes once the datacenter uses the hub's DNS.
 
@@ -139,6 +140,7 @@ Read a value with `(Get-Content .local/settings.json | ConvertFrom-Json).subscri
 ### Secrets
 
 - Scripts generate passwords; people never type them. They save them outside the repo, in `$HOME/.apex-factory/<subscription-id>/<component>.json`.
+- **Exception: the datacenter's lab credentials are fixed and documented.** `labadmin` on `vm-app01` and `vm-dev01`, and the SQL login `contosoapp`, use `FactoryLab-2026-Pw`, so attendees and coaches don't have to look anything up. This applies to the datacenter only, never to the foundation, the archetype or any Azure secret. It's safe because the datacenter has no public IPs and is reachable only through Bastion, behind Entra ID and Azure RBAC, and it's a throwaway lab that's never production. The deploy script still writes the values to `$HOME/.apex-factory/<subscription-id>/datacenter.json`.
 - Azure secrets that the workload needs go into Key Vault.
 - Pass secure Bicep parameters through a temporary parameters file in `$env:TEMP` (or `/tmp` in Cloud Shell), and delete it afterwards. Don't pass them on the command line: special characters break quoting.
 

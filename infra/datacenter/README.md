@@ -50,11 +50,13 @@ The deployment configures both VMs through run commands. Each downloads its scri
 
 | VM | Run command | Script | What it does |
 |---|---|---|---|
+| `vm-app01` | `app-00-admin-password` | `Set-LabAdminPassword.ps1` | Sets the `labadmin` password to the deployed value, so an existing VM converges (ARM sets it only at creation) |
 | `vm-app01` | `app-01-data-disk` | `Initialize-AppDataDisk.ps1` | The only raw disk becomes `F:` (GPT, NTFS, 64 KB clusters, label `SQLData`) |
 | `vm-app01` | `app-02-sql-server` | `Set-AppSqlServer.ps1` | Default data, log and backup folders `F:\SQLData`, `F:\SQLLog` and `F:\SQLBackup`; mixed-mode authentication; TCP 1433; availability groups on; trace flags `-T1800` and `-T9567`; `labadmin` and `SYSTEM` are sysadmins |
-| `vm-app01` | `app-03-database` | `New-AppDatabase.ps1` | Empty `ContosoUniversity` database on `F:`, and the SQL login `contosoapp` as its `db_owner` |
+| `vm-app01` | `app-03-database` | `New-AppDatabase.ps1` | Empty `ContosoUniversity` database on `F:`, and the SQL login `contosoapp` as its `db_owner`. Changes the login's password if it differs from the deployed value |
 | `vm-app01` | `app-04-web-features` | `Install-AppWebFeatures.ps1` | IIS with ASP.NET 4.8, and the MSMQ server feature |
 | `vm-app01` | `app-05-legacy-site` | `Install-AppLegacySite.ps1` | `ContosoUniversity-legacy.zip` from the `legacy-v1` release in `C:\inetpub\ContosoUniversity`; site and app pool `ContosoUniversity` on port 80 instead of the Default Web Site; `DefaultConnection` pointed at `10.10.n.4`; the private queue `.\Private$\ContosoUniversityNotifications`; firewall rules for TCP 80 and 1433 from `10.0.0.0/8`; a warm-up request that creates and seeds the database |
+| `vm-dev01` | `dev-00-admin-password` | `Set-LabAdminPassword.ps1` | Same as `app-00-admin-password` |
 | `vm-dev01` | `dev-01-tools` | `Install-DevTools.ps1` | `C:\src`, VS Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep, the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI |
 | `vm-dev01` | `dev-02-build-tools` | `Install-DevBuildTools.ps1` | Visual Studio Build Tools (current release) with the web build tools workload and its recommended components |
 | `vm-dev01` | `dev-03-ssms` | `Install-DevSsms.ps1` | SSMS 22 |
@@ -82,20 +84,33 @@ You need PowerShell 7.4 or later and the Azure CLI, signed in to the member's te
 | `DevImageSku` | `win11-25h2-ent` | Windows 11 Enterprise image SKU for `vm-dev01` |
 | `ScriptsRef` | `main` | Git ref the VMs download their scripts from |
 | `NoHybridBenefit` | Off | Deploy `vm-app01` without Azure Hybrid Benefit |
+| `AdminPassword` | Lab password | Secure string. Overrides the `labadmin` password on both VMs |
+| `SqlAppPassword` | Lab password | Secure string. Overrides the `contosoapp` password |
 
 The script:
 
-1. Generates the `labadmin` and `contosoapp` passwords on the first run, and saves them in `$HOME/.apex-factory/<subscription-id>/datacenter.json`. Nobody types a password. Re-runs reuse them.
+1. Saves the credentials it deploys (the lab password, or your overrides) in `$HOME/.apex-factory/<subscription-id>/datacenter.json`, with the keys `adminUsername`, `adminPassword`, `sqlAppLogin` and `sqlAppPassword`. Later items read this file.
 2. Prints what it deploys, the cost and the Hybrid Benefit setting. It doesn't check quota.
 3. Deploys `infra/datacenter/main.bicep` at subscription scope, passing the passwords in a temporary parameters file that it deletes afterwards. This takes up to 60 minutes, unattended.
 4. Sets the `vm-dev01` OS disk to performance tier P30. The VM's `osDisk` block has no tier property, so it's set on the disk. It changes without downtime.
-5. Prints how to connect, where the passwords are, and how to stop and start the VMs.
+5. Prints how to connect, where the credentials are saved, and how to stop and start the VMs.
 
-Running it again converges: nothing is replaced, and the run commands skip work that's already done.
+Running it again converges: nothing is replaced, and the run commands skip work that's already done. It also brings an existing datacenter to the deployed credentials: `labadmin` on both VMs, the `contosoapp` login and the app's `DefaultConnection`.
 
 ### Connect
 
-In the Azure portal, open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**, and sign in as `labadmin` with the password from `datacenter.json`. From `vm-dev01`, browse to `http://10.10.n.4/` for the app, and connect SSMS to `10.10.n.4` with SQL authentication as `contosoapp`.
+In the Azure portal, open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**, and sign in as `labadmin` with the lab password (see **Credentials**). From `vm-dev01`, browse to `http://10.10.n.4/` for the app, and connect SSMS to `10.10.n.4` with SQL authentication as `contosoapp`.
+
+## Credentials
+
+The datacenter uses fixed, documented lab credentials, so attendees and coaches never have to look anything up:
+
+| Account | Where | Password |
+|---|---|---|
+| `labadmin` | Local admin on `vm-app01` and `vm-dev01`, and a SQL Server sysadmin on `vm-app01` | `FactoryLab-2026-Pw` |
+| `contosoapp` | SQL login on `vm-app01`, `db_owner` of `ContosoUniversity`, used by the legacy app | `FactoryLab-2026-Pw` |
+
+This is an exception to the kit's rule that passwords are generated, and it applies to the datacenter only. It's acceptable because the datacenter has no public IPs and is reachable only through Bastion, behind Entra ID and Azure RBAC, and because it's a throwaway lab, never production. Don't reuse this password anywhere else. To use your own, pass `-AdminPassword` and `-SqlAppPassword` (secure strings) to `Deploy-Datacenter.ps1`; a re-run applies them to an existing datacenter.
 
 ## Test
 

@@ -50,7 +50,7 @@
    - Size from the `vmSize` parameter, default `Standard_D8as_v6` (AMD, 8 vCPU, 32 GiB). Changing it to a v7 size or another size must need no other change.
    - Non-zonal: no `zones` on the VMs or their disks (backlog conventions, **Availability zones**).
    - Gen2 image, **Trusted Launch** (Secure Boot and vTPM on), disk controller left to the platform default for the size (NVMe on v6 and v7).
-   - Admin user `labadmin`, with a generated password (backlog conventions, **Secrets**).
+   - Admin user `labadmin`, with the fixed, documented lab password `FactoryLab-2026-Pw` (backlog conventions, **Secrets**, datacenter exception).
    - Boot diagnostics with managed storage. No public IP. No auto-shutdown.
    - No SQL IaaS Agent extension on `vm-app01`: it conflicts with Arc onboarding in B07.
 
@@ -87,7 +87,7 @@
 11. **`vm-app01`**, in this order:
     1. Initialize the data disk as `F:` (GPT, NTFS, 64 KB allocation unit, label `SQLData`). Find it as the only raw disk, not by number: on NVMe sizes the numbering differs.
     2. SQL Server: default data, log and backup folders on `F:` (`F:\SQLData`, `F:\SQLLog`, `F:\SQLBackup`); mixed-mode authentication; TCP on port 1433; the **Always On availability groups** feature enabled; startup trace flags `-T1800` and `-T9567`; then restart the service. 🔎 VERIFY the MI link prerequisites on [Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation).
-    3. Create the empty database `ContosoUniversity` with its files on `F:`, and the SQL login `contosoapp` with the generated `sqlAppPassword`, as `db_owner` of that database.
+    3. Create the empty database `ContosoUniversity` with its files on `F:`, and the SQL login `contosoapp` with the lab password `FactoryLab-2026-Pw` (the `sqlAppPassword` parameter), as `db_owner` of that database. If the login exists with another password, change it to the parameter's value.
     4. Windows features: IIS with ASP.NET 4.8, and the MSMQ server feature.
     5. Download `ContosoUniversity-legacy.zip` from the latest `legacy-v1` release of this repo and extract it to `C:\inetpub\ContosoUniversity`. Replace the Default Web Site with a site `ContosoUniversity` on port 80, in an app pool of the same name (.NET CLR v4.0, integrated pipeline, `ApplicationPoolIdentity`).
     6. In the deployed `Web.config` only, set `DefaultConnection` to `Server=10.10.n.4;Database=ContosoUniversity;User ID=contosoapp;Password=<sqlAppPassword>;MultipleActiveResultSets=True;TrustServerCertificate=True`. Leave everything else as it is: the plain-text password and `debug="true"` are deliberate findings.
@@ -103,8 +103,8 @@
 
 ### Deploy script
 
-14. `scripts/Deploy-Datacenter.ps1` follows the attendee script conventions. Parameters: `SubscriptionId` (mandatory), `MemberIndex` (1–20, default 1), `Location` (default `swedencentral`), `VmSize` (default `Standard_D8as_v6`), `DevImageSku` (default `win11-25h2-ent`), `ScriptsRef` (default `main`) and a `NoHybridBenefit` switch.
-15. It generates `labadmin` and `contosoapp` passwords the first time and saves them in `$HOME/.apex-factory/<subscription-id>/datacenter.json`. A re-run reuses them and converges without changes.
+14. `scripts/Deploy-Datacenter.ps1` follows the attendee script conventions. Parameters: `SubscriptionId` (mandatory), `MemberIndex` (1–20, default 1), `Location` (default `swedencentral`), `VmSize` (default `Standard_D8as_v6`), `DevImageSku` (default `win11-25h2-ent`), `ScriptsRef` (default `main`), a `NoHybridBenefit` switch, and optional `AdminPassword` and `SqlAppPassword` (requirement 15).
+15. Both passwords default to the fixed lab password `FactoryLab-2026-Pw` (backlog conventions, **Secrets**, datacenter exception), with optional `AdminPassword` and `SqlAppPassword` parameters (secure strings) to override them. The script saves the values it deploys in `$HOME/.apex-factory/<subscription-id>/datacenter.json`, with the keys `adminUsername`, `adminPassword`, `sqlAppLogin` and `sqlAppPassword`, which B05 reads. A re-run converges an existing datacenter to those values, including VMs created with another password: ARM doesn't change `osProfile.adminPassword` on a provisioned VM, so a run command sets the `labadmin` password on both VMs, with the password in `protectedParameters`.
 16. Before deploying, it prints what it will deploy, the hourly cost from this runbook, and that AHB is on (or off with `-NoHybridBenefit`) and what that assumes. It doesn't check quota.
 17. After deploying, it prints: how to connect with Bastion from the portal, where the passwords are saved, how to stop and start the VMs (`az vm deallocate` / `az vm start`), and how to turn AHB off (`az vm update -g rg-datacenter -n vm-app01 --license-type None`).
 

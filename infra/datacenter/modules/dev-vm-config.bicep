@@ -10,6 +10,13 @@ param vmName string
 @description('Base URL of infra/datacenter/scripts at a git ref.')
 param scriptsBaseUrl string
 
+@description('Local admin user name.')
+param adminUsername string
+
+@description('Password of the local admin user.')
+@secure()
+param adminPassword string
+
 @description('Changes on every deployment, so Azure re-runs every run command. The scripts skip finished work.')
 param runId string
 
@@ -20,6 +27,34 @@ var runIdParameter = {
 
 resource vm 'Microsoft.Compute/virtualMachines@2025-11-01' existing = {
   name: vmName
+}
+
+// ARM sets osProfile.adminPassword only at creation, so this converges an existing VM to the deployed password.
+resource adminPasswordCommand 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
+  parent: vm
+  name: 'dev-00-admin-password'
+  location: location
+  properties: {
+    source: {
+      scriptUri: '${scriptsBaseUrl}/Set-LabAdminPassword.ps1'
+    }
+    parameters: [
+      runIdParameter
+      {
+        name: 'AdminUsername'
+        value: adminUsername
+      }
+    ]
+    protectedParameters: [
+      {
+        name: 'AdminPassword'
+        value: adminPassword
+      }
+    ]
+    asyncExecution: false
+    timeoutInSeconds: 300
+    treatFailureAsDeploymentFailure: true
+  }
 }
 
 resource tools 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
@@ -37,6 +72,9 @@ resource tools 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
     timeoutInSeconds: 3600
     treatFailureAsDeploymentFailure: true
   }
+  dependsOn: [
+    adminPasswordCommand
+  ]
 }
 
 resource buildTools 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {

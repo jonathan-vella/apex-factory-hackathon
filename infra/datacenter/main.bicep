@@ -108,6 +108,7 @@ module appConfig 'modules/app-vm-config.bicep' = {
     packageUrl: packageUrl
     adminUsername: adminUsername
     sqlAppPassword: sqlAppPassword
+    adminPassword: adminPassword
     runId: configRunId
   }
 }
@@ -119,6 +120,8 @@ module devConfig 'modules/dev-vm-config.bicep' = {
     location: location
     vmName: devVm.outputs.name
     scriptsBaseUrl: scriptsBaseUrl
+    adminUsername: adminUsername
+    adminPassword: adminPassword
     runId: configRunId
   }
 }
