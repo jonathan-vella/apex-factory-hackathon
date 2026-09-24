@@ -7,7 +7,7 @@
 | Depends on | B05, B06 |
 | Unblocks | B08, B09, B11 |
 | Effort | 2–3 days elapsed, mostly waiting for MI provisioning and seeding |
-| Cost | SQL MI free offer: no compute or storage charge within the free limits (🔎 VERIFY on [SQL MI free offer](https://learn.microsoft.com/azure/azure-sql/managed-instance/free-offer)). Arc-enabled SQL Server Developer: free. Plus the datacenter at about $1.30/hour |
+| Cost | SQL MI free offer: no compute or storage charge within the free limits (🔎 VERIFY on [SQL MI free offer](https://learn.microsoft.com/azure/azure-sql/managed-instance/free-offer)). Arc-enabled SQL Server Developer: free. Plus the datacenter at about $1.25/hour |
 | Teardown | Delete `rg-spike-b07` and **`rg-datacenter`** at the end. This item closes the datacenter chain started in B04 |
 | PRD | §5 C0, C3, C7; §6 Datacenter, Migration; §8 Arc and MI link risks |
 
@@ -54,7 +54,7 @@
 13. `docs/spikes/B07-arc-mi-link/infra/main.bicep` deploys into `rg-spike-b07`:
     - `vnet-spike-mi` `10.20.n.0/24` with `snet-sqlmi` `10.20.n.128/26`, delegated to `Microsoft.Sql/managedInstances`, with the NSG and route table MI requires;
     - peering both ways with `vnet-datacenter`;
-    - a General Purpose SQL MI on the **free offer**, named `sqlmi-university-<suffix>-b07`: 4 vCores, Standard-series hardware, 64 GB storage (🔎 VERIFY the free-offer property and limits); database format (update policy) **SQL Server 2022**; Entra-only authentication with the owner as admin; public endpoint off; time zone `W. Europe Standard Time`.
+    - a General Purpose SQL MI on the **free offer**, named `sqlmi-university-<suffix>-b07`: 4 vCores, Standard-series hardware, 64 GB storage (🔎 VERIFY the free-offer property and limits); database format (update policy) **SQL Server 2022**; Entra-only authentication with the owner as admin; public endpoint off; zone redundancy off; time zone `W. Europe Standard Time`.
 14. Try `licenseType: 'BasePrice'` on the free offer. Record whether it's accepted and whether it changes billing. B09 uses the result.
 15. Record the provisioning time.
 

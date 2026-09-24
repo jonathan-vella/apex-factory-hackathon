@@ -54,7 +54,7 @@
    | Role: shared | Owner on the shared services subscription (only if passed) |
    | Management groups | The signed-in user can create management groups and move subscriptions under Tenant Root (only if `SharedSubscriptionId` is passed). If this can't be determined reliably, report WARN with how to check |
    | Resource providers | Registered on each subscription passed: `Microsoft.Compute`, `Microsoft.Network`, `Microsoft.Storage`, `Microsoft.Sql`, `Microsoft.Web`, `Microsoft.ContainerRegistry`, `Microsoft.ServiceBus`, `Microsoft.KeyVault`, `Microsoft.ManagedIdentity`, `Microsoft.Insights`, `Microsoft.OperationalInsights`, `Microsoft.OperationsManagement`, `Microsoft.HybridCompute`, `Microsoft.GuestConfiguration`, `Microsoft.AzureArcData`, `Microsoft.PolicyInsights`, `Microsoft.Security`, `Microsoft.Management`. With `-Fix`, register the missing ones and wait until they're registered |
-   | VM size | `Standard_D8as_v6` is offered in `Location` for the workload subscription without restrictions. WARN, not FAIL, if restricted: the size is a parameter |
+   | VM size | `Standard_D8as_v6` is offered in `Location` for the workload subscription without a restriction of type `Location`. Restrictions of type `Zone` pass, with a note that the size is available non-zonally: the kit's VMs are non-zonal (backlog conventions, **Availability zones**). WARN, not FAIL, if restricted: the size is a parameter |
    | Region | `Location` exists and offers SQL Managed Instance |
 
    Don't check quota: that's a deliberate decision (PRD §2 Regions).
@@ -115,12 +115,12 @@ feat: add the preflight script
 
 - The owner doesn't have Owner on both subscriptions, or can't manage management groups.
 - A resource provider won't register.
-- `Standard_D8as_v6` is restricted in `swedencentral` for the workload subscription: B04 needs it.
+- `Standard_D8as_v6` has a restriction of type `Location` in `swedencentral` for the workload subscription: B04 needs it. A `Zone` restriction alone isn't a reason to stop.
 
 ## Notes and traps
 
 - **Role checks:** `az role assignment list --assignee` misses roles inherited from groups and management groups. Use `--include-inherited --include-groups`, or check the effective permissions another reliable way.
 - **CSP subscriptions:** in a new CSP customer tenant, tenant users often have no role on new subscriptions until the partner (AOBO or GDAP) or a Global Admin who elevates access grants one. The Role FAIL message should say so.
 - **Provider registration** can take several minutes. Poll with a timeout rather than failing on the first "Registering" state.
-- **SKU restrictions:** `az vm list-skus --location <region> --size Standard_D8as_v6` lists restrictions per subscription. An empty restrictions list means available.
+- **SKU restrictions:** `az vm list-skus --location <region> --size Standard_D8as_v6` lists restrictions per subscription. The size is available to the kit if there's no restriction of type `Location`. A `Zone` restriction only blocks zonal deployments, which the kit doesn't use.
 - **Roles at an event:** the platform lead deploys ALZ-lite and runs vending for every member, so only they pass `SharedSubscriptionId`. Members pass only their workload subscription.

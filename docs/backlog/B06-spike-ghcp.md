@@ -7,7 +7,7 @@
 | Depends on | B04 |
 | Unblocks | B07, B09, B10 |
 | Effort | 2–3 days elapsed, including two owner-driven runs of about 3–4 hours each |
-| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.30/hour |
+| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.25/hour |
 | Teardown | Delete `rg-spike-b06` and `snet-pe-spike` at the end. **Keep** `rg-datacenter` for B07 |
 | PRD | §5 C3, C6; §6 App modernization; §8 GHCP risk |
 
@@ -31,9 +31,9 @@
 
    | Resource | Name | Settings |
    |---|---|---|
-   | Storage account | `stuni<suffix>b06` | Blob container `teaching-materials`; public network access off; shared key access off |
-   | Service Bus namespace | `sbns-uni-<suffix>-b06` | Premium, 1 messaging unit; queue `notifications`; public network access off; local (SAS) auth off |
-   | Container registry | `cruni<suffix>b06` | Premium; public network access off; admin user off |
+   | Storage account | `stuni<suffix>b06` | LRS; Blob container `teaching-materials`; public network access off; shared key access off |
+   | Service Bus namespace | `sbns-uni-<suffix>-b06` | Premium, 1 messaging unit; queue `notifications`; public network access off; local (SAS) auth off; no zone setting (zone-redundant automatically, backlog conventions) |
+   | Container registry | `cruni<suffix>b06` | Premium; public network access off; admin user off; no zone setting (zone-redundant automatically, backlog conventions) |
    | Key Vault | `kv-uni-<suffix>-b06` | RBAC authorization; public network access off; soft delete on, purge protection off (so teardown can purge) |
 
 2. Private endpoints for all four, in a new subnet `snet-pe-spike` (`10.10.n.128/27`) of `vnet-datacenter`, with the private DNS zones `privatelink.blob.core.windows.net`, `privatelink.servicebus.windows.net`, `privatelink.azurecr.io` and `privatelink.vaultcore.azure.net` in `rg-spike-b06`, linked to `vnet-datacenter`.
@@ -43,7 +43,7 @@
 ### Protocol for the owner
 
 5. `docs/spikes/B06-ghcp-golden-path/protocol.md` is the step list the owner follows on `vm-dev01`, written for someone who hasn't used the app modernization extension before:
-   1. Sign in to GitHub and Azure; clone this repo to `F:\src`; check out this item's working branch at the commit named in the protocol, and create the branch `spike/b06-run1` from it (run 2: `spike/b06-run2`, from the refined protocol's commit). `app/ContosoUniversity` must be unchanged from `main` at that commit.
+   1. Sign in to GitHub and Azure; clone this repo to `C:\src`; check out this item's working branch at the commit named in the protocol, and create the branch `spike/b06-run1` from it (run 2: `spike/b06-run2`, from the refined protocol's commit). `app/ContosoUniversity` must be unchanged from `main` at that commit.
    2. **C3 assess:** run the GitHub Copilot app modernization assessment on `app/ContosoUniversity` in VS Code agent mode. Save the report to the spike folder.
    3. **C6 upgrade:** plan and run the upgrade to .NET 10 and ASP.NET Core.
    4. **C6 predefined tasks,** in this order: database with managed identity (configured so the dev VM still uses SQL authentication to `10.10.n.4`, and managed identity is used only when configured), uploads to Blob, MSMQ to Service Bus, secrets to Key Vault. Blob, Service Bus and Key Vault use Entra auth with `DefaultAzureCredential`.
