@@ -152,7 +152,7 @@ To turn it back on, use `--license-type Windows_Server`. Leave `vm-dev01` on `Wi
 
 ## Known traps
 
-- **Run the whole thing again if it fails.** Every step converges, so re-running `Deploy-Datacenter.ps1` after a transient failure (a download timeout, for example) picks up where it failed. Look in `C:\LabTools\logs` on the VM for the failing step.
+- **Run the whole thing again if it fails.** Every step converges, so re-running `Deploy-Datacenter.ps1` after a transient failure (a download timeout, for example) picks up where it failed. Each deployment passes a new `RunId` to the run commands, because Azure doesn't re-run a run command that hasn't changed. Look in `C:\LabTools\logs` on the VM for the failing step.
 - **Quota.** The script doesn't check quota. If the deployment fails for lack of D-family vCPUs, request more quota, or pick another size or region with `-VmSize` and `-Location`.
 - **No default outbound access.** All outbound traffic goes through `nat-datacenter`. Without it, the downloads in the run commands fail.
 - **NVMe disks.** v6 and v7 sizes are NVMe-only, so disk numbers inside Windows don't match LUNs. The data disk script finds the data disk as the only raw disk.

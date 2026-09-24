@@ -7,11 +7,15 @@ Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM. Creates C:\src, the
 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI from the vendors' official download
 locations. Tools that are already installed are skipped. Build Tools and SSMS have their own scripts.
 Exit code 3010 (restart required) is logged and ignored: the lab doesn't need a restart.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\Install-DevTools.ps1
 #>
 [CmdletBinding()]
-param()
+param(
+    [string] $RunId = ''
+)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -76,6 +80,7 @@ function Add-MachinePath {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     New-Item -ItemType Directory -Force -Path 'C:\src', $downloadDir | Out-Null
 
     if (-not (Test-Path 'C:\Program Files\Microsoft VS Code\Code.exe')) {

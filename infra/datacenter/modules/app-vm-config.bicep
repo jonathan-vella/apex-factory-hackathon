@@ -22,6 +22,14 @@ param adminUsername string
 @secure()
 param sqlAppPassword string
 
+@description('Changes on every deployment, so Azure re-runs every run command. The scripts skip finished work.')
+param runId string
+
+var runIdParameter = {
+  name: 'RunId'
+  value: runId
+}
+
 resource vm 'Microsoft.Compute/virtualMachines@2025-11-01' existing = {
   name: vmName
 }
@@ -34,6 +42,9 @@ resource dataDisk 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
     source: {
       scriptUri: '${scriptsBaseUrl}/Initialize-AppDataDisk.ps1'
     }
+    parameters: [
+      runIdParameter
+    ]
     asyncExecution: false
     timeoutInSeconds: 900
     treatFailureAsDeploymentFailure: true
@@ -49,6 +60,7 @@ resource sqlServer 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = 
       scriptUri: '${scriptsBaseUrl}/Set-AppSqlServer.ps1'
     }
     parameters: [
+      runIdParameter
       {
         name: 'AdminUsername'
         value: adminUsername
@@ -71,6 +83,9 @@ resource database 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
     source: {
       scriptUri: '${scriptsBaseUrl}/New-AppDatabase.ps1'
     }
+    parameters: [
+      runIdParameter
+    ]
     protectedParameters: [
       {
         name: 'SqlAppPassword'
@@ -94,6 +109,9 @@ resource webFeatures 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' 
     source: {
       scriptUri: '${scriptsBaseUrl}/Install-AppWebFeatures.ps1'
     }
+    parameters: [
+      runIdParameter
+    ]
     asyncExecution: false
     timeoutInSeconds: 1800
     treatFailureAsDeploymentFailure: true
@@ -112,6 +130,7 @@ resource legacySite 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' =
       scriptUri: '${scriptsBaseUrl}/Install-AppLegacySite.ps1'
     }
     parameters: [
+      runIdParameter
       {
         name: 'AppVmIp'
         value: appVmIp

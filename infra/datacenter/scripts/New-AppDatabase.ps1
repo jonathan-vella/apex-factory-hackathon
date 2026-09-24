@@ -7,6 +7,8 @@ creates the schema and seeds the data on its first request. Re-runs change nothi
 password differs.
 .PARAMETER SqlAppPassword
 Password of the contosoapp login, passed as a protected run command parameter.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\New-AppDatabase.ps1 -SqlAppPassword '<generated-password>'
 #>
@@ -15,7 +17,8 @@ Password of the contosoapp login, passed as a protected run command parameter.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string] $SqlAppPassword
+    [string] $SqlAppPassword,
+    [string] $RunId = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -57,6 +60,7 @@ function Invoke-Sql {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     $escapedPassword = $SqlAppPassword.Replace("'", "''")
 
     $result = Invoke-Sql -Query @"

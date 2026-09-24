@@ -5,11 +5,15 @@ Installs SQL Server Management Studio 22 on vm-dev01.
 Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM, after Build Tools: both use the Visual
 Studio installer, which runs one install at a time. Skipped if SSMS 22 is already installed.
 Exit code 3010 (restart required) is logged and ignored.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\Install-DevSsms.ps1
 #>
 [CmdletBinding()]
-param()
+param(
+    [string] $RunId = ''
+)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -46,6 +50,7 @@ function Wait-VsInstaller {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
     Wait-VsInstaller
     if (Get-SsmsPath) {

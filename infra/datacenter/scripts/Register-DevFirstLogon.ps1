@@ -8,13 +8,16 @@ LabTools-VSCodeExtensions, which runs it as the signed-in user at each logon. Re
 script and the task.
 .PARAMETER ScriptsBaseUrl
 Base URL of infra/datacenter/scripts at a git ref.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\Register-DevFirstLogon.ps1 -ScriptsBaseUrl 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/infra/datacenter/scripts'
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string] $ScriptsBaseUrl
+    [string] $ScriptsBaseUrl,
+    [string] $RunId = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,6 +38,7 @@ function Write-LabLog {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     New-Item -ItemType Directory -Force -Path $scriptDir | Out-Null
     $script = Join-Path $scriptDir 'Install-DevVSCodeExtensions.ps1'
     Invoke-WebRequest -Uri "$ScriptsBaseUrl/Install-DevVSCodeExtensions.ps1" -OutFile $script -UseBasicParsing

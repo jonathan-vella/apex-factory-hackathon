@@ -9,13 +9,16 @@ local admin user sysadmins, so later run commands and the admin can manage the i
 There's no SQL IaaS Agent extension: it conflicts with Arc onboarding.
 .PARAMETER AdminUsername
 The local admin user to make a sysadmin.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\Set-AppSqlServer.ps1 -AdminUsername labadmin
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [string] $AdminUsername
+    [string] $AdminUsername,
+    [string] $RunId = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -111,6 +114,7 @@ function Invoke-SqlRestart {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     for ($i = 1; -not (Get-Service -Name $serviceName -ErrorAction SilentlyContinue); $i++) {
         if ($i -gt 60) {
             throw "Service $serviceName not found after 10 minutes."

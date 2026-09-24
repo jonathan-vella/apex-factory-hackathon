@@ -10,6 +10,14 @@ param vmName string
 @description('Base URL of infra/datacenter/scripts at a git ref.')
 param scriptsBaseUrl string
 
+@description('Changes on every deployment, so Azure re-runs every run command. The scripts skip finished work.')
+param runId string
+
+var runIdParameter = {
+  name: 'RunId'
+  value: runId
+}
+
 resource vm 'Microsoft.Compute/virtualMachines@2025-11-01' existing = {
   name: vmName
 }
@@ -22,6 +30,9 @@ resource tools 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
     source: {
       scriptUri: '${scriptsBaseUrl}/Install-DevTools.ps1'
     }
+    parameters: [
+      runIdParameter
+    ]
     asyncExecution: false
     timeoutInSeconds: 3600
     treatFailureAsDeploymentFailure: true
@@ -36,6 +47,9 @@ resource buildTools 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' =
     source: {
       scriptUri: '${scriptsBaseUrl}/Install-DevBuildTools.ps1'
     }
+    parameters: [
+      runIdParameter
+    ]
     asyncExecution: false
     timeoutInSeconds: 3600
     treatFailureAsDeploymentFailure: true
@@ -53,6 +67,9 @@ resource ssms 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
     source: {
       scriptUri: '${scriptsBaseUrl}/Install-DevSsms.ps1'
     }
+    parameters: [
+      runIdParameter
+    ]
     asyncExecution: false
     timeoutInSeconds: 3600
     treatFailureAsDeploymentFailure: true
@@ -71,6 +88,7 @@ resource firstLogon 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' =
       scriptUri: '${scriptsBaseUrl}/Register-DevFirstLogon.ps1'
     }
     parameters: [
+      runIdParameter
       {
         name: 'ScriptsBaseUrl'
         value: scriptsBaseUrl
@@ -93,6 +111,9 @@ resource versions 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
     source: {
       scriptUri: '${scriptsBaseUrl}/Write-DevVersions.ps1'
     }
+    parameters: [
+      runIdParameter
+    ]
     asyncExecution: false
     timeoutInSeconds: 600
     treatFailureAsDeploymentFailure: true

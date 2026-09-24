@@ -30,6 +30,9 @@ param sqlAppPassword string
 @description('Base URL of infra/datacenter/scripts at a git ref, as raw files.')
 param scriptsBaseUrl string = 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/infra/datacenter/scripts'
 
+@description('Passed to every run command. A new value makes Azure re-run them all, which a re-deploy needs to converge.')
+param configRunId string = utcNow()
+
 var adminUsername = 'labadmin'
 var appVmName = 'vm-app01'
 var devVmName = 'vm-dev01'
@@ -105,6 +108,7 @@ module appConfig 'modules/app-vm-config.bicep' = {
     packageUrl: packageUrl
     adminUsername: adminUsername
     sqlAppPassword: sqlAppPassword
+    runId: configRunId
   }
 }
 
@@ -115,6 +119,7 @@ module devConfig 'modules/dev-vm-config.bicep' = {
     location: location
     vmName: devVm.outputs.name
     scriptsBaseUrl: scriptsBaseUrl
+    runId: configRunId
   }
 }
 

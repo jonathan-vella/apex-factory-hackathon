@@ -15,6 +15,8 @@ Private IP of vm-app01, used in the connection string.
 Download URL of ContosoUniversity-legacy.zip.
 .PARAMETER SqlAppPassword
 Password of the contosoapp login, passed as a protected run command parameter.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\Install-AppLegacySite.ps1 -AppVmIp 10.10.1.4 -PackageUrl 'https://github.com/jonathan-vella/apex-factory-hackathon/releases/download/legacy-v1/ContosoUniversity-legacy.zip' -SqlAppPassword '<generated-password>'
 #>
@@ -27,7 +29,8 @@ param(
     [Parameter(Mandatory)]
     [string] $PackageUrl,
     [Parameter(Mandatory)]
-    [string] $SqlAppPassword
+    [string] $SqlAppPassword,
+    [string] $RunId = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -51,6 +54,7 @@ function Write-LabLog {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     New-Item -ItemType Directory -Force -Path $downloadDir, $stateDir | Out-Null
 
     # 1. Package: extract only when it's new or changed, so a re-run leaves the site alone.

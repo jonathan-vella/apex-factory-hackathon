@@ -4,11 +4,15 @@ Installs IIS with ASP.NET 4.8 and the MSMQ server feature on vm-app01.
 .DESCRIPTION
 Runs as a VM run command (Windows PowerShell 5.1). Features that are already installed are skipped.
 If Windows asks for a restart, the script logs it and carries on: the lab doesn't need one.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\Install-AppWebFeatures.ps1
 #>
 [CmdletBinding()]
-param()
+param(
+    [string] $RunId = ''
+)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -27,6 +31,7 @@ function Write-LabLog {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     $missing = @(Get-WindowsFeature -Name $features | Where-Object { -not $_.Installed } | ForEach-Object Name)
     if ($missing.Count -eq 0) {
         Write-LabLog "Already installed: $($features -join ', ')."

@@ -4,11 +4,15 @@ Initializes the vm-app01 data disk as F: (GPT, NTFS, 64 KB clusters, label SQLDa
 .DESCRIPTION
 Runs as a VM run command (Windows PowerShell 5.1). Finds the data disk as the only raw disk,
 because NVMe sizes number disks differently from their LUNs. Does nothing if F: is already SQLData.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\Initialize-AppDataDisk.ps1
 #>
 [CmdletBinding()]
-param()
+param(
+    [string] $RunId = ''
+)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -26,6 +30,7 @@ function Write-LabLog {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     $volume = Get-Volume -DriveLetter F -ErrorAction SilentlyContinue
     if ($volume) {
         if ($volume.FileSystemLabel -ne 'SQLData') {

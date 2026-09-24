@@ -4,11 +4,15 @@ Writes the installed developer tool versions on vm-dev01 to C:\LabTools\versions
 .DESCRIPTION
 Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM, after the installs. Also prints the
 versions, so they show in the run command output.
+.PARAMETER RunId
+The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
 .EXAMPLE
 .\Write-DevVersions.ps1
 #>
 [CmdletBinding()]
-param()
+param(
+    [string] $RunId = ''
+)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -44,6 +48,7 @@ function Get-NativeOutput {
 }
 
 try {
+    Write-LabLog "Run ID: $RunId"
     # The run command inherits the agent's PATH from boot, so read the current machine PATH.
     $env:Path = [Environment]::GetEnvironmentVariable('Path', 'Machine')
 
