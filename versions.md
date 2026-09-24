@@ -8,3 +8,4 @@ This manifest records the versions and source commit used by the kit. Tooling ve
 | Astro | `^7.3.2` | `site/package.json` | 2026-09-24 |
 | Starlight | `^0.42.1` | `site/package.json` | 2026-09-24 |
 | APEX microhack tooling source | `f95c470` | Repository tooling and site scaffold | 2026-09-24 |
+| PSScriptAnalyzer | 1.25.0 | `scripts/Test-Preflight.ps1` | 2026-09-24 |
