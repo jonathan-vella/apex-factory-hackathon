@@ -80,6 +80,31 @@ jobs:
             Copy-Item -LiteralPath (Join-Path $bootstrap $css) -Destination (Join-Path $stage "Content/$css")
           }
 
+          # packages.config lists these, but the upstream csproj doesn't reference them, so the build never copies them to bin.
+          # Unsafe comes from 4.7.1 (assembly 4.0.6.0), the version Web.config redirects to. packages.config pins 4.5.3 (4.0.4.1).
+          $extra = Join-Path $env:RUNNER_TEMP 'extra-packages'
+          nuget install System.Runtime.CompilerServices.Unsafe -Version 4.7.1 -OutputDirectory $extra -NonInteractive
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+
+          [xml]$packagesConfig = Get-Content -Raw -LiteralPath (Join-Path $source 'packages.config')
+          $libs = [ordered]@{}
+          foreach ($id in 'Microsoft.Bcl.HashCode', 'System.Buffers', 'System.Memory', 'System.Numerics.Vectors') {
+            $version = ($packagesConfig.packages.package | Where-Object id -eq $id).version
+            $libs[$id] = Join-Path $source "packages/$id.$version/lib"
+          }
+          $libs['System.Runtime.CompilerServices.Unsafe'] = Join-Path $extra 'System.Runtime.CompilerServices.Unsafe.4.7.1/lib'
+
+          foreach ($id in $libs.Keys) {
+            $lib = $libs[$id]
+            $dll = 'net461', 'net46', 'netstandard2.0' | ForEach-Object { Join-Path $lib "$_/$id.dll" } |
+              Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+            if (-not $dll) {
+              "::error::No .NET Framework build of $id under $lib"
+              exit 1
+            }
+            Copy-Item -LiteralPath $dll -Destination (Join-Path $stage 'bin')
+          }
+
           [IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip)
           "ZIP_PATH=$zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
@@ -93,7 +118,9 @@ jobs:
           }
 
           $required = 'Web.config', 'Global.asax', 'Views/Web.config', 'Views/Home/Index.cshtml',
-            'bin/ContosoUniversity.dll', 'Content/bootstrap.css', 'Content/Site.css'
+            'bin/ContosoUniversity.dll', 'Content/bootstrap.css', 'Content/Site.css',
+            'bin/Microsoft.Bcl.HashCode.dll', 'bin/System.Buffers.dll', 'bin/System.Memory.dll',
+            'bin/System.Numerics.Vectors.dll', 'bin/System.Runtime.CompilerServices.Unsafe.dll'
           $missing = @($required | Where-Object { $entries -cnotcontains $_ })
           $notAllowed = @($entries | Where-Object { $_ -match '\.(cs|csproj|sln)$' })
 
