@@ -7,7 +7,7 @@
 | Depends on | B02, B07 |
 | Unblocks | B09, B11 |
 | Effort | 2–3 days |
-| Cost | About $2.60/hour while deployed: Azure Firewall Standard about $1.25/hour plus its public IP, Log Analytics at low volume, and the datacenter (redeployed for testing) at about $1.30/hour |
+| Cost | About $2.55/hour while deployed: Azure Firewall Standard about $1.25/hour plus its public IP, Log Analytics at low volume, and the datacenter (redeployed for testing) at about $1.25/hour |
 | Teardown | Delete everything this item created: `rg-hub` and `rg-management` in the shared subscription; `rg-spoke` and `rg-datacenter` in the workload subscription; the policy assignments, exemptions, role assignments and budget. Move both subscriptions back under Tenant Root, then delete the kit's management groups |
 | PRD | §2 Tenancy, Foundation, Kit build; §4; §5 C2; §6 Foundation |
 
@@ -49,7 +49,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    |---|---|---|---|
    | `rg-management` | Log Analytics workspace | `log-management` | 30-day retention |
    | `rg-hub` | VNet | `vnet-hub` | `10.100.0.0/16`, with `AzureFirewallSubnet` `10.100.0.0/26` |
-   | `rg-hub` | Azure Firewall | `afw-hub` | Standard, public IP `pip-afw-hub`, firewall policy `afwp-hub` with **DNS proxy on**, diagnostics to `log-management` |
+   | `rg-hub` | Azure Firewall | `afw-hub` | Standard, no zones, public IP `pip-afw-hub` (Standard, no `zones` set: zone-redundant automatically), firewall policy `afwp-hub` with **DNS proxy on**, diagnostics to `log-management` |
    | `rg-hub` | Private DNS zones | The `privatelink` zones for Blob, Service Bus, ACR, Key Vault and App Service | Linked to `vnet-hub` |
 
    🔎 VERIFY the zone names on [Azure private endpoint DNS zone values](https://learn.microsoft.com/azure/private-link/private-endpoint-dns). There's no zone for SQL MI: clients use its VNet-local endpoint, which Azure DNS resolves to its private IP (see **Notes and traps**).

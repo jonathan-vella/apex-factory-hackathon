@@ -68,7 +68,7 @@
 7. Getting Started: how the event runs (two days plus pre-work, T-14 and T-3 gates), teams and roles (platform lead, members, coach), what attendees need (the preflight's manual checks), and the pre-work page that points to C0.
 8. Guides: GitHub Copilot app modernization on the dev VM (including the Copilot CLI alternative), APEX for this kit, Azure Arc and MI link, and ALZ-lite.
 9. The **ALZ-lite** guide explains the two-subscription model (one shared services subscription per team, one workload subscription per member), the management groups, what the platform lead needs (rights at Tenant Root to create management groups and move subscriptions), the fixed values (region `swedencentral`, fallback `germanywestcentral`; hub `10.100.0.0/16`; Azure Firewall Standard with DNS proxy; Defender for Cloud on Foundational CSPM only, free, with paid plans noted as an AI-readiness gap for C10), and how it compares with the full portal ALZ the coach demos.
-10. Reference: naming and IP plan (from the backlog conventions), Azure Hybrid Benefit (every resource, what's on, how to turn it off), cost per member and per team (running and stopped), glossary, and troubleshooting from the B04–B10 traps that affect attendees.
+10. Reference: naming and IP plan (from the backlog conventions), Azure Hybrid Benefit (every resource, what's on, how to turn it off), availability zones (nothing pinned or turned on; which services are zone-redundant automatically), cost per member and per team (running and stopped), glossary, and troubleshooting from the B04–B10 traps that affect attendees.
 
 ### Templates
 

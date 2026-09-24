@@ -2,7 +2,7 @@
 
 > **Modernize today. Enable AI tomorrow.** A repeatable framework that helps partners build, validate and scale Azure modernization practices, using existing skills, reusable assets and AI-assisted assessments.
 
-**Status:** draft (pre-v1) · **Owner:** [@jonathan-vella](https://github.com/jonathan-vella) · **Last updated:** 2026-09-23 · **Delivery:** [roadmap](roadmap.md) and [backlog](https://github.com/jonathan-vella/apex-factory-hackathon/issues)
+**Status:** draft (pre-v1) · **Owner:** [@jonathan-vella](https://github.com/jonathan-vella) · **Last updated:** 2026-09-24 · **Delivery:** [roadmap](roadmap.md) and [backlog](https://github.com/jonathan-vella/apex-factory-hackathon/issues)
 
 ## 1. Problem and approach
 
@@ -27,6 +27,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | IaC | Bicep only |
 | Foundation | **ALZ-lite** Bicep only: a small management group hierarchy, the hub and central services in the shared services sub, and core policies at the Corp management group. "Vending" means placing each pre-created workload sub under Corp and applying spoke, peering, firewall rules, RBAC and budget. Full portal ALZ is a live coach demo, with no kit scripts |
 | Datacenter | Two VMs: one app server (IIS and SQL Server 2022 Developer) and one dev VM. Each member deploys it into their own workload sub by T-3. It connects to the hub via **VNet peering** (simulated ExpressRoute) |
+| Availability zones | Never pinned, never turned on. VMs, disks, the NAT gateway and the firewall have no zone; zone redundancy is off wherever it's optional (SQL MI, App Service), and storage is LRS. Services that are zone-redundant automatically at no extra cost and can't opt out (ACR, Service Bus, Standard public IPs) are accepted |
 | Dev environment | Windows 11 Enterprise dev VM per member, inside the datacenter. APEX runs in Codespaces or Docker |
 | App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, log4net). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a GHCP predefined task. WebForms/WCF later |
 | Messaging | MSMQ → Service Bus Premium (1 MU) with a private endpoint, deployed by the archetype |
@@ -105,7 +106,7 @@ flowchart LR
 ## 6. Key technical design
 
 - **Datacenter (pre-work Bicep):** two AMD VMs, a NAT gateway (no default outbound access), Bastion Developer (free, one VM at a time, available in swedencentral) and an NSG.
-  - **Sizing:** both VMs are `Standard_D8as_v6` by default (a `vmSize` parameter, so v7 or another size is a one-line change). Gen2, Trusted Launch and the NVMe disk controller. Premium SSD OS disk plus one P30 data disk each. No auto-shutdown: teams stop the VMs when idle.
+  - **Sizing:** both VMs are `Standard_D8as_v6` by default (a `vmSize` parameter, so v7 or another size is a one-line change). Non-zonal. Gen2, Trusted Launch and the NVMe disk controller. No public IPs. Disks: the app VM has a Premium SSD OS disk plus one P30 data disk; the dev VM has only a Premium SSD OS disk, at the image's default size and performance tier P30. No auto-shutdown: teams stop the VMs when idle.
   - **App VM (`vm-app01`):** Windows Server 2022 with SQL Server 2022 Developer, from the SQL marketplace image. It plays both on-premises servers:
     - **SQL Server:** data and logs on the data disk. Arc-enabled using the Jumpstart pattern for Azure VMs, without the SQL IaaS Agent. The AG feature and MI link trace flags are pre-set. The ContosoUniversity DB is seeded with volume and planted performance issues (B05).
     - **IIS:** runs the legacy Contoso University build with a SQL-auth secret in Web.config, as a deliberate finding. The MSMQ feature is installed and the private queue is pre-created with rights for the app pool identity, because the app won't start without it.

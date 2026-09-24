@@ -7,7 +7,7 @@
 | Depends on | B06, B07, B08 |
 | Unblocks | B10, B11 |
 | Effort | 3–4 days elapsed, including the owner's APEX session |
-| Cost | About $3.70/hour while deployed: Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints about $0.05, ALZ-lite about $1.25 and the datacenter about $1.30. The SQL MI free offer is free within its limits |
+| Cost | About $3.65/hour while deployed: Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints about $0.05, ALZ-lite about $1.25 and the datacenter about $1.25. The SQL MI free offer is free within its limits |
 | Teardown | Delete everything this item created: the archetype resources, `rg-spoke` and `rg-datacenter` in the workload subscription, `rg-hub` and `rg-management` in the shared services subscription, the policy assignments and budget, and the kit's management groups after moving both subscriptions back to their original place |
 | PRD | §2 Archetype, Compute, Messaging, Hybrid Benefit; §5 C5; §6 CoE archetype |
 
@@ -33,10 +33,10 @@
    | Service | Requirements |
    |---|---|
    | App Service plan and web app | Linux, container, SKU P0v3, one instance, zone redundancy off (🔎 VERIFY P0v3 supports VNet integration and private endpoints); VNet integration in `snet-app` with all traffic routed through the VNet and image pull over the VNet; private endpoint in `snet-pe`; public network access off; HTTPS only; TLS 1.2 minimum |
-   | Container registry | Premium; private endpoint; public network access off; admin user off; **trusted Azure services allowed**, so `az acr import` of the known-good image works (B10). Document this as a deliberate exception |
-   | SQL Managed Instance | General Purpose, **free offer**, 4 vCores, Standard-series hardware, 64 GB storage; in `snet-sqlmi`; reached on its VNet-local endpoint (no private endpoint); database format SQL Server 2022; Entra-only authentication with the deploying user as admin; public endpoint off; a stop and start schedule for the event hours, noting it only applies after cutover; `licenseType` as the B07 report found (AHB `BasePrice` if the free offer accepts it) |
+   | Container registry | Premium; private endpoint; public network access off; admin user off; no zone setting (zone-redundant automatically, backlog conventions); **trusted Azure services allowed**, so `az acr import` of the known-good image works (B10). Document this as a deliberate exception |
+   | SQL Managed Instance | General Purpose, **free offer**, 4 vCores, Standard-series hardware, 64 GB storage, zone redundancy off; in `snet-sqlmi`; reached on its VNet-local endpoint (no private endpoint); database format SQL Server 2022; Entra-only authentication with the deploying user as admin; public endpoint off; a stop and start schedule for the event hours, noting it only applies after cutover; `licenseType` as the B07 report found (AHB `BasePrice` if the free offer accepts it) |
    | Storage account | Standard general-purpose v2, LRS; Blob container `teaching-materials`; private endpoint; public network access off; shared key access off |
-   | Service Bus | Premium, 1 messaging unit; queue `notifications`; private endpoint; public network access off; local auth off |
+   | Service Bus | Premium, 1 messaging unit; queue `notifications`; private endpoint; public network access off; local auth off; no zone setting (zone-redundant automatically, backlog conventions) |
    | Key Vault | RBAC authorization; private endpoint; public network access off; soft delete on, purge protection off |
    | Application Insights | Workspace-based, on the central Log Analytics workspace. Ingestion stays public: the documented private-only exception (backlog conventions) |
    | Managed identity | One user-assigned identity for the web app, so roles exist before the first image pull |
@@ -45,7 +45,7 @@
 4. App settings the modernized app reads, named as the B06 report recommends: the Blob endpoint, the Service Bus namespace and queue, the Key Vault URI, the SQL MI host and database for managed identity, the identity's client ID and the Application Insights connection string. No secrets in app settings.
 5. **Inputs:** only tenant ID, subscription ID and suffix. Everything else is derived or discovered: the hub (in the team's shared services subscription) from `vnet-spoke`'s peering, the region from the hub, the spoke and subnets by the backlog naming conventions, the Log Analytics workspace by its ALZ-lite name in the shared services subscription, and the MI Entra admin from the signed-in user. Resource names follow the conventions: CAF abbreviation + `university` + suffix.
 6. **Private DNS:** the archetype doesn't create DNS zones or zone groups. The landing zone's DeployIfNotExists policy registers private endpoints in the central zones (ALZ-lite, B08), which live in the shared services subscription. SQL MI has no private endpoint: the app uses its VNet-local host name, which resolves to its private IP.
-7. **Constraints** (APEX security baseline): no public endpoints apart from the two documented exceptions (Application Insights ingestion, and ACR trusted services for import), diagnostics to the central workspace, managed identity everywhere, Entra-only SQL, and every deny policy in ALZ-lite passes.
+7. **Constraints** (APEX security baseline): no public endpoints apart from the two documented exceptions (Application Insights ingestion, and ACR trusted services for import), diagnostics to the central workspace, managed identity everywhere, Entra-only SQL, no availability zones pinned and no zone redundancy turned on (backlog conventions), and every deny policy in ALZ-lite passes.
 8. **Initial image:** the web app starts with a placeholder image from Microsoft Container Registry, which vending's firewall rules allow (B08), until the member pushes the real image in C6.
 
 ### APEX session

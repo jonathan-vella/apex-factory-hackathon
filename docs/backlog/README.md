@@ -157,6 +157,19 @@ Every resource that supports Azure Hybrid Benefit (AHB) or a bring-your-own-lice
 
 Every script or page that deploys one of these says that AHB is on, what it assumes (the partner holds eligible licences) and how to turn it off after deployment, for example `az vm update -g rg-datacenter -n vm-app01 --license-type None`.
 
+### Availability zones: never pinned, never turned on
+
+The kit never pins a resource to an availability zone and never turns zone redundancy on. Don't set `zones` on any resource, and leave zone redundancy off wherever it's optional:
+
+| Resource | Setting |
+|---|---|
+| VMs and their disks, NAT gateway, Azure Firewall | No zone |
+| SQL Managed Instance, App Service plan | Zone redundancy off |
+| Storage accounts | LRS |
+| Azure Container Registry, Service Bus, Standard public IPs | Zone-redundant automatically in regions with zones, at no extra cost, and it can't be turned off. Accepted: don't set `zones` on them |
+
+Other services that are zone-redundant automatically are accepted the same way. Every runbook that deploys one of these resources states its zone setting. Zone-only SKU restrictions don't block the kit's VMs, because they're non-zonal.
+
 ### Cost and teardown
 
 - Each runbook's field table states the hourly cost of what it deploys, at list price with AHB on.

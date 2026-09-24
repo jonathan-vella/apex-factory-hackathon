@@ -7,7 +7,7 @@
 | Depends on | B02, B03 |
 | Unblocks | B05, B06 |
 | Effort | 1–2 days |
-| Cost | About $1.30/hour while running, with AHB on (2 × D8as_v6 at the Linux rate $0.39, 2 × P30 $0.20, 2 × P10 OS disk $0.03, NAT gateway and IP $0.05). About $0.52/hour when the VMs are stopped (deallocated). Without AHB, about $2.05/hour |
+| Cost | About $1.25/hour while running, with AHB on (2 × D8as_v6 at the Linux rate $0.39; 2 × P30 $0.20: the `vm-app01` data disk and the `vm-dev01` OS disk, billed at its P30 performance tier; 1 × P10 OS disk $0.03; NAT gateway and IP $0.05). About $0.48/hour when the VMs are stopped (deallocated). Without AHB, about $2.00/hour |
 | Teardown | **Keep** `rg-datacenter`. B05–B07 build on it and B07 deletes it |
 | PRD | §2 Datacenter, Dev environment, Hybrid Benefit; §4; §6 Datacenter |
 
@@ -25,7 +25,7 @@
 1. B02 and B03 are closed, and `gh release view legacy-v1 --json assets -q '.assets[].name'` prints `ContosoUniversity-legacy.zip`.
 2. `.local/settings.json` has `subscriptionId`, `location` and `memberIndex`.
 3. `az group show -n rg-datacenter --subscription <subscriptionId>` fails with "not found". If the group exists, stop and ask.
-4. With the values from `.local/settings.json`, `az vm list-skus -l <location> --size Standard_D8as_v6 --query "[0].restrictions"` prints `[]`. If the owner chose another size or region for this run, check that instead.
+4. With the values from `.local/settings.json`, `az vm list-skus -l <location> --size Standard_D8as_v6 --query "[0].restrictions[?type=='Location']"` prints `[]`. Restrictions of type `Zone` are fine: the VMs are non-zonal (backlog conventions, **Availability zones**). If the owner chose another size or region for this run, check that instead.
 
 ## Requirements
 
@@ -39,20 +39,27 @@
    | VNet | `vnet-datacenter` | `10.10.n.0/24` |
    | Subnet | `snet-servers` | `10.10.n.0/25`, default outbound access **off**, NAT gateway and NSG attached |
    | NSG | `nsg-servers` | No inbound rules from the internet |
-   | NAT gateway | `nat-datacenter` | Standard, with public IP `pip-nat-datacenter` (Standard, static) |
+   | NAT gateway | `nat-datacenter` | Standard, no zone, with public IP `pip-nat-datacenter` (Standard, static, no `zones` set: it's zone-redundant automatically in regions with zones) |
    | Bastion | `bas-datacenter` | **Developer** SKU: free, no subnet or public IP, one session at a time |
    | App VM | `vm-app01` | Static private IP `10.10.n.4` |
    | Dev VM | `vm-dev01` | Static private IP `10.10.n.5` |
 
-   Child resources use CAF prefixes with the VM name: `nic-vm-app01`, `osdisk-vm-app01`, `disk-data-vm-app01`, and the same for `vm-dev01`.
+   Child resources use CAF prefixes with the VM name: `nic-vm-app01`, `osdisk-vm-app01`, `disk-data-vm-app01`, `nic-vm-dev01` and `osdisk-vm-dev01`.
 
 2. Both VMs:
    - Size from the `vmSize` parameter, default `Standard_D8as_v6` (AMD, 8 vCPU, 32 GiB). Changing it to a v7 size or another size must need no other change.
+   - Non-zonal: no `zones` on the VMs or their disks (backlog conventions, **Availability zones**).
    - Gen2 image, **Trusted Launch** (Secure Boot and vTPM on), disk controller left to the platform default for the size (NVMe on v6 and v7).
-   - OS disk: Premium SSD (`Premium_LRS`), default size. Data disk: one Premium SSD P30 (1,024 GiB), LUN 0, host caching `ReadOnly`.
    - Admin user `labadmin`, with a generated password (backlog conventions, **Secrets**).
    - Boot diagnostics with managed storage. No public IP. No auto-shutdown.
    - No SQL IaaS Agent extension on `vm-app01`: it conflicts with Arc onboarding in B07.
+
+   Disks, all Premium SSD (`Premium_LRS`):
+
+   | VM | OS disk | Data disk |
+   |---|---|---|
+   | `vm-app01` | Image default size | One P30 (1,024 GiB), LUN 0, host caching `ReadOnly`, for SQL Server |
+   | `vm-dev01` | Image default size (127 GiB), **performance tier P30** | None |
 
 3. Images and licensing (backlog conventions, **Licensing**):
 
@@ -88,7 +95,7 @@
     8. Windows Firewall: allow inbound TCP 80 and 1433 from `10.0.0.0/8`.
     9. Warm up the app with a request to `http://localhost/` so `EnsureCreated()` builds the schema and seeds the data. It must return HTTP 200.
 12. **`vm-dev01`**, in this order:
-    1. Initialize the data disk as `F:` (label `Work`) and create `F:\src`.
+    1. Create `C:\src`. The dev VM has no data disk.
     2. Install machine-wide, silently, from the vendors' official download locations: Visual Studio Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone, on the machine `PATH`), the .NET 10 SDK, the .NET Framework 4.8 Developer Pack, Visual Studio Build Tools (current release) with the web build tools workload and its recommended components, NuGet CLI, and SSMS 22. 🔎 VERIFY the Build Tools workload ID on [Visual Studio Build Tools workload and component IDs](https://learn.microsoft.com/visualstudio/install/workload-component-id-vs-build-tools).
     3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot app modernization for .NET, C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the app modernization extension on [GitHub Copilot app modernization for .NET](https://learn.microsoft.com/dotnet/core/porting/github-copilot-app-modernization/overview).
     4. Write the installed versions to `C:\LabTools\versions.txt`.
@@ -107,7 +114,7 @@
 
     | On | Check |
     |---|---|
-    | Azure | Both VMs running, with the expected size, `licenseType`, Trusted Launch and private IP. No public IPs in `rg-datacenter` apart from `pip-nat-datacenter` |
+    | Azure | Both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP. The disks match requirement 2: `vm-app01` has its P30 data disk, and `vm-dev01` has no data disk and its OS disk at performance tier P30. No public IPs in `rg-datacenter` apart from `pip-nat-datacenter` |
     | `vm-app01` | `http://localhost/` returns 200 and contains "Contoso University"; `F:` exists; SQL data files are on `F:`; `ContosoUniversity` has the app's tables and at least 9 students; HADR is enabled; trace flags 1800 and 9567 are on; the MSMQ queue exists |
     | `vm-dev01` | `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, `dotnet` (SDK 10), `code`, `msbuild` and SSMS are installed; outbound HTTPS to `github.com` works |
 
@@ -170,7 +177,8 @@ feat: add the datacenter kit
 
 ## Notes and traps
 
-- **NVMe disks:** v6 and v7 sizes are NVMe-only and Gen2-only. Disk numbers inside Windows don't match LUNs, so find the data disk by being the only raw disk.
+- **NVMe disks:** v6 and v7 sizes are NVMe-only and Gen2-only. Disk numbers inside Windows don't match LUNs, so find the data disk on `vm-app01` by being the only raw disk.
+- **OS disk performance tier:** the VM's `osDisk` block has no performance tier property, so `vm-dev01`'s P30 tier is set on the disk itself. 🔎 VERIFY how on [Change the performance tier of a managed disk](https://learn.microsoft.com/azure/virtual-machines/disks-change-performance), including whether the tier can change while the VM runs, and keep the re-run converging.
 - **Trusted Launch and NVMe** are both supported by the SQL 2022 and Windows 11 images used here. If you change an image, check both.
 - **No default outbound access:** the subnet has default outbound access off, so all outbound traffic goes through the NAT gateway. Without the NAT gateway, downloads in the run commands fail.
 - **Run command limits:** long installs (Build Tools, SSMS) can take 20+ minutes. Set each run command's timeout accordingly and split long work into separate run commands so one failure is easy to spot. 🔎 VERIFY the timeout limit on [Managed run commands](https://learn.microsoft.com/azure/virtual-machines/windows/run-command-managed).
