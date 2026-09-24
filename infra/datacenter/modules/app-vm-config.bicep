@@ -15,6 +15,9 @@ param appVmIp string
 @description('Download URL of ContosoUniversity-legacy.zip.')
 param packageUrl string
 
+@description('Base URL of db/perf-kit/sql at the same git ref.')
+param perfKitBaseUrl string
+
 @description('Local admin user name, made a SQL Server sysadmin.')
 param adminUsername string
 
@@ -187,5 +190,30 @@ resource legacySite 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' =
   }
   dependsOn: [
     webFeatures
+  ]
+}
+
+// DB perf kit (B05): volume, planted issues, compatibility level and Query Store, after the warm-up seeds the app's data.
+resource perfKit 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
+  parent: vm
+  name: 'app-06-perf-kit'
+  location: location
+  properties: {
+    source: {
+      scriptUri: '${scriptsBaseUrl}/Install-AppPerfKit.ps1'
+    }
+    parameters: [
+      runIdParameter
+      {
+        name: 'PerfKitBaseUrl'
+        value: perfKitBaseUrl
+      }
+    ]
+    asyncExecution: false
+    timeoutInSeconds: 3600
+    treatFailureAsDeploymentFailure: true
+  }
+  dependsOn: [
+    legacySite
   ]
 }

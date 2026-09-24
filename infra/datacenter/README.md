@@ -2,7 +2,7 @@
 
 The datacenter is each member's simulated on-premises estate, the starting point of the modernization. It runs in the member's workload subscription, in `rg-datacenter`, and nothing in it is reachable from the internet:
 
-- `vm-app01` plays both on-premises servers: Windows Server 2022 with IIS running the legacy Contoso University (.NET Framework 4.8, MSMQ for notifications) and SQL Server 2022 Developer holding its database. SQL Server is prepared for MI link: the availability groups feature and the trace flags `-T1800` and `-T9567` are on.
+- `vm-app01` plays both on-premises servers: Windows Server 2022 with IIS running the legacy Contoso University (.NET Framework 4.8, MSMQ for notifications) and SQL Server 2022 Developer holding its database, which the [DB perf kit](../../db/perf-kit/README.md) seeds with volume and five planted performance issues. SQL Server is prepared for MI link: the availability groups feature and the trace flags `-T1800` and `-T9567` are on.
 - `vm-dev01` is the member's Windows 11 Enterprise workstation, with the tools for the modernization.
 - The VNet has a NAT gateway for outbound traffic and Bastion Developer for access. Later, vending peers it to the hub (simulated ExpressRoute).
 
@@ -56,6 +56,7 @@ The deployment configures both VMs through run commands. Each downloads its scri
 | `vm-app01` | `app-03-database` | `New-AppDatabase.ps1` | Empty `ContosoUniversity` database on `F:`, and the SQL login `contosoapp` as its `db_owner`. Changes the login's password if it differs from the deployed value |
 | `vm-app01` | `app-04-web-features` | `Install-AppWebFeatures.ps1` | IIS with ASP.NET 4.8, and the MSMQ server feature |
 | `vm-app01` | `app-05-legacy-site` | `Install-AppLegacySite.ps1` | `ContosoUniversity-legacy.zip` from the `legacy-v1` release in `C:\inetpub\ContosoUniversity`; site and app pool `ContosoUniversity` on port 80 instead of the Default Web Site; `DefaultConnection` pointed at `10.10.n.4`; the private queue `.\Private$\ContosoUniversityNotifications`; firewall rules for TCP 80 and 1433 from `10.0.0.0/8`; a warm-up request that creates and seeds the database |
+| `vm-app01` | `app-06-perf-kit` | `Install-AppPerfKit.ps1` | The [DB perf kit](../../db/perf-kit/README.md): runs `db/perf-kit/sql/01`–`04` from the same `-ScriptsRef`, which add about 200,000 students and 2 million enrollments, plant the five performance issues, set compatibility level 110 and configure Query Store. Logs each script's time |
 | `vm-dev01` | `dev-00-admin-password` | `Set-LabAdminPassword.ps1` | Same as `app-00-admin-password` |
 | `vm-dev01` | `dev-01-tools` | `Install-DevTools.ps1` | `C:\src`, VS Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep, the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI |
 | `vm-dev01` | `dev-02-build-tools` | `Install-DevBuildTools.ps1` | Visual Studio Build Tools (current release) with the web build tools workload and its recommended components |
@@ -121,7 +122,7 @@ This is an exception to the kit's rule that passwords are generated, and it appl
 It checks, without changing anything:
 
 - **Azure:** both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP; the `vm-app01` P30 data disk; no data disk on `vm-dev01` and its OS disk at tier P30; no public IP in `rg-datacenter` except `pip-nat-datacenter`.
-- **`vm-app01`**, through a run command: the app returns HTTP 200 with "Contoso University"; `F:` exists; the database files are on `F:`; the app's tables exist with at least 8 students (the app's seed data); availability groups are on; trace flags 1800 and 9567 are on; the MSMQ queue exists.
+- **`vm-app01`**, through a run command: the app returns HTTP 200 with "Contoso University"; `F:` exists; the database files are on `F:`; the app's tables exist with at least 8 students (the app's seed data); availability groups are on; trace flags 1800 and 9567 are on; the MSMQ queue exists. For the DB perf kit: students and enrollments within 5% of 200,000 and 2,000,000; `dbo.usp_SearchStudents`, `dbo.usp_GetStudentEnrollments` and `dbo.vw_EnrollmentStatistics` exist; compatibility level 110; Query Store read-write.
 - **`vm-dev01`**, through a run command: `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, the .NET 10 SDK, `code`, `msbuild` and SSMS are installed; outbound HTTPS to `github.com` works.
 
 It prints PASS or FAIL per check and an overall verdict, and exits `0` only if every check passes. If you deployed with another size or without Hybrid Benefit, pass `-VmSize` or `-NoHybridBenefit` to the test too. The in-VM checks need the VMs running: start them first if they're deallocated.

@@ -1,17 +1,23 @@
 <#
 .SYNOPSIS
-Checks vm-app01 from the inside: the app, F:, SQL Server and the MSMQ queue.
+Checks vm-app01 from the inside: the app, F:, SQL Server, the MSMQ queue and the DB perf kit.
 .DESCRIPTION
 Sent by scripts/Test-Datacenter.ps1 through az vm run-command invoke (Windows PowerShell 5.1, as
 SYSTEM). Prints one line per check: LABCHECK|PASS or FAIL|check|detail. Changes nothing.
 .PARAMETER MinStudents
 The fewest students the seeded database must hold.
+.PARAMETER TargetStudents
+The DB perf kit's student volume. The count must be within 5% of it.
+.PARAMETER TargetEnrollments
+The DB perf kit's enrollment volume. The count must be within 5% of it.
 .EXAMPLE
-.\Test-AppVm.ps1 -MinStudents 8
+.\Test-AppVm.ps1 -MinStudents 8 -TargetStudents 200000 -TargetEnrollments 2000000
 #>
 [CmdletBinding()]
 param(
-    [int] $MinStudents = 8
+    [int] $MinStudents = 8,
+    [int] $TargetStudents = 200000,
+    [int] $TargetEnrollments = 2000000
 )
 
 $ErrorActionPreference = 'Stop'
@@ -84,6 +90,33 @@ Invoke-Check 'app: ContosoUniversity has the app tables' {
 Invoke-Check "app: at least $MinStudents students" {
     $count = (Invoke-Sql -Database 'ContosoUniversity' "SELECT COUNT(*) FROM dbo.Person WHERE Discriminator = N'Student'").Rows[0][0]
     @(($count -ge $MinStudents), "$count students")
+}
+
+Invoke-Check "perf kit: students within 5% of $TargetStudents" {
+    $count = (Invoke-Sql -Database 'ContosoUniversity' "SELECT COUNT(*) FROM dbo.Person WHERE Discriminator = N'Student'").Rows[0][0]
+    @(([math]::Abs($count - $TargetStudents) -le $TargetStudents * 0.05), "$count students")
+}
+
+Invoke-Check "perf kit: enrollments within 5% of $TargetEnrollments" {
+    $count = (Invoke-Sql -Database 'ContosoUniversity' 'SELECT COUNT_BIG(*) FROM dbo.Enrollment').Rows[0][0]
+    @(([math]::Abs($count - $TargetEnrollments) -le $TargetEnrollments * 0.05), "$count enrollments")
+}
+
+Invoke-Check 'perf kit: planted objects exist' {
+    $expected = 'usp_SearchStudents', 'usp_GetStudentEnrollments', 'vw_EnrollmentStatistics'
+    $objects = @((Invoke-Sql -Database 'ContosoUniversity' "SELECT name FROM sys.objects WHERE schema_id = SCHEMA_ID(N'dbo') AND type IN ('P', 'V')").Rows | ForEach-Object { $_.name })
+    $missing = @($expected | Where-Object { $objects -notcontains $_ })
+    @(($missing.Count -eq 0), $(if ($missing.Count) { "missing: $($missing -join ', ')" } else { $expected -join ', ' }))
+}
+
+Invoke-Check 'perf kit: compatibility level 110' {
+    $level = (Invoke-Sql "SELECT compatibility_level FROM sys.databases WHERE name = N'ContosoUniversity'").Rows[0][0]
+    @(($level -eq 110), "compatibility level $level")
+}
+
+Invoke-Check 'perf kit: Query Store read-write' {
+    $state = (Invoke-Sql -Database 'ContosoUniversity' 'SELECT actual_state_desc FROM sys.database_query_store_options').Rows[0][0]
+    @(($state -eq 'READ_WRITE'), "$state")
 }
 
 Invoke-Check 'app: availability groups (HADR) enabled' {
