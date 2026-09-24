@@ -6,7 +6,7 @@ Filled in by the owner during run 1 of the [protocol](protocol.md). One row per 
 |---|---|
 | Date | |
 | Branch | `spike/b06-run1` |
-| Start commit | `<run-1-commit>` |
+| Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
 | Protocol version | v1 |
 | VS Code | |
 | GitHub Copilot Chat | |

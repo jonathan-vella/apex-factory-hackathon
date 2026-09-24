@@ -4,7 +4,7 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 
 | Run | Branch | Start from commit | Protocol version |
 |---|---|---|---|
-| 1 | `spike/b06-run1` | `<run-1-commit>` | v1 |
+| 1 | `spike/b06-run1` | `da4e5f606983332001c94ce69b48634f9c1864b3` | v1 |
 | 2 | `spike/b06-run2` | set between runs | v2 |
 
 Placeholders: `n` is your member index (`1` in the build subscriptions) and `<suffix>` is the suffix in `.local/settings.json`. The spike resources are in `rg-spike-b06` and are private-only, so every Azure data-plane call works only from `vm-dev01`.
@@ -67,8 +67,8 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
    ```powershell
    git fetch origin
-   git switch -c spike/b06-run1 <run-1-commit>
-   git diff --stat <run-1-commit> origin/main -- app/ContosoUniversity
+   git switch -c spike/b06-run1 da4e5f606983332001c94ce69b48634f9c1864b3
+   git diff --stat da4e5f606983332001c94ce69b48634f9c1864b3 origin/main -- app/ContosoUniversity
    ```
 
    The last command must print nothing: `app/ContosoUniversity` is unchanged from `main`. For run 2, use `spike/b06-run2` and the run 2 commit.
