@@ -50,7 +50,7 @@
    - Size from the `vmSize` parameter, default `Standard_D8as_v6` (AMD, 8 vCPU, 32 GiB). Changing it to a v7 size or another size must need no other change.
    - Non-zonal: no `zones` on the VMs or their disks (backlog conventions, **Availability zones**).
    - Gen2 image, **Trusted Launch** (Secure Boot and vTPM on), disk controller left to the platform default for the size (NVMe on v6 and v7).
-   - Admin user `labadmin`, with a generated password (backlog conventions, **Secrets**).
+   - Admin user `labadmin`, with the fixed, documented lab password `FactoryLab-2026-Pw` (backlog conventions, **Secrets**, datacenter exception).
    - Boot diagnostics with managed storage. No public IP. No auto-shutdown.
    - No SQL IaaS Agent extension on `vm-app01`: it conflicts with Arc onboarding in B07.
 
@@ -87,7 +87,7 @@
 11. **`vm-app01`**, in this order:
     1. Initialize the data disk as `F:` (GPT, NTFS, 64 KB allocation unit, label `SQLData`). Find it as the only raw disk, not by number: on NVMe sizes the numbering differs.
     2. SQL Server: default data, log and backup folders on `F:` (`F:\SQLData`, `F:\SQLLog`, `F:\SQLBackup`); mixed-mode authentication; TCP on port 1433; the **Always On availability groups** feature enabled; startup trace flags `-T1800` and `-T9567`; then restart the service. 🔎 VERIFY the MI link prerequisites on [Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation).
-    3. Create the empty database `ContosoUniversity` with its files on `F:`, and the SQL login `contosoapp` with the generated `sqlAppPassword`, as `db_owner` of that database.
+    3. Create the empty database `ContosoUniversity` with its files on `F:`, and the SQL login `contosoapp` with the lab password `FactoryLab-2026-Pw` (the `sqlAppPassword` parameter), as `db_owner` of that database. If the login exists with another password, change it to the parameter's value.
     4. Windows features: IIS with ASP.NET 4.8, and the MSMQ server feature.
     5. Download `ContosoUniversity-legacy.zip` from the latest `legacy-v1` release of this repo and extract it to `C:\inetpub\ContosoUniversity`. Replace the Default Web Site with a site `ContosoUniversity` on port 80, in an app pool of the same name (.NET CLR v4.0, integrated pipeline, `ApplicationPoolIdentity`).
     6. In the deployed `Web.config` only, set `DefaultConnection` to `Server=10.10.n.4;Database=ContosoUniversity;User ID=contosoapp;Password=<sqlAppPassword>;MultipleActiveResultSets=True;TrustServerCertificate=True`. Leave everything else as it is: the plain-text password and `debug="true"` are deliberate findings.
@@ -97,14 +97,14 @@
 12. **`vm-dev01`**, in this order:
     1. Create `C:\src`. The dev VM has no data disk.
     2. Install machine-wide, silently, from the vendors' official download locations: Visual Studio Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone, on the machine `PATH`), the .NET 10 SDK, the .NET Framework 4.8 Developer Pack, Visual Studio Build Tools (current release) with the web build tools workload and its recommended components, NuGet CLI, and SSMS 22. 🔎 VERIFY the Build Tools workload ID on [Visual Studio Build Tools workload and component IDs](https://learn.microsoft.com/visualstudio/install/workload-component-id-vs-build-tools).
-    3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot app modernization for .NET, C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the app modernization extension on [GitHub Copilot app modernization for .NET](https://learn.microsoft.com/dotnet/core/porting/github-copilot-app-modernization/overview).
+    3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot modernization (`vscjava.migrate-java-to-azure`, the only modernization extension; it replaces the deprecated GitHub Copilot app modernization for .NET extension), C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the modernization extension on [Install GitHub Copilot modernization](https://learn.microsoft.com/dotnet/azure/migration/appmod/install) (VS Code tab: install **GitHub Copilot modernization**, then check that `@modernize` responds in Copilot Chat).
     4. Write the installed versions to `C:\LabTools\versions.txt`.
 13. Don't use winget: it isn't available to SYSTEM in a run command.
 
 ### Deploy script
 
-14. `scripts/Deploy-Datacenter.ps1` follows the attendee script conventions. Parameters: `SubscriptionId` (mandatory), `MemberIndex` (1–20, default 1), `Location` (default `swedencentral`), `VmSize` (default `Standard_D8as_v6`), `DevImageSku` (default `win11-25h2-ent`), `ScriptsRef` (default `main`) and a `NoHybridBenefit` switch.
-15. It generates `labadmin` and `contosoapp` passwords the first time and saves them in `$HOME/.apex-factory/<subscription-id>/datacenter.json`. A re-run reuses them and converges without changes.
+14. `scripts/Deploy-Datacenter.ps1` follows the attendee script conventions. Parameters: `SubscriptionId` (mandatory), `MemberIndex` (1–20, default 1), `Location` (default `swedencentral`), `VmSize` (default `Standard_D8as_v6`), `DevImageSku` (default `win11-25h2-ent`), `ScriptsRef` (default `main`), a `NoHybridBenefit` switch, and optional `AdminPassword` and `SqlAppPassword` (requirement 15).
+15. Both passwords default to the fixed lab password `FactoryLab-2026-Pw` (backlog conventions, **Secrets**, datacenter exception), with optional `AdminPassword` and `SqlAppPassword` parameters (secure strings) to override them. The script saves the values it deploys in `$HOME/.apex-factory/<subscription-id>/datacenter.json`, with the keys `adminUsername`, `adminPassword`, `sqlAppLogin` and `sqlAppPassword`, which B05 reads. A re-run converges an existing datacenter to those values, including VMs created with another password: ARM doesn't change `osProfile.adminPassword` on a provisioned VM, so a run command sets the `labadmin` password on both VMs, with the password in `protectedParameters`.
 16. Before deploying, it prints what it will deploy, the hourly cost from this runbook, and that AHB is on (or off with `-NoHybridBenefit`) and what that assumes. It doesn't check quota.
 17. After deploying, it prints: how to connect with Bastion from the portal, where the passwords are saved, how to stop and start the VMs (`az vm deallocate` / `az vm start`), and how to turn AHB off (`az vm update -g rg-datacenter -n vm-app01 --license-type None`).
 
@@ -115,7 +115,7 @@
     | On | Check |
     |---|---|
     | Azure | Both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP. The disks match requirement 2: `vm-app01` has its P30 data disk, and `vm-dev01` has no data disk and its OS disk at performance tier P30. No public IPs in `rg-datacenter` apart from `pip-nat-datacenter` |
-    | `vm-app01` | `http://localhost/` returns 200 and contains "Contoso University"; `F:` exists; SQL data files are on `F:`; `ContosoUniversity` has the app's tables and at least 9 students; HADR is enabled; trace flags 1800 and 9567 are on; the MSMQ queue exists |
+    | `vm-app01` | `http://localhost/` returns 200 and contains "Contoso University"; `F:` exists; SQL data files are on `F:`; `ContosoUniversity` has the app's tables and at least 8 students (the app's seed data); HADR is enabled; trace flags 1800 and 9567 are on; the MSMQ queue exists |
     | `vm-dev01` | `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, `dotnet` (SDK 10), `code`, `msbuild` and SSMS are installed; outbound HTTPS to `github.com` works |
 
 ### Documentation
@@ -144,7 +144,7 @@
 ```powershell
 az bicep build --file infra/datacenter/main.bicep --stdout | Out-Null
 az bicep lint --file infra/datacenter/main.bicep
-Invoke-ScriptAnalyzer -Path scripts, infra/datacenter/scripts -Recurse
+'scripts', 'infra/datacenter/scripts' | ForEach-Object { Invoke-ScriptAnalyzer -Path $_ -Recurse }
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 ./scripts/Test-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex; $LASTEXITCODE
 npm run check
@@ -182,6 +182,8 @@ feat: add the datacenter kit
 - **Trusted Launch and NVMe** are both supported by the SQL 2022 and Windows 11 images used here. If you change an image, check both.
 - **No default outbound access:** the subnet has default outbound access off, so all outbound traffic goes through the NAT gateway. Without the NAT gateway, downloads in the run commands fail.
 - **Run command limits:** long installs (Build Tools, SSMS) can take 20+ minutes. Set each run command's timeout accordingly and split long work into separate run commands so one failure is easy to spot. 🔎 VERIFY the timeout limit on [Managed run commands](https://learn.microsoft.com/azure/virtual-machines/windows/run-command-managed).
+- **Run commands re-run only when they change:** Azure doesn't re-execute a managed run command whose properties are unchanged, so a re-deploy would return the old results and never converge. `main.bicep` has a `configRunId` parameter (default `utcNow()`) that it passes to every run command as a plain `RunId` parameter, so every deployment re-runs them all. The scripts log it and skip finished work.
+- **C# Dev Kit 3.40.204 opens Notepad after Copilot tool calls:** its Copilot PostToolUse hook opens `track-skill-invocation.ps1` in Notepad after every tool call on `vm-dev01` ([microsoft/vscode-dotnettools#3568](https://github.com/microsoft/vscode-dotnettools/issues/3568), open). Workaround: rename that script under `%USERPROFILE%\.vscode\extensions` and `%APPDATA%\Code\agentPlugins`, or update C# Dev Kit once the fix ships. Don't change the `.ps1` file association, and don't patch the extension from the kit.
 - **Arc comes later:** B07 onboards `vm-app01` to Arc with the Jumpstart pattern, which turns off the Azure guest agent and blocks IMDS. After that, run commands stop working. Everything that needs a run command belongs here, before Arc.
 - **Always On without a cluster:** SQL Server 2022 lets you enable the availability groups feature without a Windows failover cluster, which is all MI link needs.
 - **Connection string by IP:** the app and later tools use `10.10.n.4`, not the VM name, because name resolution changes once the datacenter uses the hub's DNS.
