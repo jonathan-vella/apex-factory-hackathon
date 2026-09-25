@@ -34,7 +34,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
 - **(v2) How the run is recorded.** You record by committing; the executor turns it into the results sheet:
   - **Times** come from the commit timestamps. Commit at the end of every step; a step starts at the previous commit, so don't leave long breaks uncommitted (commit before a break and say so in the body).
-  - **Prompts and models:** before each commit, run **Chat: Export Chat…** from the Command Palette (Ctrl+Shift+P) and save it as `docs\spikes\B06-ghcp-golden-path\chats\run1-step<step>.json`, for example `run1-step3.json` or `run1-step4.2.json` (run 2: `run2-…`). One file per chat session; add `-a`, `-b` if a step used more than one. Don't paste passwords or tokens into the chat: the executor checks the exports for secrets before they stay committed.
+  - **Prompts and models:** for every step where you prompted in Copilot Chat, run **Chat: Export Chat…** before the commit from the Command Palette (Ctrl+Shift+P) and save it as `docs\spikes\B06-ghcp-golden-path\chats\run1-step<step>.json`, for example `run1-step3.json` or `run1-step4.2.json` (run 2: `run2-…`). One file per chat session; add `-a`, `-b` if a step used more than one. A step run only from the modernization view (for example the assessment dashboard) has no chat to export: say so in the commit body, and the model is recorded as *extension default, not selectable*. Don't paste passwords or tokens into the chat: the executor checks the exports for secrets before they stay committed.
   - **Manual fixes:** one line each in the commit message body, for example `git commit -m "run1: step 4.3 MSMQ to Service Bus" -m "Fixed by hand: ServiceBusClient registered as scoped, changed to singleton"`. Also say there which way you started a predefined task and anything that went wrong.
   - **Versions:** the versions file in step 1.7.
   - **Build and run:** say in the commit body whether `dotnet build` passed and whether the app ran; the executor also runs the build and reference checks after the push. Premium requests: add them to the body if VS Code shows them.
@@ -149,7 +149,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
 Model: balanced (Sonnet- or Terra-class).
 
-1. Keep the repo root open in VS Code. Pick the balanced model in the Copilot Chat model picker.
+1. Keep the repo root open in VS Code. Pick the balanced model in the Copilot Chat model picker. **(v2)** The assessment dashboard doesn't let you pick a model; it uses the extension's default.
 2. Open the **GitHub Copilot modernization** view in the Activity Bar. In **QUICKSTART**, select **Start Assessment**, then **Run Assessment** on the **Assessment reports** page. If it asks which project, pick `app/ContosoUniversity`.
 3. Wait for the report. Read it: note the issues it finds for local files, MSMQ, the database, the plaintext connection string and `System.Web`, and the migration tasks it recommends.
 4. Save the report into the spike folder. The modernization extension writes it to `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\assessment\reports\report-<timestamp>\`, which git ignores. Copy the new report folder's files to `docs\spikes\B06-ghcp-golden-path\assessment\run1\` (run 2: `run2\`), plus `...\.github\modernize\assessment\engines\dotnet-appcat\result\report.json` as `appcat-report.json`. If the report page offers an export (HTML or Markdown), save that there too. `git add docs/spikes/B06-ghcp-golden-path/assessment` so the ignored source folder doesn't matter.
@@ -316,7 +316,7 @@ If you ask Copilot to containerize the app instead, tell it to use SDK container
 
 ## Step 7: Finish the run
 
-1. Check that `docs\spikes\B06-ghcp-golden-path\chats\` has an export for every step and that the versions file is committed.
+1. Check that `docs\spikes\B06-ghcp-golden-path\chats\` has an export for every step where you prompted in Copilot Chat, and that the versions file is committed.
 2. Push the run branch: `git push -u origin spike/b06-run1`.
 3. Tell the executor the run is pushed, with the results of the 🧑 checks: the five pages, the upload landing in the container, and the notification round-trip. The executor fills in the results sheet, runs the build, reference, registry and secrets checks, and adds the results to the report.
 
@@ -351,3 +351,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 1.4, 1.5 | Step 1 handles a fresh clone and an existing clean clone. An earlier hand-run assessment in the clone is moved aside, not saved into the spike folder | The owner's clone was gone before run 1, so run 1 used a fresh clone and the 2026-09-24 manual assessment was lost |
 | Rules, 1.7, 1.9, 7 | Recording is automated: times come from commit timestamps (a step starts at the previous commit, and step 1 now ends with a commit); versions go in `runN-versions.txt`; prompts and models in `chats/runN-step<step>.json` exported with **Chat: Export Chat…**; manual fixes as one line each in the commit body. The executor fills in the results sheet and checks the exports for secrets | Owner decision at the start of run 1, so the owner doesn't fill in the sheet by hand |
 | 1.2 | Right after `gh auth login`, set the git identity from `gh api user` with the GitHub no-reply email, and run `gh auth setup-git` | A fresh VM user has no git identity, so the first commit failed with `Author identity unknown` |
+| Rules, 2, 7 | The chat export is needed only for steps prompted in Copilot Chat. For a step run only from the modernization view, the commit body says so and the model is *extension default, not selectable* | The owner ran step 2 from the assessment dashboard, with no chat and no model picker |
