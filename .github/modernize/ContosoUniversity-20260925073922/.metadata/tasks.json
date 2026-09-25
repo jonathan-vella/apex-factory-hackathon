@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Tasks for the selected categories in assessment report report-20260925073922.",
+  "description": "Ordered .NET 10 upgrade, Azure service migrations, security remediation, verification, and App Service Linux container readiness for ContosoUniversity.",
   "tasks": [
     {
       "type": "setupBaseline",
       "id": "001-setupBaseline",
-      "description": "Capture the current ContosoUniversity behavior before the selected Azure service migrations.",
-      "reason": "A frozen baseline is required to verify that the selected migrations preserve observable behavior.",
-      "requirements": "Snapshot the legacy application and produce test cases, test data, and an infrastructure decision table. Use mock mode for external dependencies because no Azure environment was supplied.",
+      "description": "Capture the current ContosoUniversity behavior before modernization.",
+      "reason": "A frozen baseline is required to verify that the upgrade and Azure service migrations preserve observable behavior.",
+      "requirements": "Snapshot app/ContosoUniversity and produce test cases, test data, and an infrastructure decision table. Use mocks for external dependencies when live Azure resources are unavailable.",
       "dependencies": [],
       "snapshotFolder": "app/ContosoUniversity",
       "successCriteria": {
@@ -17,18 +17,12 @@
       }
     },
     {
-      "type": "transform",
-      "id": "002-transform-windows-ad-to-entra-id",
-      "description": "Replace the application's Windows AD authentication dependency with Microsoft Entra ID.",
-      "reason": "Addresses issue: Windows authentication detected.",
-      "requirements": "Migrate from Windows AD to Microsoft Entra ID [kbId: windows-ad-to-azure-ad]. Preserve existing authenticated user flows and authorization behavior within app/ContosoUniversity.",
+      "type": "upgrade",
+      "id": "002-upgrade-dotnet-10-aspnet-core-mvc",
+      "description": "Upgrade app/ContosoUniversity to .NET 10 and ASP.NET Core MVC.",
+      "reason": "The user selected .NET 10 as the mandatory foundation for every subsequent service migration.",
+      "requirements": "Convert app/ContosoUniversity to an SDK-style net10.0 project using PackageReference. Migrate Web.config application settings to appsettings.json. Preserve controllers, views, routes, and observable behavior while migrating to ASP.NET Core MVC. Migrate and preserve the existing data model using EF Core. This is the first implementation task; all service migrations must depend on it and operate on .NET 10.",
       "dependencies": [],
-      "skills": [
-        {
-          "name": "migration-microsoft-entra-id",
-          "location": "builtin"
-        }
-      ],
       "successCriteria": {
         "passBuild": "true",
         "generateNewUnitTests": "true",
@@ -37,37 +31,12 @@
     },
     {
       "type": "transform",
-      "id": "003-transform-plaintext-credentials-to-key-vault",
-      "description": "Protect application credentials with managed identity and Azure Key Vault.",
-      "reason": "Addresses issue: Connection strings without configuration builders detected.",
-      "requirements": "Migrate from Plaintext Credentials to Secured Credentials protected by Managed Identity and Azure KeyVault [kbId: plaintext-credential-to-azure-keyvault]. Remove plaintext secret material from application configuration while preserving configuration behavior.",
-      "dependencies": [
-        "002-transform-windows-ad-to-entra-id"
-      ],
-      "skills": [
-        {
-          "name": "migration-azure-keyvault-secret",
-          "location": "builtin"
-        },
-        {
-          "name": "migration-managed-identity",
-          "location": "builtin"
-        }
-      ],
-      "successCriteria": {
-        "passBuild": "true",
-        "generateNewUnitTests": "true",
-        "passUnitTests": "true"
-      }
-    },
-    {
-      "type": "transform",
-      "id": "004-transform-sql-server-to-azure-sql",
-      "description": "Move SQL Server connectivity to the selected managed-identity-based Azure SQL target.",
+      "id": "003-transform-sql-server-to-azure-sql-mi",
+      "description": "Migrate database connectivity to Azure SQL Managed Instance while retaining the required local SQL-authentication mode.",
       "reason": "Addresses issue: SQL database connection detected.",
-      "requirements": "Choose exactly one target before execution: Migrate from SQL Server to Managed Identity Based Azure SQL [kbId: local-sql-server-to-azure-sql-db]; or Migrate from SQL Server to Managed Identity Based Azure SQL Managed Instance [kbId: local-sql-server-to-azure-sql-mi]. Preserve the existing Entity Framework data behavior and do not implement both alternatives.",
+      "requirements": "Operate on the upgraded .NET 10 application. Migrate from SQL Server to Managed Identity Based Azure SQL Managed Instance [kbId: local-sql-server-to-azure-sql-mi] and preserve the EF Core data model. Read ConnectionStrings:DefaultConnection. When it uses SQL authentication for server 10.10.1.4 with login contosoapp and a password sourced from user secrets, use that connection string as-is. Use managed identity only when the connection string contains Authentication=Active Directory Default, and use DefaultAzureCredential for that mode. Do not target Azure SQL Database.",
       "dependencies": [
-        "003-transform-plaintext-credentials-to-key-vault"
+        "002-upgrade-dotnet-10-aspnet-core-mvc"
       ],
       "skills": [
         {
@@ -87,20 +56,16 @@
     },
     {
       "type": "transform",
-      "id": "005-transform-local-files-to-azure-storage",
-      "description": "Move persistent local-file and file-system operations to the selected Azure Storage target.",
+      "id": "004-transform-local-files-to-azure-blob",
+      "description": "Migrate persistent file workflows to Azure Blob Storage.",
       "reason": "Addresses issues: Static content detected; Local or network IO operations detected.",
-      "requirements": "Choose exactly one primary persistent-file target before execution: Migrate from local file system to Azure Blob Storage [kbId: local-file-to-azure-blob-storage]; or Migrate from local file system to Azure File Storage [kbId: local-file-to-azure-file-storage]. Apply File System Management Migration [kbId: file-system-management-prompt] to the upload, read, replace, and delete workflows in app/ContosoUniversity. Preserve current course teaching-material behavior and do not implement both alternatives unless the user explicitly resolves different workloads to different targets.",
+      "requirements": "Operate on the upgraded .NET 10 application. Migrate from local file system to Azure Blob Storage [kbId: local-file-to-azure-blob-storage] and apply File System Management Migration [kbId: file-system-management-prompt] to upload, read, replace, and delete workflows. Preserve course teaching-material behavior. Use Storage:BlobServiceUri and Storage:ContainerName with DefaultAzureCredential. Shared keys, SAS tokens, and Storage connection strings are disabled and explicitly prohibited. Do not implement Azure Files.",
       "dependencies": [
-        "004-transform-sql-server-to-azure-sql"
+        "003-transform-sql-server-to-azure-sql-mi"
       ],
       "skills": [
         {
           "name": "migration-azure-storage-blob",
-          "location": "builtin"
-        },
-        {
-          "name": "migration-azure-storage-mount",
           "location": "builtin"
         },
         {
@@ -116,12 +81,12 @@
     },
     {
       "type": "transform",
-      "id": "006-transform-msmq-to-azure-service-bus",
+      "id": "005-transform-msmq-to-azure-service-bus",
       "description": "Replace MSMQ-based notification messaging with Azure Service Bus.",
       "reason": "Addresses issue: MSMQ usage is detected.",
-      "requirements": "Migrate from MSMQ to Azure Service Bus [kbId: msmq-to-azure-servicebus]. Preserve notification send, receive, timeout, and non-blocking failure behavior while using managed identity for Azure authentication.",
+      "requirements": "Operate on the upgraded .NET 10 application. Migrate from MSMQ to Azure Service Bus [kbId: msmq-to-azure-servicebus]. Preserve notification send, receive, timeout, and non-blocking failure behavior. Use ServiceBus:FullyQualifiedNamespace and ServiceBus:QueueName with DefaultAzureCredential. SAS authentication, SAS tokens, keys, and Service Bus connection strings are disabled and explicitly prohibited.",
       "dependencies": [
-        "005-transform-local-files-to-azure-storage"
+        "004-transform-local-files-to-azure-blob"
       ],
       "skills": [
         {
@@ -140,26 +105,78 @@
       }
     },
     {
+      "type": "transform",
+      "id": "006-transform-plaintext-credentials-to-key-vault",
+      "description": "Protect the Azure SQL connection-string secret with Azure Key Vault.",
+      "reason": "Addresses issue: Connection strings without configuration builders detected.",
+      "requirements": "Operate on the upgraded .NET 10 application. Migrate from Plaintext Credentials to Secured Credentials protected by Managed Identity and Azure KeyVault [kbId: plaintext-credential-to-azure-keyvault]. Use KeyVault:VaultUri with DefaultAzureCredential. Resolve the secret named ConnectionStrings--DefaultConnection without committing secret material. Preserve the local developer SQL-authentication mode in which the password for 10.10.1.4 login contosoapp is sourced from user secrets.",
+      "dependencies": [
+        "005-transform-msmq-to-azure-service-bus"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-keyvault-secret",
+          "location": "builtin"
+        },
+        {
+          "name": "migration-managed-identity",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "007-security-cve-remediation",
+      "description": "Scan project dependencies for known CVEs and remediate identified vulnerabilities.",
+      "reason": "Mandatory plan-generation security policy requires CVE remediation after upgrade and transformation work and before containerization.",
+      "requirements": "Scan dependencies in app/ContosoUniversity after the .NET 10 upgrade and all Azure service transformations. Upgrade vulnerable dependencies to the minimum patched versions. If a fix requires a major upgrade, document the dependency, previous and new major versions, and breaking-change risk. Verify that the project builds and tests pass. Do not broaden scope beyond dependency CVE remediation.",
+      "dependencies": [
+        "006-transform-plaintext-credentials-to-key-vault"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
       "type": "integrationTest",
-      "id": "007-integrationTest",
+      "id": "008-integrationTest",
       "description": "Build integration tests for migrated Azure services and run post-migration verification",
-      "reason": "Verify the selected service migrations against the frozen pre-migration baseline.",
-      "requirements": "Run mock-mode integration verification for Microsoft Entra ID, Azure Key Vault, the chosen Azure SQL target, the chosen Azure Storage target, and Azure Service Bus. Reuse the baseline decision table and do not require live Azure resources.",
+      "reason": "Verify the .NET 10 upgrade and all selected service migrations against the frozen pre-migration baseline.",
+      "requirements": "Reuse the baseline test cases, test data, and infrastructure decision table. Verify preserved ASP.NET Core MVC behavior, both Azure SQL connection modes, Blob Storage workflows, Service Bus messaging, and Key Vault secret resolution. Use mocks where live Azure resources are unavailable. Confirm prohibited keys, SAS tokens, Storage connection strings, and Service Bus connection strings are not required.",
       "dependencies": [
         "001-setupBaseline",
-        "002-transform-windows-ad-to-entra-id",
-        "003-transform-plaintext-credentials-to-key-vault",
-        "004-transform-sql-server-to-azure-sql",
-        "005-transform-local-files-to-azure-storage",
-        "006-transform-msmq-to-azure-service-bus"
+        "002-upgrade-dotnet-10-aspnet-core-mvc",
+        "003-transform-sql-server-to-azure-sql-mi",
+        "004-transform-local-files-to-azure-blob",
+        "005-transform-msmq-to-azure-service-bus",
+        "006-transform-plaintext-credentials-to-key-vault",
+        "007-security-cve-remediation"
       ]
+    },
+    {
+      "type": "containerization",
+      "id": "009-containerization-app-service-linux",
+      "description": "Prepare the upgraded application as a Linux container for Azure App Service.",
+      "reason": "Azure App Service for Linux using containers is the selected hosting target.",
+      "requirements": "Create containerization and application-readiness artifacts for app/ContosoUniversity on .NET 10 targeting Azure App Service for Linux. Ensure runtime configuration is supplied through supported environment configuration, the container starts without IIS or Windows-only dependencies, and application logs are available to the platform. Do not provision Azure resources and do not deploy or execute the application.",
+      "dependencies": [
+        "008-integrationTest"
+      ],
+      "dockerfilePath": "app/ContosoUniversity/Dockerfile"
     }
   ],
   "metadata": {
     "planName": "ContosoUniversity-20260925073922",
     "projectName": "ContosoUniversity",
     "language": "dotnet",
-    "createdAt": "2026-09-25T07:56:02.857Z",
+    "createdAt": "2026-09-25T08:18:09.146Z",
     "version": "1.0"
   }
 }
