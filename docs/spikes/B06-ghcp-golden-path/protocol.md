@@ -271,7 +271,7 @@ If the project needs container properties (for example `ContainerBaseImage` or `
    code --list-extensions --show-versions | Select-String 'upgrade-agent|migrate-java-to-azure'
    ```
 
-2. **Default, for a clean comparison:** disable GitHub Copilot modernization for this run: **Extensions** > **GitHub Copilot modernization** > **Disable (Workspace)**, then reload. Re-enable it after the run. You may keep both enabled if you prefer; record which you chose in `compare-upgrade.md`.
+2. **Decide whether GitHub Copilot modernization stays enabled, and record it in `compare-upgrade.md`.** The first attempt disabled it (**Extensions** > **GitHub Copilot modernization** > **Disable (Workspace)**), but the Upgrade agent's `azure-migrate` scenario delegates assessment and planning to the App Modernization session, which is then unavailable, so it fell back to an existing AppCAT report. Disabled tests the Upgrade agent alone; enabled lets it delegate as designed. Re-enable it after the run if you disabled it.
 3. Create the comparison branch from run 1's start commit:
 
    ```powershell
@@ -279,6 +279,14 @@ If the project needs container properties (for example `ContainerBaseImage` or `
    git status --short                   # must print nothing
    git fetch origin
    git switch -c spike/b06-upgrade-compare da4e5f606983332001c94ce69b48634f9c1864b3
+   git clean -ndx -- app .github         # dry run: lists leftover untracked and ignored files
+   ```
+
+   **Make the tree pure legacy.** `git switch` keeps untracked and ignored files, so run 1's leftovers (for example `.github\modernize\`, `.github\skills\`, `bin` and `obj`) survive it. In the first attempt they made the Upgrade agent edit run 1's plan and load run 1's skill. Check the dry-run list: nothing in it is needed, because user secrets live outside the repo. Then delete them and commit:
+
+   ```powershell
+   git clean -fdx -- app .github
+   git status --short --ignored -- app .github    # must print nothing
    git commit --allow-empty -m "compare: stage 1 set up"
    ```
 
@@ -356,3 +364,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Scope | Every prompt ends with the scope line; revert changes outside the app | A repo-wide check edited `docs/prd.md` (44) |
 | Gaps | Only OpenTelemetry is left; predefined task, then make Azure Monitor optional | Tasks 001–005 did the other gaps (42, 43) |
 | Comparison | Full end-to-end run with GitHub Copilot upgrade before run 2 | Owner-approved (requirement 11a; findings 19, 30) |
+| Comparison C.1 | Run `git clean -fdx -- app .github` after `git switch` (dry run first) so the tree is pure legacy; decide and record whether GitHub Copilot modernization stays enabled | The first comparison attempt's stage 2 (`a6c358d`) edited run 1's plan folder and loaded run 1's `modernize-plan` skill from leftover files; with modernize disabled, the Upgrade agent's `azure-migrate` scenario couldn't delegate |

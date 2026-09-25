@@ -11,6 +11,15 @@ A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, fr
 | GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | Disabled (Workspace) / kept enabled: |
 | Models | GPT-6 Sol at Medium to assess and plan, GPT-6 Luna at maximum to execute |
 
+## First attempt (2026-09-25): invalid as a baseline
+
+Stage 2 (`a6c358d`, `chats/compare-stage2.txt`) can't be compared with run 1. The branch was clean legacy in git (only the chat file differs from `da4e5f6`), but run 1's untracked and ignored files were still in the working tree on `vm-dev01`. So the Upgrade agent reported that "the current source already satisfies most tasks and builds successfully on .NET 10", and it edited run 1's plan folder `.github/modernize/contoso-university-dotnet10-azure` (`plan.md`, `tasks.json`, `assessment.md`) instead of creating its own. It also loaded run 1's `modernize-plan` skill. The comparison restarts from a pure legacy tree (protocol C.1).
+
+Findings from the first attempt that still stand:
+
+- **The Upgrade agent depends on GitHub Copilot modernization for Azure migrations.** It picked the scenario `azure-migrate`, whose workflow "delegates assessment and planning to the App Modernization migration session". With modernize disabled, "the prescribed App Modernization session tool was unavailable", and it fell back to the existing AppCAT report.
+- **Leftover files steer the agents.** Untracked and ignored files from an earlier run (plans, skills, build output) survive `git switch` and change what the agents do.
+
 ## Stages
 
 | Stage | Covered by the Upgrade agent? | Time | Model | Prompts | Interventions | Build / run | Live check |
