@@ -371,40 +371,63 @@ If you ask Copilot to containerize the app instead, tell it to use SDK container
 
 ## Comparison: GitHub Copilot upgrade (after run 1, before run 2)
 
-**(v2, owner-approved)** Repeat run 1's task 001, the .NET Framework 4.8 → .NET 10 upgrade, with the separate **GitHub Copilot upgrade** extension (`ms-dotnettools.upgrade-agent`, the **Upgrade** agent) instead of the `modernize` agent, and compare. Fill in [compare-upgrade.md](compare-upgrade.md).
+**(v2, owner-approved)** A full end-to-end run with the separate **GitHub Copilot upgrade** extension (`ms-dotnettools.upgrade-agent`, the **Upgrade** agent, `@upgrade`) instead of the `modernize` agent: assess, plan, upgrade to .NET 10, then migrate to SQL Managed Instance, Blob, Service Bus and Key Vault. That's the same scope as run 1's steps 2–4, with the same kit rules and configuration keys. Fill in [compare-upgrade.md](compare-upgrade.md) stage by stage. The Upgrade agent may not cover the Azure migrations at all: that's a result to record, not a failure.
 
-1. Install the extension on `vm-dev01` by hand (the datacenter kit doesn't install it yet), record its version, and reload the window:
+### C.1 Set up
+
+1. Install the extension on `vm-dev01` by hand (nothing in the kit installs it), record its version, and reload the window:
 
    ```powershell
    code --install-extension ms-dotnettools.upgrade-agent
    code --list-extensions --show-versions | Select-String 'upgrade-agent|migrate-java-to-azure'
    ```
 
-2. Create the comparison branch from run 1's start commit, and check that the app is the legacy one:
+2. **Default, for a clean comparison:** disable GitHub Copilot modernization for this run: **Extensions** > **GitHub Copilot modernization** > **Disable (Workspace)**, then reload. Re-enable it after the run. You may keep both enabled if you prefer; record which you chose in `compare-upgrade.md`.
+3. Create the comparison branch from run 1's start commit:
 
    ```powershell
    Set-Location C:\src\apex-factory-hackathon
    git status --short                   # must print nothing
    git fetch origin
    git switch -c spike/b06-upgrade-compare da4e5f606983332001c94ce69b48634f9c1864b3
+   git commit --allow-empty -m "compare: stage 1 set up"
    ```
+
+### C.2 Assess and plan
 
 > [!WARNING]
-> **BEFORE you send:** start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Luna** with reasoning **maximum**. The chat uses whatever is selected.
->
-> **How to check:** the agent and model pickers sit at the bottom of the chat input box in the Chat panel.
+> **BEFORE you send:** start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Sol** with reasoning **Medium**, as for run 1's planning. The chat uses whatever is selected. The pickers sit at the bottom of the chat input box.
 
-3. ⚠️ **BEFORE you send:** start a **new chat**. Check the agent is **Upgrade** and the model is **GPT-6 Luna** at **maximum**. Then send the same requirements as run 1's task 001:
+1. ⚠️ **BEFORE you send:** new chat, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
+2. Send the assessment and planning prompt. It uses the same seven kit rules as run 1's planning prompt (step 3.2):
 
    ```text
-   Upgrade app/ContosoUniversity from .NET Framework 4.8 and ASP.NET MVC 5 to an SDK-style .NET 10 ASP.NET Core MVC application.
-   Target net10.0. Convert ContosoUniversity.csproj to SDK style and replace packages.config with PackageReference. Migrate applicable Web.config settings to appsettings.json and ASP.NET Core configuration. Preserve existing controllers, Razor views, routes and user-visible behavior, and preserve the EF Core entity model and mappings while updating them for .NET 10 compatibility. Do not add Microsoft Entra ID user sign-in: the current application has no sign-in, and IIS Express Windows authentication plus LocalDB Integrated Security are not application identity requirements. Keep the result compatible with Azure App Service for Linux container hosting, but do not provision resources or deploy.
+   Assess app/ContosoUniversity and create an upgrade and migration plan, following these rules exactly:
+   1. First task: upgrade app/ContosoUniversity to .NET 10 and ASP.NET Core MVC (SDK-style project, PackageReference, Web.config settings to appsettings.json, keep controllers, views and the EF Core model). Every other task depends on it and runs on .NET 10.
+   2. No Microsoft Entra ID user sign-in task. The app has no sign-in; Windows authentication findings come only from IIS Express settings and the LocalDB Integrated Security connection string. Remove it.
+   3. One target per workload: Azure Blob Storage (not Azure Files, no storage mounts) and Azure SQL Managed Instance (not Azure SQL Database). Remove the other alternatives.
+   4. Database: keep local SQL authentication working. When ConnectionStrings:DefaultConnection uses SQL authentication (the on-premises server and contosoapp login, from user secrets) use it as is; use managed identity only when it says Authentication=Active Directory Default.
+   5. Order: .NET 10 upgrade, SQL Managed Instance, Blob and file handling, Service Bus, Key Vault, CVE fixes.
+   6. DefaultAzureCredential everywhere. Storage shared keys and Service Bus SAS are disabled: no keys, SAS tokens or connection strings. Endpoints come from configuration at execution time: Storage:BlobServiceUri, Storage:ContainerName, ServiceBus:FullyQualifiedNamespace, ServiceBus:QueueName, KeyVault:VaultUri.
+   7. Hosting: Azure App Service for Linux (containers). All Azure resources already exist; don't provision or deploy anything.
+   Then show a table with one row per rule (1-7) and how the plan meets it, and say which tasks you can't do. Wait for my review.
    ```
 
-   Approve builds and file edits; reply `continue` when it asks. Note every intervention.
-4. Build and run against the source database, as in step 3.5: `dotnet build app/ContosoUniversity`, then user secrets with SQL authentication to `10.10.n.4` and `dotnet run`. Check the home, Students, Courses, Instructors and Departments pages.
-5. Export the chat to `docs\spikes\B06-ghcp-golden-path\chats\compare-upgrade.json` (or `.txt`), fill in [compare-upgrade.md](compare-upgrade.md), and commit and push: `git add -A`, `git commit -m "compare: upgrade agent .NET 10 upgrade"`, `git push -u origin spike/b06-upgrade-compare`. Check `git status --short --branch` first, as in step 3.4.3.
-6. For run 2, keep the extension installed and note in `compare-upgrade.md` whether the `modernize` agent behaves differently with it (for example, whether **Create Plan** or `/create-modernization-plan` now includes the upgrade, and whether it hands task 001 to the Upgrade agent).
+3. Record which rules and tasks it covers, and where it writes its assessment and plan. Export the chat, then commit and push: `compare: stage 2 assess and plan`.
+
+### C.3 Upgrade and migrate
+
+> [!WARNING]
+> **BEFORE you send:** start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Luna** with reasoning **maximum**, as for run 1's execution.
+
+For each stage in order, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus, Key Vault:
+
+1. ⚠️ **BEFORE you send:** new chat, agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
+2. Ask it to do that stage of its plan, for example `Do the .NET 10 upgrade task of your plan, and nothing else.` If it says a stage is out of its scope, don't force it: record that and go on to the next stage.
+3. Build, then do the same check as run 1 for that stage: step 3.5 (pages against `10.10.n.4`) after the upgrade, then the step 4.1–4.4 checks (Students against `10.10.n.4`, a Blob upload, Service Bus send **and** receive with `/Notifications/GetNotifications`, and Key Vault).
+4. Check `git status --short --branch`, commit and push: `compare: stage 3.N <stage>`. Put interventions in the commit body, one line each, and export the chat.
+
+After the last stage, re-enable GitHub Copilot modernization if you disabled it, and tell the executor the branch is pushed. For run 2, note in `compare-upgrade.md` whether the `modernize` agent behaves differently with the upgrade extension installed.
 
 ## Optional: step 2 with Copilot CLI
 
@@ -463,5 +486,5 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 4.3 | Check send **and** receive: toasts top right (the **Notifications** page is only information), `/Notifications/GetNotifications` returns `success: true`, and the queue's active message count | Run 1's task 004 sent (`activeMessageCount` 2) but never received: `ReceiveMessagesAsync(maxMessages, TimeSpan.Zero)` throws, and the controller hid it with `Debug.WriteLine`. The agent's validation passed because it didn't test receive |
 | 3.4.5 | Expect a tracker stop on the first attempt of a task; pick **Retry task 00N** (or reply to mark the stale item complete) | Tasks 003 and 005 both stopped on the first attempt. For 005, in a fresh chat after a reload, the agent blocked on the handoff record it had just created: "The executor stopped after seeing the in-progress handoff record I created for this request". The retry worked both times |
 | 3.4.5 | If a retry reports that no modernization scenario is active, don't initialize a new one: run the task directly from `tasks.json` in a new chat, then commit and push | Task 005's retry failed with "no modernization scenario is active... Initializing a scenario would create a new scenario rather than resume the existing plan", probably because the window reloads lost the scenario context |
-| Comparison | **Owner-approved:** after run 1, repeat task 001 with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, Upgrade agent, GPT-6 Luna maximum) on `spike/b06-upgrade-compare` from `da4e5f6`, and compare in `compare-upgrade.md` | The `modernize` agent hands version upgrades to GitHub Copilot upgrade, which isn't installed; run 1's task 001 was done without it (findings 19 and 30) |
+| Comparison | **Owner-approved:** after run 1, a full end-to-end run with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, Upgrade agent; GPT-6 Sol Medium to assess and plan, GPT-6 Luna maximum to execute) on `spike/b06-upgrade-compare` from `da4e5f6`, with GitHub Copilot modernization disabled by default, compared stage by stage in `compare-upgrade.md` | The `modernize` agent hands version upgrades to GitHub Copilot upgrade, which isn't installed; run 1's task 001 was done without it (findings 19 and 30) |
 | 3.4.5 | Fallback for any blocked task: the default Agent with GPT-6 Luna maximum, the task's `description` and `requirements` pasted from `tasks.json`, "work directly, don't delegate", then commit and push. Supersedes the previous row's direct `modernize` prompt | A direct `Implement task 005 from tasks.json` prompt to `modernize` was blocked a third way: "task 005 is already being handled by another agent", with no agent ID or result and no changes |

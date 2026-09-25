@@ -62,7 +62,7 @@
 
 ### Compare the upgrade agents
 
-11a. *(Owner-approved addition, 2026-09-25.)* After run 1 and before run 2, the owner repeats run 1's .NET 10 upgrade task with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, the Upgrade agent), installed by hand on `vm-dev01`, on the branch `spike/b06-upgrade-compare` from run 1's start commit. The results, a side-by-side with the `modernize` agent's upgrade, and whether `modernize` behaves differently with the upgrade extension installed go in `compare-upgrade.md`. The report recommends which extension or extensions the kit's dev VM should install; the owner decides, and B04's extension list isn't changed in this item.
+11a. *(Owner-approved addition, 2026-09-25.)* After run 1 and before run 2, the owner does a full end-to-end run with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, the Upgrade agent), installed by hand on `vm-dev01`, on the branch `spike/b06-upgrade-compare` from run 1's start commit: assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus and Key Vault, with the same kit rules, configuration keys and live checks as run 1. GitHub Copilot modernization is disabled for this run by default. `compare-upgrade.md` records per stage whether the Upgrade agent covers it, time, prompts, interventions and results, compares it with run 1 stage by stage, and notes whether `modernize` behaves differently with the upgrade extension installed. The report recommends which extension or extensions the kit's dev VM should install; the owner decides, and B04's extension list isn't changed in this item.
 
 ### Check each run
 
@@ -110,7 +110,7 @@ npm run check
 
 - [ ] Both runs are recorded, and every check in requirement 12 is recorded per run.
 - [ ] The report gives B10 a sequence, prompts and hot-spot list it can build on.
-- [ ] The upgrade-agent comparison is recorded in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
+- [ ] The end-to-end upgrade-agent comparison is recorded stage by stage in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
 - [ ] Spike resources are deleted, and the datacenter is still deployed.
 
 ## Commit message

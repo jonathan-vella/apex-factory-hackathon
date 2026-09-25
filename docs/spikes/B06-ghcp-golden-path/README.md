@@ -74,13 +74,13 @@ Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clon
 
 ## Decisions
 
-- **Compare the upgrade agents (owner-approved, 2026-09-25).** B06 also tests GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) against the `modernize` agent for the .NET 10 upgrade, on `spike/b06-upgrade-compare` from `da4e5f6`, recorded in [compare-upgrade.md](compare-upgrade.md). This adds requirement 11a to [B06](../../backlog/B06-spike-ghcp.md). The report recommends the dev VM's extensions; the owner decides, and B04's extension list isn't changed yet.
+- **Compare the upgrade agents (owner-approved, 2026-09-25).** B06 also does a full end-to-end run with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, the Upgrade agent) instead of the `modernize` agent (assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus, Key Vault), on `spike/b06-upgrade-compare` from `da4e5f6`, with GitHub Copilot modernization disabled by default, compared stage by stage with run 1 and recorded in [compare-upgrade.md](compare-upgrade.md). This adds requirement 11a to [B06](../../backlog/B06-spike-ghcp.md). The report recommends the dev VM's extensions; the owner decides, and B04's extension list isn't changed yet.
 - **Custom assessment, then a rules-driven plan (owner decision, 2026-09-25).** Step 2 runs a custom assessment targeting App Service for Linux (containers). Step 3 skips **Create Plan**: a new chat with `modernize` and GPT-6 Sol at Medium sends `/create-modernization-plan` with the seven kit rules as the planning input, the plan is checked against the rules table and `tasks.json`, and a wrong plan is deleted and regenerated. Execution then runs with GPT-6 Luna at maximum. A ⚠️ callout before each chat says which agent and model to select, because the chat uses whatever is selected. Prompt files, agent skills, **Create Plan** with a correction reply and a follow-up kit rules prompt were tried first and dropped (findings 10–26). [B06](../../backlog/B06-spike-ghcp.md) requirement 7 still leaves the model unpinned; it now says the protocol names what to select.
 
 ## Evidence
 
 - [assessment/](assessment/): the saved assessment reports per run.
-- [compare-upgrade.md](compare-upgrade.md): the GitHub Copilot upgrade vs `modernize` comparison for the .NET 10 upgrade.
+- [compare-upgrade.md](compare-upgrade.md): the end-to-end GitHub Copilot upgrade vs `modernize` comparison, stage by stage.
 - [pe-probe.md](pe-probe.md): the private-endpoint probe from `vm-dev01` and the deployed settings.
 - [run1.md](run1.md) and [run2.md](run2.md): the results sheets, filled in by the executor from the run branches.
 - `chats/` and `runN-versions.txt` on the run branches: the chat exports per step (checked for secrets) and the tool versions.
