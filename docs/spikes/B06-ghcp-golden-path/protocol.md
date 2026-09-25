@@ -199,7 +199,23 @@ Model: the assessment uses the extension's default model. **(v2)** Step 2 uses t
 >
 > **How to check:** the agent and model pickers sit at the bottom of the chat input box in the Chat panel.
 
-4. ⚠️ **BEFORE you start:** in the Chat panel, check the model picker shows **GPT-6 Luna** with reasoning **maximum**, and the agent is **`modernize`**. (The pickers are at the bottom of the chat input box.) **(v2) Plan and execute in separate chats.** Start execution in a **new chat**, never in the chat that planned it: nested coordinators in one chat use up the sub-agent depth limit. Send `Execute the modernization plan in .github/modernize/<plan-folder>, starting with task 001.` Note the exact prompt in the commit body. If execution is **BLOCKED** (for example "saw an in-progress execution-phase tracker" or "Maximum sub-agent depth of 4 reached"), nothing was changed: abort, reload the window (**Developer: Reload Window**), and start again in a new chat. Never retry in the same chat.
+4. ⚠️ **BEFORE you start:** in the Chat panel, check the model picker shows **GPT-6 Luna** with reasoning **maximum**, and the agent is **`modernize`**. (The pickers are at the bottom of the chat input box.) **(v2) Plan and execute in separate chats, one task per chat.** Execution never runs in the chat that planned it: nested coordinators in one chat use up the sub-agent depth limit. For **each task** in `tasks.json`, in order:
+
+   1. Open a **new chat** with **`modernize`** and **GPT-6 Luna** at **maximum**.
+   2. Send `Execute task 00N of the plan in .github/modernize/<plan-folder>.` (for example `Execute task 001 of the plan in .github/modernize/contoso-university-dotnet10-azure.`). Approve builds and file edits; reply `continue` when it asks.
+   3. When it reports the task done, the tool has usually committed it on a new `appmod/*` branch. Bring it back to the run branch and push:
+
+      ```powershell
+      git branch --show-current             # the appmod/* branch the tool created
+      git switch spike/b06-run1
+      git merge --ff-only <appmod-branch>
+      git push
+      ```
+
+      If the task left uncommitted changes instead, commit them on `spike/b06-run1` with the step name before the next task.
+   4. Do the check for that task (below), then start the next task in another new chat.
+
+   The tool also writes per-task notes to `.github\modernize\code-migration\<timestamp>\` (`plan.md`, `progress.md`, `summary.md`): commit them with the task. Note the exact prompt in the commit body. If execution is **BLOCKED** (for example "saw an in-progress execution-phase tracker" or "Maximum sub-agent depth of 4 reached"), nothing was changed: abort, reload the window (**Developer: Reload Window**), and start again in a new chat. Never retry in the same chat.
 
    > [!WARNING]
    > **Commit and push after EVERY task, before you let the agent start the next one.** The agent's version control tool creates an `appmod/*` branch per task and switches to it (`prepareBranch`). In run 1 that switch stashed task 001's uncommitted .NET 10 upgrade and left the working tree back on .NET Framework 4.8. If it offers to create a branch, decline; if it creates one anyway, merge or fast-forward it back into `spike/b06-runN` before the next task. The run's final result must be on `spike/b06-runN`. Check `git branch --show-current` before every commit. It runs the plan task by task; reply `continue` when it asks. Keep the changes when they build. Do the step 3 check below after the upgrade task, and the step 4 checks after each of the other tasks, committing after each task with the step names below and exporting the chat before each commit.
@@ -403,3 +419,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 3.4 | After any abandoned plan or execution attempt, start execution in a new chat with `Execute the modernization plan in .github/modernize/<plan-folder>`, reloading the window if needed | In run 1, "Execute the plan" in the planning chat handed off to `execution-coordinator`, which returned BLOCKED before any task because it saw an in-progress execution-phase tracker. No tracker file was on disk, so it's likely session state from the earlier abandoned attempts |
 | 3.4 | Plan and execute in separate chats: execution always starts in a new chat, never retried in the planning chat. Reload the window after any blocked execution. Supersedes the previous row | "Retry from scratch" in the planning chat was blocked too: "Maximum sub-agent depth of 4 reached". `modernize` → `create-modernization-plan` → `execution-coordinator` → retry uses up the depth budget within one chat |
 | 3.4 | Commit and push after every task, before the next one starts. Decline branch creation; if the agent creates `appmod/*` branches anyway, merge or fast-forward them back into `spike/b06-runN`. Check the current branch before every commit | When task 002 started, the agent's version control tool ran `prepareBranch` and switched to `appmod/dotnet-migration-azure-sql-database-<timestamp>`. Task 001's uncommitted output was probably stashed ("no restore-stash action"), and the working tree was back at .NET Framework 4.8 |
+| 3.4 | One task per chat: new chat (`modernize`, GPT-6 Luna maximum), `Execute task 00N of the plan in <plan folder>`, then `git switch spike/b06-runN`, `git merge --ff-only <appmod branch>`, `git push`. Per-task notes in `.github/modernize/code-migration/<timestamp>/` are committed too | Task 001 was restored from the agent's auto-stash and pushed; task 002 ran in a new chat and the tool committed it on a new `appmod/*` branch (`prepareBranch` and `commitChanges` per task) |
