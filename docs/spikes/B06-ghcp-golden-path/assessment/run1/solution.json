@@ -1,0 +1,8 @@
+{
+  "Scale.0001": "local-file-to-azure-blob-storage",
+  "Database.0002": "local-sql-server-to-azure-sql-db",
+  "Identity.0002": "windows-ad-to-azure-ad",
+  "Security.0002": "plaintext-credential-to-azure-keyvault",
+  "Local.0003": "file-system-management-prompt",
+  "Queue.0003": "msmq-to-azure-servicebus"
+}
