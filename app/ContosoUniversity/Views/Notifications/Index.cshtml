@@ -72,20 +72,20 @@
             </div>
             <div class="panel-body">
                 <div class="alert alert-warning" role="alert">
-                    <strong>Note:</strong> This notification system uses Microsoft Message Queuing (MSMQ) as the underlying technology for reliable message delivery.
+                    <strong>Note:</strong> The current .NET 10 upgrade uses a temporary in-process queue. Messages are not durable or shared across application instances; the modernization plan's later Service Bus task replaces this transport.
                 </div>
                 
                 <h4>Features:</h4>
                 <ul>
                     <li><strong>Real-time delivery</strong> - Notifications appear immediately when operations occur</li>
-                    <li><strong>Reliable messaging</strong> - MSMQ ensures messages are not lost</li>
-                    <li><strong>Admin-only</strong> - Only administrators receive these notifications</li>
-                    <li><strong>Auto-dismiss</strong> - Notifications automatically disappear after 8 seconds</li>
+                    <li><strong>In-process delivery</strong> - Messages are delivered within this running application instance</li>
+                    <li><strong>Auto-dismiss</strong> - Notifications automatically disappear after one minute</li>
                     <li><strong>User-friendly</strong> - Click the × to dismiss notifications manually</li>
                 </ul>
                 
                 <h4>Queue Information:</h4>
-                <p><strong>Queue Path:</strong> <code>.\\Private$\\ContosoUniversityNotifications</code></p>
+                <p><strong>Transport:</strong> <code>In-process queue</code></p>
+                <p><strong>Scope:</strong> <code>Current application instance</code></p>
                 <p><strong>Check Interval:</strong> 5 seconds</p>
                 <p><strong>Max Visible Notifications:</strong> 5 at a time</p>
             </div>

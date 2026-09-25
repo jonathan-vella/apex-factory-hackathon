@@ -7,7 +7,7 @@ This feature allows administrators to upload images for teaching materials (text
 - **Image Upload**: Upload teaching material images when creating or editing courses
 - **File Validation**: Supports JPG, JPEG, PNG, GIF, and BMP formats
 - **Size Limits**: Maximum file size of 5MB per image
-- **Secure Storage**: Images are stored in `/Uploads/TeachingMaterials/` directory
+- **Storage**: Images are stored under `wwwroot/Uploads/TeachingMaterials/`
 - **Automatic Cleanup**: Images are automatically deleted when courses are removed
 - **Unique Filenames**: Each uploaded image gets a unique filename to prevent conflicts
 
@@ -38,13 +38,15 @@ This feature allows administrators to upload images for teaching materials (text
 ## Technical Details
 
 ### File Storage
-- Images are stored in `/Uploads/TeachingMaterials/` directory
+- Images are stored in `wwwroot/Uploads/TeachingMaterials/` and served at
+  `/Uploads/TeachingMaterials/`
 - Filenames follow the pattern: `course_{CourseID}_{GUID}.{extension}`
 - Old images are automatically deleted when replaced
 - **Important**: Uploaded images are excluded from git repository via `.gitignore`
 
 ### Git Repository Management
-- The `/Uploads/TeachingMaterials/` directory structure is preserved in git with a `.gitkeep` file
+- The `wwwroot/Uploads/TeachingMaterials/` directory structure is preserved in
+  git with a `.gitkeep` file
 - Actual uploaded images are excluded from version control to:
   - Keep repository size manageable
   - Prevent sensitive content from being committed
@@ -61,10 +63,9 @@ This feature allows administrators to upload images for teaching materials (text
 - Only authenticated users with appropriate roles can upload images
 
 ### Authorization
-- **Create/Upload**: Admin role required
-- **Edit/Upload**: Admin or Teacher role required
-- **View**: All authenticated users can view images
-- **Delete**: Admin role required (deletes both course and associated image)
+- The application does not currently configure user sign-in or role-based
+  authorization. Uploads and CRUD actions follow the existing application
+  authorization behavior.
 
 ## Troubleshooting
 
@@ -76,26 +77,25 @@ This feature allows administrators to upload images for teaching materials (text
 
 ### Configuration
 
-The following settings in `Web.config` control file upload limits:
-- `maxRequestLength="10240"` (10MB in KB)
-- `maxAllowedContentLength="10485760"` (10MB in bytes)
-- `executionTimeout="3600"` (1 hour timeout for large uploads)
+The equivalent ASP.NET Core settings are in `appsettings.json`:
+- `Kestrel:Limits:MaxRequestBodySize` is 10 MB.
+- `RequestTimeoutSeconds` is 3600 (one hour).
+- Individual teaching-material images are limited to 5 MB by the controller.
 
 ## Deployment Considerations
 
 ### Initial Setup
-1. Ensure the `/Uploads/TeachingMaterials/` directory exists on the server
-2. Set appropriate write permissions for the application pool identity
-3. Verify the web.config upload limits are appropriate for your hosting environment
+1. Ensure `wwwroot/Uploads/TeachingMaterials/` exists on the server.
+2. Ensure the application identity can write to that directory.
+3. Verify the ASP.NET Core request limit is appropriate for the hosting
+   environment.
 
 ### File System Permissions
-The application needs write access to the `/Uploads/TeachingMaterials/` directory:
-- **IIS**: Grant `IIS_IUSRS` or application pool identity write permissions
-- **Development**: Ensure the development user has write access
+The application needs write access to `wwwroot/Uploads/TeachingMaterials/`.
 
 ### Backup Strategy
 Since uploaded images are not in version control, implement a backup strategy:
-- Regular file system backups of the `/Uploads/` directory
+- Regular file system backups of `wwwroot/Uploads/`
 - Consider cloud storage integration for production environments
 - Document the restore process for disaster recovery
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Web.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using ContosoUniversity.Data;
 using ContosoUniversity.Services;
 using ContosoUniversity.Models;
 
@@ -8,6 +9,11 @@ namespace ContosoUniversity.Controllers
 {
     public class NotificationsController : BaseController
     {
+        public NotificationsController(SchoolContext db, NotificationService notificationService)
+            : base(db, notificationService)
+        {
+        }
+
         // GET: api/notifications - Get pending notifications for admin
         [HttpGet]
         public JsonResult GetNotifications()
@@ -30,14 +36,14 @@ namespace ContosoUniversity.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error retrieving notifications: {ex.Message}");
-                return Json(new { success = false, message = "Error retrieving notifications" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "Error retrieving notifications" });
             }
 
             return Json(new { 
                 success = true, 
                 notifications = notifications,
                 count = notifications.Count 
-            }, JsonRequestBehavior.AllowGet);
+            });
         }
 
         // POST: api/notifications/mark-read

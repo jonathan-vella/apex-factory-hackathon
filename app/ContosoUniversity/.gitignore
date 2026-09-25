@@ -11,6 +11,9 @@ packages/
 Uploads/TeachingMaterials/*
 # But keep the directory structure
 !Uploads/TeachingMaterials/.gitkeep
+# ASP.NET Core serves mutable teaching-material files from wwwroot.
+wwwroot/Uploads/TeachingMaterials/*
+!wwwroot/Uploads/TeachingMaterials/.gitkeep
 # Exclude any config files in uploads directory
 Uploads/web.config
 
