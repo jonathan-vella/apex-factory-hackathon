@@ -1,0 +1,129 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/app-modernization-toolkit/main/schemas/tasks-schema.json",
+  "description": "Sequential modernization tasks for Contoso University based on the latest validated assessment report and the user's seven rules.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-dotnet10-aspnetcore-mvc",
+      "description": "Upgrade app/ContosoUniversity from .NET Framework 4.8 and ASP.NET MVC 5 to an SDK-style .NET 10 ASP.NET Core MVC application. Addresses the assessed .NETFramework,Version=v4.8 project state and the legacy project/configuration format verified in the current source.",
+      "reason": "The upgrade must establish the supported runtime and project model before any Azure service migration is applied.",
+      "requirements": "Target net10.0. Convert ContosoUniversity.csproj to SDK style and replace packages.config with PackageReference. Migrate applicable Web.config settings to appsettings.json and ASP.NET Core configuration. Preserve existing controllers, Razor views, routes and user-visible behavior, and preserve the EF Core entity model and mappings while updating them for .NET 10 compatibility. Do not add Microsoft Entra ID user sign-in: the current application has no sign-in, and IIS Express Windows authentication plus LocalDB Integrated Security are not application identity requirements. Keep the result compatible with Azure App Service for Linux container hosting, but do not provision resources or deploy.",
+      "dependencies": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-sql-managed-instance",
+      "description": "Adapt the preserved EF Core data layer for the existing Azure SQL Managed Instance. Addresses assessment issue 'SQL database connection detected' and the related connection-string configuration finding.",
+      "reason": "The application currently uses LocalDB and must reach the selected Azure SQL Managed Instance while preserving the required local development authentication mode.",
+      "requirements": "Use only Azure SQL Managed Instance as the Azure database target; do not target Azure SQL Database. Continue to read ConnectionStrings:DefaultConnection at runtime. When that value uses SQL authentication with the on-premises server and contosoapp login supplied through user secrets, use it unchanged. Use managed identity through DefaultAzureCredential only when the connection string explicitly contains Authentication=Active Directory Default. Do not embed credentials, resource identifiers, or connection strings. Preserve the existing EF Core model, table mappings, relationships, and application behavior. All work runs on the net10.0 result of task 001.",
+      "environmentConfiguration": "ConnectionStrings:DefaultConnection is supplied at execution/runtime. Local SQL-authentication credentials remain in user secrets.",
+      "dependencies": [
+        "001-upgrade-dotnet10-aspnetcore-mvc"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-sql-database",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-blob-file-handling",
+      "description": "Move mutable teaching-material image upload, retrieval, replacement, and deletion from the local Uploads/TeachingMaterials directory to the existing Azure Blob Storage container. Addresses assessment issue 'Local or network IO operations detected'; the generic static-content finding is limited to these mutable uploads.",
+      "reason": "Container-local persistent writes are not reliable for a scale-out Azure App Service workload.",
+      "requirements": "Use Azure Blob Storage only; do not use Azure Files, storage mounts, shared keys, account keys, SAS tokens, or storage connection strings. Authenticate with DefaultAzureCredential. Read Storage:BlobServiceUri and Storage:ContainerName from runtime configuration. Preserve upload validation, the 5 MB size limit, supported image types, unique naming, replacement cleanup, deletion behavior, and rendering from controllers and views. Leave ordinary CSS, JavaScript, and bundled static application assets in the application. All work runs on net10.0 and depends on the SQL Managed Instance task.",
+      "environmentConfiguration": "Storage:BlobServiceUri and Storage:ContainerName are supplied at execution/runtime.",
+      "dependencies": [
+        "002-transform-sql-managed-instance"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-storage-blob",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-msmq-servicebus",
+      "description": "Replace the verified MSMQ-backed notification flow with the existing Azure Service Bus queue while preserving notification behavior. Addresses assessment issue 'MSMQ usage is detected'.",
+      "reason": "System.Messaging and MSMQ are Windows-specific and are not supported by the selected Linux container hosting target.",
+      "requirements": "Use Azure Service Bus as the only messaging target. Authenticate with DefaultAzureCredential; Service Bus SAS is disabled, so do not use keys, SAS tokens, or connection strings. Read ServiceBus:FullyQualifiedNamespace and ServiceBus:QueueName from runtime configuration. Preserve notification payload meaning, send/receive behavior, bounded UI polling results, non-blocking failure handling, and controller behavior. Do not create or configure the Azure resource. All work runs on net10.0 and depends on the Blob/file-handling task.",
+      "environmentConfiguration": "ServiceBus:FullyQualifiedNamespace and ServiceBus:QueueName are supplied at execution/runtime.",
+      "dependencies": [
+        "003-transform-blob-file-handling"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-servicebus",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "005-transform-keyvault-configuration",
+      "description": "Integrate the existing Azure Key Vault into ASP.NET Core configuration for cloud secrets while retaining the required local configuration behavior. Addresses assessment issue 'Connection strings without configuration builders detected'.",
+      "reason": "Cloud-hosted secret values should be sourced securely without placing credentials in application files.",
+      "requirements": "Authenticate to the existing Key Vault with DefaultAzureCredential and read KeyVault:VaultUri from runtime configuration. Do not provision Key Vault, create identities, assign roles, or deploy. Preserve local user-secrets behavior. In particular, do not replace or reinterpret ConnectionStrings:DefaultConnection when it contains SQL authentication for the on-premises server and contosoapp login; managed identity applies to SQL only when that connection string contains Authentication=Active Directory Default. Do not add Microsoft Entra ID user sign-in. All work runs on net10.0 and depends on the Service Bus task.",
+      "environmentConfiguration": "KeyVault:VaultUri is supplied at execution/runtime; local SQL credentials remain in user secrets.",
+      "dependencies": [
+        "004-transform-msmq-servicebus"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-keyvault-secret",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "006-security-cve-remediation",
+      "description": "Scan the final .NET 10 dependency graph and remediate known CVEs after all requested upgrades and Azure service migrations. The assessment report did not include CVE records, so this mandatory final check validates the resulting PackageReference dependencies rather than inventing findings.",
+      "reason": "The legacy dependency set contains old framework-era packages, and every modernization plan requires a final dependency vulnerability check.",
+      "requirements": "Run after the Key Vault task and last among the requested modernization tasks. Scan direct and transitive dependencies, upgrade vulnerable packages to the minimum patched compatible versions, document any required major-version change and breaking-change risk, then verify the net10.0 project builds and all available tests pass. Do not add infrastructure provisioning or deployment work.",
+      "dependencies": [
+        "005-transform-keyvault-configuration"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "planName": "contoso-university-dotnet10-azure",
+    "projectName": "ContosoUniversity",
+    "language": "dotnet",
+    "createdAt": "2026-09-25T09:37:48.734Z",
+    "version": "1.0"
+  }
+}
