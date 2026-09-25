@@ -31,6 +31,8 @@ Run 1, step 1 (set up), found before any Copilot step:
 
 The rest is pending run 1.
 
+Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clone before run 1, so it isn't in [assessment/](assessment/). Run 1 started from a fresh clone.
+
 ## Decisions
 
 None yet.

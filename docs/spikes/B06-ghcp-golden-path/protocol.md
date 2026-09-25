@@ -74,38 +74,39 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
    It's set only on `vm-dev01`, never in Azure, so the deployed app still uses its managed identity. See [Credential chains in the Azure Identity library for .NET](https://learn.microsoft.com/dotnet/azure/sdk/authentication/credential-chains).
 
-4. Use the existing clone in `C:\src\apex-factory-hackathon` (clone it there only if it's missing). Check that it's clean, fetch, and create the run branch from the commit in the table above:
+4. **(v2)** Get the repo into `C:\src\apex-factory-hackathon`, either a fresh clone or an existing one, then create the run branch from the commit in the table above.
 
-   ```powershell
-   if (-not (Test-Path C:\src\apex-factory-hackathon)) { git clone https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\apex-factory-hackathon }
-   Set-Location C:\src\apex-factory-hackathon
-   git status --short
-   ```
+   - **No clone yet:** clone it.
 
-   `git status --short` must print nothing. **If it prints anything, stop and tell the executor**: don't commit, stash or delete anything. Otherwise:
+     ```powershell
+     git clone https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\apex-factory-hackathon
+     Set-Location C:\src\apex-factory-hackathon
+     ```
+
+   - **Existing clone:** check that it's clean.
+
+     ```powershell
+     Set-Location C:\src\apex-factory-hackathon
+     git status --short
+     ```
+
+     `git status --short` must print nothing. **If it prints anything, stop and tell the executor**: don't commit, stash or delete anything.
+
+   Then, in both cases:
 
    ```powershell
    git fetch origin
-   git switch -c spike/b06-run1 da4e5f606983332001c94ce69b48634f9c1864b3
-   git diff --stat da4e5f606983332001c94ce69b48634f9c1864b3 origin/main -- app/ContosoUniversity
+   git switch -c spike/b06-run1 <run-commit>
+   git diff --stat <run-commit> origin/main -- app/ContosoUniversity
    ```
 
-   The last command must print nothing: `app/ContosoUniversity` is unchanged from `main`. For run 2, use `spike/b06-run2` and the run 2 commit.
+   Replace `<run-commit>` with the commit in the table above. The last command must print nothing: `app/ContosoUniversity` is unchanged from `main`. For run 2, use `spike/b06-run2` and the run 2 commit.
 
-5. **Run 1 only: save the earlier manual assessment.** The assessment you ran by hand on 2026-09-24 left its output in `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\`, which git ignores. Copy its report into the spike folder, then move the whole folder out of the repo so run 1's assessment starts clean:
+5. **(v2) Only if an earlier assessment is in the clone:** a GitHub Copilot modernization assessment run by hand before the spike leaves its output in `app\ContosoUniversity\.github\modernize\`, which git ignores. If that folder exists, move it out of the repo so the run's assessment starts clean, and note it in the results sheet. With a fresh clone, skip this step.
 
    ```powershell
-   $manual = 'C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize'
-   $target = 'C:\src\apex-factory-hackathon\docs\spikes\B06-ghcp-golden-path\assessment\manual-2026-09-24'
-   New-Item -ItemType Directory -Force $target | Out-Null
-   Copy-Item "$manual\assessment\reports\report-20260924145927\*" $target -Recurse
-   Copy-Item "$manual\assessment\engines\dotnet-appcat\result\report.json" (Join-Path $target 'appcat-report.json')
-   Move-Item $manual 'C:\src\b06-manual-assessment'
-   git add docs/spikes/B06-ghcp-golden-path/assessment
-   git commit -m "run1: step 1 save the manual assessment"
+   if (Test-Path app\ContosoUniversity\.github\modernize) { Move-Item app\ContosoUniversity\.github\modernize C:\src\b06-earlier-assessment }
    ```
-
-   The target folder then holds `report.json`, `solution.json` and `appcat-report.json`.
 
 6. Open the folder in VS Code: `code C:\src\apex-factory-hackathon`. Sign in to GitHub in VS Code (**Accounts** menu, bottom left) with the account that has the Copilot seat. Check that Copilot Chat opens in **Agent** mode.
 7. Check the extensions under **Extensions** (Ctrl+Shift+X):
@@ -320,3 +321,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 1.2 | Sign in with device code flows: `az login --use-device-code` and `gh auth login --web` with the code entered at `github.com/login/device`, both completed on the attendee's own device | Browser sign-in inside the Bastion session is awkward and has no passkeys or password managers. Some tenants block device code flow with Conditional Access |
 | 1.2 | Pick your own workload subscription (the one that holds `rg-datacenter`) in the Azure CLI subscription picker, and check it with `az account show --query name -o tsv`; `az account set --subscription '<your workload subscription name>'` if the picker was skipped. No subscription is hard-coded | Each attendee has their own workload subscription |
 | 1.3, 4.2 | Set the user environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` on `vm-dev01` | `vm-dev01` has a system-assigned managed identity. `DefaultAzureCredential` tries it before `AzureCliCredential`, so the app gets a VM token with no data roles and fails with 403 on Blob, Service Bus and Key Vault. The roles stay on the user (owner decision) |
+| 1.4, 1.5 | Step 1 handles a fresh clone and an existing clean clone. An earlier hand-run assessment in the clone is moved aside, not saved into the spike folder | The owner's clone was gone before run 1, so run 1 used a fresh clone and the 2026-09-24 manual assessment was lost |
