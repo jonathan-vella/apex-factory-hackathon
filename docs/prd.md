@@ -69,7 +69,7 @@ flowchart LR
 ```
 
 - Each team and member gets a non-overlapping IP plan, with datacenter and spoke ranges derived from the member index. Vending creates the spoke with all its subnets (including the delegated MI subnet), UDRs and firewall rules. The archetype only references them by naming convention.
-- All PaaS services are private-only, with one documented exception: Application Insights ingestion stays public, and the hub firewall allows the Azure Monitor ingestion endpoints. The dev VM reaches the services through the hub firewall and DNS. This is how attendees push images, browse the app and run DB tooling. A probe script checks DNS and ports from the dev VM and the app VM.
+- All backend PaaS services are private-only. There are two documented exceptions: the web app's front end accepts public HTTPS inbound traffic, and Application Insights ingestion stays public, with the hub firewall allowing the Azure Monitor ingestion endpoints. The dev VM reaches the backend services through the hub firewall and DNS. This is how attendees push images, browse the app and run DB tooling. A probe script checks DNS and ports from the dev VM and the app VM.
 - The pre-work datacenter exists before ALZ does, so ALZ policies will flag it once the sub moves to Corp. An exemption script (with owner and expiry) runs right after the move. It's a deliberate lesson: "deferred work needs owner, target, timeline". Arc on Azure VMs is labelled lab-only, not a customer pattern.
 
 ## 5. Journey, modules and challenges
@@ -95,7 +95,7 @@ flowchart LR
   - Day 1: a new deny policy lands mid-build.
   - Day 2: the go/no-go check on the replica fails, so the team aborts and re-plans the cutover.
 - **Scoring rules:** rosters lock at kickoff, and the member average uses the kickoff roster. A lifeline caps that challenge's points but keeps later challenges eligible.
-- **Badges:** zero public endpoints, policy clean, rollback ready, trust but verify (every AI change reviewed and validated), cost guardian, reusable-asset contributor.
+- **Badges:** zero public backend endpoints, policy clean, rollback ready, trust but verify (every AI change reviewed and validated), cost guardian, reusable-asset contributor.
 - **Framework mapping:**
   - 6 dimensions → C1.
   - Assess with GHCP → C3.
@@ -128,7 +128,7 @@ flowchart LR
     - the MI Entra admin from the signed-in user.
   - Secrets are generated into Key Vault.
   - Encoded constraints (APEX security baseline):
-    - no public endpoints (except Application Insights ingestion, as above);
+    - no public endpoints except the web front end and Application Insights ingestion, as above;
     - central private DNS via policy;
     - diagnostics go to the central LAW;
     - managed identity;
