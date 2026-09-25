@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks for the selected categories in assessment report report-20260925073922.",
+  "tasks": [
+    {
+      "type": "setupBaseline",
+      "id": "001-setupBaseline",
+      "description": "Capture the current ContosoUniversity behavior before the selected Azure service migrations.",
+      "reason": "A frozen baseline is required to verify that the selected migrations preserve observable behavior.",
+      "requirements": "Snapshot the legacy application and produce test cases, test data, and an infrastructure decision table. Use mock mode for external dependencies because no Azure environment was supplied.",
+      "dependencies": [],
+      "snapshotFolder": "app/ContosoUniversity",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-windows-ad-to-entra-id",
+      "description": "Replace the application's Windows AD authentication dependency with Microsoft Entra ID.",
+      "reason": "Addresses issue: Windows authentication detected.",
+      "requirements": "Migrate from Windows AD to Microsoft Entra ID [kbId: windows-ad-to-azure-ad]. Preserve existing authenticated user flows and authorization behavior within app/ContosoUniversity.",
+      "dependencies": [],
+      "skills": [
+        {
+          "name": "migration-microsoft-entra-id",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-plaintext-credentials-to-key-vault",
+      "description": "Protect application credentials with managed identity and Azure Key Vault.",
+      "reason": "Addresses issue: Connection strings without configuration builders detected.",
+      "requirements": "Migrate from Plaintext Credentials to Secured Credentials protected by Managed Identity and Azure KeyVault [kbId: plaintext-credential-to-azure-keyvault]. Remove plaintext secret material from application configuration while preserving configuration behavior.",
+      "dependencies": [
+        "002-transform-windows-ad-to-entra-id"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-keyvault-secret",
+          "location": "builtin"
+        },
+        {
+          "name": "migration-managed-identity",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-sql-server-to-azure-sql",
+      "description": "Move SQL Server connectivity to the selected managed-identity-based Azure SQL target.",
+      "reason": "Addresses issue: SQL database connection detected.",
+      "requirements": "Choose exactly one target before execution: Migrate from SQL Server to Managed Identity Based Azure SQL [kbId: local-sql-server-to-azure-sql-db]; or Migrate from SQL Server to Managed Identity Based Azure SQL Managed Instance [kbId: local-sql-server-to-azure-sql-mi]. Preserve the existing Entity Framework data behavior and do not implement both alternatives.",
+      "dependencies": [
+        "003-transform-plaintext-credentials-to-key-vault"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-sql-database",
+          "location": "builtin"
+        },
+        {
+          "name": "migration-managed-identity",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "005-transform-local-files-to-azure-storage",
+      "description": "Move persistent local-file and file-system operations to the selected Azure Storage target.",
+      "reason": "Addresses issues: Static content detected; Local or network IO operations detected.",
+      "requirements": "Choose exactly one primary persistent-file target before execution: Migrate from local file system to Azure Blob Storage [kbId: local-file-to-azure-blob-storage]; or Migrate from local file system to Azure File Storage [kbId: local-file-to-azure-file-storage]. Apply File System Management Migration [kbId: file-system-management-prompt] to the upload, read, replace, and delete workflows in app/ContosoUniversity. Preserve current course teaching-material behavior and do not implement both alternatives unless the user explicitly resolves different workloads to different targets.",
+      "dependencies": [
+        "004-transform-sql-server-to-azure-sql"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-storage-blob",
+          "location": "builtin"
+        },
+        {
+          "name": "migration-azure-storage-mount",
+          "location": "builtin"
+        },
+        {
+          "name": "migration-managed-identity",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "006-transform-msmq-to-azure-service-bus",
+      "description": "Replace MSMQ-based notification messaging with Azure Service Bus.",
+      "reason": "Addresses issue: MSMQ usage is detected.",
+      "requirements": "Migrate from MSMQ to Azure Service Bus [kbId: msmq-to-azure-servicebus]. Preserve notification send, receive, timeout, and non-blocking failure behavior while using managed identity for Azure authentication.",
+      "dependencies": [
+        "005-transform-local-files-to-azure-storage"
+      ],
+      "skills": [
+        {
+          "name": "migration-azure-servicebus",
+          "location": "builtin"
+        },
+        {
+          "name": "migration-managed-identity",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "integrationTest",
+      "id": "007-integrationTest",
+      "description": "Build integration tests for migrated Azure services and run post-migration verification",
+      "reason": "Verify the selected service migrations against the frozen pre-migration baseline.",
+      "requirements": "Run mock-mode integration verification for Microsoft Entra ID, Azure Key Vault, the chosen Azure SQL target, the chosen Azure Storage target, and Azure Service Bus. Reuse the baseline decision table and do not require live Azure resources.",
+      "dependencies": [
+        "001-setupBaseline",
+        "002-transform-windows-ad-to-entra-id",
+        "003-transform-plaintext-credentials-to-key-vault",
+        "004-transform-sql-server-to-azure-sql",
+        "005-transform-local-files-to-azure-storage",
+        "006-transform-msmq-to-azure-service-bus"
+      ]
+    }
+  ],
+  "metadata": {
+    "planName": "ContosoUniversity-20260925073922",
+    "projectName": "ContosoUniversity",
+    "language": "dotnet",
+    "createdAt": "2026-09-25T07:56:02.857Z",
+    "version": "1.0"
+  }
+}
