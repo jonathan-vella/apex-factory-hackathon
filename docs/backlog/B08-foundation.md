@@ -50,7 +50,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    | `rg-management` | Log Analytics workspace | `log-management` | 30-day retention |
    | `rg-hub` | VNet | `vnet-hub` | `10.100.0.0/16`, with `AzureFirewallSubnet` `10.100.0.0/26` |
    | `rg-hub` | Azure Firewall | `afw-hub` | Standard, no zones, public IP `pip-afw-hub` (Standard, no `zones` set: zone-redundant automatically), firewall policy `afwp-hub` with **DNS proxy on**, diagnostics to `log-management` |
-   | `rg-hub` | Private DNS zones | The `privatelink` zones for Blob, Service Bus, ACR, Key Vault and App Service | Linked to `vnet-hub` |
+   | `rg-hub` | Private DNS zones | The `privatelink` zones for Blob, Service Bus, ACR and Key Vault | Linked to `vnet-hub` |
 
    🔎 VERIFY the zone names on [Azure private endpoint DNS zone values](https://learn.microsoft.com/azure/private-link/private-endpoint-dns). There's no zone for SQL MI: clients use its VNet-local endpoint, which Azure DNS resolves to its private IP (see **Notes and traps**).
 
@@ -62,8 +62,8 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    |---|---|---|
    | Allowed locations | Deny | `location` and `global`; parameterized, so the fallback region can be added |
    | Network interfaces shouldn't have public IPs | Deny | |
-   | Public network access disabled for Storage, Key Vault, Service Bus, ACR and App Service, and the public data endpoint disabled for SQL MI | Deny | One assignment per service, or an initiative |
-   | Private endpoints register in the central private DNS zones | DeployIfNotExists | For Storage (Blob), Service Bus, ACR, Key Vault and App Service, pointing at the zones in the shared subscription's `rg-hub`. The assignment's managed identity gets the roles it needs on that resource group. Not for SQL MI |
+   | Public network access disabled for Storage, Key Vault, Service Bus and ACR, and the public data endpoint disabled for SQL MI | Deny | One assignment per service, or an initiative. Not App Service: the web front end is public by design |
+   | Private endpoints register in the central private DNS zones | DeployIfNotExists | For Storage (Blob), Service Bus, ACR and Key Vault, pointing at the zones in the shared subscription's `rg-hub`. The assignment's managed identity gets the roles it needs on that resource group. Not for SQL MI |
    | Diagnostic settings to `log-management` | DeployIfNotExists | For the resource types the archetype deploys, sending to the workspace in the shared subscription |
 
    🔎 VERIFY each built-in definition ID with `az policy definition list`. Record the IDs in `infra/foundation/README.md`.

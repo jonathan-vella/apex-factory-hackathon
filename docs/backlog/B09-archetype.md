@@ -15,7 +15,7 @@
 
 - `archetype/` holds the CoE archetype: an APEX project with steps 1–5 complete (artifacts, challenger reviews and workflow state) and the Bicep it produced, pinned to an APEX release.
 - A member deploys it with APEX Deploy and As-Built, supplying only tenant ID, subscription ID and suffix. A plain `az deployment` script is the no-agent fallback.
-- It deploys into a vended spoke, private-only and policy-compliant under ALZ-lite: App Service for Linux, ACR Premium, SQL MI free offer, Blob storage, Service Bus Premium, Key Vault and Application Insights, with the identities and roles the modernized app needs.
+- It deploys into a vended spoke, with private-only backends, policy-compliant under ALZ-lite: App Service for Linux (the web front end, public inbound), ACR Premium, SQL MI free offer, Blob storage, Service Bus Premium, Key Vault and Application Insights, with the identities and roles the modernized app needs.
 
 ## Before you start
 
@@ -28,11 +28,11 @@
 ### Brief for APEX
 
 1. `archetype/BRIEF.md` is the input the owner gives APEX step 1. It states the requirements below as a workload brief, in APEX's terms, so that APEX's own agents make the architecture and code. It names the APEX release to use: the latest `apex-accelerator` release on the day, recorded in the brief.
-2. The workload: hosting for a modernized .NET 10 web app (Contoso University) in a Corp landing zone spoke that already exists, private-only, with these services:
+2. The workload: hosting for a modernized .NET 10 web app (Contoso University) in a Corp landing zone spoke that already exists, with private-only backends and a public web front end, with these services:
 
    | Service | Requirements |
    |---|---|
-   | App Service plan and web app | Linux, container, SKU P0v3, one instance, zone redundancy off (🔎 VERIFY P0v3 supports VNet integration and private endpoints); VNet integration in `snet-app` with all traffic routed through the VNet and image pull over the VNet; private endpoint in `snet-pe`; public network access off; HTTPS only; TLS 1.2 minimum |
+   | App Service plan and web app | Linux, container, SKU P0v3, one instance, zone redundancy off (🔎 VERIFY P0v3 supports VNet integration); VNet integration in `snet-app` with all traffic routed through the VNet and image pull over the VNet; **public inbound on** (the web front end is the only public endpoint), no private endpoint; HTTPS only; TLS 1.2 minimum |
    | Container registry | Premium; private endpoint; public network access off; admin user off; no zone setting (zone-redundant automatically, backlog conventions); **trusted Azure services allowed**, so `az acr import` of the known-good image works (B10). Document this as a deliberate exception |
    | SQL Managed Instance | General Purpose, **free offer**, 4 vCores, Standard-series hardware, 64 GB storage, zone redundancy off; in `snet-sqlmi`; reached on its VNet-local endpoint (no private endpoint); database format SQL Server 2022; Entra-only authentication with the deploying user as admin; public endpoint off; a stop and start schedule for the event hours, noting it only applies after cutover; `licenseType` as the B07 report found (AHB `BasePrice` if the free offer accepts it) |
    | Storage account | Standard general-purpose v2, LRS; Blob container `teaching-materials`; private endpoint; public network access off; shared key access off |
@@ -45,7 +45,7 @@
 4. App settings the modernized app reads, named as the B06 report recommends: the Blob endpoint, the Service Bus namespace and queue, the Key Vault URI, the SQL MI host and database for managed identity, the identity's client ID and the Application Insights connection string. No secrets in app settings.
 5. **Inputs:** only tenant ID, subscription ID and suffix. Everything else is derived or discovered: the hub (in the team's shared services subscription) from `vnet-spoke`'s peering, the region from the hub, the spoke and subnets by the backlog naming conventions, the Log Analytics workspace by its ALZ-lite name in the shared services subscription, and the MI Entra admin from the signed-in user. Resource names follow the conventions: CAF abbreviation + `university` + suffix.
 6. **Private DNS:** the archetype doesn't create DNS zones or zone groups. The landing zone's DeployIfNotExists policy registers private endpoints in the central zones (ALZ-lite, B08), which live in the shared services subscription. SQL MI has no private endpoint: the app uses its VNet-local host name, which resolves to its private IP.
-7. **Constraints** (APEX security baseline): no public endpoints apart from the two documented exceptions (Application Insights ingestion, and ACR trusted services for import), diagnostics to the central workspace, managed identity everywhere, Entra-only SQL, no availability zones pinned and no zone redundancy turned on (backlog conventions), and every deny policy in ALZ-lite passes.
+7. **Constraints** (APEX security baseline): no public endpoints apart from the three documented exceptions (the web app's front end, Application Insights ingestion, and ACR trusted services for import), diagnostics to the central workspace, managed identity everywhere, Entra-only SQL, no availability zones pinned and no zone redundancy turned on (backlog conventions), and every deny policy in ALZ-lite passes.
 8. **Initial image:** the web app starts with a placeholder image from Microsoft Container Registry, which vending's firewall rules allow (B08), until the member pushes the real image in C6.
 
 ### APEX session
@@ -66,7 +66,7 @@
 16. Deploy ALZ-lite (shared services subscription), then the datacenter and vending (member 1, workload subscription) with the kit scripts.
 17. Deploy the archetype with `archetype/deploy.ps1`. Record the time until everything except the MI is ready, and the MI provisioning time.
 18. 🧑 HUMAN: the owner copies `archetype/` into a fresh APEX repo and runs the `deploy-archetype` prompt against a clean spoke (delete the archetype resources first), then As-Built. Record the time and any gaps.
-19. Check: no public endpoints beyond the two documented exceptions (every resource's public network access is off; no public IPs outside the hub and the datacenter's NAT gateway and Bastion); zero non-compliant resources for the ALZ-lite policies in the archetype's resource group after evaluation; private endpoints registered in the central zones; the MI host name resolves to its private IP from `vm-dev01`; `scripts/Test-Connectivity.ps1` passes, including the private endpoint checks; from `vm-dev01`, push a test image to the registry and restart the web app with it; the web app pulls it with its identity and answers over its private endpoint; the web app's telemetry reaches Application Insights.
+19. Check: no public endpoints beyond the three documented exceptions (every backend resource's public network access is off; no public IPs outside the hub and the datacenter's NAT gateway and Bastion); zero non-compliant resources for the ALZ-lite policies in the archetype's resource group after evaluation; private endpoints registered in the central zones; the MI host name resolves to its private IP from `vm-dev01`; `scripts/Test-Connectivity.ps1` passes, including the private endpoint checks; from `vm-dev01`, push a test image to the registry and restart the web app with it; the web app pulls it with its identity and answers on its public HTTPS endpoint; the web app's telemetry reaches Application Insights.
 20. Tear everything down (Teardown row), including the subscription-level artifacts listed in the backlog conventions, and query each to confirm.
 
 ### Records

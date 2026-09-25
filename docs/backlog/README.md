@@ -178,7 +178,7 @@ Other services that are zone-redundant automatically are accepted the same way. 
 - VMs have no auto-shutdown. Teams stop them when they're idle, and every deploy script prints how. Bastion Standard keeps billing (about $0.29/hour) while the VMs are stopped.
 - The executor tears down what an item deployed at the end of the item. The exception is the datacenter, which B04 deploys and B07 tears down, so that B05–B07 can build on it. The **Teardown** row in each runbook says which applies.
 - Teardown covers subscription-level artifacts too, not just resource groups: policy assignments and their managed identities' role assignments, exemptions, other role assignments, budgets, firewall policy rule collection groups, Arc resources, soft-deleted Key Vaults, and management groups and subscription placement. Verify each is gone with a query, and put the results in the PR.
-- **Private-only has one exception:** Application Insights ingestion stays public, and the hub firewall allows the Azure Monitor ingestion endpoints. It's documented wherever telemetry is configured.
+- **Private-only backends, two exceptions:** the web app's front end accepts public HTTPS inbound traffic, and Application Insights ingestion stays public, with the hub firewall allowing the Azure Monitor ingestion endpoints. Every other service has public network access off. Both exceptions are documented wherever they apply.
 
 ### Scripts
 
