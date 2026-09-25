@@ -271,7 +271,7 @@ If the project needs container properties (for example `ContainerBaseImage` or `
    code --list-extensions --show-versions | Select-String 'upgrade-agent|migrate-java-to-azure'
    ```
 
-2. **Decide whether GitHub Copilot modernization stays enabled, and record it in `compare-upgrade.md`.** The first attempt disabled it (**Extensions** > **GitHub Copilot modernization** > **Disable (Workspace)**), but the Upgrade agent's `azure-migrate` scenario delegates assessment and planning to the App Modernization session, which is then unavailable, so it fell back to an existing AppCAT report. Disabled tests the Upgrade agent alone; enabled lets it delegate as designed. Re-enable it after the run if you disabled it.
+2. **Disable GitHub Copilot modernization for this run (owner decision), so the Upgrade agent is tested strictly on its own:** **Extensions** > **GitHub Copilot modernization** > **Disable (Workspace)**, then reload. The Upgrade agent's `azure-migrate` scenario delegates Azure assessment and planning to the App Modernization session. Where it can't do a stage without modernize (the first attempt reported "the prescribed App Modernization session tool was unavailable"), record that as a result in `compare-upgrade.md`, not a failure, and go on to the next stage. Re-enable modernize after the run.
 3. Create the comparison branch from run 1's start commit:
 
    ```powershell
@@ -364,4 +364,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Scope | Every prompt ends with the scope line; revert changes outside the app | A repo-wide check edited `docs/prd.md` (44) |
 | Gaps | Only OpenTelemetry is left; predefined task, then make Azure Monitor optional | Tasks 001–005 did the other gaps (42, 43) |
 | Comparison | Full end-to-end run with GitHub Copilot upgrade before run 2 | Owner-approved (requirement 11a; findings 19, 30) |
-| Comparison C.1 | Run `git clean -fdx -- app .github` after `git switch` (dry run first) so the tree is pure legacy; decide and record whether GitHub Copilot modernization stays enabled | The first comparison attempt's stage 2 (`a6c358d`) edited run 1's plan folder and loaded run 1's `modernize-plan` skill from leftover files; with modernize disabled, the Upgrade agent's `azure-migrate` scenario couldn't delegate |
+| Comparison C.1 | Run `git clean -fdx -- app .github` after `git switch` (dry run first) so the tree is pure legacy; GitHub Copilot modernization stays disabled (owner decision), and a stage the Upgrade agent can't do without it is recorded as a result | The first comparison attempt's stage 2 (`a6c358d`) edited run 1's plan folder and loaded run 1's `modernize-plan` skill from leftover files; with modernize disabled, the Upgrade agent's `azure-migrate` scenario couldn't delegate |

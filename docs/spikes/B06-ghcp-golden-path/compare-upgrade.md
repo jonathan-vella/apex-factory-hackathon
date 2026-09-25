@@ -8,7 +8,7 @@ A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, fr
 | Branch | `spike/b06-upgrade-compare` |
 | Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
 | GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) | |
-| GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | Disabled (Workspace) / kept enabled: |
+| GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | Disabled (Workspace) for the whole run (owner decision), so the Upgrade agent is tested on its own |
 | Models | GPT-6 Sol at Medium to assess and plan, GPT-6 Luna at maximum to execute |
 
 ## First attempt (2026-09-25): invalid as a baseline
@@ -21,6 +21,8 @@ Findings from the first attempt that still stand:
 - **Leftover files steer the agents.** Untracked and ignored files from an earlier run (plans, skills, build output) survive `git switch` and change what the agents do.
 
 ## Stages
+
+Where the Upgrade agent can't do a stage without GitHub Copilot modernization, the **Covered** column records that as a result, not a failure.
 
 | Stage | Covered by the Upgrade agent? | Time | Model | Prompts | Interventions | Build / run | Live check |
 |---|---|---|---|---|---|---|---|
