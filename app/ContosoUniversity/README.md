@@ -43,6 +43,14 @@ provided through user secrets are not converted to managed identity. The SQL
 client uses its default Azure credential chain only when the supplied string
 explicitly contains `Authentication=Active Directory Default`.
 
+Key Vault is an optional runtime configuration source. Set
+`KeyVault:VaultUri` (or the environment variable `KeyVault__VaultUri`) to the
+URI of the existing vault. The application uses `DefaultAzureCredential`, and
+the Key Vault secret `ConnectionStrings--DefaultConnection` maps to
+`ConnectionStrings:DefaultConnection` and takes precedence over earlier
+configuration sources. When `KeyVault:VaultUri` is not set, the existing
+configuration providers—including local user secrets—remain unchanged.
+
 The request-body limit (10 MB) and request timeout (one hour) are represented
 in `appsettings.json`. The course-image validation remains limited to 5 MB and
 the existing supported image extensions.
