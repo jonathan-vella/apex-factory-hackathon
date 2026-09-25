@@ -1,0 +1,167 @@
+I’ll assess the existing project and route this through the upgrade workflow, using your seven rules as hard planning constraints. I’ll first check whether an upgrade scenario already exists for this repository, then load the matching scenario guidance before any assessment work.
+
+
+
+
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity"
+}
+
+There is no existing workflow state, so this is a fresh assessment. Your request is specifically a .NET version upgrade plus an Azure migration plan; I’m matching it to the installed scenarios now and will keep the scope limited to planning, with no implementation or deployment.
+
+Getting available scenarios
+Completed with input: {}
+
+Getting instructions
+Completed with input: {
+  "kind": "scenario",
+  "query": "azure-migrate"
+}
+
+The matching scenario is `azure-migrate`; its prescribed workflow delegates assessment and planning to the App Modernization migration session. I’m handing it your exact constraints so the generated plan treats the selected Azure services and authentication rules as decisions, not open alternatives.
+
+
+
+Assess Azure migration plan
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Searched for files matching `**/app/ContosoUniversity/{Services,Data,Controllers,Models}/**/*.{cs,json,config}`, 26 matches
+
+Searched for files matching `**/app/ContosoUniversity/**/{Dockerfile,web.config,Web.config,packages.config,*.pubxml,*.csproj,*.json}`, 4 matches
+
+Searched for regex `LocalDB|Integrated Security|Trusted_Connection|WindowsAuthentication|windowsAuthentication|anonymousAuthentication|DefaultConnection|BlobServiceUri|ContainerName|ServiceBus|KeyVault|Azure Files|FileShare|SAS|SharedKey|ConnectionString` (`**/app/ContosoUniversity/**`), 168 results
+
+Searched for regex `File\.|Directory\.|Path\.|IFormFile|Stream|Upload|TeachingMaterial|Notification` (`**/app/ContosoUniversity/**/*.{cs,cshtml}`), 175 results
+
+Read 
+
+Searched for files matching `**/.github/**/*`, 10 matches
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Searched for regex `Dockerfile|App Service|Linux|container|Azure SQL Managed Instance|Azure SQL Database|Azure Files|Entra|Windows authentication|CVE|vulnerab` (`**/{.github/modernize/**,app/ContosoUniversity/**,.github/workflows/**}`), 713 results
+
+Searched for regex `PackageReference|packages.config|System.Web|Microsoft.AspNetCore.Mvc|DbContext|UseSqlServer|EnsureCreated` (`**/app/ContosoUniversity/**/*.{cs,csproj,config}`), 24 results
+
+Read 
+
+Read 
+
+Read skill `modernize-plan`
+
+Ran terminal command: Set-Location 'C:\src\apex-factory-hackathon'
+Write-Output '--- GIT STATUS ---'
+git status --short
+Write-Output '--- BUILD ---'
+dotnet build '.\app\ContosoUniversity\ContosoUniversity.csproj' --no-restore --configuration Release
+Write-Output '--- VULNERABLE PACKAGES ---'
+dotnet list '.\app\ContosoUniversity\ContosoUniversity.csproj' package --vulnerable --include-transitive
+Write-Output '--- USER SECRET CLASSIFICATION (REDACTED) ---'
+$secretLines = dotnet user-secrets list --project '.\app\ContosoUniversity\ContosoUniversity.csproj' 2>$null
+$defaultConnectionLine = $secretLines | Where-Object { $_ -match '^ConnectionStrings:DefaultConnection\s*=' } | Select-Object -First 1
+if (-not $defaultConnectionLine) {
+  Write-Output 'DefaultConnection: not configured in user secrets'
+} else {
+  $connectionString = ($defaultConnectionLine -split '\s*=\s*', 2)[1]
+  $builder = [Microsoft.Data.SqlClient.SqlConnectionStringBuilder]::new($connectionString)
+  $authMode = if ($builder.Authentication -eq [Microsoft.Data.SqlClient.SqlAuthenticationMethod]::ActiveDirectoryDefault) { 'Active Directory Default' } elseif (-not [string]::IsNullOrWhiteSpace($builder.UserID)) { 'SQL authentication' } elseif ($builder.IntegratedSecurity) { 'Integrated Security' } else { 'unspecified' }
+  $login = if ($builder.UserID -eq 'contosoapp') { 'contosoapp' } elseif ([string]::IsNullOrWhiteSpace($builder.UserID)) { 'none' } else { 'other (redacted)' }
+  Write-Output "DefaultConnection auth: $authMode; login classification: $login; server value: redacted"
+}
+
+Ran terminal command: & { Set-Location 'C:\src\apex-factory-hackathon'; Write-Output '--- GIT STATUS ---'; git status --short; Write-Output '--- BUILD ---'; dotnet build '.\app\ContosoUniversity\ContosoUniversity.csproj' --no-restore --configuration Release; Write-Output '--- VULNERABLE PACKAGES ---'; dotnet list '.\app\ContosoUniversity\ContosoUniversity.csproj' package --vulnerable --include-transitive; Write-Output '--- USER SECRET CLASSIFICATION (REDACTED) ---'; $secretLines = dotnet user-secrets list --project '.\app\ContosoUniversity\ContosoUniversity.csproj' 2>$null; $defaultConnectionLine = $secretLines | Where-Object { $_ -match '^ConnectionStrings:DefaultConnection\s*=' } | Select-Object -First 1; if (-not $defaultConnectionLine) { Write-Output 'DefaultConnection: not configured in user secrets' } else { $connectionString = ($defaultConnectionLine -split '\s*=\s*', 2)[1]; $builder = [Microsoft.Data.SqlClient.SqlConnectionStringBuilder]::new($connectionString); $authMode = if ($builder.Authentication -eq [Microsoft.Data.SqlClient.SqlAuthenticationMethod]::ActiveDirectoryDefault) { 'Active Directory Default' } elseif (-not [string]::IsNullOrWhiteSpace($builder.UserID)) { 'SQL authentication' } elseif ($builder.IntegratedSecurity) { 'Integrated Security' } else { 'unspecified' }; $login = if ($builder.UserID -eq 'contosoapp') { 'contosoapp' } elseif ([string]::IsNullOrWhiteSpace($builder.UserID)) { 'none' } else { 'other (redacted)' }; Write-Output "DefaultConnection auth: $authMode; login classification: $login; server value: redacted" } }
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+No matches found.
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+Read , lines 1 to 180
+
+Generating patch (202 lines) in , , 
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+
+
+Ran terminal command: & { Set-Location 'C:\src\apex-factory-hackathon'; $taskPath = '.\.github\modernize\contoso-university-dotnet10-azure\.metadata\tasks.json'; $planPath = '.\.github\modernize\contoso-university-dotnet10-azure\plan.md'; $tasksDocument = Get-Content $taskPath -Raw | ConvertFrom-Json; $tasks = @($tasksDocument.tasks); if ($tasks.Count -ne 6) { throw "Expected 6 tasks, found $($tasks.Count)." }; $expectedIds = @('001-upgrade-dotnet10-aspnetcore-mvc','002-transform-sql-managed-instance','003-transform-blob-file-handling','004-transform-msmq-servicebus','005-transform-keyvault-configuration','006-security-cve-remediation'); for ($index = 0; $index -lt $expectedIds.Count; $index++) { if ($tasks[$index].id -ne $expectedIds[$index]) { throw "Task order mismatch at index $index." }; $expectedDependencies = if ($index -eq 0) { @() } else { @($expectedIds[$index - 1]) }; if (@($tasks[$index].dependencies).Count -ne $expectedDependencies.Count -or ($expectedDependencies.Count -eq 1 -and $tasks[$index].dependencies[0] -ne $expectedDependencies[0])) { throw "Dependency mismatch for $($tasks[$index].id)." } }; $plan = Get-Content $planPath -Raw; $requiredTerms = @('Storage:BlobServiceUri','Storage:ContainerName','ServiceBus:FullyQualifiedNamespace','ServiceBus:QueueName','KeyVault:VaultUri','Azure SQL Managed Instance','Azure Blob Storage','DefaultAzureCredential','Microsoft Entra ID','Azure Files','Azure SQL Database','Azure App Service for Linux','provision','deploy'); foreach ($term in $requiredTerms) { if (-not $plan.Contains($term)) { throw "Plan is missing required term: $term" } }; Write-Output 'Plan validation passed: JSON parsed; 6 tasks are in the exact requested order with a strict dependency chain; all required targets, exclusions, credentials, configuration keys, and hosting constraints are present.' }
+Completed with input: & { Set-Location 'C:\src\apex-factory-hackathon'; $taskPath = '.\.github\modernize\contoso-university-dotnet10-azure\.metadata\tasks.json'; $planPath = '.\.github\modernize\contoso-university-dotnet10-azure\plan.md'; $tasksDocument = Get-Content $taskPath -Raw | ConvertFrom-Json; $tasks = @($tasksDocument.tasks); if ($tasks.Count -ne 6) { throw "Expected 6 tasks, found $($tasks.Count)." }; $expectedIds = @('001-upgrade-dotnet10-aspnetcore-mvc','002-transform-sql-managed-instance','003-transform-blob-file-handling','004-transform-msmq-servicebus','005-transform-keyvault-configuration','006-security-cve-remediation'); for ($index = 0; $index -lt $expectedIds.Count; $index++) { if ($tasks[$index].id -ne $expectedIds[$index]) { throw "Task order mismatch at index $index." }; $expectedDependencies = if ($index -eq 0) { @() } else { @($expectedIds[$index - 1]) }; if (@($tasks[$index].dependencies).Count -ne $expectedDependencies.Count -or ($expectedDependencies.Count -eq 1 -and $tasks[$index].dependencies[0] -ne $expectedDependencies[0])) { throw "Dependency mismatch for $($tasks[$index].id)." } }; $plan = Get-Content $planPath -Raw; $requiredTerms = @('Storage:BlobServiceUri','Storage:ContainerName','ServiceBus:FullyQualifiedNamespace','ServiceBus:QueueName','KeyVault:VaultUri','Azure SQL Managed Instance','Azure Blob Storage','DefaultAzureCredential','Microsoft Entra ID','Azure Files','Azure SQL Database','Azure App Service for Linux','provision','deploy'); foreach ($term in $requiredTerms) { if (-not $plan.Contains($term)) { throw "Plan is missing required term: $term" } }; Write-Output 'Plan validation passed: JSON parsed; 6 tasks are in the exact requested order with a strict dependency chain; all required targets, exclusions, credentials, configuration keys, and hosting constraints are present.' }
+
+Ran terminal command: & { Set-Location 'C:\src\apex-factory-hackathon'; $taskPath = '.\.github\modernize\contoso-university-dotnet10-azure\.metadata\tasks.json'; $planPath = '.\.github\modernize\contoso-university-dotnet10-azure\plan.md'; $tasksDocument = Get-Content $taskPath -Raw | ConvertFrom-Json; $tasks = @($tasksDocument.tasks); if ($tasks.Count -ne 6) { throw "Expected 6 tasks, found $($tasks.Count)." }; $expectedIds = @('001-upgrade-dotnet10-aspnetcore-mvc','002-transform-sql-managed-instance','003-transform-blob-file-handling','004-transform-msmq-servicebus','005-transform-keyvault-configuration','006-security-cve-remediation'); for ($index = 0; $index -lt $expectedIds.Count; $index++) { if ($tasks[$index].id -ne $expectedIds[$index]) { throw "Task order mismatch at index $index." }; $actualDependencies = @($tasks[$index].dependencies); $expectedDependencies = if ($index -eq 0) { @() } else { @($expectedIds[$index - 1]) }; if ($actualDependencies.Count -ne $expectedDependencies.Count -or ($expectedDependencies.Count -eq 1 -and $actualDependencies[0] -ne $expectedDependencies[0])) { throw "Dependency mismatch for $($tasks[$index].id)." } }; $plan = Get-Content $planPath -Raw; $requiredTerms = @('Storage:BlobServiceUri','Storage:ContainerName','ServiceBus:FullyQualifiedNamespace','ServiceBus:QueueName','KeyVault:VaultUri','Azure SQL Managed Instance','Azure Blob Storage','DefaultAzureCredential','Microsoft Entra ID','Azure Files','Azure SQL Database','Azure App Service for Linux','provision','deploy'); foreach ($term in $requiredTerms) { if (-not $plan.Contains($term)) { throw "Plan is missing required term: $term" } }; Write-Output 'Plan validation passed: JSON parsed; 6 tasks are in the exact requested order with a strict dependency chain; all required targets, exclusions, credentials, configuration keys, and hosting constraints are present.' }
+Completed with input: & { Set-Location 'C:\src\apex-factory-hackathon'; $taskPath = '.\.github\modernize\contoso-university-dotnet10-azure\.metadata\tasks.json'; $planPath = '.\.github\modernize\contoso-university-dotnet10-azure\plan.md'; $tasksDocument = Get-Content $taskPath -Raw | ConvertFrom-Json; $tasks = @($tasksDocument.tasks); if ($tasks.Count -ne 6) { throw "Expected 6 tasks, found $($tasks.Count)." }; $expectedIds = @('001-upgrade-dotnet10-aspnetcore-mvc','002-transform-sql-managed-instance','003-transform-blob-file-handling','004-transform-msmq-servicebus','005-transform-keyvault-configuration','006-security-cve-remediation'); for ($index = 0; $index -lt $expectedIds.Count; $index++) { if ($tasks[$index].id -ne $expectedIds[$index]) { throw "Task order mismatch at index $index." }; $actualDependencies = @($tasks[$index].dependencies); $expectedDependencies = if ($index -eq 0) { @() } else { @($expectedIds[$index - 1]) }; if ($actualDependencies.Count -ne $expectedDependencies.Count -or ($expectedDependencies.Count -eq 1 -and $actualDependencies[0] -ne $expectedDependencies[0])) { throw "Dependency mismatch for $($tasks[$index].id)." } }; $plan = Get-Content $planPath -Raw; $requiredTerms = @('Storage:BlobServiceUri','Storage:ContainerName','ServiceBus:FullyQualifiedNamespace','ServiceBus:QueueName','KeyVault:VaultUri','Azure SQL Managed Instance','Azure Blob Storage','DefaultAzureCredential','Microsoft Entra ID','Azure Files','Azure SQL Database','Azure App Service for Linux','provision','deploy'); foreach ($term in $requiredTerms) { if (-not $plan.Contains($term)) { throw "Plan is missing required term: $term" } }; Write-Output 'Plan validation passed: JSON parsed; 6 tasks are in the exact requested order with a strict dependency chain; all required targets, exclusions, credentials, configuration keys, and hosting constraints are present.' }
+
+Ran terminal command: & { Set-Location 'C:\src\apex-factory-hackathon'; $taskPath = '.\.github\modernize\contoso-university-dotnet10-azure\.metadata\tasks.json'; $planPath = '.\.github\modernize\contoso-university-dotnet10-azure\plan.md'; $tasksDocument = Get-Content $taskPath -Raw | ConvertFrom-Json; $tasks = @($tasksDocument.tasks); if ($tasks.Count -ne 6) { throw "Expected 6 tasks, found $($tasks.Count)." }; $expectedIds = @('001-upgrade-dotnet10-aspnetcore-mvc','002-transform-sql-managed-instance','003-transform-blob-file-handling','004-transform-msmq-servicebus','005-transform-keyvault-configuration','006-security-cve-remediation'); for ($index = 0; $index -lt $expectedIds.Count; $index++) { if ($tasks[$index].id -ne $expectedIds[$index]) { throw "Task order mismatch at index $index." }; $actualDependencies = @($tasks[$index].dependencies); $expectedDependencies = @(); if ($index -gt 0) { $expectedDependencies = @($expectedIds[$index - 1]) }; if ($actualDependencies.Count -ne $expectedDependencies.Count -or ($expectedDependencies.Count -eq 1 -and $actualDependencies[0] -ne $expectedDependencies[0])) { throw "Dependency mismatch for $($tasks[$index].id): actual=$($actualDependencies -join ',') expected=$($expectedDependencies -join ',')" } }; $plan = Get-Content $planPath -Raw; $requiredTerms = @('Storage:BlobServiceUri','Storage:ContainerName','ServiceBus:FullyQualifiedNamespace','ServiceBus:QueueName','KeyVault:VaultUri','Azure SQL Managed Instance','Azure Blob Storage','DefaultAzureCredential','Microsoft Entra ID','Azure Files','Azure SQL Database','Azure App Service for Linux','provision','deploy'); foreach ($term in $requiredTerms) { if (-not $plan.Contains($term)) { throw "Plan is missing required term: $term" } }; Write-Output 'Plan validation passed: JSON parsed; 6 tasks are in the exact requested order with a strict dependency chain; all required targets, exclusions, credentials, configuration keys, and hosting constraints are present.' }
+
+Ran terminal command: & { Set-Location 'C:\src\apex-factory-hackathon'; Write-Output '--- CHANGED FILES ---'; git status --short; Write-Output '--- DIFF STAT ---'; git diff --stat -- '.github/modernize/contoso-university-dotnet10-azure'; Write-Output '--- OUT-OF-SCOPE APP DIFF ---'; $appDiff = git diff --name-only -- 'app/ContosoUniversity'; if ($appDiff) { $appDiff } else { Write-Output 'None' } }
+
+Checked , , , no problems found
+
+The assessment and plan are now written, and no application files were changed. I’m reading the generated artifacts to verify the task dependencies and produce the requested seven-row compliance table, including the one validation limitation discovered during assessment.
+
+Read 
+
+Read 
+
+Read 
+
+Assessment and migration plan created:
+
+- `assessment.md`
+- `plan.md`
+- `tasks.json`
+
+| Rule | Plan compliance |
+|---|---|
+| 1 | Task 1 verifies/completes .NET 10, SDK-style ASP.NET Core MVC, `PackageReference`, configuration migration, preserved MVC/EF Core code, and Linux container packaging. All later tasks depend on it. |
+| 2 | No Entra ID sign-in task. IIS Express Windows authentication and LocalDB Integrated Security are excluded as identity requirements. |
+| 3 | Only Azure SQL Managed Instance and Blob Storage are targeted. Azure SQL Database, Azure Files, and mounts are excluded. |
+| 4 | `DefaultConnection` is passed unchanged for local SQL authentication. Managed identity applies only with `Authentication=Active Directory Default`. |
+| 5 | Strict order: .NET 10 → SQL MI → Blob/file handling → Service Bus → Key Vault → CVEs. |
+| 6 | Azure clients use `DefaultAzureCredential`. Keys, SAS, and Azure service connection strings are prohibited. All specified configuration keys are runtime inputs. |
+| 7 | Hosting target is existing Azure App Service for Linux using containers. Provisioning and deployment are excluded. |
+
+The current source already satisfies most tasks and builds successfully on .NET 10. Remaining gaps include a missing Dockerfile and stale Windows Authentication text.
+
+No planned task is inherently impossible. Local SQL-authentication runtime validation cannot be completed until `ConnectionStrings:DefaultConnection` is supplied through user secrets. The prescribed App Modernization session tool was unavailable, so the plan was produced from the existing AppCAT report and current-source assessment.
+
+Stopped for your review; no implementation, provisioning, or deployment was performed.
+
+Made changes.
