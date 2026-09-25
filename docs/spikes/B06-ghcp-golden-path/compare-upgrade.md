@@ -1,6 +1,6 @@
 # B06 comparison: GitHub Copilot upgrade vs GitHub Copilot modernization
 
-A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, from the same start commit as run 1 (`da4e5f6`): assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus and Key Vault, with the same kit rules and configuration keys. It's compared stage by stage with run 1, which used the `modernize` agent. The executor fills this in from `spike/b06-upgrade-compare`, its commits and the chat exports, as for the run sheets. Protocol: [Comparison: GitHub Copilot upgrade](protocol.md#comparison-github-copilot-upgrade-after-run-1-before-run-2).
+A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, from the same start commit as run 1 (`da4e5f6`): assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus and Key Vault, with the same kit tasks, rules and configuration keys as run 2 (the refined seven-task prompt). It's compared stage by stage with run 1, which used the `modernize` agent. The executor fills this in from `spike/b06-upgrade-compare`, its commits and the chat exports, as for the run sheets. Protocol: [Comparison: GitHub Copilot upgrade](protocol.md#comparison-github-copilot-upgrade-after-run-1-before-run-2).
 
 | Field | Value |
 |---|---|
@@ -8,20 +8,38 @@ A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, fr
 | Branch | `spike/b06-upgrade-compare` |
 | Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
 | GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) | |
-| GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | Disabled (Workspace) / kept enabled: |
+| GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | Disabled (Workspace) for the whole run (owner decision), so the Upgrade agent is tested on its own |
 | Models | GPT-6 Sol at Medium to assess and plan, GPT-6 Luna at maximum to execute |
 
+## First attempt (2026-09-25): invalid as a baseline
+
+Stage 2 (`a6c358d`, `chats/compare-stage2.txt`) can't be compared with run 1. The branch was clean legacy in git (only the chat file differs from `da4e5f6`), but run 1's untracked and ignored files were still in the working tree on `vm-dev01`. So the Upgrade agent reported that "the current source already satisfies most tasks and builds successfully on .NET 10", and it edited run 1's plan folder `.github/modernize/contoso-university-dotnet10-azure` (`plan.md`, `tasks.json`, `assessment.md`) instead of creating its own. It also loaded run 1's `modernize-plan` skill. The comparison restarts from a pure legacy tree (protocol C.1).
+
+Findings from the first attempt that still stand:
+
+- **The Upgrade agent depends on GitHub Copilot modernization for Azure migrations.** It picked the scenario `azure-migrate`, whose workflow "delegates assessment and planning to the App Modernization migration session". With modernize disabled, "the prescribed App Modernization session tool was unavailable", and it fell back to the existing AppCAT report.
+- **Leftover files steer the agents.** Untracked and ignored files from an earlier run (plans, skills, build output) survive `git switch` and change what the agents do.
+
+## How the Upgrade dashboard was made to work (owner's discovery, 2026-09-25)
+
+- **Routing.** Left to itself, the Upgrade agent chose the `azure-migrate` scenario, which delegates assessment and planning to GitHub Copilot modernization's App Modernization session (`start_app_mod_migration_session`). With modernize disabled, that failed. Forcing the `dotnet-version-upgrade` scenario with an explicit prompt ([prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md)) gives the stateful workflow under `.github/upgrades/dotnet-version-upgrade/` that the Upgrade dashboard opens, with the kit's six tasks and rules.
+- **Harness.** The Upgrade dashboard works in the **Copilot** harness, not **Local**. That's the opposite of run 1's prompt files, which loaded only in **Local** (report findings 14 and 16). So the harness has to be chosen per tool, and the kit's guides must say which.
+
 ## Stages
+
+Where the Upgrade agent can't do a stage without GitHub Copilot modernization, the **Covered** column records that as a result, not a failure.
 
 | Stage | Covered by the Upgrade agent? | Time | Model | Prompts | Interventions | Build / run | Live check |
 |---|---|---|---|---|---|---|---|
 | C.1 Set up | — | | — | — | | — | — |
-| C.2 Assess and plan (7 kit rules) | | | | | | — | Rules table: |
+| C.2 Assess and plan (7 tasks, 9 rules) | | | | | | — | Rules table: |
 | C.3.1 .NET 10 upgrade | | | | | | | Pages against `10.10.n.4`: |
 | C.3.2 SQL Managed Instance (local SQL auth kept) | | | | | | | Students against `10.10.n.4`: |
 | C.3.3 Blob | | | | | | | Upload lands in `teaching-materials`: |
 | C.3.4 Service Bus | | | | | | | Send and receive (`/Notifications/GetNotifications`): |
-| C.3.5 Key Vault | | | | | | | Runs with the connection string from Key Vault: |
+| C.3.5 Key Vault | | | | | | | Connection string from Key Vault; refuses to start outside Development without `KeyVault:VaultUri` or with a SQL login: |
+| C.3.6 OpenTelemetry | | | | | | | Starts without a connection string; requests, dependencies and logs in Application Insights: |
+| C.3.7 CVE fixes | | | | | | | `dotnet list package --vulnerable`: |
 | **Total** | | | | | | | |
 
 ## Side by side with run 1

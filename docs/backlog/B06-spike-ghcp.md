@@ -7,7 +7,7 @@
 | Depends on | B04 |
 | Unblocks | B07, B09, B10 |
 | Effort | 2–3 days elapsed, including two owner-driven runs of about 3–4 hours each |
-| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.55/hour |
+| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; Log Analytics and Application Insights bill per GB ingested, about $2.99/GB after the first 5 GB a month, so effectively $0 at spike volume; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.55/hour |
 | Teardown | Delete `rg-spike-b06` and `snet-pe-spike` at the end. **Keep** `rg-datacenter` for B07 |
 | PRD | §5 C3, C6; §6 App modernization; §8 GHCP risk |
 
@@ -35,9 +35,11 @@
    | Service Bus namespace | `sbns-uni-<suffix>-b06` | Premium, 1 messaging unit; queue `notifications`; public network access off; local (SAS) auth off; no zone setting (zone-redundant automatically, backlog conventions) |
    | Container registry | `cruni<suffix>b06` | Premium; public network access off; admin user off; no zone setting (zone-redundant automatically, backlog conventions) |
    | Key Vault | `kv-uni-<suffix>-b06` | RBAC authorization; public network access off; soft delete on, purge protection off (so teardown can purge) |
+   | Log Analytics workspace | `log-uni-<suffix>-b06` | PerGB2018; 30-day retention *(owner-approved addition, 2026-09-25)* |
+   | Application Insights | `appi-uni-<suffix>-b06` | Workspace-based on `log-uni-<suffix>-b06`; local authentication off (`DisableLocalAuth`), so ingestion needs Entra; ingestion stays public, the kit's documented exception *(owner-approved addition, 2026-09-25)* |
 
 2. Private endpoints for all four, in a new subnet `snet-pe-spike` (`10.10.n.128/27`) of `vnet-datacenter`, with the private DNS zones `privatelink.blob.core.windows.net`, `privatelink.servicebus.windows.net`, `privatelink.azurecr.io` and `privatelink.vaultcore.azure.net` in `rg-spike-b06`, linked to `vnet-datacenter`.
-3. The owner's account gets Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, AcrPush, and Key Vault Secrets Officer on the matching resources.
+3. The owner's account gets Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, AcrPush, Key Vault Secrets Officer, and Monitoring Metrics Publisher (on Application Insights, so local runs can send telemetry with Entra) on the matching resources.
 4. From `vm-dev01`, each service's hostname resolves to a private IP in `snet-pe-spike`, and TCP 443 connects (5671 too for Service Bus). Check this with a run command before handing over to the owner.
 
 ### Protocol for the owner

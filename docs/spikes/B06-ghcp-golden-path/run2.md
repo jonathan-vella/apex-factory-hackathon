@@ -1,12 +1,12 @@
 # B06 run 2 results
 
-Filled in by the executor after run 2 is pushed, from `spike/b06-run2`: times from the commit timestamps (a step starts at the previous commit), models and prompts from the chat exports in `chats/`, what changed from the diff of each commit, interventions from the commit message bodies, versions from `run2-versions.txt`, and build/run results from the executor's checks. A model missing from the exports is marked *not recorded*; premium requests are *not visible* unless the owner reported them. Times are local, `HH:MM`.
+Filled in by the executor after run 2 is pushed, following [protocol v2](protocol.md), from `spike/b06-run2`: times from the commit timestamps (a step starts at the previous commit), models and prompts from the chat exports in `chats/`, what changed from the diff of each commit, interventions from the commit message bodies, versions from `run2-versions.txt`, and build/run results from the executor's checks. A model missing from the exports is marked *not recorded*; premium requests are *not visible* unless the owner reported them. Times are local, `HH:MM`.
 
 | Field | Value |
 |---|---|
 | Date | |
 | Branch | `spike/b06-run2` |
-| Start commit | `<run-2-commit>` |
+| Start commit | `e850869e438556c1234dd672f12aa133a2bed644` |
 | Protocol version | v2 |
 | VS Code | |
 | GitHub Copilot Chat | |
