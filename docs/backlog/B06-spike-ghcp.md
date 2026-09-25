@@ -51,7 +51,7 @@
    6. **Package:** build the image with .NET SDK container publishing (no Docker) and push it to `cruni<suffix>b06` over the private endpoint.
    7. After each step: note the start and end time, the model and prompts used, what Copilot changed, anything the owner had to fix by hand, and whether the app still builds and runs. Commit after each step with a message naming the step.
 6. The protocol includes a results sheet (`run1.md`, `run2.md`) with one row per step: time, model, prompts, interventions, build/run result and premium requests used, if visible.
-7. **Models:** the protocol doesn't pin a model. It asks the owner to follow the kit's model guidance and record what they used: a balanced model (Sonnet- or Terra-class) for the assessment, the most capable model (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for plan execution. Record the exact model names and dates, because models change.
+7. **Models:** the protocol asks the owner to follow the kit's model guidance and record what they used: a balanced model (Sonnet- or Terra-class) for the assessment, the most capable model (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for plan execution. The assessment uses the extension's default model. For planning and execution, from run 2 on, two VS Code prompt files pin the agent and the model: `.github/prompts/modernize-plan.prompt.md` (agent `modernize`, a Sol-class model) and `.github/prompts/modernize-execute.prompt.md` (agent `modernize`, a Luna-class model). Reasoning effort isn't a prompt-file field, so the owner sets it in the model picker. Record the exact model names, as the picker shows them, and the dates, because models change. *(Owner-approved deviation, 2026-09-25: the models for planning and execution were unpinned.)*
 8. **Alternative:** the protocol has an optional section to repeat step 2 with Copilot CLI and note the differences.
 
 ### Runs
@@ -87,6 +87,7 @@
 ## Deliverables
 
 - `docs/spikes/B06-ghcp-golden-path/README.md`, `protocol.md`, `run1.md`, `run2.md`, the saved assessment reports and `infra/main.bicep`.
+- `.github/prompts/modernize-plan.prompt.md` and `.github/prompts/modernize-execute.prompt.md` (requirement 7).
 - Branches `spike/b06-run1` and `spike/b06-run2`, pushed and not merged.
 - `versions.md` rows for the VS Code app modernization extension, the .NET 10 SDK and Copilot CLI versions used.
 

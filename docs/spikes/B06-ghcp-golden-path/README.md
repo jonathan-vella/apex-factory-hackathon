@@ -42,7 +42,7 @@ Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clon
 
 ## Decisions
 
-None yet.
+- **Pinned agent and model for run 2 (owner-approved, 2026-09-25).** Two VS Code prompt files, `.github/prompts/modernize-plan.prompt.md` (agent `modernize`, model `GPT-5.6 Sol`) and `.github/prompts/modernize-execute.prompt.md` (agent `modernize`, model `GPT-5.6 Luna`), replace **Create Plan** and the correction reply. This changes [B06](../../backlog/B06-spike-ghcp.md) requirement 7, which no longer leaves the model unpinned for plan and execution. It conflicts with PRD §2 **Copilot models** ("No model is pinned"), which the PRD owner has to reconcile: see Follow-ups. Reasoning effort isn't a prompt-file field ([Use prompt files in VS Code](https://code.visualstudio.com/docs/agent-customization/prompt-files)), so it's still set in the picker.
 
 ## Evidence
 
@@ -53,6 +53,8 @@ None yet.
 
 ## Follow-ups
 
+- **B10: ship the prompt files as agent skills.** VS Code says prompt files are deprecated for Agent Host sessions and aren't loaded there. They still work with the Local agent, which will be removed in a future release, and VS Code offers a migration to agent skills ([Use prompt files in VS Code](https://code.visualstudio.com/docs/agent-customization/prompt-files)). B10 should ship `modernize-plan` and `modernize-execute` as skills.
+- **PRD §2 Copilot models:** it says no model is pinned, but the spike's prompt files pin one per phase. Decide whether the kit pins models in its prompt files or skills (B10) and update the PRD row.
 - **B11 attendee guides:** sign in on `vm-dev01` with device code flows (`az login --use-device-code`, `gh auth login --web` with the code at `github.com/login/device`), completed on the attendee's own device, and say that some tenants block device code flow with Conditional Access. After `az login`, the attendee picks their own workload subscription (the one that holds `rg-datacenter`) in the subscription picker and checks it with `az account show --query name -o tsv`; guides never hard-code a subscription. Right after `gh auth login`, set the git identity from the GitHub account with the no-reply email (`<id>+<login>@users.noreply.github.com`) and run `gh auth setup-git`, because a fresh VM user has no git identity and the first commit fails with `Author identity unknown`.
 
 The rest is pending the runs.

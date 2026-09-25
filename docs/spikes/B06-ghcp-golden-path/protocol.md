@@ -39,7 +39,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
   - **Versions:** the versions file in step 1.7.
   - **Build and run:** say in the commit body whether `dotnet build` passed and whether the app ran; the executor also runs the build and reference checks after the push. Premium requests: add them to the body if VS Code shows them.
 - **Commit after each step,** with a message that names the step, for example `git commit -am "run1: step 3 upgrade to .NET 10"`. Include new files: `git add -A` first.
-- **Models:** no model is pinned. Follow the kit's guidance; the chat export records the exact model name and the date:
+- **Models:** follow the kit's guidance. **(v2)** For planning and execution, the prompt files in step 3 pin the agent and the model; you still set the reasoning effort in the picker. The chat export records the exact model name and the date:
   - assessment: a balanced model (Sonnet- or Terra-class);
   - planning: the most capable model (Opus- or Sol-class);
   - plan execution: an efficient model at maximum reasoning effort (Luna-class).
@@ -152,15 +152,29 @@ Model: balanced (Sonnet- or Terra-class).
 1. Keep the repo root open in VS Code. Pick the balanced model in the Copilot Chat model picker. **(v2)** The assessment dashboard doesn't let you pick a model; it uses the extension's default. Before the upgrade, the C# Dev Kit status bar shows **Projects: 1 error** for the legacy .NET Framework project: that's expected, ignore it.
 2. Open the **GitHub Copilot modernization** view in the Activity Bar. In **QUICKSTART**, select **Start Assessment**, then **Run Assessment** on the **Assessment reports** page. If it asks which project, pick `app/ContosoUniversity`.
 3. **(v2)** In the report, set the target dropdown to **Azure App Service (Linux)** (containers) before anything else. It defaults to **Azure App Service (Windows)**, but the kit targets App Service for Linux. Do this before you select **Create Plan**, or the plan targets Windows.
-4. Wait for the report. Read it: note the issues it finds for local files, MSMQ, the database, the plaintext connection string and `System.Web`, and the migration tasks it recommends. It flags **Windows authentication detected** as mandatory, but the app has no user sign-in and no `[Authorize]`. The finding comes only from `IISExpressWindowsAuthentication` in the project file and `Integrated Security=True` in the old LocalDB connection string. **(v2)** If the report lets you deselect issues before planning, deselect **Windows authentication**. Otherwise the correction reply in step 3.2 removes it.
-5. **(v2)** Select **Create Plan**. It plans only the service migrations: run 1's plan said "No … runtime/framework upgrade" and included **Windows AD to Microsoft Entra ID**. Its open questions (Blob or Files, SQL Database or Managed Instance) have fixed answers in the kit: Blob and Managed Instance. Don't execute this plan: step 3 corrects it first.
+4. Wait for the report. Read it: note the issues it finds for local files, MSMQ, the database, the plaintext connection string and `System.Web`, and the migration tasks it recommends. It flags **Windows authentication detected** as mandatory, but the app has no user sign-in and no `[Authorize]`. The finding comes only from `IISExpressWindowsAuthentication` in the project file and `Integrated Security=True` in the old LocalDB connection string. `/modernize-plan` in step 3 leaves it out.
+5. **(v2) Don't select Create Plan.** It plans only the service migrations: run 1's plan said "No … runtime/framework upgrade", included **Windows AD to Microsoft Entra ID**, and asked Blob or Files and SQL Database or Managed Instance, which the kit has already decided (Blob, Managed Instance). Step 3's `/modernize-plan` replaces it.
 6. Save the report into the spike folder. The modernization extension writes it to `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\assessment\reports\report-<timestamp>\`, which git ignores. Copy the new report folder's files to `docs\spikes\B06-ghcp-golden-path\assessment\run1\` (run 2: `run2\`), plus `...\.github\modernize\assessment\engines\dotnet-appcat\result\report.json` as `appcat-report.json`. If the report page offers an export (HTML or Markdown), save that there too. `git add docs/spikes/B06-ghcp-golden-path/assessment` so the ignored source folder doesn't matter.
 7. Commit: `run1: step 2 assessment`.
 
-## Step 3: C6 upgrade to .NET 10
+## Step 3: C6 plan and upgrade to .NET 10
 
-Model: planning with the most capable model (Opus- or Sol-class); execution with an efficient model at maximum reasoning effort (Luna-class).
+Models: planning with the most capable model (Opus- or Sol-class); execution with an efficient model at maximum reasoning effort (Luna-class). **(v2)** The two prompt files in `.github/prompts/` pin the agent and the model, and the protocol names them in the table below. Reasoning effort can't be pinned in a prompt file, so set it in the model picker before you run each one.
 
+| Prompt file | Agent | Model | Reasoning effort (set by hand) |
+|---|---|---|---|
+| [`modernize-plan.prompt.md`](../../../.github/prompts/modernize-plan.prompt.md) | `modernize` | `GPT-5.6 Sol` | Medium (as in run 1) |
+| [`modernize-execute.prompt.md`](../../../.github/prompts/modernize-execute.prompt.md) | `modernize` | `GPT-5.6 Luna` | Maximum |
+
+1. **(v2)** In Copilot Chat, type `/modernize-plan` and send it. It runs the `modernize` agent with the planning model and the full plan prompt: .NET 10 first, no Entra ID, Blob, Managed Instance with local SQL auth kept, the order database, Blob, Service Bus, Key Vault, `DefaultAzureCredential` with no keys, App Service for Linux containers, the configuration keys and no provisioning. It plans and waits. Check in the chat header that the model is the one in the table; if the picker name differs, note it in the commit body and tell the executor.
+2. Review the plan files it writes: `.github\modernize\<name>-<timestamp>\plan.md` and `.metadata\tasks.json` at the repo root. Check that the upgrade is first, Entra ID is absent and the order is database, Blob, Service Bus, Key Vault. Edit them if something is wrong, note what you changed, export the chat, and commit the plan: `run1: step 3 plan` (run 2: `run2: …`, as everywhere).
+3. **(v2)** Set the reasoning effort for the execution model, then type `/modernize-execute` and send it. It runs the reviewed plan task by task, builds after each and waits for `continue`. Keep the changes when they build. Do the step 3 check below after the upgrade task, and the step 4 checks after each of the other tasks, committing after each task with the step names below.
+4. Export the chat before each commit. In the commit body, note the model shown in the chat for each prompt file.
+
+**Run 1 used v1 of this step** (dashboard upgrade or **Create Plan**, then a pasted correction reply). It's kept here for comparison:
+
+<details>
+<summary>Run 1 step 3 (v1)</summary>
 1. Pick the planning model in the Copilot Chat model picker **first**, before you start the upgrade.
 2. **(v2) Start it from the dashboard (primary path).** In the **GitHub Copilot modernization** view, under **QUICKSTART**, select **Upgrade to a newer version of .NET** (it may be labelled **Upgrade Runtime & Frameworks**) and choose **.NET 10** as the target. It opens a Copilot Chat session. When it asks for input, or as your first reply, send the constraints:
 
@@ -197,7 +211,10 @@ Model: planning with the most capable model (Opus- or Sol-class); execution with
    Then review the revised `plan.md` (step 3.3) before execution.
 3. Review the plan files it writes: `.github\modernize\<name>-<timestamp>\plan.md` and `.metadata\tasks.json` at the repo root. Check that the upgrade is first, Entra ID is gone and the order is database, Blob, Service Bus, Key Vault. Edit them if something is wrong, note what you changed, and commit the plan before execution: `run1: step 3 plan`.
 4. Switch to the execution model, then reply `continue` (or the button it offers) until it finishes. Keep the changes it proposes when they build.
-5. Check: `dotnet build app/ContosoUniversity` passes on the .NET 10 SDK. Point the app at the source database for a first run:
+
+</details>
+
+5. Check, after the upgrade task: `dotnet build app/ContosoUniversity` passes on the .NET 10 SDK. Point the app at the source database for a first run:
 
    ```powershell
    Set-Location C:\src\apex-factory-hackathon\app\ContosoUniversity
@@ -211,7 +228,7 @@ Model: planning with the most capable model (Opus- or Sol-class); execution with
 
 ## Step 4: C6 predefined tasks
 
-Do the four tasks in this order. For each one, start it from the **TASKS - .NET** section of the **GitHub Copilot modernization** view, or from the assessment report's **Run Task** button, or in Copilot Chat with the `modernize` agent and a `migrate from <source> to <target>` prompt. Say in the commit body which way you used. Add the prompt below to the chat when the task asks for input, or send it as the first message. Review the `plan.md` and `progress.md` it writes before you reply `continue`. After each task: build, run, commit.
+**(v2)** With `/modernize-execute`, these four tasks run as part of the reviewed plan, in this order: do each check below after its task, then commit with the name given. The prompts below are the fallback when a task is missing from the plan or fails: start it from the **TASKS - .NET** section of the **GitHub Copilot modernization** view, or from the assessment report's **Run Task** button, or in Copilot Chat with the `modernize` agent and a `migrate from <source> to <target>` prompt. Say in the commit body which way you used. Add the prompt below to the chat when the task asks for input, or send it as the first message. Review the `plan.md` and `progress.md` it writes before you reply `continue`. After each task: build, run, commit.
 
 Before 4.2, check that you're signed in with the Azure CLI (`az account show`) and that `AZURE_TOKEN_CREDENTIALS` is `AzureCliCredential` in the terminal VS Code uses (`$env:AZURE_TOKEN_CREDENTIALS`), so `DefaultAzureCredential` uses your account locally (step 1.3).
 
@@ -383,3 +400,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 2.4 | Deselect **Windows authentication** before **Create Plan** if the report allows it; otherwise the step 3.2 correction removes it | The app has no user sign-in or `[Authorize]`; the finding comes only from `IISExpressWindowsAuthentication` in the project file and `Integrated Security=True` in the LocalDB connection string. Run 1's first plan included **Windows AD to Microsoft Entra ID** |
 | 2.5, 3.2, 3.3 | **Create Plan** is followed by a correction reply (upgrade first; remove Entra ID; Blob; Managed Instance with local SQL auth kept; order database, Blob, Service Bus, Key Vault; `DefaultAzureCredential` with no keys; App Service for Linux containers; no provisioning), and the revised plan is reviewed and committed before execution | Run 1's first plan (commit `7904c1b`) was service-migration only: "No … runtime/framework upgrade". Its open questions were Blob or Files and SQL Database or Managed Instance, and its integration verification defaulted to mock mode because no Azure environment was given |
 | 2.1 | **Projects: 1 error** in the C# Dev Kit status bar before the upgrade is expected | Seen in run 1 on the legacy .NET Framework project |
+| 2.4, 2.5, 3, 4 | **Owner-approved deviation:** `/modernize-plan` and `/modernize-execute` prompt files in `.github/prompts/` pin the `modernize` agent and the model (planning `GPT-5.6 Sol`, execution `GPT-5.6 Luna`) and carry the full plan prompt. They replace **Create Plan** and the correction reply. Reasoning effort can't be pinned in a prompt file, so it's still set in the picker | Run 1's **Create Plan** needed a long correction reply, and the model depended on the picker |
