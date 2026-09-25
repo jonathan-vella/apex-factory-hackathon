@@ -51,7 +51,7 @@
    6. **Package:** build the image with .NET SDK container publishing (no Docker) and push it to `cruni<suffix>b06` over the private endpoint.
    7. After each step: note the start and end time, the model and prompts used, what Copilot changed, anything the owner had to fix by hand, and whether the app still builds and runs. Commit after each step with a message naming the step.
 6. The protocol includes a results sheet (`run1.md`, `run2.md`) with one row per step: time, model, prompts, interventions, build/run result and premium requests used, if visible.
-7. **Models:** the protocol doesn't pin a model. It asks the owner to follow the kit's model guidance and record what they used: a balanced model (Sonnet- or Terra-class) for the assessment, the most capable model (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for plan execution. The assessment uses the extension's default model. For planning and execution, the plan and execute prompts are agent skills, `.github/skills/modernize-plan/SKILL.md` and `.github/skills/modernize-execute/SKILL.md`, run by slash command. Skills can't pin an agent or model, so the protocol names the agent (`modernize`), model and reasoning effort to pick in the chat pickers. Record the exact model names, as the picker shows them, and the dates, because models change. *(Owner-approved deviation, 2026-09-25: the plan and execute prompts ship as skills.)*
+7. **Models:** the protocol doesn't pin a model. It asks the owner to follow the kit's model guidance and record what they used: a balanced model (Sonnet- or Terra-class) for the assessment, the most capable model (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for plan execution. The assessment uses the extension's default model. Planning and execution start from the modernization dashboard, which uses whatever agent and model are selected in the Chat panel, so the protocol says which to select before each button (agent `modernize`). Record the exact model names, as the picker shows them, and the dates, because models change.
 8. **Alternative:** the protocol has an optional section to repeat step 2 with Copilot CLI and note the differences.
 
 ### Runs
@@ -87,7 +87,6 @@
 ## Deliverables
 
 - `docs/spikes/B06-ghcp-golden-path/README.md`, `protocol.md`, `run1.md`, `run2.md`, the saved assessment reports and `infra/main.bicep`.
-- `.github/skills/modernize-plan/SKILL.md` and `.github/skills/modernize-execute/SKILL.md` (requirement 7).
 - Branches `spike/b06-run1` and `spike/b06-run2`, pushed and not merged.
 - `versions.md` rows for the VS Code app modernization extension, the .NET 10 SDK and Copilot CLI versions used.
 
