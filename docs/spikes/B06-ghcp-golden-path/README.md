@@ -33,6 +33,7 @@ None yet.
 ## Evidence
 
 - [assessment/](assessment/): the saved assessment reports per run.
+- [pe-probe.md](pe-probe.md): the private-endpoint probe from `vm-dev01` and the deployed settings.
 - [run1.md](run1.md) and [run2.md](run2.md): the owner's results sheets.
 
 ## Follow-ups

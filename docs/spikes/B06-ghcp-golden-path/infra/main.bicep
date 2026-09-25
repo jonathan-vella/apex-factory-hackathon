@@ -17,6 +17,8 @@ param memberIndex int = 1
 param suffix string
 
 @description('Object ID of the owner, who gets the data-plane roles for local runs from vm-dev01.')
+@minLength(36)
+@maxLength(36)
 param ownerObjectId string
 
 @description('Principal type of ownerObjectId.')
