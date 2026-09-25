@@ -3,7 +3,6 @@ name: modernize-execute
 description: 'B06: execute the reviewed Contoso University modernization plan'
 agent: modernize
 model: ["GPT-6 Luna (copilot)"]
-reasoning-effort: max
 ---
 
 # Execute the reviewed modernization plan

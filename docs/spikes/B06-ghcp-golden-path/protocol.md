@@ -39,7 +39,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
   - **Versions:** the versions file in step 1.7.
   - **Build and run:** say in the commit body whether `dotnet build` passed and whether the app ran; the executor also runs the build and reference checks after the push. Premium requests: add them to the body if VS Code shows them.
 - **Commit after each step,** with a message that names the step, for example `git commit -am "run1: step 3 upgrade to .NET 10"`. Include new files: `git add -A` first.
-- **Models:** follow the kit's guidance. **(v2)** For planning and execution, the prompt files in step 3 pin the agent, the model and the reasoning effort. The chat export records the exact model name and the date:
+- **Models:** follow the kit's guidance. **(v2)** For planning and execution, the prompt files in step 3 pin the agent and the model. Reasoning effort can't be pinned in a prompt file, so set it in the model picker before you run each one. The chat export records the exact model name and the date:
   - assessment: a balanced model (Sonnet- or Terra-class);
   - planning: the most capable model (Opus- or Sol-class);
   - plan execution: an efficient model at maximum reasoning effort (Luna-class).
@@ -159,16 +159,16 @@ Model: balanced (Sonnet- or Terra-class).
 
 ## Step 3: C6 plan and upgrade to .NET 10
 
-Models: planning with the most capable model (Opus- or Sol-class); execution with an efficient model at maximum reasoning effort (Luna-class). **(v2)** The two prompt files in `.github/prompts/` pin the agent, the model and the reasoning effort, as in the table below.
+Models: planning with the most capable model (Opus- or Sol-class); execution with an efficient model at maximum reasoning effort (Luna-class). **(v2)** The two prompt files in `.github/prompts/` pin the agent and the model, as in the table below. Reasoning effort isn't a prompt-file field (a `reasoning-effort:` line stops the prompt file from working), so set it in the model picker before you run each one.
 
-| Prompt file | Agent | Model | Reasoning effort |
+| Prompt file | Agent | Model | Reasoning effort (set in the picker) |
 |---|---|---|---|
-| [`modernize-plan.prompt.md`](../../../.github/prompts/modernize-plan.prompt.md) | `modernize` | `GPT-6 Sol (copilot)` | `medium` |
-| [`modernize-execute.prompt.md`](../../../.github/prompts/modernize-execute.prompt.md) | `modernize` | `GPT-6 Luna (copilot)` | `max` |
+| [`modernize-plan.prompt.md`](../../../.github/prompts/modernize-plan.prompt.md) | `modernize` | `GPT-6 Sol (copilot)` | Medium |
+| [`modernize-execute.prompt.md`](../../../.github/prompts/modernize-execute.prompt.md) | `modernize` | `GPT-6 Luna (copilot)` | Maximum |
 
 1. **(v2)** In Copilot Chat, type `/modernize-plan` and send it. It runs the `modernize` agent with the planning model and the full plan prompt: .NET 10 first, no Entra ID, Blob, Managed Instance with local SQL auth kept, the order database, Blob, Service Bus, Key Vault, `DefaultAzureCredential` with no keys, App Service for Linux containers, the configuration keys and no provisioning. It plans and waits. Check in the chat header that the model is the one in the table; if the picker name differs, note it in the commit body and tell the executor.
 2. Review the plan files it writes: `.github\modernize\<name>-<timestamp>\plan.md` and `.metadata\tasks.json` at the repo root. Check that the upgrade is first, Entra ID is absent and the order is database, Blob, Service Bus, Key Vault. Edit them if something is wrong, note what you changed, export the chat, and commit the plan: `run1: step 3 plan` (run 2: `run2: …`, as everywhere).
-3. **(v2)** Type `/modernize-execute` and send it. It runs the reviewed plan task by task, builds after each and waits for `continue`. Keep the changes when they build. Do the step 3 check below after the upgrade task, and the step 4 checks after each of the other tasks, committing after each task with the step names below.
+3. **(v2)** Set the reasoning effort for the execution model in the picker, then type `/modernize-execute` and send it. It runs the reviewed plan task by task, builds after each and waits for `continue`. Keep the changes when they build. Do the step 3 check below after the upgrade task, and the step 4 checks after each of the other tasks, committing after each task with the step names below.
 4. Export the chat before each commit. In the commit body, note the model shown in the chat for each prompt file.
 
 **Run 1 used v1 of this step** (dashboard upgrade or **Create Plan**, then a pasted correction reply). It's kept here for comparison:
@@ -400,4 +400,5 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 2.4 | Deselect **Windows authentication** before **Create Plan** if the report allows it; otherwise the step 3.2 correction removes it | The app has no user sign-in or `[Authorize]`; the finding comes only from `IISExpressWindowsAuthentication` in the project file and `Integrated Security=True` in the LocalDB connection string. Run 1's first plan included **Windows AD to Microsoft Entra ID** |
 | 2.5, 3.2, 3.3 | **Create Plan** is followed by a correction reply (upgrade first; remove Entra ID; Blob; Managed Instance with local SQL auth kept; order database, Blob, Service Bus, Key Vault; `DefaultAzureCredential` with no keys; App Service for Linux containers; no provisioning), and the revised plan is reviewed and committed before execution | Run 1's first plan (commit `7904c1b`) was service-migration only: "No … runtime/framework upgrade". Its open questions were Blob or Files and SQL Database or Managed Instance, and its integration verification defaulted to mock mode because no Azure environment was given |
 | 2.1 | **Projects: 1 error** in the C# Dev Kit status bar before the upgrade is expected | Seen in run 1 on the legacy .NET Framework project |
-| 2.4, 2.5, 3, 4 | **Owner-approved deviation:** `/modernize-plan` and `/modernize-execute` prompt files in `.github/prompts/` pin the `modernize` agent, the model and the reasoning effort (planning `GPT-6 Sol (copilot)` at `medium`, execution `GPT-6 Luna (copilot)` at `max`) and carry the full plan prompt. They replace **Create Plan** and the correction reply | Run 1's **Create Plan** needed a long correction reply, and the model depended on the picker |
+| 2.4, 2.5, 3, 4 | **Owner-approved deviation:** `/modernize-plan` and `/modernize-execute` prompt files in `.github/prompts/` pin the `modernize` agent and the model (planning `GPT-6 Sol (copilot)`, execution `GPT-6 Luna (copilot)`) and carry the full plan prompt. They replace **Create Plan** and the correction reply. Reasoning effort is set in the picker: Sol Medium, Luna maximum | Run 1's **Create Plan** needed a long correction reply, and the model depended on the picker |
+| 3 | No `reasoning-effort:` line in the prompt files; set reasoning effort in the model picker (Sol Medium, Luna maximum) | A `reasoning-effort:` frontmatter line stopped the prompt files from working in VS Code on `vm-dev01` (`spike/b06-run1` commit `4508c6d`) |

@@ -3,7 +3,6 @@ name: modernize-plan
 description: 'B06: plan the Contoso University modernization (.NET 10 first, then database, Blob, Service Bus, Key Vault)'
 agent: modernize
 model: ["GPT-6 Sol (copilot)"]
-reasoning-effort: medium
 ---
 
 # Plan the Contoso University modernization
