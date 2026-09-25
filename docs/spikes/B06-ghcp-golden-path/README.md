@@ -43,6 +43,8 @@ Run 1, steps 1 (set up) and 2 (assess):
 
 The rest is pending run 1.
 
+**False start and reset.** Findings 4–14 come from run 1's false start: the assessment and **Create Plan** in the Agent Host harness, then prompt files that Agent Host didn't load. The owner then reset run 1 (commit `run1: reset for a fresh start in the Local harness`, removing the plan folders and `assessment/run1`) and redid steps 2 and 3 in the Local harness. Run 1's step times count from that reset commit.
+
 Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clone before run 1, so it isn't in [assessment/](assessment/). Run 1 started from a fresh clone.
 
 ## Decisions
