@@ -203,7 +203,7 @@ Model: the assessment uses the extension's default model. **(v2)** Step 2 uses t
 
    1. Open a **new chat** with **`modernize`** and **GPT-6 Luna** at **maximum**.
    2. Send `Execute task 00N of the plan in .github/modernize/<plan-folder>.` (for example `Execute task 001 of the plan in .github/modernize/contoso-university-dotnet10-azure.`). Approve builds and file edits; reply `continue` when it asks.
-   3. **(v2)** When it reports the task done, check where the work landed, because it varies: in run 1, task 002 was committed by the tool on a new `appmod/*` branch, but task 003 (after a stale-tracker retry) stayed uncommitted on the run branch.
+   3. **(v2)** When it reports the task done, check where the work landed, because it varies from task to task: in run 1, task 002 was committed by the tool on a new `appmod/*` branch, task 003 (after a stale-tracker retry) stayed uncommitted on the run branch, and task 004 was committed by the tool directly on the run branch.
 
       ```powershell
       git status --short --branch
@@ -211,7 +211,8 @@ Model: the assessment uses the extension's default model. **(v2)** Step 2 uses t
 
       - **On an `appmod/*` branch:** `git switch spike/b06-run1`, then `git merge --ff-only <appmod-branch>`.
       - **Uncommitted changes:** `git add -A`, then commit on `spike/b06-run1` with the step name.
-      - Then, in both cases, `git push`.
+      - **Already committed on `spike/b06-run1`, clean tree:** nothing to do.
+      - Then, in every case, `git push`.
    4. Do the check for that task (below).
    5. **(v2)** Run **Developer: Reload Window** from the Command Palette, then start the next task in another new chat. If the agent reports a leftover in-progress tracker or invocation tracking item from the previous task, reply: `Mark the stale tracking item complete and run task 00N.`
 
