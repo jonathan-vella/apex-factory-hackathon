@@ -35,6 +35,7 @@ Run 1, steps 1 (set up) and 2 (assess):
 7. **False "Windows authentication detected" (Mandatory).** The app has no user sign-in (`BaseController` uses `"System"`, and `FilterConfig` has no `AuthorizeAttribute`). The finding comes only from `<IISExpressWindowsAuthentication>enabled</IISExpressWindowsAuthentication>` (with anonymous authentication disabled) in `ContosoUniversity.csproj` and `Integrated Security=True` in the LocalDB connection string in `Web.config`. It's not applicable, but the first plan included an Entra ID migration for it. The owner removed it. A B10 instruction should say so. In protocol v2, deselect it before **Create Plan** (step 2.4) or remove it in the correction reply (step 3.2).
 8. **Planning model:** the plan ran with the `modernize` agent, GPT-5.6 Sol at reasoning effort Medium (2026-09-25).
 9. **"Projects: 1 error"** in the C# Dev Kit status bar on the legacy .NET Framework project before the upgrade is expected.
+10. **Create Plan abandoned for the prompt files.** Run 1's first **Create Plan** attempt and its correction chat were stopped. The owner copied `.github/prompts` from the working branch onto `spike/b06-run1` and continued with `/modernize-plan` and `/modernize-execute`, so run 1 also uses the pinned agent and models. Reasoning effort is set in the picker: Sol at Medium, Luna at maximum (accepted by the owner).
 
 The rest is pending run 1.
 
