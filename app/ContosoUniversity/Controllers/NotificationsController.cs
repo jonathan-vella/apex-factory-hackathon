@@ -5,14 +5,21 @@ using Microsoft.AspNetCore.Mvc;
 using ContosoUniversity.Data;
 using ContosoUniversity.Services;
 using ContosoUniversity.Models;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
     public class NotificationsController : BaseController
     {
-        public NotificationsController(SchoolContext db, NotificationService notificationService)
+        private readonly ILogger<NotificationsController> _logger;
+
+        public NotificationsController(
+            SchoolContext db,
+            NotificationService notificationService,
+            ILogger<NotificationsController> logger)
             : base(db, notificationService)
         {
+            _logger = logger;
         }
 
         // GET: api/notifications - Get pending notifications for admin
@@ -28,7 +35,7 @@ namespace ContosoUniversity.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error retrieving notifications: {ex.Message}");
+                _logger.LogError(ex, "Error retrieving notifications");
                 return Json(new { success = false, message = "Error retrieving notifications" });
             }
 

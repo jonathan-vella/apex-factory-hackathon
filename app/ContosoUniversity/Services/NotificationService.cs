@@ -83,7 +83,7 @@ namespace ContosoUniversity.Services
         {
             var messages = await _receiver.ReceiveMessagesAsync(
                 maxMessages,
-                TimeSpan.Zero,
+                TimeSpan.FromSeconds(2),
                 cancellationToken);
             var notifications = new List<Notification>(messages.Count);
 
