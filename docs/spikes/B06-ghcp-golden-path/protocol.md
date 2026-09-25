@@ -6,7 +6,7 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 |---|---|---|---|
 | 1 | `spike/b06-run1` | `da4e5f606983332001c94ce69b48634f9c1864b3` | v1 (changed into v2 during the run) |
 | Comparison | `spike/b06-upgrade-compare` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Comparison section](#comparison-github-copilot-upgrade-after-run-1-before-run-2) |
-| 2 | `spike/b06-run2` | `7c2855bd3e99c48e94b7b01817a0ca84eae43fa4` | v2 |
+| 2 | `spike/b06-run2` | `e850869e438556c1234dd672f12aa133a2bed644` | v2 |
 
 Order: the comparison run first, then run 2.
 
@@ -111,8 +111,8 @@ Use these configuration keys, so the runs and the archetype (B09) use the same n
 
    ```powershell
    git fetch origin
-   git switch -c spike/b06-run2 7c2855bd3e99c48e94b7b01817a0ca84eae43fa4
-   git diff --stat 7c2855bd3e99c48e94b7b01817a0ca84eae43fa4 origin/main -- app/ContosoUniversity
+   git switch -c spike/b06-run2 e850869e438556c1234dd672f12aa133a2bed644
+   git diff --stat e850869e438556c1234dd672f12aa133a2bed644 origin/main -- app/ContosoUniversity
    ```
 
    Use the run 2 commit from the table above. The last command must print nothing: `app/ContosoUniversity` is unchanged from `main`. If `app\ContosoUniversity\.github\modernize\` exists from an earlier assessment (git ignores it), move it out: `Move-Item app\ContosoUniversity\.github\modernize C:\src\b06-earlier-assessment-run2`.
@@ -366,3 +366,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Comparison C.1 | Run `git clean -fdx -- app .github` after `git switch` (dry run first) so the tree is pure legacy; GitHub Copilot modernization stays disabled (owner decision), and a stage the Upgrade agent can't do without it is recorded as a result | The first comparison attempt's stage 2 (`a6c358d`) edited run 1's plan folder and loaded run 1's `modernize-plan` skill from leftover files; with modernize disabled, the Upgrade agent's `azure-migrate` scenario couldn't delegate |
 | Comparison C.2 | The owner's prompt file `prompts/compare-upgrade-plan.md` in the **Copilot** harness forces the stateful `dotnet-version-upgrade` scenario (six-task chain, kit rules, dashboard artifacts under `.github/upgrades/`) | The default routing picked `azure-migrate`, which needs GitHub Copilot modernization's session tool. Forcing `dotnet-version-upgrade` makes the Upgrade dashboard work, and only in the Copilot harness |
 | 3, 4, 5 | The plan prompt is the file `prompts/run2-modernize-plan.md`: seven tasks (OpenTelemetry becomes task 006, CVE fixes task 007) and nine rules, from the owner's target state. New checks: telemetry in Application Insights after task 006; refusal to start outside Development without `KeyVault:VaultUri` or with a SQL login, after task 005. Step 5 only checks that nothing is left | Owner decisions after run 1: Entra authentication only on Azure, Key Vault mandatory outside Development, private backends, simple OpenTelemetry visible in Application Insights, SDK container publishing only |
+| Run 2 start | Run 2 starts from `e850869` instead of `7c2855b` | The refined prompts under `prompts/` have to be on the run branch |
