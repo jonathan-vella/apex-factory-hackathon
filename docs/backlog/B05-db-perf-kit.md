@@ -7,7 +7,7 @@
 | Depends on | B04 |
 | Unblocks | B07 |
 | Effort | 1 day |
-| Cost | The datacenter from B04 keeps running: about $1.25/hour. Nothing new is deployed |
+| Cost | The datacenter from B04 keeps running: about $1.55/hour. Nothing new is deployed |
 | Teardown | **Keep** `rg-datacenter` for B06 and B07 |
 | PRD | §5 C9; §6 DB optimization |
 

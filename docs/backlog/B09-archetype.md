@@ -7,7 +7,7 @@
 | Depends on | B06, B07, B08 |
 | Unblocks | B10, B11 |
 | Effort | 3–4 days elapsed, including the owner's APEX session |
-| Cost | About $3.65/hour while deployed: Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints about $0.05, ALZ-lite about $1.25 and the datacenter about $1.25. The SQL MI free offer is free within its limits |
+| Cost | About $3.95/hour while deployed: Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints about $0.05, ALZ-lite about $1.25 and the datacenter about $1.55. The SQL MI free offer is free within its limits |
 | Teardown | Delete everything this item created: the archetype resources, `rg-spoke` and `rg-datacenter` in the workload subscription, `rg-hub` and `rg-management` in the shared services subscription, the policy assignments and budget, and the kit's management groups after moving both subscriptions back to their original place |
 | PRD | §2 Archetype, Compute, Messaging, Hybrid Benefit; §5 C5; §6 CoE archetype |
 
@@ -66,7 +66,7 @@
 16. Deploy ALZ-lite (shared services subscription), then the datacenter and vending (member 1, workload subscription) with the kit scripts.
 17. Deploy the archetype with `archetype/deploy.ps1`. Record the time until everything except the MI is ready, and the MI provisioning time.
 18. 🧑 HUMAN: the owner copies `archetype/` into a fresh APEX repo and runs the `deploy-archetype` prompt against a clean spoke (delete the archetype resources first), then As-Built. Record the time and any gaps.
-19. Check: no public endpoints beyond the two documented exceptions (every resource's public network access is off; no public IPs outside the hub and the datacenter NAT); zero non-compliant resources for the ALZ-lite policies in the archetype's resource group after evaluation; private endpoints registered in the central zones; the MI host name resolves to its private IP from `vm-dev01`; `scripts/Test-Connectivity.ps1` passes, including the private endpoint checks; from `vm-dev01`, push a test image to the registry and restart the web app with it; the web app pulls it with its identity and answers over its private endpoint; the web app's telemetry reaches Application Insights.
+19. Check: no public endpoints beyond the two documented exceptions (every resource's public network access is off; no public IPs outside the hub and the datacenter's NAT gateway and Bastion); zero non-compliant resources for the ALZ-lite policies in the archetype's resource group after evaluation; private endpoints registered in the central zones; the MI host name resolves to its private IP from `vm-dev01`; `scripts/Test-Connectivity.ps1` passes, including the private endpoint checks; from `vm-dev01`, push a test image to the registry and restart the web app with it; the web app pulls it with its identity and answers over its private endpoint; the web app's telemetry reaches Application Insights.
 20. Tear everything down (Teardown row), including the subscription-level artifacts listed in the backlog conventions, and query each to confirm.
 
 ### Records

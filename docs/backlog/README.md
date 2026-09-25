@@ -105,9 +105,9 @@ Both subscriptions also hold unrelated resources. Items only touch what they cre
 | Management groups | `mg-factory` with `mg-factory-platform` (shared services subscription) and `mg-factory-corp` (workload subscriptions), created by ALZ-lite (B08). Prefix parameter `mgPrefix` |
 | Shared services subscription | One per team. `rg-management` with `log-management`; `rg-hub` with `vnet-hub` `10.100.0.0/16`, `afw-hub`, `afwp-hub` and the private DNS zones (B08) |
 | Workload subscription | One per member. Holds the datacenter, the spoke and the archetype |
-| Datacenter | `rg-datacenter`, `vnet-datacenter` `10.10.n.0/24`, `snet-servers` `10.10.n.0/25` |
+| Datacenter | `rg-datacenter`, `vnet-datacenter` `10.10.n.0/24`, `snet-servers` `10.10.n.0/25`, `AzureBastionSubnet` `10.10.n.192/26` |
 | Datacenter VMs | `vm-app01` `10.10.n.4` (IIS, SQL Server 2022 Developer, MSMQ, legacy app). `vm-dev01` `10.10.n.5` (Windows 11 dev workstation) |
-| Datacenter edge | `nat-datacenter` with `pip-nat-datacenter`, `bas-datacenter` (Bastion Developer), `nsg-servers` |
+| Datacenter edge | `nat-datacenter` with `pip-nat-datacenter`, `bas-datacenter` (Bastion **Standard**, never Developer) with `pip-bas-datacenter`, `nsg-servers`. These two are the datacenter's only public IPs |
 | Spoke | `rg-spoke`, `vnet-spoke` `10.20.n.0/24` |
 | Spoke subnets | `snet-app` `10.20.n.0/26` (delegated to `Microsoft.Web/serverFarms`), `snet-pe` `10.20.n.64/26`, `snet-sqlmi` `10.20.n.128/26` (delegated to `Microsoft.Sql/managedInstances`) |
 | Workload resources | CAF abbreviation + `university` + suffix, the APEX default (for example `app-university-<suffix>`) |
@@ -175,7 +175,7 @@ Other services that are zone-redundant automatically are accepted the same way. 
 ### Cost and teardown
 
 - Each runbook's field table states the hourly cost of what it deploys, at list price with AHB on.
-- VMs have no auto-shutdown. Teams stop them when they're idle, and every deploy script prints how.
+- VMs have no auto-shutdown. Teams stop them when they're idle, and every deploy script prints how. Bastion Standard keeps billing (about $0.29/hour) while the VMs are stopped.
 - The executor tears down what an item deployed at the end of the item. The exception is the datacenter, which B04 deploys and B07 tears down, so that B05–B07 can build on it. The **Teardown** row in each runbook says which applies.
 - Teardown covers subscription-level artifacts too, not just resource groups: policy assignments and their managed identities' role assignments, exemptions, other role assignments, budgets, firewall policy rule collection groups, Arc resources, soft-deleted Key Vaults, and management groups and subscription placement. Verify each is gone with a query, and put the results in the PR.
 - **Private-only has one exception:** Application Insights ingestion stays public, and the hub firewall allows the Azure Monitor ingestion endpoints. It's documented wherever telemetry is configured.
