@@ -6,7 +6,7 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 |---|---|---|---|
 | 1 | `spike/b06-run1` | `da4e5f606983332001c94ce69b48634f9c1864b3` | v1 (changed into v2 during the run) |
 | Comparison | `spike/b06-upgrade-compare` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Comparison section](#comparison-github-copilot-upgrade-after-run-1-before-run-2) |
-| 2 | `spike/b06-run2` | `<run-2-commit>` | v2 |
+| 2 | `spike/b06-run2` | `7c2855bd3e99c48e94b7b01817a0ca84eae43fa4` | v2 |
 
 Order: the comparison run first, then run 2.
 
@@ -111,8 +111,8 @@ Use these configuration keys, so the runs and the archetype (B09) use the same n
 
    ```powershell
    git fetch origin
-   git switch -c spike/b06-run2 <run-2-commit>
-   git diff --stat <run-2-commit> origin/main -- app/ContosoUniversity
+   git switch -c spike/b06-run2 7c2855bd3e99c48e94b7b01817a0ca84eae43fa4
+   git diff --stat 7c2855bd3e99c48e94b7b01817a0ca84eae43fa4 origin/main -- app/ContosoUniversity
    ```
 
    Use the run 2 commit from the table above. The last command must print nothing: `app/ContosoUniversity` is unchanged from `main`. If `app\ContosoUniversity\.github\modernize\` exists from an earlier assessment (git ignores it), move it out: `Move-Item app\ContosoUniversity\.github\modernize C:\src\b06-earlier-assessment-run2`.
