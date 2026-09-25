@@ -23,7 +23,8 @@ Constraints:
 - Use `DefaultAzureCredential` for Blob, Service Bus and Key Vault. Shared key access and Service Bus local (SAS) auth are off, so use no keys, no SAS and no connection strings with secrets.
 - Never put a password in a committed file: user secrets locally, Key Vault on Azure.
 - The target is Azure App Service for Linux (containers).
-- Don't provision, change or delete any Azure resources: they already exist.
+- Don't provision, change or delete any Azure resources. App Service, the container registry, SQL Managed Instance, Blob Storage, Service Bus, Key Vault and the datacenter already exist, and their endpoints come from configuration.
+- Real-mode integration uses the configuration keys below, supplied at execution time. Never record subscription IDs, resource group names or resource IDs in the plan or the code.
 - Use these configuration keys:
 
   | Key | Purpose |
