@@ -7,7 +7,7 @@
 | Depends on | B04 |
 | Unblocks | B07, B09, B10 |
 | Effort | 2–3 days elapsed, including two owner-driven runs of about 3–4 hours each |
-| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.25/hour |
+| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.55/hour |
 | Teardown | Delete `rg-spike-b06` and `snet-pe-spike` at the end. **Keep** `rg-datacenter` for B07 |
 | PRD | §5 C3, C6; §6 App modernization; §8 GHCP risk |
 
@@ -51,7 +51,7 @@
    6. **Package:** build the image with .NET SDK container publishing (no Docker) and push it to `cruni<suffix>b06` over the private endpoint.
    7. After each step: note the start and end time, the model and prompts used, what Copilot changed, anything the owner had to fix by hand, and whether the app still builds and runs. Commit after each step with a message naming the step.
 6. The protocol includes a results sheet (`run1.md`, `run2.md`) with one row per step: time, model, prompts, interventions, build/run result and premium requests used, if visible.
-7. **Models:** the protocol doesn't pin a model. It asks the owner to follow the kit's model guidance and record what they used: a balanced model (Sonnet- or Terra-class) for the assessment, the most capable model (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for plan execution. Record the exact model names and dates, because models change.
+7. **Models:** the protocol doesn't pin a model. It asks the owner to follow the kit's model guidance and record what they used: a balanced model (Sonnet- or Terra-class) for the assessment, the most capable model (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for plan execution. The assessment uses the extension's default model. Planning and execution run in the Chat panel with whatever agent and model are selected, so the protocol says which to select before each one (agent `modernize`). Record the exact model names, as the picker shows them, and the dates, because models change.
 8. **Alternative:** the protocol has an optional section to repeat step 2 with Copilot CLI and note the differences.
 
 ### Runs
@@ -59,6 +59,10 @@
 9. Push this item's working branch with the protocol, and put the commit SHA in the protocol for run 1. 🧑 HUMAN: the owner does run 1 following the protocol, fills in `run1.md` and pushes `spike/b06-run1`.
 10. Between runs, update the protocol on the working branch with a refined sequence and prompts that avoid run 1's problems. Mark what changed, push, and record the new commit SHA for run 2.
 11. 🧑 HUMAN: the owner does run 2 from a fresh branch off that commit, fills in `run2.md` and pushes `spike/b06-run2`.
+
+### Compare the upgrade agents
+
+11a. *(Owner-approved addition, 2026-09-25.)* After run 1 and before run 2, the owner does a full end-to-end run with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, the Upgrade agent), installed by hand on `vm-dev01`, on the branch `spike/b06-upgrade-compare` from run 1's start commit: assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus and Key Vault, with the same kit rules, configuration keys and live checks as run 1. GitHub Copilot modernization is disabled for this run by default. `compare-upgrade.md` records per stage whether the Upgrade agent covers it, time, prompts, interventions and results, compares it with run 1 stage by stage, and notes whether `modernize` behaves differently with the upgrade extension installed. The report recommends which extension or extensions the kit's dev VM should install; the owner decides, and B04's extension list isn't changed in this item.
 
 ### Check each run
 
@@ -87,7 +91,8 @@
 ## Deliverables
 
 - `docs/spikes/B06-ghcp-golden-path/README.md`, `protocol.md`, `run1.md`, `run2.md`, the saved assessment reports and `infra/main.bicep`.
-- Branches `spike/b06-run1` and `spike/b06-run2`, pushed and not merged.
+- `docs/spikes/B06-ghcp-golden-path/compare-upgrade.md` (requirement 11a).
+- Branches `spike/b06-run1`, `spike/b06-run2` and `spike/b06-upgrade-compare`, pushed and not merged.
 - `versions.md` rows for the VS Code app modernization extension, the .NET 10 SDK and Copilot CLI versions used.
 
 ## Verify
@@ -105,6 +110,7 @@ npm run check
 
 - [ ] Both runs are recorded, and every check in requirement 12 is recorded per run.
 - [ ] The report gives B10 a sequence, prompts and hot-spot list it can build on.
+- [ ] The end-to-end upgrade-agent comparison is recorded stage by stage in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
 - [ ] Spike resources are deleted, and the datacenter is still deployed.
 
 ## Commit message
