@@ -153,7 +153,7 @@ Use these configuration keys, so the runs and the archetype (B09) use the same n
 
 ## Step 2: C3 assess
 
-1. Open the **GitHub Copilot modernization** view in the Activity Bar and run a **custom assessment**, not the default **Start Assessment**. Set the target to **Azure App Service for Linux (containers)** and leave the other options at their defaults (run 1 didn't record them; note any you change in the commit body). If it asks which project, pick `app/ContosoUniversity`. The assessment uses the extension's default model; you can't pick one.
+1. Open the **GitHub Copilot modernization** view in the Activity Bar and run a **custom assessment**, not the default **Start Assessment**. Set the target to **Azure App Service for Linux (containers)** and leave every other option at its default, as run 1 did (note any you change in the commit body). If it asks which project, pick `app/ContosoUniversity`. The assessment uses the extension's default model; you can't pick one.
 2. In the report, check that the target is **Azure App Service (Linux)**. If it shows **Azure App Service (Windows)**, switch it and note it.
 3. Read the report: note the issues for local files, MSMQ, the database, the plaintext connection string and `System.Web`. It flags **Windows authentication detected** as mandatory, but the app has no user sign-in: the finding comes only from `IISExpressWindowsAuthentication` and `Integrated Security=True` in the old LocalDB connection string. Rule 2 of the plan removes it.
 4. **Don't select Create Plan.** It plans only the service migrations, keeps both storage and both database alternatives, adds an Entra ID task, and a finished plan can't be corrected afterwards.
