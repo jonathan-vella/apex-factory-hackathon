@@ -60,6 +60,10 @@
 10. Between runs, update the protocol on the working branch with a refined sequence and prompts that avoid run 1's problems. Mark what changed, push, and record the new commit SHA for run 2.
 11. 🧑 HUMAN: the owner does run 2 from a fresh branch off that commit, fills in `run2.md` and pushes `spike/b06-run2`.
 
+### Compare the upgrade agents
+
+11a. *(Owner-approved addition, 2026-09-25.)* After run 1 and before run 2, the owner repeats run 1's .NET 10 upgrade task with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, the Upgrade agent), installed by hand on `vm-dev01`, on the branch `spike/b06-upgrade-compare` from run 1's start commit. The results, a side-by-side with the `modernize` agent's upgrade, and whether `modernize` behaves differently with the upgrade extension installed go in `compare-upgrade.md`. The report recommends which extension or extensions the kit's dev VM should install; the owner decides, and B04's extension list isn't changed in this item.
+
 ### Check each run
 
 12. For each run branch, check and record in the report:
@@ -87,7 +91,8 @@
 ## Deliverables
 
 - `docs/spikes/B06-ghcp-golden-path/README.md`, `protocol.md`, `run1.md`, `run2.md`, the saved assessment reports and `infra/main.bicep`.
-- Branches `spike/b06-run1` and `spike/b06-run2`, pushed and not merged.
+- `docs/spikes/B06-ghcp-golden-path/compare-upgrade.md` (requirement 11a).
+- Branches `spike/b06-run1`, `spike/b06-run2` and `spike/b06-upgrade-compare`, pushed and not merged.
 - `versions.md` rows for the VS Code app modernization extension, the .NET 10 SDK and Copilot CLI versions used.
 
 ## Verify
@@ -105,6 +110,7 @@ npm run check
 
 - [ ] Both runs are recorded, and every check in requirement 12 is recorded per run.
 - [ ] The report gives B10 a sequence, prompts and hot-spot list it can build on.
+- [ ] The upgrade-agent comparison is recorded in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
 - [ ] Spike resources are deleted, and the datacenter is still deployed.
 
 ## Commit message

@@ -73,11 +73,13 @@ Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clon
 
 ## Decisions
 
+- **Compare the upgrade agents (owner-approved, 2026-09-25).** B06 also tests GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) against the `modernize` agent for the .NET 10 upgrade, on `spike/b06-upgrade-compare` from `da4e5f6`, recorded in [compare-upgrade.md](compare-upgrade.md). This adds requirement 11a to [B06](../../backlog/B06-spike-ghcp.md). The report recommends the dev VM's extensions; the owner decides, and B04's extension list isn't changed yet.
 - **Custom assessment, then a rules-driven plan (owner decision, 2026-09-25).** Step 2 runs a custom assessment targeting App Service for Linux (containers). Step 3 skips **Create Plan**: a new chat with `modernize` and GPT-6 Sol at Medium sends `/create-modernization-plan` with the seven kit rules as the planning input, the plan is checked against the rules table and `tasks.json`, and a wrong plan is deleted and regenerated. Execution then runs with GPT-6 Luna at maximum. A ⚠️ callout before each chat says which agent and model to select, because the chat uses whatever is selected. Prompt files, agent skills, **Create Plan** with a correction reply and a follow-up kit rules prompt were tried first and dropped (findings 10–26). [B06](../../backlog/B06-spike-ghcp.md) requirement 7 still leaves the model unpinned; it now says the protocol names what to select.
 
 ## Evidence
 
 - [assessment/](assessment/): the saved assessment reports per run.
+- [compare-upgrade.md](compare-upgrade.md): the GitHub Copilot upgrade vs `modernize` comparison for the .NET 10 upgrade.
 - [pe-probe.md](pe-probe.md): the private-endpoint probe from `vm-dev01` and the deployed settings.
 - [run1.md](run1.md) and [run2.md](run2.md): the results sheets, filled in by the executor from the run branches.
 - `chats/` and `runN-versions.txt` on the run branches: the chat exports per step (checked for secrets) and the tool versions.
@@ -86,7 +88,7 @@ Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clon
 
 - **B10: a skill that wraps `create-modernization-plan` with the kit rules.** The planning prompt in protocol v2 step 3.2 is the candidate: it has to be the planning input, because a finished plan can't be corrected (finding 26). Check first that a workspace skill shows in the slash menu in the Copilot harness (finding 17).
 - **B10: playbook around the dashboard.** The golden path uses the dashboard buttons, so the playbook needs the pre-click model check, and the planning prompt with the kit rules and its self-check table (protocol v2 step 3). If B10 ships skills, note findings 16 and 17: workspace skills with `disable-model-invocation: true` didn't show in the Copilot harness's skill list, and skills can't pin a model. Prompt files don't load in the Copilot (Agent Host) harness.
-- **B10 and B13: the .NET upgrade agent.** If the upgrade through the correction reply proves unreliable, consider adding `ms-dotnettools.upgrade-agent` to the dev VM (finding 19).
+- **B04: the dev VM's modernization extensions.** Pending the upgrade-agent comparison (`compare-upgrade.md`): whether to add `ms-dotnettools.upgrade-agent` next to `vscjava.migrate-java-to-azure`. The owner decides; B04 isn't changed until then (finding 19).
 - **B10: a simpler execution routine.** The `modernize` execution routine wasn't reliable across tasks in run 1: sub-agent depth, stale trackers, the agent blocking on its own handoff record, and a lost scenario after reloads (findings 28, 32, 37 and 38). Weigh running each task from `tasks.json` with a direct prompt, after runs 1 and 2.
 - **B10 playbook: verify Service Bus send and receive.** Check a round trip, not just a build: the `modernize` agent's validation missed a receive path that always threw (finding 36). Also tell it to log, not swallow, exceptions in controllers.
 - **B10 lifelines: cut them at task boundaries that work end to end.** Between tasks 001 and 004 notifications are in memory only (finding 34).
