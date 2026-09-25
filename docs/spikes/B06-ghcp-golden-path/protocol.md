@@ -1,6 +1,6 @@
 # B06 run protocol: GHCP golden path on `vm-dev01`
 
-The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../backlog/B06-spike-ghcp.md). They assume you haven't used GitHub Copilot modernization before. Fill in the results sheet as you go: [run1.md](run1.md) for run 1, [run2.md](run2.md) for run 2.
+The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../backlog/B06-spike-ghcp.md). They assume you haven't used GitHub Copilot modernization before. **(v2)** You don't fill in the results sheets: the executor fills in [run1.md](run1.md) and [run2.md](run2.md) from your commits, chat exports and versions file after you push (see **How the run is recorded** below).
 
 | Run | Branch | Start from commit | Protocol version |
 |---|---|---|---|
@@ -32,9 +32,14 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
 ## Rules for every step
 
-- **Record as you go.** Before a step, write the start time in the results sheet. After it, write the end time, the model and agent you used, the prompts (paste them), what Copilot changed, anything you fixed by hand, whether `dotnet build` passes and whether the app runs, and the premium requests used if VS Code shows them.
+- **(v2) How the run is recorded.** You record by committing; the executor turns it into the results sheet:
+  - **Times** come from the commit timestamps. Commit at the end of every step; a step starts at the previous commit, so don't leave long breaks uncommitted (commit before a break and say so in the body).
+  - **Prompts and models:** before each commit, run **Chat: Export Chat…** from the Command Palette (Ctrl+Shift+P) and save it as `docs\spikes\B06-ghcp-golden-path\chats\run1-step<step>.json`, for example `run1-step3.json` or `run1-step4.2.json` (run 2: `run2-…`). One file per chat session; add `-a`, `-b` if a step used more than one. Don't paste passwords or tokens into the chat: the executor checks the exports for secrets before they stay committed.
+  - **Manual fixes:** one line each in the commit message body, for example `git commit -m "run1: step 4.3 MSMQ to Service Bus" -m "Fixed by hand: ServiceBusClient registered as scoped, changed to singleton"`. Also say there which way you started a predefined task and anything that went wrong.
+  - **Versions:** the versions file in step 1.7.
+  - **Build and run:** say in the commit body whether `dotnet build` passed and whether the app ran; the executor also runs the build and reference checks after the push. Premium requests: add them to the body if VS Code shows them.
 - **Commit after each step,** with a message that names the step, for example `git commit -am "run1: step 3 upgrade to .NET 10"`. Include new files: `git add -A` first.
-- **Models:** no model is pinned. Follow the kit's guidance and record the exact model name and the date:
+- **Models:** no model is pinned. Follow the kit's guidance; the chat export records the exact model name and the date:
   - assessment: a balanced model (Sonnet- or Terra-class);
   - planning: the most capable model (Opus- or Sol-class);
   - plan execution: an efficient model at maximum reasoning effort (Luna-class).
@@ -44,7 +49,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 - **Never paste a password into a committed file.** Connection strings with a password go into user secrets (`dotnet user-secrets`) or Key Vault. If Copilot writes one into `appsettings*.json`, move it and note it as an intervention.
 - **Keys don't work.** Storage shared keys and Service Bus SAS are turned off. If Copilot generates key- or connection-string-based code for Blob or Service Bus, it fails at runtime: note it as a hot spot and ask for `DefaultAzureCredential`.
 - **Time boxes:** C3 is 1 hour and C6 is 3 hours at the event. Don't stop a step at the time box, but note when you pass it. If you can't reach a building .NET 10 app within a working day, stop and tell the executor.
-- **If Notepad opens after every Copilot tool call,** that's the C# Dev Kit 3.40.204 bug ([microsoft/vscode-dotnettools#3568](https://github.com/microsoft/vscode-dotnettools/issues/3568)). Close Notepad, then rename `track-skill-invocation.ps1` wherever it appears under `%USERPROFILE%\.vscode\extensions` and `%APPDATA%\Code\agentPlugins` (for example to `track-skill-invocation.ps1.disabled`) and restart VS Code. Don't change the `.ps1` file association. Note it in the results sheet if it happened.
+- **If Notepad opens after every Copilot tool call,** that's the C# Dev Kit 3.40.204 bug ([microsoft/vscode-dotnettools#3568](https://github.com/microsoft/vscode-dotnettools/issues/3568)). Close Notepad, then rename `track-skill-invocation.ps1` wherever it appears under `%USERPROFILE%\.vscode\extensions` and `%APPDATA%\Code\agentPlugins` (for example to `track-skill-invocation.ps1.disabled`) and restart VS Code. Don't change the `.ps1` file association. Note it in the next commit message body if it happened.
 
 ## Step 1: Set up
 
@@ -64,7 +69,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
    If you skipped the picker or it shows the wrong subscription, run `az account set --subscription '<your workload subscription name>'` and check again.
 
-   Some tenants block device code flow with Conditional Access. If sign-in is refused, note it in the results sheet and use `az login` (browser) inside the Bastion session instead.
+   Some tenants block device code flow with Conditional Access. If sign-in is refused, note it in the step 1 commit body and use `az login` (browser) inside the Bastion session instead.
 
 3. **(v2)** Make `DefaultAzureCredential` use your Azure CLI sign-in. `vm-dev01` has a system-assigned managed identity, and `DefaultAzureCredential` tries `ManagedIdentityCredential` before `AzureCliCredential`, so without this the app gets the VM's token, which has no data roles, and fails with 403 on Blob, Service Bus and Key Vault. The data roles are on your user, not the VM. Set it for your user and restart VS Code and any open terminals so they pick it up:
 
@@ -102,7 +107,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
    Replace `<run-commit>` with the commit in the table above. The last command must print nothing: `app/ContosoUniversity` is unchanged from `main`. For run 2, use `spike/b06-run2` and the run 2 commit.
 
-5. **(v2) Only if an earlier assessment is in the clone:** a GitHub Copilot modernization assessment run by hand before the spike leaves its output in `app\ContosoUniversity\.github\modernize\`, which git ignores. If that folder exists, move it out of the repo so the run's assessment starts clean, and note it in the results sheet. With a fresh clone, skip this step.
+5. **(v2) Only if an earlier assessment is in the clone:** a GitHub Copilot modernization assessment run by hand before the spike leaves its output in `app\ContosoUniversity\.github\modernize\`, which git ignores. If that folder exists, move it out of the repo so the run's assessment starts clean, and note it in the step 1 commit body. With a fresh clone, skip this step.
 
    ```powershell
    if (Test-Path app\ContosoUniversity\.github\modernize) { Move-Item app\ContosoUniversity\.github\modernize C:\src\b06-earlier-assessment }
@@ -111,12 +116,25 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 6. Open the folder in VS Code: `code C:\src\apex-factory-hackathon`. Sign in to GitHub in VS Code (**Accounts** menu, bottom left) with the account that has the Copilot seat. Check that Copilot Chat opens in **Agent** mode.
 7. Check the extensions under **Extensions** (Ctrl+Shift+X):
    - **GitHub Copilot modernization** (`vscjava.migrate-java-to-azure`) is installed. It's the only modernization extension the kit uses. It adds the **GitHub Copilot modernization** view to the Activity Bar and the `modernize` agent to Copilot Chat, which covers the assessment, the .NET upgrade and the migration tasks.
-   - Record its version, and the VS Code, Copilot Chat and C# Dev Kit versions, in the results sheet.
+   - **(v2)** Write the versions file, which the executor uses for the results sheet and `versions.md` (run 2: `run2-versions.txt`):
+
+     ```powershell
+     $v = 'docs\spikes\B06-ghcp-golden-path\run1-versions.txt'
+     'code --version:' | Set-Content $v
+     code --version | Add-Content $v
+     'extensions:' | Add-Content $v
+     code --list-extensions --show-versions | Select-String -Pattern 'copilot|csdevkit|migrate-java-to-azure' | ForEach-Object Line | Add-Content $v
+     'dotnet --version:' | Add-Content $v
+     dotnet --version | Add-Content $v
+     ```
+
 8. Check that the spike services resolve privately (each prints a `10.10.n.128/27` address):
 
    ```powershell
    'stuni<suffix>b06.blob.core.windows.net','sbns-uni-<suffix>-b06.servicebus.windows.net','cruni<suffix>b06.azurecr.io','kv-uni-<suffix>-b06.vault.azure.net' | ForEach-Object { Resolve-DnsName $_ -Type A | Where-Object IPAddress | Select-Object -Last 1 Name, IPAddress }
    ```
+
+9. **(v2)** Commit the set-up, so its time marks the start of step 2: `git add -A`, then `git commit -m "run1: step 1 set up"`, with any manual fix or problem (for example, device code refused or Notepad opening) as one line in the message body.
 
 ## Step 2: C3 assess
 
@@ -158,7 +176,7 @@ Model: planning with the most capable model (Opus- or Sol-class); execution with
 
 ## Step 4: C6 predefined tasks
 
-Do the four tasks in this order. For each one, start it from the **TASKS - .NET** section of the **GitHub Copilot modernization** view, or from the assessment report's **Run Task** button, or in Copilot Chat with the `modernize` agent and a `migrate from <source> to <target>` prompt. Record which way you used. Add the prompt below to the chat when the task asks for input, or send it as the first message. Review the `plan.md` and `progress.md` it writes before you reply `continue`. After each task: build, run, commit.
+Do the four tasks in this order. For each one, start it from the **TASKS - .NET** section of the **GitHub Copilot modernization** view, or from the assessment report's **Run Task** button, or in Copilot Chat with the `modernize` agent and a `migrate from <source> to <target>` prompt. Say in the commit body which way you used. Add the prompt below to the chat when the task asks for input, or send it as the first message. Review the `plan.md` and `progress.md` it writes before you reply `continue`. After each task: build, run, commit.
 
 Before 4.2, check that you're signed in with the Azure CLI (`az account show`) and that `AZURE_TOKEN_CREDENTIALS` is `AzureCliCredential` in the terminal VS Code uses (`$env:AZURE_TOKEN_CREDENTIALS`), so `DefaultAzureCredential` uses your account locally (step 1.3).
 
@@ -289,13 +307,13 @@ If you ask Copilot to containerize the app instead, tell it to use SDK container
 
 ## Step 7: Finish the run
 
-1. Fill in the totals in the results sheet.
+1. Check that `docs\spikes\B06-ghcp-golden-path\chats\` has an export for every step and that the versions file is committed.
 2. Push the run branch: `git push -u origin spike/b06-run1`.
-3. Tell the executor the run is pushed. The executor runs the build, reference, registry and secrets checks, and adds your results to the report.
+3. Tell the executor the run is pushed, with the results of the 🧑 checks: the five pages, the upload landing in the container, and the notification round-trip. The executor fills in the results sheet, runs the build, reference, registry and secrets checks, and adds the results to the report.
 
 ## Optional: step 2 with Copilot CLI
 
-After step 2, repeat the assessment with Copilot CLI on a throwaway branch, and note the differences (time, findings, tasks, premium requests) in the results sheet:
+After step 2, repeat the assessment with Copilot CLI on a throwaway branch, and note the differences (time, findings, tasks, premium requests) in the commit message body when you copy its report in:
 
 ```powershell
 git switch -c spike/b06-run1-cli-scratch
@@ -322,3 +340,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 1.2 | Pick your own workload subscription (the one that holds `rg-datacenter`) in the Azure CLI subscription picker, and check it with `az account show --query name -o tsv`; `az account set --subscription '<your workload subscription name>'` if the picker was skipped. No subscription is hard-coded | Each attendee has their own workload subscription |
 | 1.3, 4.2 | Set the user environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` on `vm-dev01` | `vm-dev01` has a system-assigned managed identity. `DefaultAzureCredential` tries it before `AzureCliCredential`, so the app gets a VM token with no data roles and fails with 403 on Blob, Service Bus and Key Vault. The roles stay on the user (owner decision) |
 | 1.4, 1.5 | Step 1 handles a fresh clone and an existing clean clone. An earlier hand-run assessment in the clone is moved aside, not saved into the spike folder | The owner's clone was gone before run 1, so run 1 used a fresh clone and the 2026-09-24 manual assessment was lost |
+| Rules, 1.7, 1.9, 7 | Recording is automated: times come from commit timestamps (a step starts at the previous commit, and step 1 now ends with a commit); versions go in `runN-versions.txt`; prompts and models in `chats/runN-step<step>.json` exported with **Chat: Export Chat…**; manual fixes as one line each in the commit body. The executor fills in the results sheet and checks the exports for secrets | Owner decision at the start of run 1, so the owner doesn't fill in the sheet by hand |

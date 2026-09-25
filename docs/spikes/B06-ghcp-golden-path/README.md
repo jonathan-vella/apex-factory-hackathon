@@ -15,7 +15,7 @@ Is there a repeatable sequence of GitHub Copilot steps and prompts that takes Co
 
 1. Deployed the spike services private-only into `rg-spike-b06` with [infra/main.bicep](infra/main.bicep): Storage `stuni<suffix>b06` (container `teaching-materials`), Service Bus Premium `sbns-uni-<suffix>-b06` (queue `notifications`), ACR Premium `cruni<suffix>b06` and Key Vault `kv-uni-<suffix>-b06`. Private endpoints are in `snet-pe-spike` (`10.10.n.128/27`) of `vnet-datacenter`, created by [infra/modules/subnet.bicep](infra/modules/subnet.bicep), and the four private DNS zones in `rg-spike-b06` are linked to `vnet-datacenter`. The owner has Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, AcrPush and Key Vault Secrets Officer.
 2. Checked from `vm-dev01` with a run command that every hostname resolves to `snet-pe-spike` and that TCP 443 (and 5671 for Service Bus) connects.
-3. The owner ran the [protocol](protocol.md) twice, recording [run1.md](run1.md) and [run2.md](run2.md), on the branches `spike/b06-run1` and `spike/b06-run2`.
+3. The owner ran the [protocol](protocol.md) twice, on the branches `spike/b06-run1` and `spike/b06-run2`, committing after each step with manual fixes in the commit body, a chat export per step in `chats/` and the tool versions in `runN-versions.txt`. The executor filled in [run1.md](run1.md) and [run2.md](run2.md) from those: times from the commit timestamps, models and prompts from the exports, changes from the diff of each commit.
 4. The executor checked each run branch: `dotnet build` on the .NET 10 SDK, no `System.Web`, `System.Messaging` or MSMQ references, the image tag in the registry and no secrets in the diff.
 
 ## Timings
@@ -41,7 +41,8 @@ None yet.
 
 - [assessment/](assessment/): the saved assessment reports per run.
 - [pe-probe.md](pe-probe.md): the private-endpoint probe from `vm-dev01` and the deployed settings.
-- [run1.md](run1.md) and [run2.md](run2.md): the owner's results sheets.
+- [run1.md](run1.md) and [run2.md](run2.md): the results sheets, filled in by the executor from the run branches.
+- `chats/` and `runN-versions.txt` on the run branches: the chat exports per step (checked for secrets) and the tool versions.
 
 ## Follow-ups
 
