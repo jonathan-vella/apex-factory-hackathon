@@ -203,16 +203,15 @@ Model: the assessment uses the extension's default model. **(v2)** Step 2 uses t
 
    1. Open a **new chat** with **`modernize`** and **GPT-6 Luna** at **maximum**.
    2. Send `Execute task 00N of the plan in .github/modernize/<plan-folder>.` (for example `Execute task 001 of the plan in .github/modernize/contoso-university-dotnet10-azure.`). Approve builds and file edits; reply `continue` when it asks.
-   3. When it reports the task done, the tool has usually committed it on a new `appmod/*` branch. Bring it back to the run branch and push:
+   3. **(v2)** When it reports the task done, check where the work landed, because it varies: in run 1, task 002 was committed by the tool on a new `appmod/*` branch, but task 003 (after a stale-tracker retry) stayed uncommitted on the run branch.
 
       ```powershell
-      git branch --show-current             # the appmod/* branch the tool created
-      git switch spike/b06-run1
-      git merge --ff-only <appmod-branch>
-      git push
+      git status --short --branch
       ```
 
-      If the task left uncommitted changes instead, commit them on `spike/b06-run1` with the step name before the next task.
+      - **On an `appmod/*` branch:** `git switch spike/b06-run1`, then `git merge --ff-only <appmod-branch>`.
+      - **Uncommitted changes:** `git add -A`, then commit on `spike/b06-run1` with the step name.
+      - Then, in both cases, `git push`.
    4. Do the check for that task (below).
    5. **(v2)** Run **Developer: Reload Window** from the Command Palette, then start the next task in another new chat. If the agent reports a leftover in-progress tracker or invocation tracking item from the previous task, reply: `Mark the stale tracking item complete and run task 00N.`
 
@@ -422,3 +421,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 3.4 | Commit and push after every task, before the next one starts. Decline branch creation; if the agent creates `appmod/*` branches anyway, merge or fast-forward them back into `spike/b06-runN`. Check the current branch before every commit | When task 002 started, the agent's version control tool ran `prepareBranch` and switched to `appmod/dotnet-migration-azure-sql-database-<timestamp>`. Task 001's uncommitted output was probably stashed ("no restore-stash action"), and the working tree was back at .NET Framework 4.8 |
 | 3.4 | One task per chat: new chat (`modernize`, GPT-6 Luna maximum), `Execute task 00N of the plan in <plan folder>`, then `git switch spike/b06-runN`, `git merge --ff-only <appmod branch>`, `git push`. Per-task notes in `.github/modernize/code-migration/<timestamp>/` are committed too | Task 001 was restored from the agent's auto-stash and pushed; task 002 ran in a new chat and the tool committed it on a new `appmod/*` branch (`prepareBranch` and `commitChanges` per task) |
 | 3.4 | After each task is fast-forwarded and pushed, reload the window before the next task's new chat. If the agent reports a stale tracker, tell it to mark it complete and run the task | Task 003, in a new chat, stopped on a leftover "in-progress invocation tracking item" from task 002's run; the agent marked it complete and went on when told to |
+| 3.4.3 | After each task, check `git status --short --branch`: fast-forward from an `appmod/*` branch, or commit uncommitted changes, then push | The branch and commit behaviour differs by path: task 002 was committed on an `appmod/*` branch, while task 003's retry ran directly on `spike/b06-run1` with no `prepareBranch` and no commit |
