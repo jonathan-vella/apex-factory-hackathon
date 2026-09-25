@@ -41,7 +41,7 @@ Filled in by the executor after run 1 is pushed, from `spike/b06-run1`: times fr
 | Home, Students, Courses, Instructors and Departments pages work against `10.10.n.4` | ✅ 2026-09-25, after task 002, on .NET 10 with SQL auth from user secrets. To re-check after the last task |
 | A teaching-material upload lands in the `teaching-materials` container | ✅ 2026-09-25, after task 003: `course_1045_<guid>.png` (`image/png`, 1403 bytes) via **Courses** > **Edit**, over the private endpoint with `AzureCliCredential` |
 | The app reads its connection string from Key Vault (`KeyVault:VaultUri`, user secret removed) | ✅ 2026-09-25, after task 005 |
-| The app starts without `APPLICATIONINSIGHTS_CONNECTION_STRING` after the OpenTelemetry task | ❌ 2026-09-25, after step 5.3: crashes at startup ("A connection string was not found", `Program.cs` line 100), because Azure Monitor is registered unconditionally. Owner fix in progress (intervention 2); to re-check |
+| The app starts without `APPLICATIONINSIGHTS_CONNECTION_STRING` after the OpenTelemetry task | ❌ 2026-09-25, after step 5.3: crashes at startup ("A connection string was not found", `Program.cs` line 100), because Azure Monitor is registered unconditionally. ✅ after the owner's fix (intervention 2, `0c35abc`): Azure Monitor only when a connection string is set, console exporters otherwise; the app starts and the pages work |
 | A notification goes onto the `notifications` queue and the app reads it back | ✅ with 1 intervention. After task 004, send worked (`activeMessageCount` 2) but receive failed (`TimeSpan.Zero` wait time). After the owner's fix (2-second wait, `ILogger`), `/Notifications/GetNotifications` returned `success: true` with 4 notifications (1 CREATE, 3 UPDATE) |
 
 ## Notes
