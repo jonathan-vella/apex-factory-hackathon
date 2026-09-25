@@ -29,7 +29,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | Datacenter | Two VMs: one app server (IIS and SQL Server 2022 Developer) and one dev VM. Each member deploys it into their own workload sub by T-3. It connects to the hub via **VNet peering** (simulated ExpressRoute) |
 | Availability zones | Never pinned, never turned on. VMs, disks, the NAT gateway and the firewall have no zone; zone redundancy is off wherever it's optional (SQL MI, App Service), and storage is LRS. Services that are zone-redundant automatically at no extra cost and can't opt out (ACR, Service Bus, Standard public IPs) are accepted |
 | Dev environment | Windows 11 Enterprise dev VM per member, inside the datacenter. APEX runs in Codespaces or Docker |
-| App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, log4net). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a GHCP predefined task. WebForms/WCF later |
+| App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, legacy logging). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a GHCP predefined task. WebForms/WCF later |
 | Messaging | MSMQ → Service Bus Premium (1 MU) with a private endpoint, deployed by the archetype |
 | Compute | App Service for Linux (containers) only. AKS is a future archetype that teams can argue for in a C4 ADR |
 | Archetype | Pre-built by the CoE with APEX (steps 1–5 done) and demoed by the event deliverer. Members only run APEX Deploy and As-Built, supplying tenant ID, subscription ID and a unique suffix |

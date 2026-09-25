@@ -9,6 +9,7 @@ using System.IO;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
@@ -19,8 +20,9 @@ namespace ContosoUniversity.Controllers
         public CoursesController(
             SchoolContext db,
             NotificationService notificationService,
-            ITeachingMaterialImageStorage teachingMaterialImageStorage)
-            : base(db, notificationService)
+            ITeachingMaterialImageStorage teachingMaterialImageStorage,
+            ILogger<CoursesController> logger)
+            : base(db, notificationService, logger)
         {
             _teachingMaterialImageStorage = teachingMaterialImageStorage;
         }
@@ -289,7 +291,11 @@ namespace ContosoUniversity.Controllers
             catch (Exception ex)
             {
                 // Image cleanup must not prevent the course from being saved or deleted.
-                System.Diagnostics.Debug.WriteLine($"Error deleting teaching-material image: {ex.Message}");
+                logger.LogError(
+                    ex,
+                    "Error deleting teaching-material image {ImagePath} for course {CourseId}",
+                    imagePath,
+                    courseId);
             }
         }
     }

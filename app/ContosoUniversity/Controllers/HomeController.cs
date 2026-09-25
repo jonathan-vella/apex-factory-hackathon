@@ -5,13 +5,17 @@ using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Models.SchoolViewModels;
 using ContosoUniversity.Services;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
     public class HomeController : BaseController
     {
-        public HomeController(SchoolContext db, NotificationService notificationService)
-            : base(db, notificationService)
+        public HomeController(
+            SchoolContext db,
+            NotificationService notificationService,
+            ILogger<HomeController> logger)
+            : base(db, notificationService, logger)
         {
         }
 

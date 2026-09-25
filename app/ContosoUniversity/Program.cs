@@ -1,3 +1,4 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
 using Azure.Messaging.ServiceBus;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Logs;
 
 var builder = WebApplication.CreateBuilder(args);
 var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
@@ -49,6 +51,21 @@ builder.Services.AddSingleton<NotificationService>(serviceProvider =>
         serviceProvider.GetRequiredService<ServiceBusClient>(),
         serviceBusQueueName,
         serviceProvider.GetRequiredService<ILogger<NotificationService>>()));
+builder.Services.AddOpenTelemetry()
+    .UseAzureMonitor(options =>
+    {
+        var configuredConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+        if (!string.IsNullOrWhiteSpace(configuredConnectionString))
+        {
+            options.ConnectionString = configuredConnectionString;
+        }
+    });
+builder.Logging.AddOpenTelemetry(options =>
+{
+    options.IncludeFormattedMessage = true;
+    options.IncludeScopes = true;
+    options.ParseStateValues = true;
+});
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 

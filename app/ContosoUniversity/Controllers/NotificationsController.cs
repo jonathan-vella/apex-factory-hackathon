@@ -11,15 +11,12 @@ namespace ContosoUniversity.Controllers
 {
     public class NotificationsController : BaseController
     {
-        private readonly ILogger<NotificationsController> _logger;
-
         public NotificationsController(
             SchoolContext db,
             NotificationService notificationService,
             ILogger<NotificationsController> logger)
-            : base(db, notificationService)
+            : base(db, notificationService, logger)
         {
-            _logger = logger;
         }
 
         // GET: api/notifications - Get pending notifications for admin
@@ -35,7 +32,7 @@ namespace ContosoUniversity.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving notifications");
+                logger.LogError(ex, "Error retrieving notifications");
                 return Json(new { success = false, message = "Error retrieving notifications" });
             }
 
@@ -57,7 +54,7 @@ namespace ContosoUniversity.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error marking notification as read: {ex.Message}");
+                logger.LogError(ex, "Error marking notification {NotificationId} as read", id);
                 return Json(new { success = false, message = "Error updating notification" });
             }
         }
