@@ -54,8 +54,15 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
    ```powershell
    gh auth login --web                 # enter the code at https://github.com/login/device
    az login --use-device-code          # enter the code at https://microsoft.com/devicelogin
-   az account set --subscription '<workload-subscription-id>'
    ```
+
+   After sign-in, the Azure CLI shows a subscription picker. Pick your own workload subscription, the one that holds `rg-datacenter`. Then check it:
+
+   ```powershell
+   az account show --query name -o tsv
+   ```
+
+   If you skipped the picker or it shows the wrong subscription, run `az account set --subscription '<your workload subscription name>'` and check again.
 
    Some tenants block device code flow with Conditional Access. If sign-in is refused, note it in the results sheet and use `az login` (browser) inside the Bastion session instead.
 
@@ -311,4 +318,5 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | Step | Change | Run 1 finding |
 |---|---|---|
 | 1.2 | Sign in with device code flows: `az login --use-device-code` and `gh auth login --web` with the code entered at `github.com/login/device`, both completed on the attendee's own device | Browser sign-in inside the Bastion session is awkward and has no passkeys or password managers. Some tenants block device code flow with Conditional Access |
+| 1.2 | Pick your own workload subscription (the one that holds `rg-datacenter`) in the Azure CLI subscription picker, and check it with `az account show --query name -o tsv`; `az account set --subscription '<your workload subscription name>'` if the picker was skipped. No subscription is hard-coded | Each attendee has their own workload subscription |
 | 1.3, 4.2 | Set the user environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` on `vm-dev01` | `vm-dev01` has a system-assigned managed identity. `DefaultAzureCredential` tries it before `AzureCliCredential`, so the app gets a VM token with no data roles and fails with 403 on Blob, Service Bus and Key Vault. The roles stay on the user (owner decision) |

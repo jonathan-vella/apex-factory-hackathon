@@ -43,6 +43,6 @@ None yet.
 
 ## Follow-ups
 
-- **B11 attendee guides:** sign in on `vm-dev01` with device code flows (`az login --use-device-code`, `gh auth login --web` with the code at `github.com/login/device`), completed on the attendee's own device, and say that some tenants block device code flow with Conditional Access.
+- **B11 attendee guides:** sign in on `vm-dev01` with device code flows (`az login --use-device-code`, `gh auth login --web` with the code at `github.com/login/device`), completed on the attendee's own device, and say that some tenants block device code flow with Conditional Access. After `az login`, the attendee picks their own workload subscription (the one that holds `rg-datacenter`) in the subscription picker and checks it with `az account show --query name -o tsv`; guides never hard-code a subscription.
 
 The rest is pending the runs.
