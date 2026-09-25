@@ -1,14 +1,8 @@
-Use the GitHub Copilot Upgrade Agent’s stateful, dashboard-compatible workflow for this request.
+/create-modernization-plan Create the modernization plan for app/ContosoUniversity from the latest assessment report in .github/modernize/assessment/reports, following these rules exactly.
 
 ## Workflow Requirements
 
 - Scope the work to `app/ContosoUniversity` on the current branch.
-- Use the `dotnet-version-upgrade` scenario as the owning scenario.
-- Initialize or resume the scenario under `.github/upgrades/dotnet-version-upgrade`.
-- Do not use the `azure-migrate` scenario.
-- Do not invoke `start_app_mod_migration_session`.
-- Do not create planning artifacts under `.github/modernize`.
-- Use Guided flow mode.
 - Perform assessment and planning only.
 - Do not start or execute any planned task.
 - Do not modify application source files.
@@ -250,19 +244,7 @@ Container packaging and local container validation may be planned, but deploymen
 
 ## Required Artifacts
 
-Create the normal stateful Upgrade Agent artifacts under:
-
-`.github/upgrades/dotnet-version-upgrade/`
-
-At minimum, produce:
-
-- `assessment.md`
-- `plan.md`
-- `scenario-instructions.md`
-
-Use the Upgrade Agent’s workflow state tools so the scenario can be opened in the Upgrade Agent dashboard.
-
-Do not manually create `tasks.md`. Let the Upgrade Agent workflow generate and maintain it when task execution is explicitly approved later.
+Write the plan as the modernization plan's normal output: `.github/modernize/<plan-folder>/plan.md` and `.metadata/tasks.json`, with the seven tasks above as the tasks in `tasks.json`, in order, with their dependencies.
 
 ## Required Review Output
 
@@ -290,4 +272,4 @@ For each row, explain exactly how the plan complies.
 5. Clearly distinguish a blocked validation from an impossible task.
 6. Confirm whether any application files, Azure resources, on-premises resources, or deployments were changed.
 
-Stop and wait for my review. Do not call `start_task` and do not begin implementation.
+Stop and wait for my review. Do not begin implementation.

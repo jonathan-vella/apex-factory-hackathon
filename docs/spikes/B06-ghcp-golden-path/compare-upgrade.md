@@ -1,6 +1,6 @@
 # B06 comparison: GitHub Copilot upgrade vs GitHub Copilot modernization
 
-A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, from the same start commit as run 1 (`da4e5f6`): assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus and Key Vault, with the same kit rules and configuration keys. It's compared stage by stage with run 1, which used the `modernize` agent. The executor fills this in from `spike/b06-upgrade-compare`, its commits and the chat exports, as for the run sheets. Protocol: [Comparison: GitHub Copilot upgrade](protocol.md#comparison-github-copilot-upgrade-after-run-1-before-run-2).
+A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, from the same start commit as run 1 (`da4e5f6`): assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus and Key Vault, with the same kit tasks, rules and configuration keys as run 2 (the refined seven-task prompt). It's compared stage by stage with run 1, which used the `modernize` agent. The executor fills this in from `spike/b06-upgrade-compare`, its commits and the chat exports, as for the run sheets. Protocol: [Comparison: GitHub Copilot upgrade](protocol.md#comparison-github-copilot-upgrade-after-run-1-before-run-2).
 
 | Field | Value |
 |---|---|
@@ -32,12 +32,14 @@ Where the Upgrade agent can't do a stage without GitHub Copilot modernization, t
 | Stage | Covered by the Upgrade agent? | Time | Model | Prompts | Interventions | Build / run | Live check |
 |---|---|---|---|---|---|---|---|
 | C.1 Set up | — | | — | — | | — | — |
-| C.2 Assess and plan (7 kit rules) | | | | | | — | Rules table: |
+| C.2 Assess and plan (7 tasks, 9 rules) | | | | | | — | Rules table: |
 | C.3.1 .NET 10 upgrade | | | | | | | Pages against `10.10.n.4`: |
 | C.3.2 SQL Managed Instance (local SQL auth kept) | | | | | | | Students against `10.10.n.4`: |
 | C.3.3 Blob | | | | | | | Upload lands in `teaching-materials`: |
 | C.3.4 Service Bus | | | | | | | Send and receive (`/Notifications/GetNotifications`): |
-| C.3.5 Key Vault | | | | | | | Runs with the connection string from Key Vault: |
+| C.3.5 Key Vault | | | | | | | Connection string from Key Vault; refuses to start outside Development without `KeyVault:VaultUri` or with a SQL login: |
+| C.3.6 OpenTelemetry | | | | | | | Starts without a connection string; requests, dependencies and logs in Application Insights: |
+| C.3.7 CVE fixes | | | | | | | `dotnet list package --vulnerable`: |
 | **Total** | | | | | | | |
 
 ## Side by side with run 1

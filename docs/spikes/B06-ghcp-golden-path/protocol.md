@@ -37,9 +37,9 @@ Use these configuration keys, so the runs and the archetype (B09) use the same n
 
 1. **Set up:** device code sign-in, git identity, `AZURE_TOKEN_CREDENTIALS`, the run branch.
 2. **Assess (C3):** a **custom assessment** targeting App Service for Linux (containers). Don't use **Create Plan**.
-3. **Plan:** a new chat, `modernize` with GPT-6 Sol at Medium, `/create-modernization-plan` with the seven kit rules. A wrong plan is deleted and generated again, never corrected.
+3. **Plan:** a new chat, `modernize` with GPT-6 Sol at Medium, `/create-modernization-plan` with the kit's seven tasks and rules from [prompts/run2-modernize-plan.md](prompts/run2-modernize-plan.md). A wrong plan is deleted and generated again, never corrected.
 4. **Execute (C6):** one task per new chat, `modernize` with GPT-6 Luna at maximum, with a **direct prompt** per task. After each task: bring the work onto the run branch, run the app, check, commit and push.
-5. **Gaps:** only OpenTelemetry is left after the plan; use the predefined task, then make Azure Monitor optional.
+5. **Gaps:** the seven tasks cover them; check that nothing is left.
 6. **Package:** SDK container publishing to the private registry.
 
 ## Rules for every step
@@ -166,22 +166,10 @@ Use these configuration keys, so the runs and the archetype (B09) use the same n
 > **BEFORE you send the planning prompt:** start a **new chat**, and check that the agent is **`modernize`** and the model is **GPT-6 Sol** with reasoning **Medium**. The pickers are at the bottom of the chat input box.
 
 1. ⚠️ **BEFORE you send:** new chat, agent **`modernize`**, model **GPT-6 Sol** at **Medium**.
-2. Paste this and send it. It runs the extension's planning skill with the kit rules as its input:
-
-   ```text
-   /create-modernization-plan Create the modernization plan for app/ContosoUniversity from the latest assessment report in .github/modernize/assessment/reports, following these rules exactly:
-   1. First task: upgrade app/ContosoUniversity to .NET 10 and ASP.NET Core MVC (SDK-style project, PackageReference, Web.config settings to appsettings.json, keep controllers, views and the EF Core model). Every other task depends on it and runs on .NET 10.
-   2. No Microsoft Entra ID user sign-in task. The app has no sign-in; Windows authentication findings come only from IIS Express settings and the LocalDB Integrated Security connection string. Remove it.
-   3. One target per workload: Azure Blob Storage (not Azure Files, no storage mounts) and Azure SQL Managed Instance (not Azure SQL Database). Remove the other alternatives.
-   4. Database: keep local SQL authentication working. When ConnectionStrings:DefaultConnection uses SQL authentication (the on-premises server and contosoapp login, from user secrets) use it as is; use managed identity only when it says Authentication=Active Directory Default.
-   5. Order: .NET 10 upgrade, SQL Managed Instance, Blob and file handling, Service Bus, Key Vault, CVE fixes.
-   6. DefaultAzureCredential everywhere. Storage shared keys and Service Bus SAS are disabled: no keys, SAS tokens or connection strings. Endpoints come from configuration at execution time: Storage:BlobServiceUri, Storage:ContainerName, ServiceBus:FullyQualifiedNamespace, ServiceBus:QueueName, KeyVault:VaultUri.
-   7. Hosting: Azure App Service for Linux (containers). All Azure resources already exist; don't provision or deploy anything.
-   Then show a table with one row per rule (1-7) and how the plan meets it, and wait for my review.
-   ```
+2. Open [prompts/run2-modernize-plan.md](prompts/run2-modernize-plan.md), copy its whole content and send it. It starts with `/create-modernization-plan`, so it runs the extension's planning skill with the kit's seven tasks and rules as its input: .NET 10 first (with SDK container publishing), SQL Managed Instance, Blob, Service Bus, Key Vault, OpenTelemetry, then CVE fixes; Entra authentication only on Azure, SQL authentication only in Development against the unchanged source; Key Vault mandatory outside Development; private backends; and a 9-row compliance table. Run 1 used an older, shorter prompt with six tasks and seven rules (OpenTelemetry was a separate gap then).
 
    It writes `.github\modernize\<plan-folder>\plan.md` and `.metadata\tasks.json` at the repo root. If it asks which Azure resources to use for integration tests, answer: configuration keys supplied at execution time, no identifiers.
-3. **Check the plan.** All 7 rows of the table must be met. In `tasks.json`: the .NET 10 upgrade is the first task and every other task depends on it; one target per workload (Blob, SQL Managed Instance); no Entra ID sign-in task. If anything is wrong, don't correct it in the chat: delete the plan's folder, start a new chat and send the prompt again. Run 1 met every rule first time.
+3. **Check the plan.** All 9 rows of the table must be met. In `tasks.json`: exactly seven tasks, the .NET 10 upgrade first and each task depending on the one before; one target per workload (Blob, SQL Managed Instance); no Entra ID sign-in task. If anything is wrong, don't correct it in the chat: delete the plan's folder, start a new chat and send the prompt again.
 4. Export the chat and commit the plan: `run2: step 3 plan`, noting in the body the agent, model and reasoning effort the chat showed and how many times you generated the plan.
 
 ## Step 4: Execute (C6)
@@ -189,7 +177,7 @@ Use these configuration keys, so the runs and the archetype (B09) use the same n
 > [!WARNING]
 > **BEFORE each task:** start a **new chat** (never the planning chat or the previous task's chat), and check that the agent is **`modernize`** and the model is **GPT-6 Luna** with reasoning **maximum**.
 
-Run the tasks in `tasks.json` in order, **one task per new chat**, with a direct prompt. Don't use **Execute the plan** or `Execute task 00N of the plan`: in run 1 that route's delegation blocked three of six tasks (sub-agent depth, stale trackers, a lost scenario, a phantom "another agent"), while the direct prompt worked every time. For each task:
+Run the seven tasks in `tasks.json` in order, **one task per new chat**, with a direct prompt. Don't use **Execute the plan** or `Execute task 00N of the plan`: in run 1 that route's delegation blocked three of six tasks (sub-agent depth, stale trackers, a lost scenario, a phantom "another agent"), while the direct prompt worked every time. For each task:
 
 1. ⚠️ **BEFORE you send:** new chat, agent **`modernize`**, model **GPT-6 Luna** at **maximum**.
 2. Send this, with the task's ID, and paste the task's `description` and `requirements` from `tasks.json` after it:
@@ -199,42 +187,57 @@ Run the tasks in `tasks.json` in order, **one task per new chat**, with a direct
    ```
 
    Approve builds and file edits. If it still stops (a stale tracker, "no modernization scenario is active", or "already being handled by another agent"), nothing was changed: reload the window (**Developer: Reload Window**) and send the same prompt in a new chat with the **default Agent** and GPT-6 Luna at maximum instead.
-3. Bring the work onto `spike/b06-run2` (see **Rules for every step**), then `dotnet run` and do the task's check below.
+3. Bring the work onto `spike/b06-run2` (see **Rules for every step**), then `dotnet run` and do the task's check below. Every task's check includes the five pages loading against `10.10.n.4`.
 4. Export the chat, commit and push: `run2: step 4 task <nnn> <name>`, with the agent, model and any intervention in the body.
 
 | Task | Check after it | Known hot spot from run 1 |
 |---|---|---|
-| 001 .NET 10 upgrade | `dotnet build app/ContosoUniversity` passes; the home, Students, Courses, Instructors and Departments pages work against `10.10.n.4` | MSMQ is replaced by a temporary in-process queue until task 004: notifications don't survive a restart yet |
-| 002 SQL Managed Instance | Students still read and write against `10.10.n.4` with SQL authentication | — |
+| 001 .NET 10 upgrade | `dotnet build app/ContosoUniversity` passes; the home, Students, Courses, Instructors and Departments pages work against `10.10.n.4`; `Global.asax` and `App_Start` are gone, `NotificationService` comes from dependency injection, and the `Site.css` name matches every reference; the project file has the container properties and there's no `Dockerfile` | MSMQ is replaced by a temporary in-process queue until task 004: notifications don't survive a restart yet |
+| 002 SQL Managed Instance | Students still read and write against `10.10.n.4` with SQL authentication in Development | — |
 | 003 Blob | An upload on **Courses** > **Edit** lands in the container: `az storage blob list --account-name stuni<suffix>b06 --container-name teaching-materials --auth-mode login -o table` | The agent may not commit: use the branch routine |
 | 004 Service Bus | Create or edit a student. Send: `az servicebus queue show -g rg-spike-b06 --namespace-name sbns-uni-<suffix>-b06 -n notifications --query countDetails.activeMessageCount` goes up. Receive: `/Notifications/GetNotifications` returns `"success":true`, and toasts appear top right (the **Notifications** page is only information) | Run 1's receive path called `ReceiveMessagesAsync` with `TimeSpan.Zero` and always failed, and the controller hid it. If receive fails, send: `ReceiveMessagesAsync needs a positive maxWaitTime: use TimeSpan.FromSeconds(2), and log exceptions in NotificationsController with ILogger instead of Debug.WriteLine. Scope: app/ContosoUniversity only; never edit files outside it.` |
-| 005 Key Vault | Store the connection string in Key Vault, point the app at it and remove the user secret, then the pages still work (commands below) | — |
-| 006 CVE fixes | `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` finds nothing | Run 1 had nothing to fix; the extension's NuGet safe-version planner crashed (tool bug): ignore it if the list is clean |
+| 005 Key Vault | Three checks (commands below): the app reads its connection string from Key Vault with the user secret removed; outside Development without `KeyVault:VaultUri`, it refuses to start; outside Development with a SQL-authentication `DefaultConnection`, it refuses to start | — |
+| 006 OpenTelemetry | With no connection string, the app starts and runs normally. With `APPLICATIONINSIGHTS_CONNECTION_STRING` set, requests, SQL and HTTP dependencies and logs from a local run appear in `appi-uni-<suffix>-b06` within a few minutes (commands below). `git grep -n -E "Trace\.\|Debug\.Write" -- app/ContosoUniversity` prints nothing | Run 1's predefined OpenTelemetry task registered Azure Monitor unconditionally, so the app crashed without a connection string, and it edited `docs/prd.md`. A `fail: … TaskCanceledException` (499) when you navigate away during a notification poll is expected |
+| 007 CVE fixes | `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` finds nothing, or every finding is fixed | Run 1 had nothing to fix; the extension's NuGet safe-version planner crashed (tool bug): ignore it if the list is clean |
 
-Task 005's check:
+Task 005's checks. The last two run outside Development on purpose, and each must fail at startup with a clear message:
 
 ```powershell
 az keyvault secret set --vault-name kv-uni-<suffix>-b06 --name 'ConnectionStrings--DefaultConnection' --value 'Server=10.10.n.4;Database=ContosoUniversity;User Id=contosoapp;Password=FactoryLab-2026-Pw;TrustServerCertificate=True;MultipleActiveResultSets=True'
 Set-Location C:\src\apex-factory-hackathon\app\ContosoUniversity
 dotnet user-secrets set 'KeyVault:VaultUri' 'https://kv-uni-<suffix>-b06.vault.azure.net/'
 dotnet user-secrets remove 'ConnectionStrings:DefaultConnection'
-dotnet run
+dotnet run                                   # Development: pages work, connection string from Key Vault
+
+$env:ASPNETCORE_ENVIRONMENT = 'Production'; $env:KeyVault__VaultUri = ''
+dotnet run --no-launch-profile               # must refuse to start: no KeyVault:VaultUri outside Development
+
+$env:KeyVault__VaultUri = 'https://kv-uni-<suffix>-b06.vault.azure.net/'
+dotnet run --no-launch-profile               # must refuse to start: the Key Vault connection string has a SQL login and password
+Remove-Item Env:ASPNETCORE_ENVIRONMENT, Env:KeyVault__VaultUri
 ```
+
+User secrets load only in Development, so the Production runs read `KeyVault:VaultUri` from the environment variable. Put the failure messages in the commit body.
+
+Task 006's check. `appi-uni-<suffix>-b06` has local authentication off, so ingestion uses your Azure CLI sign-in through `DefaultAzureCredential` and the Monitoring Metrics Publisher role:
+
+```powershell
+$cs = az monitor app-insights component show -g rg-spike-b06 -a appi-uni-<suffix>-b06 --query connectionString -o tsv
+Set-Location C:\src\apex-factory-hackathon\app\ContosoUniversity
+dotnet user-secrets set 'APPLICATIONINSIGHTS_CONNECTION_STRING' $cs
+dotnet run                                   # open the five pages, edit a student, then wait 3-5 minutes
+az monitor app-insights query -g rg-spike-b06 -a appi-uni-<suffix>-b06 --analytics-query "union requests, dependencies, traces | where timestamp > ago(30m) | summarize count() by itemType" -o table
+```
+
+All three item types must show. You can also look in the portal: **Application Insights** > **Transaction search**. The connection string isn't a secret, but it stays in user secrets, not in a committed file.
 
 ## Step 5: Gaps
 
-After the plan's tasks, run 1 had only one gap left. Check the others, then do OpenTelemetry.
+Run 2's plan covers the old gaps in its tasks: `Global.asax`, bundling, dependency injection and the `Site.css` case in task 001, and OpenTelemetry in task 006. Check that nothing is left, and note the result in the commit body:
 
-1. Check, and note in the commit body: `Global.asax` and `App_Start` are gone; `NotificationService` comes from dependency injection in `Program.cs`; the `Site.css` file name matches every reference; `git grep -n -i -E "System\.Web|System\.Messaging|MSMQ|MessageQueue" -- app/ContosoUniversity` prints nothing. If one isn't done, ask for it in a new chat with `modernize` and GPT-6 Luna at maximum, ending the prompt with the scope line.
-2. **Trace to OpenTelemetry.** ⚠️ **BEFORE you click:** agent **`modernize`**, model **GPT-6 Luna** at **maximum**. Run the predefined task **Tasks** > **.NET** > **Logging or Observability Tasks** > **Migrate Logging or Observability to OpenTelemetry on Azure**. It replaces the `Trace` and `Debug` calls with `ILogger` and adds Azure Monitor OpenTelemetry.
-3. Revert any change it makes outside `app/` (run 1: `docs/prd.md`), bring the work onto the run branch, and run the app **without** `APPLICATIONINSIGHTS_CONNECTION_STRING`. In run 1 it crashed at startup ("A connection string was not found"), because the task registers Azure Monitor unconditionally. If it crashes, send in a new chat:
-
-   ```text
-   Register Azure Monitor only when APPLICATIONINSIGHTS_CONNECTION_STRING or ApplicationInsights:ConnectionString is set; otherwise use the OpenTelemetry console exporters. Scope: app/ContosoUniversity only; never edit files outside it.
-   ```
-
-   A `fail: … TaskCanceledException` (499) in the log when you navigate away during a notification poll is expected, not an error.
-4. Export the chat, commit and push: `run2: step 5 gaps`.
+1. `Global.asax` and `App_Start` are gone; `NotificationService` comes from dependency injection in `Program.cs`; the `Site.css` file name matches every reference.
+2. `git grep -n -i -E "System\.Web|System\.Messaging|MSMQ|MessageQueue|Trace\.|Debug\.Write" -- app/ContosoUniversity` prints nothing.
+3. If something is left, ask for it in a new chat with `modernize` and GPT-6 Luna at maximum, ending the prompt with the scope line. Commit and push: `run2: step 5 gaps`, or say "none left" in the task 007 commit body.
 
 ## Step 6: Package
 
@@ -256,7 +259,7 @@ If the project needs container properties (for example `ContainerBaseImage` or `
 
 1. Check that `chats\` has an export for every chat, and that `run2-versions.txt` is committed.
 2. Push: `git push -u origin spike/b06-run2`.
-3. Tell the executor the run is pushed, with the results of the 🧑 checks: the five pages, the upload, the notification round trip, Key Vault, startup without Application Insights and the image tag. The executor fills in `run2.md`, runs the build, reference, registry and secrets checks, and writes the report.
+3. Tell the executor the run is pushed, with the results of the 🧑 checks: the five pages, the upload, the notification round trip, Key Vault and both refusals to start, telemetry in Application Insights, startup without it, and the image tag. The executor fills in `run2.md`, runs the build, reference, registry and secrets checks, and writes the report.
 
 ## Comparison: GitHub Copilot upgrade (after run 1, before run 2)
 
@@ -298,14 +301,14 @@ If the project needs container properties (for example `ContainerBaseImage` or `
 > **BEFORE you send:** in the Chat panel, set the harness (**Session Target**) to **Copilot**, not **Local**. Start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Sol** with reasoning **Medium**, as for run 1's planning. The chat uses whatever is selected. The pickers sit at the bottom of the chat input box.
 
 1. ⚠️ **BEFORE you send:** harness **Copilot**, new chat, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
-2. Open [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md), copy its whole content and send it. It asks for:
+2. Copy the whole prompt [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md) and send it. The comparison branch starts from run 1's commit, which doesn't have the file, so copy it from the working branch: `git show origin/jonathan-vella-b06-ghcp-spike:docs/spikes/B06-ghcp-golden-path/prompts/compare-upgrade-plan.md | Set-Clipboard`, then paste it into the chat. It asks for:
    - the owning scenario `dotnet-version-upgrade`, never `azure-migrate`, no `start_app_mod_migration_session`, and nothing under `.github/modernize`;
    - Guided flow, assessment and planning only;
-   - exactly six tasks in a strict chain, with the same kit rules as run 1, including a Linux container definition in task 1 and task 6 kept as a verified no-op if there are no CVEs;
+   - exactly seven tasks in a strict chain, the same tasks and rules as run 2's plan: SDK container publishing in task 1 (no Dockerfile), Entra authentication only on Azure, Key Vault mandatory outside Development, private backends, OpenTelemetry as task 6, and task 7 kept as a verified no-op if there are no CVEs;
    - the artifacts `assessment.md`, `plan.md` and `scenario-instructions.md`;
-   - a 7-row compliance table, with blocked validations kept apart from impossible tasks;
+   - a 9-row compliance table, with blocked validations kept apart from impossible tasks;
    - a stop before `start_task`.
-3. Check the answer: the artifacts are under `.github\upgrades\dotnet-version-upgrade\`, there's nothing new under `.github\modernize\`, all 7 table rows are met, and the plan opens in the Upgrade dashboard. Record in `compare-upgrade.md` what it covers, anything it lists as blocked or impossible, and whether it changed any file outside `.github\upgrades\`.
+3. Check the answer: the artifacts are under `.github\upgrades\dotnet-version-upgrade\`, there's nothing new under `.github\modernize\`, all 9 table rows are met, and the plan opens in the Upgrade dashboard. Record in `compare-upgrade.md` what it covers, anything it lists as blocked or impossible, and whether it changed any file outside `.github\upgrades\`.
 4. Export the chat, then commit and push: `compare: stage 2 assess and plan`.
 
 ### C.3 Upgrade and migrate
@@ -313,11 +316,11 @@ If the project needs container properties (for example `ContainerBaseImage` or `
 > [!WARNING]
 > **BEFORE you send:** start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Luna** with reasoning **maximum**, as for run 1's execution.
 
-For each stage in order, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus, Key Vault:
+For each of the plan's seven tasks in order (.NET 10 upgrade, SQL Managed Instance, Blob, Service Bus, Key Vault, OpenTelemetry, CVE fixes):
 
 1. ⚠️ **BEFORE you send:** new chat, agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
 2. Ask it to do that stage of its plan, for example `Do the .NET 10 upgrade task of your plan, and nothing else.` If it says a stage is out of its scope, don't force it: record that and go on to the next stage.
-3. Build, then do the same check as run 1 for that stage: the step 4 check table (pages against `10.10.n.4` after the upgrade, Students, a Blob upload, Service Bus send **and** receive with `/Notifications/GetNotifications`, and Key Vault).
+3. Build, run the app, then do that task's check from the step 4 check table (the five pages, Students, a Blob upload, Service Bus send **and** receive, Key Vault with both refusals to start, telemetry in Application Insights, and the CVE list).
 4. Check `git status --short --branch`, commit and push: `compare: stage 3.N <stage>`. Put interventions in the commit body, one line each, and export the chat.
 
 After the last stage, re-enable GitHub Copilot modernization if you disabled it, and tell the executor the branch is pushed. For run 2, note in `compare-upgrade.md` whether the `modernize` agent behaves differently with the upgrade extension installed.
@@ -362,3 +365,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Comparison | Full end-to-end run with GitHub Copilot upgrade before run 2 | Owner-approved (requirement 11a; findings 19, 30) |
 | Comparison C.1 | Run `git clean -fdx -- app .github` after `git switch` (dry run first) so the tree is pure legacy; GitHub Copilot modernization stays disabled (owner decision), and a stage the Upgrade agent can't do without it is recorded as a result | The first comparison attempt's stage 2 (`a6c358d`) edited run 1's plan folder and loaded run 1's `modernize-plan` skill from leftover files; with modernize disabled, the Upgrade agent's `azure-migrate` scenario couldn't delegate |
 | Comparison C.2 | The owner's prompt file `prompts/compare-upgrade-plan.md` in the **Copilot** harness forces the stateful `dotnet-version-upgrade` scenario (six-task chain, kit rules, dashboard artifacts under `.github/upgrades/`) | The default routing picked `azure-migrate`, which needs GitHub Copilot modernization's session tool. Forcing `dotnet-version-upgrade` makes the Upgrade dashboard work, and only in the Copilot harness |
+| 3, 4, 5 | The plan prompt is the file `prompts/run2-modernize-plan.md`: seven tasks (OpenTelemetry becomes task 006, CVE fixes task 007) and nine rules, from the owner's target state. New checks: telemetry in Application Insights after task 006; refusal to start outside Development without `KeyVault:VaultUri` or with a SQL login, after task 005. Step 5 only checks that nothing is left | Owner decisions after run 1: Entra authentication only on Azure, Key Vault mandatory outside Development, private backends, simple OpenTelemetry visible in Application Insights, SDK container publishing only |

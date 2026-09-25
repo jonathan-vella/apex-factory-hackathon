@@ -38,6 +38,7 @@ var roles = {
   serviceBusDataReceiver: '4f6d3b9b-027b-4f4c-9142-0e5a2a2247e0'
   acrPush: '8311e382-0749-4cb8-b61a-304f252e45ec'
   keyVaultSecretsOfficer: 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7'
+  monitoringMetricsPublisher: '3913510d-42f4-4e42-8a64-420c390055eb'
 }
 
 module subnet 'modules/subnet.bicep' = {
@@ -133,6 +134,30 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
       defaultAction: 'Deny'
       bypass: 'None'
     }
+  }
+}
+
+// Telemetry: workspace-based Application Insights with local (key) auth off, so ingestion needs Entra.
+// Ingestion stays public, the kit's documented exception to private-only.
+resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-07-01' = {
+  name: 'log-uni-${suffix}-b06'
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+    retentionInDays: 30
+  }
+}
+
+resource appInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'appi-uni-${suffix}-b06'
+  location: location
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logAnalytics.id
+    DisableLocalAuth: true
   }
 }
 
@@ -267,6 +292,16 @@ resource keyVaultRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   }
 }
 
+resource appInsightsRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: appInsights
+  name: guid(appInsights.id, ownerObjectId, roles.monitoringMetricsPublisher)
+  properties: {
+    principalId: ownerObjectId
+    principalType: ownerPrincipalType
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', roles.monitoringMetricsPublisher)
+  }
+}
+
 output storageAccountName string = storage.name
 output blobEndpoint string = storage.properties.primaryEndpoints.blob
 output blobContainerName string = container.name
@@ -277,3 +312,5 @@ output registryName string = registry.name
 output registryLoginServer string = registry.properties.loginServer
 output keyVaultName string = keyVault.name
 output keyVaultUri string = keyVault.properties.vaultUri
+output appInsightsName string = appInsights.name
+output appInsightsConnectionString string = appInsights.properties.ConnectionString
