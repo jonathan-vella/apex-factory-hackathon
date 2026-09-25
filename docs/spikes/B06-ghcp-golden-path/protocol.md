@@ -36,7 +36,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
 - **(v2) How the run is recorded.** You record by committing; the executor turns it into the results sheet:
   - **Times** come from the commit timestamps. Commit at the end of every step; a step starts at the previous commit, so don't leave long breaks uncommitted (commit before a break and say so in the body).
-  - **Prompts and models:** for every step where you prompted in Copilot Chat, run **Chat: Export Chat…** before the commit from the Command Palette (Ctrl+Shift+P) and save it as `docs\spikes\B06-ghcp-golden-path\chats\run1-step<step>.json`, for example `run1-step3.json` or `run1-step4.2.json` (run 2: `run2-…`). One file per chat session; add `-a`, `-b` if a step used more than one. A step run only from the modernization view (for example the assessment dashboard) has no chat to export: say so in the commit body, and the model is recorded as *extension default, not selectable*. Don't paste passwords or tokens into the chat: the executor checks the exports for secrets before they stay committed.
+  - **Prompts and models:** for every step where you prompted in Copilot Chat, run **Chat: Export Chat…** before the commit from the Command Palette (Ctrl+Shift+P) and save it as `docs\spikes\B06-ghcp-golden-path\chats\run1-step<step>.json`. **(v2)** If the JSON export fails, select all in the chat, copy it and save it as `run1-step<step>.txt` instead, for example `run1-step3.json` or `run1-step4.2.json` (run 2: `run2-…`). One file per chat session; add `-a`, `-b` if a step used more than one. A step run only from the modernization view (for example the assessment dashboard) has no chat to export: say so in the commit body, and the model is recorded as *extension default, not selectable*. Don't paste passwords or tokens into the chat: the executor checks the exports for secrets before they stay committed.
   - **Manual fixes:** one line each in the commit message body, for example `git commit -m "run1: step 4.3 MSMQ to Service Bus" -m "Fixed by hand: ServiceBusClient registered as scoped, changed to singleton"`. Also say there which way you started a predefined task and anything that went wrong.
   - **Versions:** the versions file in step 1.7.
   - **Build and run:** say in the commit body whether `dotnet build` passed and whether the app ran; the executor also runs the build and reference checks after the push. Premium requests: add them to the body if VS Code shows them.
@@ -158,7 +158,7 @@ Model: the assessment uses the extension's default model. **(v2)** Steps 2 and 3
 
    If it asks which project, pick `app/ContosoUniversity`.
 3. **(v2)** In the report, check that the target is **Azure App Service (Linux)** (containers). If it shows **Azure App Service (Windows)**, the custom options didn't apply: switch it to Linux and note it in the commit body.
-4. Wait for the report. Read it: note the issues it finds for local files, MSMQ, the database, the plaintext connection string and `System.Web`, and the migration tasks it recommends. It flags **Windows authentication detected** as mandatory, but the app has no user sign-in and no `[Authorize]`. The finding comes only from `IISExpressWindowsAuthentication` in the project file and `Integrated Security=True` in the old LocalDB connection string. **(v2)** Deselect **Windows authentication** in the report before **Create Plan** (step 3); if the report doesn't let you, the correction reply in step 3.3 removes it.
+4. Wait for the report. Read it: note the issues it finds for local files, MSMQ, the database, the plaintext connection string and `System.Web`, and the migration tasks it recommends. It flags **Windows authentication detected** as mandatory, but the app has no user sign-in and no `[Authorize]`. The finding comes only from `IISExpressWindowsAuthentication` in the project file and `Integrated Security=True` in the old LocalDB connection string. **(v2)** Deselect **Windows authentication** in the report before **Create Plan** (step 3); if the report doesn't let you, the correction reply in step 3.4 removes it.
 5. Save the report into the spike folder. The modernization extension writes it to `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\assessment\reports\report-<timestamp>\`, which git ignores. Copy the new report folder's files to `docs\spikes\B06-ghcp-golden-path\assessment\run1\` (run 2: `run2\`), plus `...\.github\modernize\assessment\engines\dotnet-appcat\result\report.json` as `appcat-report.json`. If the report page offers an export (HTML or Markdown), save that there too. `git add docs/spikes/B06-ghcp-golden-path/assessment` so the ignored source folder doesn't matter.
 6. Commit: `run1: step 2 assessment`.
 
@@ -169,34 +169,40 @@ Model: the assessment uses the extension's default model. **(v2)** Steps 2 and 3
 >
 > **How to check:** the agent and model pickers sit at the bottom of the chat input box in the Chat panel. Open each one and select the value if it's wrong.
 
+> [!WARNING]
+> **BEFORE you click Create Plan: deselect Windows authentication** in the assessment report. If you leave it selected, the plan adds a **Windows AD to Microsoft Entra ID** task (run 1 did, as task 005). The app has no user sign-in.
+
 1. ⚠️ **BEFORE you click:** in the Chat panel, check the model picker shows **GPT-6 Sol** with reasoning **Medium**, and the agent is **`modernize`**. The button uses whatever is selected. (The pickers are at the bottom of the chat input box.)
-2. **(v2)** In the assessment report, with **Windows authentication** deselected (step 2.4), select **Create Plan**. It opens a chat and writes the plan to `.github\modernize\<name>-<timestamp>\plan.md` and `.metadata\tasks.json` at the repo root. If the plan asks which Azure resources to use for integration tests, answer: configuration keys supplied at execution time, no identifiers.
-3. **(v2) Review the plan.** Check that it has all of these:
+2. ⚠️ **BEFORE you click:** in the assessment report, **deselect Windows authentication** (step 2.4).
+3. **(v2)** Select **Create Plan**. It opens a chat and writes the plan to `.github\modernize\<name>-<timestamp>\plan.md` and `.metadata\tasks.json` at the repo root. If the plan asks which Azure resources to use for integration tests, answer: configuration keys supplied at execution time, no identifiers.
+4. **(v2) Review the plan.** Check that it has all of these:
    - the upgrade to .NET 10 and ASP.NET Core MVC as the **first** task;
    - **no** Windows AD to Microsoft Entra ID task (the app has no user sign-in);
-   - uploads to Azure **Blob** Storage, not Azure Files;
-   - Azure SQL **Managed Instance** with managed identity, keeping SQL authentication to `10.10.n.4` locally;
-   - the order after the upgrade: database, Blob, Service Bus, Key Vault;
+   - uploads to Azure **Blob** Storage only: no Azure Files task and no storage-mount task;
+   - Azure SQL **Managed Instance** only (no Azure SQL Database task) with managed identity, keeping SQL authentication to `10.10.n.4` locally;
+   - the order after the upgrade: Managed Instance, Blob, Service Bus, Key Vault, then the CVE check;
    - `DefaultAzureCredential` with **no keys**, SAS or connection strings with secrets;
+   - the hosting target, App Service for Linux (containers);
    - **no provisioning**: every Azure resource already exists.
 
-   Run 1's plan from **Create Plan** had no upgrade and included Entra ID. If anything is missing or wrong, send this correction reply in the plan's chat and review the revised plan:
+   **Create Plan** misses several of these. Run 1's plan said "No runtime/framework upgrade is included because none was requested", chained both alternatives (001 Blob, 002 Files, 003 SQL Database, 004 SQL Managed Instance), put the upload task 007 on Azure Files (`migration-azure-storage-mount`), included 005 Windows AD to Entra ID, and had no local SQL auth rule, no hosting target ("No deployment target is assumed") and no rule against keys. Send this correction reply in the plan's chat, changing the task IDs to match your plan, and review the revised plan:
 
    ```text
    Revise the plan before executing anything:
    1. Add the upgrade to .NET 10 and ASP.NET Core MVC as the first task: SDK-style project,
       PackageReference, Web.config settings in appsettings.json; keep the controllers, views and EF Core model.
-   2. Remove the Windows AD to Microsoft Entra ID task. The app has no user sign-in and no [Authorize];
-      the finding comes only from IISExpressWindowsAuthentication and Integrated Security in the LocalDB
-      connection string.
-   3. Use Azure Blob Storage, not Azure Files, for the uploads.
-   4. Use Azure SQL Managed Instance with managed identity, but keep SQL authentication to 10.10.n.4 working
-      locally; use managed identity only when the connection string is configured for it
-      (Authentication=Active Directory Default).
-   5. After the upgrade, order the tasks: database, Blob, Service Bus, Key Vault.
+   2. Remove the Windows AD to Microsoft Entra ID task (005 in my plan). The app has no user sign-in and no
+      [Authorize]; the finding comes only from IISExpressWindowsAuthentication and Integrated Security in the
+      LocalDB connection string.
+   3. Use Azure Blob Storage only for the uploads: remove the Azure Files task (002), and move the upload task
+      (007) from the storage mount to Blob.
+   4. Use Azure SQL Managed Instance only: remove the Azure SQL Database task (003). Use managed identity on
+      Azure, but keep SQL authentication to 10.10.n.4 working locally; use managed identity only when the
+      connection string is configured for it (Authentication=Active Directory Default).
+   5. After the upgrade, order the tasks: Managed Instance, Blob, Service Bus, Key Vault, then the CVE check.
    6. Use DefaultAzureCredential for Blob, Service Bus and Key Vault. No keys, SAS or connection strings
       with secrets, and no password in any committed file.
-   7. The target is Azure App Service for Linux (containers).
+   7. The hosting target is Azure App Service for Linux (containers).
    8. Every Azure resource already exists: don't provision, change or delete any. Endpoints come from these
       configuration keys, supplied at execution time; never record subscription, resource group or resource IDs:
       ConnectionStrings:DefaultConnection, Storage:BlobServiceUri, Storage:ContainerName (teaching-materials),
@@ -211,7 +217,7 @@ Model: the assessment uses the extension's default model. **(v2)** Steps 2 and 3
 >
 > **How to check:** the agent and model pickers sit at the bottom of the chat input box in the Chat panel.
 
-4. ⚠️ **BEFORE you click:** in the Chat panel, check the model picker shows **GPT-6 Luna** with reasoning **maximum**, and the agent is **`modernize`**. The button uses whatever is selected. (The pickers are at the bottom of the chat input box.) Then start execution of the reviewed plan from the dashboard or the plan's chat (note the exact button or reply you used in the commit body). It runs the plan task by task; reply `continue` when it asks. Keep the changes when they build. Do the step 3 check below after the upgrade task, and the step 4 checks after each of the other tasks, committing after each task with the step names below and exporting the chat before each commit.
+5. ⚠️ **BEFORE you click:** in the Chat panel, check the model picker shows **GPT-6 Luna** with reasoning **maximum**, and the agent is **`modernize`**. The button uses whatever is selected. (The pickers are at the bottom of the chat input box.) Then start execution of the reviewed plan from the dashboard or the plan's chat (note the exact button or reply you used in the commit body). It runs the plan task by task; reply `continue` when it asks. Keep the changes when they build. Do the step 3 check below after the upgrade task, and the step 4 checks after each of the other tasks, committing after each task with the step names below and exporting the chat before each commit.
 5. Check, after the upgrade task: `dotnet build app/ContosoUniversity` passes on the .NET 10 SDK. Point the app at the source database for a first run:
 
    ```powershell
@@ -226,7 +232,7 @@ Model: the assessment uses the extension's default model. **(v2)** Steps 2 and 3
 
 ## Step 4: C6 predefined tasks
 
-**(v2)** When you execute the reviewed plan (step 3.4), these four tasks run as part of the reviewed plan, in this order: do each check below after its task, then commit with the name given. The prompts below are the fallback when a task is missing from the plan or fails: start it from the **TASKS - .NET** section of the **GitHub Copilot modernization** view, or from the assessment report's **Run Task** button, or in Copilot Chat with the `modernize` agent and a `migrate from <source> to <target>` prompt. Say in the commit body which way you used. Add the prompt below to the chat when the task asks for input, or send it as the first message. Review the `plan.md` and `progress.md` it writes before you reply `continue`. After each task: build, run, commit.
+**(v2)** When you execute the reviewed plan (step 3.5), these four tasks run as part of the reviewed plan, in this order: do each check below after its task, then commit with the name given. The prompts below are the fallback when a task is missing from the plan or fails: start it from the **TASKS - .NET** section of the **GitHub Copilot modernization** view, or from the assessment report's **Run Task** button, or in Copilot Chat with the `modernize` agent and a `migrate from <source> to <target>` prompt. Say in the commit body which way you used. Add the prompt below to the chat when the task asks for input, or send it as the first message. Review the `plan.md` and `progress.md` it writes before you reply `continue`. After each task: build, run, commit.
 
 Before 4.2, check that you're signed in with the Azure CLI (`az account show`) and that `AZURE_TOKEN_CREDENTIALS` is `AzureCliCredential` in the terminal VS Code uses (`$env:AZURE_TOKEN_CREDENTIALS`), so `DefaultAzureCredential` uses your account locally (step 1.3).
 
@@ -406,3 +412,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 2.2, 2.3 | Run a **custom assessment** targeting App Service for Linux (containers), in the Local harness, with the options copied from run 1; the report's target is only checked | The default **Start Assessment**, with its App Service (Windows) default, led to the wrong plan target in run 1's false start |
 | 3, skills | *(Superseded by the dashboard row.)* **Owner decision:** the prompt files are replaced by the agent skills `.github/skills/modernize-plan` and `modernize-execute` (`disable-model-invocation: true`, same bodies). Skills can't pin an agent or model, so step 3 picks `modernize`, GPT-6 Sol at Medium and GPT-6 Luna at maximum by hand. They work in the Copilot and Local harnesses | The assessment dashboard switches the chat to the Copilot harness, which doesn't load prompt files |
 | 2, 3 | **Owner decision:** the dashboard buttons are the primary path: custom assessment, **Create Plan** from the report, then execute. A ⚠️ callout before each button says which agent, model and reasoning effort to select (`modernize`, GPT-6 Sol Medium to plan, GPT-6 Luna maximum to execute), because the button uses whatever is selected. The review checks the plan against a list, and the correction reply is inlined in step 3.3. The skills are removed | The workspace skills didn't show in the Copilot harness's skill list, and the dashboard writes the prompts itself |
+| 3.2, 3.4, rules | A second ⚠️ callout, as loud as the model check, to deselect Windows authentication before **Create Plan**. The review checklist adds Blob only (no Files or storage mount), Managed Instance only (no SQL Database), the CVE check last and the hosting target; the correction reply uses run 1's task IDs as examples. Chat exports may be `.txt` if the JSON export fails | Run 1's dashboard plan (commit `e5defe5`) had no upgrade, both storage and both database alternatives chained, task 007 on Azure Files, 005 Entra ID (Windows auth wasn't deselected), no local SQL auth rule, no hosting target and no rule against keys. **Chat: Export Chat** failed, so the chat was saved as text |
