@@ -2,7 +2,7 @@
 
 > **Modernize today. Enable AI tomorrow.** A repeatable framework that helps partners build, validate and scale Azure modernization practices, using existing skills, reusable assets and AI-assisted assessments.
 
-**Status:** draft (pre-v1) · **Owner:** [@jonathan-vella](https://github.com/jonathan-vella) · **Last updated:** 2026-09-24 · **Delivery:** [roadmap](roadmap.md) and [backlog](https://github.com/jonathan-vella/apex-factory-hackathon/issues)
+**Status:** draft (pre-v1) · **Owner:** [@jonathan-vella](https://github.com/jonathan-vella) · **Last updated:** 2026-09-25 · **Delivery:** [roadmap](roadmap.md) and [backlog](https://github.com/jonathan-vella/apex-factory-hackathon/issues)
 
 ## 1. Problem and approach
 
@@ -27,6 +27,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | IaC | Bicep only |
 | Foundation | **ALZ-lite** Bicep only: a small management group hierarchy, the hub and central services in the shared services sub, and core policies at the Corp management group. "Vending" means placing each pre-created workload sub under Corp and applying spoke, peering, firewall rules, RBAC and budget. Full portal ALZ is a live coach demo, with no kit scripts |
 | Datacenter | Two VMs: one app server (IIS and SQL Server 2022 Developer) and one dev VM. Each member deploys it into their own workload sub by T-3. It connects to the hub via **VNet peering** (simulated ExpressRoute) |
+| Datacenter access | **Azure Bastion Standard** only, never Developer: several sessions at once, and it works across the hub peering. It needs `AzureBastionSubnet` and its own public IP, the datacenter's only other public IP besides the NAT gateway's, and it bills while deployed, even when the VMs are stopped |
 | Availability zones | Never pinned, never turned on. VMs, disks, the NAT gateway and the firewall have no zone; zone redundancy is off wherever it's optional (SQL MI, App Service), and storage is LRS. Services that are zone-redundant automatically at no extra cost and can't opt out (ACR, Service Bus, Standard public IPs) are accepted |
 | Dev environment | Windows 11 Enterprise dev VM per member, inside the datacenter. APEX runs in Codespaces or Docker |
 | App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, log4net). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a GHCP predefined task. WebForms/WCF later |
@@ -58,7 +59,7 @@ flowchart LR
       ID["Identity"]
     end
     subgraph W["Workload sub per member - under mg-factory-corp"]
-      DC["rg-datacenter (pre-work): app VM (IIS + legacy Contoso University + MSMQ, SQL Server 2022 Developer, Arc), Windows 11 dev VM, NAT GW, Bastion Developer"]
+      DC["rg-datacenter (pre-work): app VM (IIS + legacy Contoso University + MSMQ, SQL Server 2022 Developer, Arc), Windows 11 dev VM, NAT GW, Bastion Standard"]
       SPOKE["Spoke (vended) + CoE archetype: App Service Linux, ACR Premium, SQL MI free offer, Storage (Blob), Service Bus Premium, Key Vault, App Insights"]
     end
   end
@@ -87,7 +88,7 @@ flowchart LR
 | 2 | M6 Validate and optimize | C9 Optimize the DB with GHCP | Member | 1 h | Planted issues fixed with the MSSQL extension or SSMS Copilot. Query Store before and after |
 | 2 | M7 Package and operate | C10 Package, hand over, review AI readiness | Team | 1 h | One reusable asset, acceptance and handover, AI-readiness gap register, showcase |
 
-- **Parallel work:** ALZ deploys while teams do C1 and C3; the dev VM is reachable through Bastion Developer without ALZ. The MI provisions while C6 starts on Day 1. The MI link starts first thing on Day 2, so seeding overlaps the end of C6. Time boxes are targets, tuned in the dry run.
+- **Parallel work:** ALZ deploys while teams do C1 and C3; the dev VM is reachable through Bastion without ALZ. The MI provisions while C6 starts on Day 1. The MI link starts first thing on Day 2, so seeding overlaps the end of C6. Time boxes are targets, tuned in the dry run.
 - **Standalone modules:** each module ships a contract: prerequisites, bootstrap (e.g. ALZ-lite, the archetype template or a lifeline branch), exit evidence, reset steps, time box and last-validated date.
 - **AKS:** not built in v1. Teams may argue for it in a C4 ADR as a future archetype.
 - **Curveballs** (one per day):
@@ -105,7 +106,7 @@ flowchart LR
 
 ## 6. Key technical design
 
-- **Datacenter (pre-work Bicep):** two AMD VMs, a NAT gateway (no default outbound access), Bastion Developer (free, one VM at a time, available in swedencentral) and an NSG.
+- **Datacenter (pre-work Bicep):** two AMD VMs, a NAT gateway (no default outbound access), Bastion Standard (in `AzureBastionSubnet`, with its own public IP; about $0.29/hour while deployed) and an NSG.
   - **Sizing:** both VMs are `Standard_D8as_v6` by default (a `vmSize` parameter, so v7 or another size is a one-line change). Non-zonal. Gen2, Trusted Launch and the NVMe disk controller. No public IPs. Disks: the app VM has a Premium SSD OS disk plus one P30 data disk; the dev VM has only a Premium SSD OS disk, at the image's default size and performance tier P30. No auto-shutdown: teams stop the VMs when idle.
   - **App VM (`vm-app01`):** Windows Server 2022 with SQL Server 2022 Developer, from the SQL marketplace image. It plays both on-premises servers:
     - **SQL Server:** data and logs on the data disk. Arc-enabled using the Jumpstart pattern for Azure VMs, without the SQL IaaS Agent. The AG feature and MI link trace flags are pre-set. The ContosoUniversity DB is seeded with volume and planted performance issues (B05).
@@ -173,7 +174,7 @@ flowchart LR
 
 | Risk | Mitigation / spike |
 |---|---|
-| The GHCP upgrade is non-deterministic, even on the quickstart sample. Hot spots: the MSMQ → Service Bus receive path, uploads → Blob, Global.asax/bundling, Razor helpers | Golden-path spike in VS Code and Copilot CLI. Tuned playbook/skills, lifelines, known-good image |
+| The GHCP upgrade is non-deterministic, even on the quickstart sample. Hot spots: the MSMQ → Service Bus receive path, uploads → Blob, Global.asax/bundling, Razor helpers | Golden-path spike in VS Code and Copilot CLI, including an end-to-end comparison of the two VS Code extensions: GitHub Copilot modernization and GitHub Copilot upgrade. The dev VM's extension set is decided from it. Tuned playbook/skills, lifelines, known-good image |
 | ALZ-lite in fresh CSP tenants: the platform lead needs rights at Tenant Root to create management groups and move subs; CSP RBAC gaps | T-14 preflight checks both. Start ALZ-lite first on Day 1 |
 | The pre-built archetype drifts from the tenant's ALZ policies or from new APEX releases | Pin the APEX release and ALZ options. Re-validate per release (`versions.md`). Plain deploy fallback |
 | ALZ policies hit the pre-existing datacenter (e.g. deployIfNotExists policies on VMs without a guest agent) | Effective-policy list from the spike. Exemption script right after the move |

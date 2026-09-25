@@ -7,7 +7,7 @@
 | Depends on | B02, B07 |
 | Unblocks | B09, B11 |
 | Effort | 2–3 days |
-| Cost | About $2.55/hour while deployed: Azure Firewall Standard about $1.25/hour plus its public IP, Log Analytics at low volume, and the datacenter (redeployed for testing) at about $1.25/hour |
+| Cost | About $2.85/hour while deployed: Azure Firewall Standard about $1.25/hour plus its public IP, Log Analytics at low volume, and the datacenter (redeployed for testing) at about $1.55/hour |
 | Teardown | Delete everything this item created: `rg-hub` and `rg-management` in the shared subscription; `rg-spoke` and `rg-datacenter` in the workload subscription; the policy assignments, exemptions, role assignments and budget. Move both subscriptions back under Tenant Root, then delete the kit's management groups |
 | PRD | §2 Tenancy, Foundation, Kit build; §4; §5 C2; §6 Foundation |
 

@@ -7,7 +7,7 @@
 | Depends on | B05, B06 |
 | Unblocks | B08, B09, B11 |
 | Effort | 2–3 days elapsed, mostly waiting for MI provisioning and seeding |
-| Cost | SQL MI free offer: no compute or storage charge within the free limits (🔎 VERIFY on [SQL MI free offer](https://learn.microsoft.com/azure/azure-sql/managed-instance/free-offer)). Arc-enabled SQL Server Developer: free. Plus the datacenter at about $1.25/hour |
+| Cost | SQL MI free offer: no compute or storage charge within the free limits (🔎 VERIFY on [SQL MI free offer](https://learn.microsoft.com/azure/azure-sql/managed-instance/free-offer)). Arc-enabled SQL Server Developer: free. Plus the datacenter at about $1.55/hour |
 | Teardown | Delete `rg-spike-b07` and **`rg-datacenter`** at the end. This item closes the datacenter chain started in B04 |
 | PRD | §5 C0, C3, C7; §6 Datacenter, Migration; §8 Arc and MI link risks |
 

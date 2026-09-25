@@ -7,7 +7,7 @@
 | Depends on | B06, B09 |
 | Unblocks | B11 |
 | Effort | 3–4 days |
-| Cost | About $3.65/hour while the validation stack is deployed (same stack as B09) |
+| Cost | About $3.95/hour while the validation stack is deployed (same stack as B09) |
 | Teardown | Delete everything this item created, as in B09 |
 | PRD | §5 C6, C7; §6 App modernization; §8 GHCP risk |
 

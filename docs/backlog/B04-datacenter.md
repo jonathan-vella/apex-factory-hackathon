@@ -7,7 +7,7 @@
 | Depends on | B02, B03 |
 | Unblocks | B05, B06 |
 | Effort | 1–2 days |
-| Cost | About $1.25/hour while running, with AHB on (2 × D8as_v6 at the Linux rate $0.39; 2 × P30 $0.20: the `vm-app01` data disk and the `vm-dev01` OS disk, billed at its P30 performance tier; 1 × P10 OS disk $0.03; NAT gateway and IP $0.05). About $0.48/hour when the VMs are stopped (deallocated). Without AHB, about $2.00/hour |
+| Cost | About $1.55/hour while running, with AHB on (2 × D8as_v6 at the Linux rate $0.39; 2 × P30 $0.20: the `vm-app01` data disk and the `vm-dev01` OS disk, billed at its P30 performance tier; 1 × P10 OS disk $0.03; NAT gateway and IP $0.05; Bastion Standard $0.29 and its IP $0.005). About $0.78/hour when the VMs are stopped (deallocated): Bastion keeps billing. Without AHB, about $2.30/hour |
 | Teardown | **Keep** `rg-datacenter`. B05–B07 build on it and B07 deletes it |
 | PRD | §2 Datacenter, Dev environment, Hybrid Benefit; §4; §6 Datacenter |
 
@@ -16,7 +16,7 @@
 - One command, `scripts/Deploy-Datacenter.ps1`, deploys a member's "on-premises" datacenter into `rg-datacenter`, unattended, in under 60 minutes:
   - `vm-app01`: Windows Server 2022 with IIS running the legacy Contoso University and SQL Server 2022 Developer holding its database, plus MSMQ.
   - `vm-dev01`: Windows 11 Enterprise with the developer tools for the modernization.
-  - A private VNet with a NAT gateway for outbound traffic and Bastion Developer for access. Nothing is reachable from the internet.
+  - A private VNet with a NAT gateway for outbound traffic and Bastion Standard for access. No VM or service is reachable from the internet: only Bastion's own endpoint is public.
 - `scripts/Test-Datacenter.ps1` proves the datacenter is ready. Attendees run it at T-3.
 - Azure Hybrid Benefit is on by default and documented, with how to turn it off.
 
@@ -38,9 +38,10 @@
    | Resource group | `rg-datacenter` | In `location` |
    | VNet | `vnet-datacenter` | `10.10.n.0/24` |
    | Subnet | `snet-servers` | `10.10.n.0/25`, default outbound access **off**, NAT gateway and NSG attached |
+   | Subnet | `AzureBastionSubnet` | `10.10.n.192/26` (the name and a /26 are required). No NSG and no route table. `10.10.n.128/27` stays free for B06's `snet-pe-spike` |
    | NSG | `nsg-servers` | No inbound rules from the internet |
    | NAT gateway | `nat-datacenter` | Standard, no zone, with public IP `pip-nat-datacenter` (Standard, static, no `zones` set: it's zone-redundant automatically in regions with zones) |
-   | Bastion | `bas-datacenter` | **Developer** SKU: free, no subnet or public IP, one session at a time |
+   | Bastion | `bas-datacenter` | **Standard** SKU (never Developer), in `AzureBastionSubnet`, with public IP `pip-bas-datacenter` (Standard, static, no `zones` set). Several sessions at once; works across the hub peering (B08) |
    | App VM | `vm-app01` | Static private IP `10.10.n.4` |
    | Dev VM | `vm-dev01` | Static private IP `10.10.n.5` |
 
@@ -71,7 +72,7 @@
    - The Windows 11 SKU is a parameter (`devImageSku`, default `win11-25h2-ent`). 🔎 VERIFY with `az vm image list --publisher MicrosoftWindowsDesktop --offer windows-11 --sku win11-26h2-ent --all -l <location>`: if a 26H2 Enterprise version now exists, stop and ask whether to move the default. When this runbook was written, `win11-26h2-ent` was listed but had no versions.
    - AHB on `vm-app01` is controlled by a parameter that defaults to on. `vm-dev01` always uses `Windows_Client`: it's needed to run Windows 11 on Azure, not optional.
 
-4. NSG rules: allow what Bastion Developer needs to reach RDP on both VMs, and nothing else inbound beyond the platform defaults. 🔎 VERIFY the required source and ports on [Bastion Developer](https://learn.microsoft.com/azure/bastion/quickstart-developer). Later items add rules for the hub (B08) and MI link (B07).
+4. NSG rules: allow RDP (TCP 3389) from `AzureBastionSubnet` (`10.10.n.192/26`) to both VMs, and nothing else inbound beyond the platform defaults. 🔎 VERIFY the required rules on [Working with NSG access and Azure Bastion](https://learn.microsoft.com/azure/bastion/bastion-nsg). Later items add rules for the hub (B08) and MI link (B07).
 
 ### Bicep
 
@@ -97,7 +98,7 @@
 12. **`vm-dev01`**, in this order:
     1. Create `C:\src`. The dev VM has no data disk.
     2. Install machine-wide, silently, from the vendors' official download locations: Visual Studio Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone, on the machine `PATH`), the .NET 10 SDK, the .NET Framework 4.8 Developer Pack, Visual Studio Build Tools (current release) with the web build tools workload and its recommended components, NuGet CLI, and SSMS 22. 🔎 VERIFY the Build Tools workload ID on [Visual Studio Build Tools workload and component IDs](https://learn.microsoft.com/visualstudio/install/workload-component-id-vs-build-tools).
-    3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot modernization (`vscjava.migrate-java-to-azure`, the only modernization extension; it replaces the deprecated GitHub Copilot app modernization for .NET extension), C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the modernization extension on [Install GitHub Copilot modernization](https://learn.microsoft.com/dotnet/azure/migration/appmod/install) (VS Code tab: install **GitHub Copilot modernization**, then check that `@modernize` responds in Copilot Chat).
+    3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot modernization (`vscjava.migrate-java-to-azure`, the only modernization extension for now; it replaces the deprecated GitHub Copilot app modernization for .NET extension. B06 compares it end to end with GitHub Copilot upgrade, `ms-dotnettools.upgrade-agent`, and the owner decides the final set from that), C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the modernization extension on [Install GitHub Copilot modernization](https://learn.microsoft.com/dotnet/azure/migration/appmod/install) (VS Code tab: install **GitHub Copilot modernization**, then check that `@modernize` responds in Copilot Chat).
     4. Write the installed versions to `C:\LabTools\versions.txt`.
 13. Don't use winget: it isn't available to SYSTEM in a run command.
 
@@ -114,7 +115,7 @@
 
     | On | Check |
     |---|---|
-    | Azure | Both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP. The disks match requirement 2: `vm-app01` has its P30 data disk, and `vm-dev01` has no data disk and its OS disk at performance tier P30. No public IPs in `rg-datacenter` apart from `pip-nat-datacenter` |
+    | Azure | Both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP. The disks match requirement 2: `vm-app01` has its P30 data disk, and `vm-dev01` has no data disk and its OS disk at performance tier P30. No public IPs in `rg-datacenter` apart from `pip-nat-datacenter` and `pip-bas-datacenter`. `bas-datacenter` is the Standard SKU in `AzureBastionSubnet` |
     | `vm-app01` | `http://localhost/` returns 200 and contains "Contoso University"; `F:` exists; SQL data files are on `F:`; `ContosoUniversity` has the app's tables and at least 8 students (the app's seed data); HADR is enabled; trace flags 1800 and 9567 are on; the MSMQ queue exists |
     | `vm-dev01` | `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, `dotnet` (SDK 10), `code`, `msbuild` and SSMS are installed; outbound HTTPS to `github.com` works |
 
@@ -187,5 +188,5 @@ feat: add the datacenter kit
 - **Arc comes later:** B07 onboards `vm-app01` to Arc with the Jumpstart pattern, which turns off the Azure guest agent and blocks IMDS. After that, run commands stop working. Everything that needs a run command belongs here, before Arc.
 - **Always On without a cluster:** SQL Server 2022 lets you enable the availability groups feature without a Windows failover cluster, which is all MI link needs.
 - **Connection string by IP:** the app and later tools use `10.10.n.4`, not the VM name, because name resolution changes once the datacenter uses the hub's DNS.
-- **Bastion Developer** allows one session at a time per user, and doesn't work across peering. That's fine: both VMs are in its own VNet. 🔎 VERIFY it's offered in `germanywestcentral` before documenting the fallback region as supported.
+- **Bastion Standard only:** the kit never uses Bastion Developer. Standard allows several sessions and works across peering, which B08 needs once the datacenter is peered to the hub. It takes several minutes to deploy, and it bills (about $0.29/hour) while it exists, even with the VMs stopped. Its public IP is the documented exception to the datacenter's "no public IPs" rule, next to the NAT gateway's.
 - **Windows 11 licensing:** `Windows_Client` declares multitenant hosting rights. Compute is billed at the Linux rate.
