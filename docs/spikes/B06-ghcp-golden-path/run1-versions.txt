@@ -1,0 +1,3 @@
+VS Code: 1.139.0
+ms-dotnettools.csdevkit@3.40.210
+vscjava.migrate-java-to-azure@1.24.0
