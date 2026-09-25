@@ -1,7 +1,6 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -14,15 +13,15 @@ namespace ContosoUniversity.Controllers
 {
     public class CoursesController : BaseController
     {
-        private readonly string _teachingMaterialsPath;
+        private readonly ITeachingMaterialImageStorage _teachingMaterialImageStorage;
 
         public CoursesController(
             SchoolContext db,
             NotificationService notificationService,
-            IWebHostEnvironment environment)
+            ITeachingMaterialImageStorage teachingMaterialImageStorage)
             : base(db, notificationService)
         {
-            _teachingMaterialsPath = Path.Combine(environment.WebRootPath, "Uploads", "TeachingMaterials");
+            _teachingMaterialImageStorage = teachingMaterialImageStorage;
         }
 
         // GET: Courses
@@ -57,7 +56,10 @@ namespace ContosoUniversity.Controllers
         // POST: Courses/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind("CourseID,Title,Credits,DepartmentID,TeachingMaterialImagePath")] Course course, IFormFile teachingMaterialImage)
+        public async Task<IActionResult> Create(
+            [Bind("CourseID,Title,Credits,DepartmentID,TeachingMaterialImagePath")] Course course,
+            IFormFile teachingMaterialImage,
+            CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
@@ -85,19 +87,14 @@ namespace ContosoUniversity.Controllers
 
                     try
                     {
-                        // Create uploads directory if it doesn't exist
-                        Directory.CreateDirectory(_teachingMaterialsPath);
-
-                        // Generate unique filename
-                        var fileName = $"course_{course.CourseID}_{Guid.NewGuid()}{fileExtension}";
-                        var filePath = Path.Combine(_teachingMaterialsPath, fileName);
-
-                        // Save file
-                        using (var stream = System.IO.File.Create(filePath))
+                        using (var stream = teachingMaterialImage.OpenReadStream())
                         {
-                            teachingMaterialImage.CopyTo(stream);
+                            course.TeachingMaterialImagePath = await _teachingMaterialImageStorage.UploadAsync(
+                                course.CourseID,
+                                fileExtension,
+                                stream,
+                                cancellationToken);
                         }
-                        course.TeachingMaterialImagePath = $"~/Uploads/TeachingMaterials/{fileName}";
                     }
                     catch (Exception ex)
                     {
@@ -108,7 +105,7 @@ namespace ContosoUniversity.Controllers
                 }
 
                 db.Courses.Add(course);
-                db.SaveChanges();
+                await db.SaveChangesAsync(cancellationToken);
                 
                 // Send notification for course creation
                 SendEntityNotification("Course", course.CourseID.ToString(), course.Title, EntityOperation.CREATE);
@@ -139,10 +136,24 @@ namespace ContosoUniversity.Controllers
         // POST: Courses/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind("CourseID,Title,Credits,DepartmentID,TeachingMaterialImagePath")] Course course, IFormFile teachingMaterialImage)
+        public async Task<IActionResult> Edit(
+            [Bind("CourseID,Title,Credits,DepartmentID,TeachingMaterialImagePath")] Course course,
+            IFormFile teachingMaterialImage,
+            CancellationToken cancellationToken)
         {
             if (ModelState.IsValid)
             {
+                var existingCourse = await db.Courses
+                    .AsNoTracking()
+                    .SingleOrDefaultAsync(c => c.CourseID == course.CourseID, cancellationToken);
+                if (existingCourse == null)
+                {
+                    return NotFound();
+                }
+
+                var previousImagePath = existingCourse.TeachingMaterialImagePath;
+                course.TeachingMaterialImagePath = previousImagePath;
+
                 // Handle file upload if a new image is provided
                 if (teachingMaterialImage != null && teachingMaterialImage.Length > 0)
                 {
@@ -167,29 +178,14 @@ namespace ContosoUniversity.Controllers
 
                     try
                     {
-                        // Create uploads directory if it doesn't exist
-                        Directory.CreateDirectory(_teachingMaterialsPath);
-
-                        // Generate unique filename
-                        var fileName = $"course_{course.CourseID}_{Guid.NewGuid()}{fileExtension}";
-                        var filePath = Path.Combine(_teachingMaterialsPath, fileName);
-
-                        // Delete old file if exists
-                        if (!string.IsNullOrEmpty(course.TeachingMaterialImagePath))
+                        using (var stream = teachingMaterialImage.OpenReadStream())
                         {
-                            var oldFilePath = GetTeachingMaterialImageFilePath(course.TeachingMaterialImagePath);
-                            if (oldFilePath != null && System.IO.File.Exists(oldFilePath))
-                            {
-                                System.IO.File.Delete(oldFilePath);
-                            }
+                            course.TeachingMaterialImagePath = await _teachingMaterialImageStorage.UploadAsync(
+                                course.CourseID,
+                                fileExtension,
+                                stream,
+                                cancellationToken);
                         }
-
-                        // Save new file
-                        using (var stream = System.IO.File.Create(filePath))
-                        {
-                            teachingMaterialImage.CopyTo(stream);
-                        }
-                        course.TeachingMaterialImagePath = $"~/Uploads/TeachingMaterials/{fileName}";
                     }
                     catch (Exception ex)
                     {
@@ -200,7 +196,15 @@ namespace ContosoUniversity.Controllers
                 }
 
                 db.Entry(course).State = EntityState.Modified;
-                db.SaveChanges();
+                await db.SaveChangesAsync(cancellationToken);
+
+                if (teachingMaterialImage != null && teachingMaterialImage.Length > 0)
+                {
+                    await TryDeleteTeachingMaterialImageAsync(
+                        course.CourseID,
+                        previousImagePath,
+                        cancellationToken);
+                }
                 
                 // Send notification for course update
                 SendEntityNotification("Course", course.CourseID.ToString(), course.Title, EntityOperation.UPDATE);
@@ -229,7 +233,7 @@ namespace ContosoUniversity.Controllers
         // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id, CancellationToken cancellationToken)
         {
             Course course = db.Courses.Find(id);
             var courseTitle = course.Title;
@@ -237,24 +241,14 @@ namespace ContosoUniversity.Controllers
             // Delete associated image file if it exists
             if (!string.IsNullOrEmpty(course.TeachingMaterialImagePath))
             {
-                var filePath = GetTeachingMaterialImageFilePath(course.TeachingMaterialImagePath);
-                if (filePath != null && System.IO.File.Exists(filePath))
-                {
-                    try
-                    {
-                        System.IO.File.Delete(filePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        // Log the error but don't prevent deletion of the course
-                        // In a production application, you would log this error properly
-                        System.Diagnostics.Debug.WriteLine($"Error deleting file: {ex.Message}");
-                    }
-                }
+                await TryDeleteTeachingMaterialImageAsync(
+                    course.CourseID,
+                    course.TeachingMaterialImagePath,
+                    cancellationToken);
             }
             
             db.Courses.Remove(course);
-            db.SaveChanges();
+            await db.SaveChangesAsync(cancellationToken);
             
             // Send notification for course deletion
             SendEntityNotification("Course", id.ToString(), courseTitle, EntityOperation.DELETE);
@@ -262,12 +256,40 @@ namespace ContosoUniversity.Controllers
             return RedirectToAction("Index");
         }
 
-        private string GetTeachingMaterialImageFilePath(string imagePath)
+        // GET: Courses/TeachingMaterialImage
+        [HttpGet]
+        public async Task<IActionResult> TeachingMaterialImage(
+            string imagePath,
+            CancellationToken cancellationToken)
         {
-            var fileName = Path.GetFileName(imagePath);
-            return string.IsNullOrWhiteSpace(fileName)
-                ? null
-                : Path.Combine(_teachingMaterialsPath, fileName);
+            if (string.IsNullOrWhiteSpace(imagePath))
+            {
+                return BadRequest();
+            }
+
+            var image = await _teachingMaterialImageStorage.DownloadAsync(imagePath, cancellationToken);
+            if (image == null)
+            {
+                return NotFound();
+            }
+
+            return File(image.Content, image.ContentType);
+        }
+
+        private async Task TryDeleteTeachingMaterialImageAsync(
+            int courseId,
+            string imagePath,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                await _teachingMaterialImageStorage.DeleteAsync(courseId, imagePath, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // Image cleanup must not prevent the course from being saved or deleted.
+                System.Diagnostics.Debug.WriteLine($"Error deleting teaching-material image: {ex.Message}");
+            }
         }
     }
 }

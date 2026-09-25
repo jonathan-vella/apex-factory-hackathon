@@ -18,10 +18,9 @@ ContosoUniversity/
 ├── Data/                   # EF Core context and sample-data initializer
 ├── Models/                 # Entities and view models
 ├── Views/                  # Razor views
-├── Services/               # Notification service
+├── Services/               # Blob Storage and notification services
 ├── wwwroot/Content/        # CSS
 ├── wwwroot/Scripts/        # JavaScript
-├── wwwroot/Uploads/        # Teaching-material images
 ├── Program.cs              # ASP.NET Core startup, DI, and routes
 ├── appsettings.json        # Default application configuration
 └── ContosoUniversity.csproj
@@ -47,6 +46,13 @@ explicitly contains `Authentication=Active Directory Default`.
 The request-body limit (10 MB) and request timeout (one hour) are represented
 in `appsettings.json`. The course-image validation remains limited to 5 MB and
 the existing supported image extensions.
+
+Teaching-material images are stored in the existing Azure Blob Storage
+container. Supply `Storage:BlobServiceUri` and `Storage:ContainerName` through
+runtime configuration (for example, environment variables
+`Storage__BlobServiceUri` and `Storage__ContainerName`). The application uses
+`DefaultAzureCredential`; no storage keys, SAS tokens, or connection strings are
+required.
 
 ## Run locally
 

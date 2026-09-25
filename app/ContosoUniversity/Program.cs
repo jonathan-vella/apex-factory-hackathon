@@ -17,6 +17,7 @@ builder.Services.AddRequestTimeouts(options =>
     options.DefaultPolicy = new RequestTimeoutPolicy { Timeout = requestTimeout };
 });
 builder.Services.AddDbContext<SchoolContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddSingleton<ITeachingMaterialImageStorage, BlobTeachingMaterialImageStorage>();
 builder.Services.AddSingleton<NotificationService>();
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
