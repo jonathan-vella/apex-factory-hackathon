@@ -40,7 +40,7 @@ Filled in by the executor after run 1 is pushed, from `spike/b06-run1`: times fr
 |---|---|
 | Home, Students, Courses, Instructors and Departments pages work against `10.10.n.4` | ✅ 2026-09-25, after task 002, on .NET 10 with SQL auth from user secrets. To re-check after the last task |
 | A teaching-material upload lands in the `teaching-materials` container | ✅ 2026-09-25, after task 003: `course_1045_<guid>.png` (`image/png`, 1403 bytes) via **Courses** > **Edit**, over the private endpoint with `AzureCliCredential` |
-| A notification goes onto the `notifications` queue and the app reads it back | |
+| A notification goes onto the `notifications` queue and the app reads it back | ⚠️ After task 004: send ✅ (`activeMessageCount` 2), receive ❌ (`TimeSpan.Zero` wait time). Owner fix in progress; to re-check |
 
 ## Notes
 
