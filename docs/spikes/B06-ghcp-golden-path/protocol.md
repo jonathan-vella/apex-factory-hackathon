@@ -152,8 +152,8 @@ Model: balanced (Sonnet- or Terra-class).
 1. Keep the repo root open in VS Code. Pick the balanced model in the Copilot Chat model picker. **(v2)** The assessment dashboard doesn't let you pick a model; it uses the extension's default. Before the upgrade, the C# Dev Kit status bar shows **Projects: 1 error** for the legacy .NET Framework project: that's expected, ignore it.
 2. Open the **GitHub Copilot modernization** view in the Activity Bar. In **QUICKSTART**, select **Start Assessment**, then **Run Assessment** on the **Assessment reports** page. If it asks which project, pick `app/ContosoUniversity`.
 3. **(v2)** In the report, set the target dropdown to **Azure App Service (Linux)** (containers) before anything else. It defaults to **Azure App Service (Windows)**, but the kit targets App Service for Linux. Do this before you select **Create Plan**, or the plan targets Windows.
-4. Wait for the report. Read it: note the issues it finds for local files, MSMQ, the database, the plaintext connection string and `System.Web`, and the migration tasks it recommends. It may flag **Windows authentication detected** as mandatory: the app doesn't authenticate users with Windows. The finding comes from `IISExpressWindowsAuthentication` in the project file, `Integrated Security=True` in the old LocalDB connection string and the home page text. The kit's app has no user sign-in, so treat it as not applicable and don't migrate it to Entra ID.
-5. **(v2)** The report's **Create Plan** plans the Cloud Readiness issues (static content, SQL connection, Windows authentication, connection strings, local IO, MSMQ) and may not include the .NET 10 upgrade. If you use it, check the plan: if the upgrade isn't in it, reply with the order to use, the upgrade first (step 3), then database with managed identity, Blob, Service Bus and Key Vault (step 4). Note in the commit body whether the plan included the upgrade.
+4. Wait for the report. Read it: note the issues it finds for local files, MSMQ, the database, the plaintext connection string and `System.Web`, and the migration tasks it recommends. It flags **Windows authentication detected** as mandatory, but the app has no user sign-in and no `[Authorize]`. The finding comes only from `IISExpressWindowsAuthentication` in the project file and `Integrated Security=True` in the old LocalDB connection string. **(v2)** If the report lets you deselect issues before planning, deselect **Windows authentication**. Otherwise the correction reply in step 3.2 removes it.
+5. **(v2)** Select **Create Plan**. It plans only the service migrations: run 1's plan said "No … runtime/framework upgrade" and included **Windows AD to Microsoft Entra ID**. Its open questions (Blob or Files, SQL Database or Managed Instance) have fixed answers in the kit: Blob and Managed Instance. Don't execute this plan: step 3 corrects it first.
 6. Save the report into the spike folder. The modernization extension writes it to `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\assessment\reports\report-<timestamp>\`, which git ignores. Copy the new report folder's files to `docs\spikes\B06-ghcp-golden-path\assessment\run1\` (run 2: `run2\`), plus `...\.github\modernize\assessment\engines\dotnet-appcat\result\report.json` as `appcat-report.json`. If the report page offers an export (HTML or Markdown), save that there too. `git add docs/spikes/B06-ghcp-golden-path/assessment` so the ignored source folder doesn't matter.
 7. Commit: `run1: step 2 assessment`.
 
@@ -174,7 +174,28 @@ Model: planning with the most capable model (Opus- or Sol-class); execution with
    **Alternative:** in Copilot Chat, pick the `modernize` agent in the agent picker and send the same text as the first prompt.
 
    The step runs in chat, so export the chat before the commit. In the commit body, note `started from dashboard` (or `started from chat`) and both models, planning and execution.
-3. Review the assessment and plan files it writes. Edit them if something is wrong, and note what you changed.
+
+   **(v2) After Create Plan (step 2.5):** if you created the plan from the report, it doesn't include the upgrade, so reply in that plan's chat with this correction before anything runs:
+
+   ```text
+   Revise the plan before executing anything:
+   1. Add the upgrade to .NET 10 and ASP.NET Core MVC as the first task: SDK-style project,
+      PackageReference, Web.config settings in appsettings.json; keep the controllers, views and EF Core model.
+   2. Remove the Windows AD to Microsoft Entra ID task. The app has no user sign-in and no [Authorize];
+      the finding comes only from IISExpressWindowsAuthentication and Integrated Security in the LocalDB
+      connection string.
+   3. Use Azure Blob Storage, not Azure Files, for the uploads.
+   4. Use Azure SQL Managed Instance with managed identity, but keep SQL authentication to 10.10.n.4 working
+      locally; use managed identity only when the connection string is configured for it.
+   5. After the upgrade, order the tasks: database, Blob, Service Bus, Key Vault.
+   6. Use DefaultAzureCredential for Blob, Service Bus and Key Vault. No keys, SAS or connection strings with secrets.
+   7. The target is Azure App Service for Linux (containers).
+   8. Don't provision or change any Azure resources: they already exist.
+   Show me the revised plan and wait for my review.
+   ```
+
+   Then review the revised `plan.md` (step 3.3) before execution.
+3. Review the plan files it writes: `.github\modernize\<name>-<timestamp>\plan.md` and `.metadata\tasks.json` at the repo root. Check that the upgrade is first, Entra ID is gone and the order is database, Blob, Service Bus, Key Vault. Edit them if something is wrong, note what you changed, and commit the plan before execution: `run1: step 3 plan`.
 4. Switch to the execution model, then reply `continue` (or the button it offers) until it finishes. Keep the changes it proposes when they build.
 5. Check: `dotnet build app/ContosoUniversity` passes on the .NET 10 SDK. Point the app at the source database for a first run:
 
@@ -359,6 +380,6 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | Rules, 2, 7 | The chat export is needed only for steps prompted in Copilot Chat. For a step run only from the modernization view, the commit body says so and the model is *extension default, not selectable* | The owner ran step 2 from the assessment dashboard, with no chat and no model picker |
 | 3 | Pick the planning model first, then start the upgrade from the dashboard (**QUICKSTART** > **Upgrade to a newer version of .NET**, target .NET 10) and send the constraints as a chat reply; the `modernize` agent chat prompt is the alternative. Chat export needed; the commit body records the start route and both models | The owner started run 1's upgrade from the dashboard |
 | 2.3 | Set the report's target to **Azure App Service (Linux)** before **Create Plan** | The target defaults to **Azure App Service (Windows)**; the kit targets App Service for Linux (PRD §2). The owner re-planned with Linux |
-| 2.4 | Treat **Windows authentication detected** (Mandatory) as not applicable, and say what triggers it | The app has no user sign-in. The finding comes from `IISExpressWindowsAuthentication` in the project file, `Integrated Security=True` in the LocalDB connection string and the home page text |
-| 2.5 | Check whether **Create Plan** includes the .NET 10 upgrade; if not, order it: upgrade, then database with managed identity, Blob, Service Bus, Key Vault | **Create Plan (6)** planned only the six Cloud Readiness issues |
+| 2.4 | Deselect **Windows authentication** before **Create Plan** if the report allows it; otherwise the step 3.2 correction removes it | The app has no user sign-in or `[Authorize]`; the finding comes only from `IISExpressWindowsAuthentication` in the project file and `Integrated Security=True` in the LocalDB connection string. Run 1's first plan included **Windows AD to Microsoft Entra ID** |
+| 2.5, 3.2, 3.3 | **Create Plan** is followed by a correction reply (upgrade first; remove Entra ID; Blob; Managed Instance with local SQL auth kept; order database, Blob, Service Bus, Key Vault; `DefaultAzureCredential` with no keys; App Service for Linux containers; no provisioning), and the revised plan is reviewed and committed before execution | Run 1's first plan (commit `7904c1b`) was service-migration only: "No … runtime/framework upgrade". Its open questions were Blob or Files and SQL Database or Managed Instance, and its integration verification defaulted to mock mode because no Azure environment was given |
 | 2.1 | **Projects: 1 error** in the C# Dev Kit status bar before the upgrade is expected | Seen in run 1 on the legacy .NET Framework project |
