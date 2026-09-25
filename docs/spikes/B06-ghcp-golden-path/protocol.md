@@ -7,6 +7,8 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 | 1 | `spike/b06-run1` | `da4e5f606983332001c94ce69b48634f9c1864b3` | v1 |
 | 2 | `spike/b06-run2` | set between runs | v2 |
 
+Run 1 started from v1. Changes in v2 are marked **(v2)** and listed under [Changes in v2](#changes-in-v2) at the end.
+
 Placeholders: `n` is your member index (`1` in the build subscriptions) and `<suffix>` is the suffix in `.local/settings.json`. The spike resources are in `rg-spike-b06` and are private-only, so every Azure data-plane call works only from `vm-dev01`.
 
 | Setting | Value |
@@ -47,15 +49,25 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 ## Step 1: Set up
 
 1. Connect to `vm-dev01` through Bastion as `labadmin`.
-2. Open PowerShell 7 and sign in:
+2. **(v2)** Open PowerShell 7 and sign in with device code flows. Browser sign-in inside the Bastion session is awkward, and passkeys and password managers aren't available there. Each command prints a one-time code: copy it from the terminal, open the page it names on your own device, enter the code and finish sign-in there.
 
    ```powershell
-   gh auth login --web
-   az login
+   gh auth login --web                 # enter the code at https://github.com/login/device
+   az login --use-device-code          # enter the code at https://microsoft.com/devicelogin
    az account set --subscription '<workload-subscription-id>'
    ```
 
-3. Use the existing clone in `C:\src\apex-factory-hackathon` (clone it there only if it's missing). Check that it's clean, fetch, and create the run branch from the commit in the table above:
+   Some tenants block device code flow with Conditional Access. If sign-in is refused, note it in the results sheet and use `az login` (browser) inside the Bastion session instead.
+
+3. **(v2)** Make `DefaultAzureCredential` use your Azure CLI sign-in. `vm-dev01` has a system-assigned managed identity, and `DefaultAzureCredential` tries `ManagedIdentityCredential` before `AzureCliCredential`, so without this the app gets the VM's token, which has no data roles, and fails with 403 on Blob, Service Bus and Key Vault. The data roles are on your user, not the VM. Set it for your user and restart VS Code and any open terminals so they pick it up:
+
+   ```powershell
+   [Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')
+   ```
+
+   It's set only on `vm-dev01`, never in Azure, so the deployed app still uses its managed identity. See [Credential chains in the Azure Identity library for .NET](https://learn.microsoft.com/dotnet/azure/sdk/authentication/credential-chains).
+
+4. Use the existing clone in `C:\src\apex-factory-hackathon` (clone it there only if it's missing). Check that it's clean, fetch, and create the run branch from the commit in the table above:
 
    ```powershell
    if (-not (Test-Path C:\src\apex-factory-hackathon)) { git clone https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\apex-factory-hackathon }
@@ -73,7 +85,7 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
    The last command must print nothing: `app/ContosoUniversity` is unchanged from `main`. For run 2, use `spike/b06-run2` and the run 2 commit.
 
-4. **Run 1 only: save the earlier manual assessment.** The assessment you ran by hand on 2026-09-24 left its output in `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\`, which git ignores. Copy its report into the spike folder, then move the whole folder out of the repo so run 1's assessment starts clean:
+5. **Run 1 only: save the earlier manual assessment.** The assessment you ran by hand on 2026-09-24 left its output in `C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize\`, which git ignores. Copy its report into the spike folder, then move the whole folder out of the repo so run 1's assessment starts clean:
 
    ```powershell
    $manual = 'C:\src\apex-factory-hackathon\app\ContosoUniversity\.github\modernize'
@@ -88,11 +100,11 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
 
    The target folder then holds `report.json`, `solution.json` and `appcat-report.json`.
 
-5. Open the folder in VS Code: `code C:\src\apex-factory-hackathon`. Sign in to GitHub in VS Code (**Accounts** menu, bottom left) with the account that has the Copilot seat. Check that Copilot Chat opens in **Agent** mode.
-6. Check the extensions under **Extensions** (Ctrl+Shift+X):
+6. Open the folder in VS Code: `code C:\src\apex-factory-hackathon`. Sign in to GitHub in VS Code (**Accounts** menu, bottom left) with the account that has the Copilot seat. Check that Copilot Chat opens in **Agent** mode.
+7. Check the extensions under **Extensions** (Ctrl+Shift+X):
    - **GitHub Copilot modernization** (`vscjava.migrate-java-to-azure`) is installed. It's the only modernization extension the kit uses. It adds the **GitHub Copilot modernization** view to the Activity Bar and the `modernize` agent to Copilot Chat, which covers the assessment, the .NET upgrade and the migration tasks.
    - Record its version, and the VS Code, Copilot Chat and C# Dev Kit versions, in the results sheet.
-7. Check that the spike services resolve privately (each prints a `10.10.n.128/27` address):
+8. Check that the spike services resolve privately (each prints a `10.10.n.128/27` address):
 
    ```powershell
    'stuni<suffix>b06.blob.core.windows.net','sbns-uni-<suffix>-b06.servicebus.windows.net','cruni<suffix>b06.azurecr.io','kv-uni-<suffix>-b06.vault.azure.net' | ForEach-Object { Resolve-DnsName $_ -Type A | Where-Object IPAddress | Select-Object -Last 1 Name, IPAddress }
@@ -140,7 +152,7 @@ Model: planning with the most capable model (Opus- or Sol-class); execution with
 
 Do the four tasks in this order. For each one, start it from the **TASKS - .NET** section of the **GitHub Copilot modernization** view, or from the assessment report's **Run Task** button, or in Copilot Chat with the `modernize` agent and a `migrate from <source> to <target>` prompt. Record which way you used. Add the prompt below to the chat when the task asks for input, or send it as the first message. Review the `plan.md` and `progress.md` it writes before you reply `continue`. After each task: build, run, commit.
 
-Before 4.2, sign in with the Azure CLI (`az login`) in the same terminal VS Code uses, so `DefaultAzureCredential` finds your account locally.
+Before 4.2, check that you're signed in with the Azure CLI (`az account show`) and that `AZURE_TOKEN_CREDENTIALS` is `AzureCliCredential` in the terminal VS Code uses (`$env:AZURE_TOKEN_CREDENTIALS`), so `DefaultAzureCredential` uses your account locally (step 1.3).
 
 ### 4.1 Database with managed identity
 
@@ -291,3 +303,12 @@ In Copilot CLI, install the modernization plugin once:
 ```
 
 Then start it with the modernize agent from `app/ContosoUniversity` (`copilot --agent=github-copilot-modernization:modernize`) and prompt `assess my application`. Stop when it asks **Proceed to planning?**. Copy its report into `docs/spikes/B06-ghcp-golden-path/assessment/run1-cli/` on the run branch, then delete the scratch branch.
+
+## Changes in v2
+
+Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fixes given to the owner at the start of the run.
+
+| Step | Change | Run 1 finding |
+|---|---|---|
+| 1.2 | Sign in with device code flows: `az login --use-device-code` and `gh auth login --web` with the code entered at `github.com/login/device`, both completed on the attendee's own device | Browser sign-in inside the Bastion session is awkward and has no passkeys or password managers. Some tenants block device code flow with Conditional Access |
+| 1.3, 4.2 | Set the user environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` on `vm-dev01` | `vm-dev01` has a system-assigned managed identity. `DefaultAzureCredential` tries it before `AzureCliCredential`, so the app gets a VM token with no data roles and fails with 403 on Blob, Service Bus and Key Vault. The roles stay on the user (owner decision) |
