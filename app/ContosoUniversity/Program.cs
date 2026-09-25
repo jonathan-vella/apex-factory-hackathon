@@ -9,8 +9,16 @@ using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+var applicationInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+if (string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
+{
+    applicationInsightsConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+}
+
 var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
 if (!string.IsNullOrWhiteSpace(keyVaultUri))
 {
@@ -51,20 +59,38 @@ builder.Services.AddSingleton<NotificationService>(serviceProvider =>
         serviceProvider.GetRequiredService<ServiceBusClient>(),
         serviceBusQueueName,
         serviceProvider.GetRequiredService<ILogger<NotificationService>>()));
-builder.Services.AddOpenTelemetry()
-    .UseAzureMonitor(options =>
-    {
-        var configuredConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
-        if (!string.IsNullOrWhiteSpace(configuredConnectionString))
-        {
-            options.ConnectionString = configuredConnectionString;
-        }
-    });
+var openTelemetry = builder.Services.AddOpenTelemetry();
+if (!string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
+{
+    openTelemetry.UseAzureMonitor(options =>
+        options.ConnectionString = applicationInsightsConnectionString);
+}
+else
+{
+    openTelemetry
+        .WithTracing(tracing => tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation()
+            .AddConsoleExporter())
+        .WithMetrics(metrics => metrics
+            .AddMeter(
+                "Microsoft.AspNetCore.Hosting",
+                "Microsoft.AspNetCore.Server.Kestrel",
+                "System.Net.Http",
+                "System.Runtime")
+            .AddConsoleExporter());
+}
+
 builder.Logging.AddOpenTelemetry(options =>
 {
     options.IncludeFormattedMessage = true;
     options.IncludeScopes = true;
     options.ParseStateValues = true;
+    if (string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
+    {
+        options.AddConsoleExporter();
+    }
 });
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
