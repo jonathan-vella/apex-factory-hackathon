@@ -29,13 +29,20 @@ ContosoUniversity/
 
 ## Configuration
 
-`ConnectionStrings:DefaultConnection` is read from ASP.NET Core configuration.
-The checked-in default preserves the original LocalDB development setting;
-environment variables and .NET user secrets can override it. For example:
+`ConnectionStrings:DefaultConnection` is read from ASP.NET Core runtime
+configuration. No database connection string is checked in. For local
+development, provide it through .NET user secrets:
 
 ```powershell
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<connection-string>" --project .\ContosoUniversity.csproj
 ```
+
+Hosted environments should provide `ConnectionStrings__DefaultConnection`
+through platform configuration. The application passes the supplied value
+unchanged to EF Core and the SQL client. SQL-authentication connection strings
+provided through user secrets are not converted to managed identity. The SQL
+client uses its default Azure credential chain only when the supplied string
+explicitly contains `Authentication=Active Directory Default`.
 
 The request-body limit (10 MB) and request timeout (one hour) are represented
 in `appsettings.json`. The course-image validation remains limited to 5 MB and
@@ -43,8 +50,8 @@ the existing supported image extensions.
 
 ## Run locally
 
-Install the .NET 10 SDK and a SQL Server instance. On Windows with LocalDB
-available, run:
+Install the .NET 10 SDK and configure `ConnectionStrings:DefaultConnection`
+with a SQL Server endpoint reachable from your development environment:
 
 ```powershell
 dotnet restore
@@ -53,12 +60,13 @@ dotnet run
 
 The application initializes the database and seeds sample data when
 `Database:InitializeOnStartup` is not set to `false`. Set the connection string
-through configuration when using a database other than LocalDB.
+through user secrets or another runtime configuration provider before starting
+the application.
 
-The project is cross-platform and is suitable for a Linux container host. The
-LocalDB default is for local development only; provide the hosted SQL
-connection string through App Service configuration or another runtime
-configuration provider.
+The project is cross-platform and is suitable for a Linux container host.
+Provide the hosted Managed Instance connection through App Service
+configuration or another runtime configuration provider; do not add it to the
+checked-in application settings.
 
 ## Features
 

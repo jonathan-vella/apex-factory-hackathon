@@ -6,10 +6,18 @@
 - A reachable SQL Server instance and a configured
   `ConnectionStrings:DefaultConnection`
 
-On Windows with SQL Server LocalDB available, the checked-in development
-connection string can be used. Override it with .NET user secrets or the
-`ConnectionStrings__DefaultConnection` environment variable for other
-instances.
+The repository does not include a database connection string. For local
+development, store the appropriate connection string in .NET user secrets:
+
+```powershell
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<connection-string>" --project .\ContosoUniversity.csproj
+```
+
+Hosted environments should supply `ConnectionStrings__DefaultConnection`
+through platform configuration. The application passes the supplied string
+through unchanged: SQL authentication remains SQL authentication, and the SQL
+client's default Azure credential chain is used only when the value explicitly
+contains `Authentication=Active Directory Default`.
 
 ## Build and run
 
