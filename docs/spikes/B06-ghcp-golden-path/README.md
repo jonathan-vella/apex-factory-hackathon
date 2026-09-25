@@ -27,7 +27,8 @@ Pending.
 Run 1, step 1 (set up), found before any Copilot step:
 
 1. **Managed identity trap on `vm-dev01`.** The VM has a system-assigned managed identity, and `DefaultAzureCredential` tries `ManagedIdentityCredential` before `AzureCliCredential`. The app would get the VM's token, which has no data roles, and fail with 403 on Blob, Service Bus and Key Vault. Fix: set the user environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` on `vm-dev01` only ([Credential chains in the Azure Identity library for .NET](https://learn.microsoft.com/dotnet/azure/sdk/authentication/credential-chains)); the deployed app still uses its managed identity. The owner kept the data roles on the user rather than giving them to the VM identity. In protocol v2, step 1.3.
-2. **Sign-in through Bastion.** Browser sign-in inside the Bastion session is awkward, and passkeys and password managers don't work there. Fix: device code flows (`az login --use-device-code`, and `gh auth login --web` with the code entered at `github.com/login/device`), completed on the attendee's own device. Some tenants block device code flow with Conditional Access. In protocol v2, step 1.2.
+2. **No git identity for a fresh VM user.** The first commit fails with `Author identity unknown`. Fix: right after `gh auth login`, set `user.name` and a GitHub no-reply `user.email` from `gh api user`, and run `gh auth setup-git` so `git push` uses the gh sign-in. In protocol v2, step 1.2.
+3. **Sign-in through Bastion.** Browser sign-in inside the Bastion session is awkward, and passkeys and password managers don't work there. Fix: device code flows (`az login --use-device-code`, and `gh auth login --web` with the code entered at `github.com/login/device`), completed on the attendee's own device. Some tenants block device code flow with Conditional Access. In protocol v2, step 1.2.
 
 The rest is pending run 1.
 
@@ -46,6 +47,6 @@ None yet.
 
 ## Follow-ups
 
-- **B11 attendee guides:** sign in on `vm-dev01` with device code flows (`az login --use-device-code`, `gh auth login --web` with the code at `github.com/login/device`), completed on the attendee's own device, and say that some tenants block device code flow with Conditional Access. After `az login`, the attendee picks their own workload subscription (the one that holds `rg-datacenter`) in the subscription picker and checks it with `az account show --query name -o tsv`; guides never hard-code a subscription.
+- **B11 attendee guides:** sign in on `vm-dev01` with device code flows (`az login --use-device-code`, `gh auth login --web` with the code at `github.com/login/device`), completed on the attendee's own device, and say that some tenants block device code flow with Conditional Access. After `az login`, the attendee picks their own workload subscription (the one that holds `rg-datacenter`) in the subscription picker and checks it with `az account show --query name -o tsv`; guides never hard-code a subscription. Right after `gh auth login`, set the git identity from the GitHub account with the no-reply email (`<id>+<login>@users.noreply.github.com`) and run `gh auth setup-git`, because a fresh VM user has no git identity and the first commit fails with `Author identity unknown`.
 
 The rest is pending the runs.

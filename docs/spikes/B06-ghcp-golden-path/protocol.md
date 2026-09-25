@@ -61,6 +61,15 @@ Use these configuration keys in every step, so both runs and the archetype (B09)
    az login --use-device-code          # enter the code at https://microsoft.com/devicelogin
    ```
 
+   **(v2)** Right after `gh auth login`, give git your GitHub identity and let `git push` use the gh sign-in. A fresh VM user has no git identity, so without this the first commit fails with `Author identity unknown`. The no-reply email keeps your personal address out of commits:
+
+   ```powershell
+   $u = gh api user | ConvertFrom-Json
+   git config --global user.name ($u.name ?? $u.login)
+   git config --global user.email "$($u.id)+$($u.login)@users.noreply.github.com"
+   gh auth setup-git
+   ```
+
    After sign-in, the Azure CLI shows a subscription picker. Pick your own workload subscription, the one that holds `rg-datacenter`. Then check it:
 
    ```powershell
@@ -341,3 +350,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | 1.3, 4.2 | Set the user environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` on `vm-dev01` | `vm-dev01` has a system-assigned managed identity. `DefaultAzureCredential` tries it before `AzureCliCredential`, so the app gets a VM token with no data roles and fails with 403 on Blob, Service Bus and Key Vault. The roles stay on the user (owner decision) |
 | 1.4, 1.5 | Step 1 handles a fresh clone and an existing clean clone. An earlier hand-run assessment in the clone is moved aside, not saved into the spike folder | The owner's clone was gone before run 1, so run 1 used a fresh clone and the 2026-09-24 manual assessment was lost |
 | Rules, 1.7, 1.9, 7 | Recording is automated: times come from commit timestamps (a step starts at the previous commit, and step 1 now ends with a commit); versions go in `runN-versions.txt`; prompts and models in `chats/runN-step<step>.json` exported with **Chat: Export Chat…**; manual fixes as one line each in the commit body. The executor fills in the results sheet and checks the exports for secrets | Owner decision at the start of run 1, so the owner doesn't fill in the sheet by hand |
+| 1.2 | Right after `gh auth login`, set the git identity from `gh api user` with the GitHub no-reply email, and run `gh auth setup-git` | A fresh VM user has no git identity, so the first commit failed with `Author identity unknown` |
