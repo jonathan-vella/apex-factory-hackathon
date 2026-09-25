@@ -1,8 +1,7 @@
 ---
 name: modernize-plan
-description: 'B06: plan the Contoso University modernization (.NET 10 first, then database, Blob, Service Bus, Key Vault)'
-agent: modernize
-model: ["GPT-6 Sol (copilot)"]
+description: 'Plan the B06 Contoso University modernization in app/ContosoUniversity: .NET 10 first, then database with managed identity, Blob, Service Bus and Key Vault, against existing Azure resources supplied by configuration. Use when starting the C6 modernization plan with the modernize agent.'
+disable-model-invocation: true
 ---
 
 # Plan the Contoso University modernization

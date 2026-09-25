@@ -1,8 +1,7 @@
 ---
 name: modernize-execute
-description: 'B06: execute the reviewed Contoso University modernization plan'
-agent: modernize
-model: ["GPT-6 Luna (copilot)"]
+description: 'Execute the reviewed B06 Contoso University modernization plan in .github/modernize task by task, building after each task. Use after the modernize-plan output has been reviewed.'
+disable-model-invocation: true
 ---
 
 # Execute the reviewed modernization plan
