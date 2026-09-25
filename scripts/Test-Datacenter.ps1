@@ -149,7 +149,7 @@ if ($results.Count -eq 0) {
     Add-Result -Check 'azure: no public IPs except pip-nat-datacenter' -Pass ($unexpected.Count -eq 0) -Detail ($publicIps -join ', ')
 
     if ($appVm -and $appVm.powerState -eq 'VM running') {
-        Invoke-VmCheck -Name 'vm-app01' -Script 'Test-AppVm.ps1' -Parameters @('MinStudents=8')
+        Invoke-VmCheck -Name 'vm-app01' -Script 'Test-AppVm.ps1' -Parameters @('MinStudents=8', 'TargetStudents=200000', 'TargetEnrollments=2000000')
     }
     if ($devVm -and $devVm.powerState -eq 'VM running') {
         Invoke-VmCheck -Name 'vm-dev01' -Script 'Test-DevVm.ps1' -Parameters @("AppVmIp=$appVmIp")

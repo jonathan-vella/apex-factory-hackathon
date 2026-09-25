@@ -106,6 +106,7 @@ module appConfig 'modules/app-vm-config.bicep' = {
     scriptsBaseUrl: scriptsBaseUrl
     appVmIp: appVmIp
     packageUrl: packageUrl
+    perfKitBaseUrl: replace(scriptsBaseUrl, '/infra/datacenter/scripts', '/db/perf-kit/sql')
     adminUsername: adminUsername
     sqlAppPassword: sqlAppPassword
     adminPassword: adminPassword
