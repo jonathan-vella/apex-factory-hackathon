@@ -37,6 +37,7 @@ Run 1, steps 1 (set up) and 2 (assess):
 9. **"Projects: 1 error"** in the C# Dev Kit status bar on the legacy .NET Framework project before the upgrade is expected.
 10. **Create Plan abandoned for the prompt files.** Run 1's first **Create Plan** attempt and its correction chat were stopped. The owner copied `.github/prompts` from the working branch onto `spike/b06-run1` and continued with `/modernize-plan` and `/modernize-execute`, so run 1 also uses the pinned agent and models. Reasoning effort is set in the model picker: Medium for GPT-6 Sol, maximum for GPT-6 Luna.
 11. **`reasoning-effort` breaks prompt files.** A `reasoning-effort:` line in the prompt-file frontmatter stopped both prompt files from working in VS Code on `vm-dev01`. The owner removed it (`spike/b06-run1` commit `4508c6d`), and reasoning effort is set in the model picker instead: Sol Medium, Luna maximum.
+12. **Slash command didn't run the prompt file.** Typing `/modernize-plan` in chat didn't work; opening the prompt file and selecting **▶ Run Prompt** (or **Chat: Run Prompt**) did. Protocol v2 makes **Run Prompt** the primary way, with the slash command as the alternative.
 
 The rest is pending run 1.
 
