@@ -7,7 +7,7 @@
 | Depends on | B04 |
 | Unblocks | B07, B09, B10 |
 | Effort | 2–3 days elapsed, including two owner-driven runs of about 3–4 hours each |
-| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.25/hour |
+| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.55/hour |
 | Teardown | Delete `rg-spike-b06` and `snet-pe-spike` at the end. **Keep** `rg-datacenter` for B07 |
 | PRD | §5 C3, C6; §6 App modernization; §8 GHCP risk |
 
