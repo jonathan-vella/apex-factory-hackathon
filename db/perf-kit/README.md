@@ -88,4 +88,4 @@ It takes the same `Server`, `MemberIndex` and `Authentication` parameters as the
 
 - **Compatibility level 110** also turns off scalar UDF inlining and batch mode on rowstore, so it makes P4 worse. That's intended: fixing P5 partly helps P4.
 - **Run commands stop working after Arc onboarding** (B07), so the deployment's install and `Test-Datacenter.ps1`'s in-VM checks have to happen before it. The workload and the reset don't use run commands.
-- **The data is small.** 200,000 students and 2 million enrollments fit in a few hundred MB. The issues come from plan shapes, not size, and a small database seeds MI link quickly.
+- **The data is small.** 200,000 students and 2 million enrollments use about 120 MB. The issues come from plan shapes, not size, and a small database seeds MI link quickly.

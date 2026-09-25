@@ -19,3 +19,4 @@ This manifest records the versions and source commit used by the kit. Tooling ve
 | SSMS | `22.10.1` | `vm-dev01` (B04) | 2026-09-24 |
 | .NET 10 SDK | `10.0.401` | `vm-dev01` (B04) | 2026-09-24 |
 | Bicep | CLI `0.47.16` | Datacenter Bicep build, `vm-dev01` (B04) | 2026-09-24 |
+| SqlServer PowerShell module | `22.4.5.1`, latest from the PowerShell Gallery at run time (22.0 or later) | `db/perf-kit` workload and reset on `vm-dev01` (B05) | 2026-09-25 |
