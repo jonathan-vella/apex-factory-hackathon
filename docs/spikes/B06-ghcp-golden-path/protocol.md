@@ -292,25 +292,21 @@ If the project needs container properties (for example `ContainerBaseImage` or `
 
 ### C.2 Assess and plan
 
+**(v2, the owner's method)** Use the Upgrade agent's stateful, dashboard-compatible `dotnet-version-upgrade` scenario, in the **Copilot** harness. Left to itself, the Upgrade agent picks the `azure-migrate` scenario, which hands assessment and planning to GitHub Copilot modernization's App Modernization session, and that fails with modernize disabled. The prompt forces `dotnet-version-upgrade` under `.github/upgrades/dotnet-version-upgrade/`, which the Upgrade dashboard can open.
+
 > [!WARNING]
-> **BEFORE you send:** start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Sol** with reasoning **Medium**, as for run 1's planning. The chat uses whatever is selected. The pickers sit at the bottom of the chat input box.
+> **BEFORE you send:** in the Chat panel, set the harness (**Session Target**) to **Copilot**, not **Local**. Start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Sol** with reasoning **Medium**, as for run 1's planning. The chat uses whatever is selected. The pickers sit at the bottom of the chat input box.
 
-1. ⚠️ **BEFORE you send:** new chat, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
-2. Send the assessment and planning prompt. It uses the same seven kit rules as run 1's planning prompt (step 3.2 of this protocol):
-
-   ```text
-   Assess app/ContosoUniversity and create an upgrade and migration plan, following these rules exactly:
-   1. First task: upgrade app/ContosoUniversity to .NET 10 and ASP.NET Core MVC (SDK-style project, PackageReference, Web.config settings to appsettings.json, keep controllers, views and the EF Core model). Every other task depends on it and runs on .NET 10.
-   2. No Microsoft Entra ID user sign-in task. The app has no sign-in; Windows authentication findings come only from IIS Express settings and the LocalDB Integrated Security connection string. Remove it.
-   3. One target per workload: Azure Blob Storage (not Azure Files, no storage mounts) and Azure SQL Managed Instance (not Azure SQL Database). Remove the other alternatives.
-   4. Database: keep local SQL authentication working. When ConnectionStrings:DefaultConnection uses SQL authentication (the on-premises server and contosoapp login, from user secrets) use it as is; use managed identity only when it says Authentication=Active Directory Default.
-   5. Order: .NET 10 upgrade, SQL Managed Instance, Blob and file handling, Service Bus, Key Vault, CVE fixes.
-   6. DefaultAzureCredential everywhere. Storage shared keys and Service Bus SAS are disabled: no keys, SAS tokens or connection strings. Endpoints come from configuration at execution time: Storage:BlobServiceUri, Storage:ContainerName, ServiceBus:FullyQualifiedNamespace, ServiceBus:QueueName, KeyVault:VaultUri.
-   7. Hosting: Azure App Service for Linux (containers). All Azure resources already exist; don't provision or deploy anything.
-   Then show a table with one row per rule (1-7) and how the plan meets it, and say which tasks you can't do. Wait for my review.
-   ```
-
-3. Record which rules and tasks it covers, and where it writes its assessment and plan. Export the chat, then commit and push: `compare: stage 2 assess and plan`.
+1. ⚠️ **BEFORE you send:** harness **Copilot**, new chat, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
+2. Open [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md), copy its whole content and send it. It asks for:
+   - the owning scenario `dotnet-version-upgrade`, never `azure-migrate`, no `start_app_mod_migration_session`, and nothing under `.github/modernize`;
+   - Guided flow, assessment and planning only;
+   - exactly six tasks in a strict chain, with the same kit rules as run 1, including a Linux container definition in task 1 and task 6 kept as a verified no-op if there are no CVEs;
+   - the artifacts `assessment.md`, `plan.md` and `scenario-instructions.md`;
+   - a 7-row compliance table, with blocked validations kept apart from impossible tasks;
+   - a stop before `start_task`.
+3. Check the answer: the artifacts are under `.github\upgrades\dotnet-version-upgrade\`, there's nothing new under `.github\modernize\`, all 7 table rows are met, and the plan opens in the Upgrade dashboard. Record in `compare-upgrade.md` what it covers, anything it lists as blocked or impossible, and whether it changed any file outside `.github\upgrades\`.
+4. Export the chat, then commit and push: `compare: stage 2 assess and plan`.
 
 ### C.3 Upgrade and migrate
 
@@ -365,3 +361,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Gaps | Only OpenTelemetry is left; predefined task, then make Azure Monitor optional | Tasks 001–005 did the other gaps (42, 43) |
 | Comparison | Full end-to-end run with GitHub Copilot upgrade before run 2 | Owner-approved (requirement 11a; findings 19, 30) |
 | Comparison C.1 | Run `git clean -fdx -- app .github` after `git switch` (dry run first) so the tree is pure legacy; GitHub Copilot modernization stays disabled (owner decision), and a stage the Upgrade agent can't do without it is recorded as a result | The first comparison attempt's stage 2 (`a6c358d`) edited run 1's plan folder and loaded run 1's `modernize-plan` skill from leftover files; with modernize disabled, the Upgrade agent's `azure-migrate` scenario couldn't delegate |
+| Comparison C.2 | The owner's prompt file `prompts/compare-upgrade-plan.md` in the **Copilot** harness forces the stateful `dotnet-version-upgrade` scenario (six-task chain, kit rules, dashboard artifacts under `.github/upgrades/`) | The default routing picked `azure-migrate`, which needs GitHub Copilot modernization's session tool. Forcing `dotnet-version-upgrade` makes the Upgrade dashboard work, and only in the Copilot harness |
