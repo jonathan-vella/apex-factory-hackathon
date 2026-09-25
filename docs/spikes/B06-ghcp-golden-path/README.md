@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Date | In progress (started 2026-09-24) |
+| Date | In progress (started 2026-09-24; run 1 done 2026-09-25) |
 | Result | Pending: set after run 2 |
 | Region | swedencentral |
 | Versions | .NET 10 SDK `10.0.401`; GitHub Copilot modernization `1.24.26091501` (marketplace, 2026-09-24); VS Code `1.139.0` on `vm-dev01`. Versions used in each run are in [run1.md](run1.md) and [run2.md](run2.md) |
@@ -20,9 +20,31 @@ Is there a repeatable sequence of GitHub Copilot steps and prompts that takes Co
 
 ## Timings
 
-Pending.
+Run 1, 2026-09-25, wall-clock from the commits (details in [run1.md](run1.md)). Times are UTC+2.
+
+| Stage | Run 1 | Time box |
+|---|---|---|
+| False start (Agent Host, default assessment, **Create Plan**, prompt files) | 09:38–11:03, 85 min | — |
+| C3 assess (custom assessment) | 11:03–11:32, 29 min | 1 h |
+| Plan (`/create-modernization-plan` with the kit rules) | 11:32–11:43, 11 min | C6 |
+| Task 001, .NET 10 upgrade | 59 min, including two blocked starts and a stash recovery | C6 |
+| Task 002, SQL Managed Instance | 14 min | C6 |
+| Task 003, Blob | 37 min, including a stale-tracker retry | C6 |
+| Task 004, Service Bus | 28 min, then 2 h 18 min to find and fix the receive bug (intervention 1), which may include breaks | C6 |
+| Task 005, Key Vault | 75 min, including three blocked starts | C6 |
+| Task 006, CVE fixes | about 18 min | C6 |
+| Step 5.3, OpenTelemetry | about 31 min, including the startup fix (intervention 2) | C6 |
+| Step 6, package | about 3 min | C6 |
+| **C6 total** | **about 6 h 54 min** | **3 h** |
+| **Run 1 total from the reset** | **about 7 h 23 min** (8 h 48 min with the false start) | 4 h |
+
+C3 fits its box. C6 is more than twice its box, mostly because of the execution routine's blocks and the two bugs the agent's validation missed. Run 2 is timed with the refined protocol v2.
+
+Run 2: pending.
 
 ## Findings
+
+Step numbers in findings 1–46 refer to the protocol as it stood during run 1. [Protocol v2](protocol.md) was then rewritten as a clean sequence for run 2; its [Changes from v1](protocol.md#changes-from-v1) table maps each change back to these findings.
 
 Run 1, steps 1 (set up) and 2 (assess):
 
@@ -71,7 +93,10 @@ Run 1, steps 1 (set up) and 2 (assess):
 42. **Step 5 gaps after the plan's tasks:** most were done as side effects of tasks 001–005. On `spike/b06-run1` at `42edc36`: `Global.asax` and `App_Start` are gone ✅; `NotificationService` comes from dependency injection (a factory registration in `Program.cs`) ✅; the `Site.css` file name and its references match (`wwwroot/Content/Site.css` and `~/Content/Site.css`) ✅; no `System.Web` or MSMQ references ✅. **Trace to OpenTelemetry is the only gap left** ❌: 6 `Trace` and `Debug` calls, and no OpenTelemetry. The owner does it next, trying the predefined task first (step 5.3).
 43. **Step 5.3, Trace to OpenTelemetry: the predefined task covers it.** The dashboard task **Tasks** > **.NET** > **Logging or Observability Tasks** > **Migrate Logging or Observability to OpenTelemetry on Azure** ran with `modernize` and GPT-6 Luna at maximum. It added the Azure Monitor and OpenTelemetry packages (aligned to Azure Monitor 1.6.0 and OpenTelemetry 1.15.x after a first build failed on the knowledge base's versions), registered telemetry in `Program.cs`, moved the Application Insights settings to `appsettings.json`, and replaced `Debug.WriteLine` and `Trace.TraceError` with `ILogger`. So yes, it covers `System.Diagnostics.Trace`. Its validations passed. The tool used `prepareBranch` and `commitChanges` again: `appmod/dotnet-opentelemetry-azure-<timestamp>` at `60c168d`, which the owner fast-forwards into `spike/b06-run1`. **Live check failed (hot spot, intervention 2).** After the task (`spike/b06-run1` at `60c168d` plus the `docs/prd.md` revert `71f9d4a`), the app crashes at startup: "Unhandled exception. System.InvalidOperationException: A connection string was not found. Please set your connection string." at `Program.cs` line 100. The predefined task registers Azure Monitor unconditionally, so the app needs `APPLICATIONINSIGHTS_CONNECTION_STRING` to start at all. Its own validation passed ("Consistency 0 issues, Completeness passed") without ever starting the app. The owner sent a fix prompt: register Azure Monitor only when `APPLICATIONINSIGHTS_CONNECTION_STRING` or `ApplicationInsights:ConnectionString` is set, and use the OpenTelemetry console exporters otherwise. **Retest passed** (`spike/b06-run1` at `0c35abc`): the app starts and the pages work without the setting, and `docs/prd.md` matches the run's start commit. The benign `fail: … TaskCanceledException` (499) on a cancelled poll was seen in the run before the task, where the app started fine: it looks alarming but isn't an error.
 44. **The agent edited a kit file outside the app (hot spot).** The OpenTelemetry task also changed `docs/prd.md` ("Removed the remaining legacy logging reference from prd.md"): its completeness check scans the whole repo, kit docs included. The owner reverted it on the run branch. Protocol v2 now ends every prompt with "Scope: app/ContosoUniversity only; never edit files outside it" and checks for changes outside `app/` and `.github/modernize/` before each commit. In the attendees' own repos the kit docs are there too, so B10's playbook needs the same scope rule.
-The rest is pending run 1.
+45. **Step 6, package: no intervention.** SDK container publishing pushed `contoso-university:run1` to `cruni<suffix>b06` over the private endpoint in about 3 minutes, with no repo changes. The owner's `az acr repository show-tags` on `vm-dev01` returns `run1`; from outside the VNet only the control plane answers (127 MB stored).
+46. **Run 1 requirement 12 checks: all pass** (`spike/b06-run1` at `0c35abc`). `dotnet build -c Release` on the .NET 10 SDK (10.0.401) in a clean clone on `vm-dev01`: 0 warnings, 0 errors. No `System.Web`, `System.Messaging` or MSMQ references. The image tag `run1` exists. No secrets in the diff from `da4e5f6`: the only GUID is the project's `UserSecretsId`. The owner's live checks: the five pages, the Blob upload, the Service Bus round trip (after intervention 1), Key Vault, and startup without Application Insights (after intervention 2). Run 1 reached a packaged image with **2 code interventions**, both small once found, plus 2 git recoveries.
+
+Run 2: pending.
 
 **False start and reset.** Findings 4–14 come from run 1's false start: the assessment and **Create Plan** in the Agent Host harness, then prompt files that Agent Host didn't load. The owner then reset run 1 (commit `run1: reset for a fresh start in the Local harness`, removing the plan folders and `assessment/run1`) and redid steps 2 and 3 in the Local harness. Run 1's step times count from that reset commit.
 
