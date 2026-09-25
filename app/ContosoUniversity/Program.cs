@@ -1,12 +1,27 @@
+using Azure.Identity;
+using Azure.Messaging.ServiceBus;
 using ContosoUniversity.Data;
 using ContosoUniversity.Services;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("ConnectionStrings:DefaultConnection must be configured.");
+var serviceBusNamespace = builder.Configuration["ServiceBus:FullyQualifiedNamespace"];
+if (string.IsNullOrWhiteSpace(serviceBusNamespace))
+{
+    throw new InvalidOperationException("ServiceBus:FullyQualifiedNamespace must be configured.");
+}
+
+var serviceBusQueueName = builder.Configuration["ServiceBus:QueueName"];
+if (string.IsNullOrWhiteSpace(serviceBusQueueName))
+{
+    throw new InvalidOperationException("ServiceBus:QueueName must be configured.");
+}
+
 var requestBodyLimit = builder.Configuration.GetValue<long>("Kestrel:Limits:MaxRequestBodySize");
 var requestTimeout = TimeSpan.FromSeconds(builder.Configuration.GetValue<int>("RequestTimeoutSeconds"));
 
@@ -18,7 +33,13 @@ builder.Services.AddRequestTimeouts(options =>
 });
 builder.Services.AddDbContext<SchoolContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddSingleton<ITeachingMaterialImageStorage, BlobTeachingMaterialImageStorage>();
-builder.Services.AddSingleton<NotificationService>();
+builder.Services.AddSingleton<ServiceBusClient>(_ =>
+    new ServiceBusClient(serviceBusNamespace, new DefaultAzureCredential()));
+builder.Services.AddSingleton<NotificationService>(serviceProvider =>
+    new NotificationService(
+        serviceProvider.GetRequiredService<ServiceBusClient>(),
+        serviceBusQueueName,
+        serviceProvider.GetRequiredService<ILogger<NotificationService>>()));
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 

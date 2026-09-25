@@ -1,25 +1,56 @@
 using System;
-using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Collections.Generic;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using ContosoUniversity.Models;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Services
 {
-    public class NotificationService
+    public class NotificationService : IAsyncDisposable
     {
-        // Temporary cross-platform transport; task 004 replaces it with Azure Service Bus.
-        private readonly ConcurrentQueue<Notification> _notifications = new();
+        private readonly ServiceBusSender _sender;
+        private readonly ServiceBusReceiver _receiver;
+        private readonly ILogger<NotificationService> _logger;
 
-        public void SendNotification(string entityType, string entityId, EntityOperation operation, string userName = null)
+        public NotificationService(
+            ServiceBusClient serviceBusClient,
+            string queueName,
+            ILogger<NotificationService> logger)
         {
-            SendNotification(entityType, entityId, null, operation, userName);
+            if (string.IsNullOrWhiteSpace(queueName))
+            {
+                throw new ArgumentException("A Service Bus queue name is required.", nameof(queueName));
+            }
+
+            _sender = serviceBusClient.CreateSender(queueName);
+            _receiver = serviceBusClient.CreateReceiver(
+                queueName,
+                new ServiceBusReceiverOptions { ReceiveMode = ServiceBusReceiveMode.ReceiveAndDelete });
+            _logger = logger;
         }
 
-        public void SendNotification(string entityType, string entityId, string entityDisplayName, EntityOperation operation, string userName = null)
+        public Task SendNotificationAsync(
+            string entityType,
+            string entityId,
+            EntityOperation operation,
+            string userName = null)
+        {
+            return SendNotificationAsync(entityType, entityId, null, operation, userName);
+        }
+
+        public async Task SendNotificationAsync(
+            string entityType,
+            string entityId,
+            string entityDisplayName,
+            EntityOperation operation,
+            string userName = null)
         {
             try
             {
-                _notifications.Enqueue(new Notification
+                var notification = new Notification
                 {
                     EntityType = entityType,
                     EntityId = entityId,
@@ -28,22 +59,57 @@ namespace ContosoUniversity.Services
                     CreatedAt = DateTime.Now,
                     CreatedBy = userName ?? "System",
                     IsRead = false
-                });
+                };
+                var message = new ServiceBusMessage(JsonSerializer.Serialize(notification))
+                {
+                    ContentType = "application/json"
+                };
+
+                await _sender.SendMessageAsync(message);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Failed to send notification: {ex.Message}");
+                _logger.LogError(
+                    ex,
+                    "Failed to send notification for {EntityType} {EntityId}",
+                    entityType,
+                    entityId);
             }
         }
 
-        public Notification ReceiveNotification()
+        public async Task<IReadOnlyList<Notification>> ReceiveNotificationsAsync(
+            int maxMessages,
+            CancellationToken cancellationToken = default)
         {
-            return _notifications.TryDequeue(out var notification) ? notification : null;
+            var messages = await _receiver.ReceiveMessagesAsync(
+                maxMessages,
+                TimeSpan.Zero,
+                cancellationToken);
+            var notifications = new List<Notification>(messages.Count);
+
+            foreach (var message in messages)
+            {
+                var notification = JsonSerializer.Deserialize<Notification>(message.Body.ToString());
+                if (notification == null)
+                {
+                    throw new JsonException("A Service Bus message did not contain a notification.");
+                }
+
+                notifications.Add(notification);
+            }
+
+            return notifications;
         }
 
         public void MarkAsRead(int notificationId)
         {
-            // The original queue implementation did not persist read status.
+            // The existing notification flow does not persist read status.
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _sender.DisposeAsync();
+            await _receiver.DisposeAsync();
         }
 
         private string GenerateMessage(string entityType, string entityId, string entityDisplayName, EntityOperation operation)

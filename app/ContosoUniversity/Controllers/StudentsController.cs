@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
@@ -95,7 +96,7 @@ namespace ContosoUniversity.Controllers
         // POST: Students/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind("LastName,FirstMidName,EnrollmentDate")] Student student)
+        public async Task<ActionResult> Create([Bind("LastName,FirstMidName,EnrollmentDate")] Student student)
         {
             try
             {
@@ -118,7 +119,7 @@ namespace ContosoUniversity.Controllers
                     
                     // Send notification for student creation
                     var studentName = $"{student.FirstMidName} {student.LastName}";
-                    SendEntityNotification("Student", student.ID.ToString(), studentName, EntityOperation.CREATE);
+                    await SendEntityNotificationAsync("Student", student.ID.ToString(), studentName, EntityOperation.CREATE);
                     
                     return RedirectToAction("Index");
                 }
@@ -149,7 +150,7 @@ namespace ContosoUniversity.Controllers
         // POST: Students/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind("ID,LastName,FirstMidName,EnrollmentDate")] Student student)
+        public async Task<ActionResult> Edit([Bind("ID,LastName,FirstMidName,EnrollmentDate")] Student student)
         {
             try
             {
@@ -172,7 +173,7 @@ namespace ContosoUniversity.Controllers
                     
                     // Send notification for student update
                     var studentName = $"{student.FirstMidName} {student.LastName}";
-                    SendEntityNotification("Student", student.ID.ToString(), studentName, EntityOperation.UPDATE);
+                    await SendEntityNotificationAsync("Student", student.ID.ToString(), studentName, EntityOperation.UPDATE);
                     
                     return RedirectToAction("Index");
                 }
@@ -203,7 +204,7 @@ namespace ContosoUniversity.Controllers
         // POST: Students/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int id)
+        public async Task<ActionResult> DeleteConfirmed(int id)
         {
             try
             {
@@ -213,7 +214,7 @@ namespace ContosoUniversity.Controllers
                 db.SaveChanges();
                 
                 // Send notification for student deletion
-                SendEntityNotification("Student", id.ToString(), studentName, EntityOperation.DELETE);
+                await SendEntityNotificationAsync("Student", id.ToString(), studentName, EntityOperation.DELETE);
                 
                 return RedirectToAction("Index");
             }

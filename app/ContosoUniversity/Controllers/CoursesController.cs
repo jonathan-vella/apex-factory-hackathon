@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Microsoft.AspNetCore.Http;
@@ -108,7 +109,7 @@ namespace ContosoUniversity.Controllers
                 await db.SaveChangesAsync(cancellationToken);
                 
                 // Send notification for course creation
-                SendEntityNotification("Course", course.CourseID.ToString(), course.Title, EntityOperation.CREATE);
+                await SendEntityNotificationAsync("Course", course.CourseID.ToString(), course.Title, EntityOperation.CREATE);
                 
                 return RedirectToAction("Index");
             }
@@ -207,7 +208,7 @@ namespace ContosoUniversity.Controllers
                 }
                 
                 // Send notification for course update
-                SendEntityNotification("Course", course.CourseID.ToString(), course.Title, EntityOperation.UPDATE);
+                await SendEntityNotificationAsync("Course", course.CourseID.ToString(), course.Title, EntityOperation.UPDATE);
                 
                 return RedirectToAction("Index");
             }
@@ -251,7 +252,7 @@ namespace ContosoUniversity.Controllers
             await db.SaveChangesAsync(cancellationToken);
             
             // Send notification for course deletion
-            SendEntityNotification("Course", id.ToString(), courseTitle, EntityOperation.DELETE);
+            await SendEntityNotificationAsync("Course", id.ToString(), courseTitle, EntityOperation.DELETE);
             
             return RedirectToAction("Index");
         }
