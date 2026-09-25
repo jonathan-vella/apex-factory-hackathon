@@ -159,8 +159,8 @@ Model: balanced (Sonnet- or Terra-class).
 
 Model: planning with the most capable model (Opus- or Sol-class); execution with an efficient model at maximum reasoning effort (Luna-class).
 
-1. In Copilot Chat, pick the `modernize` agent in the agent picker, and the planning model.
-2. Prompt:
+1. Pick the planning model in the Copilot Chat model picker **first**, before you start the upgrade.
+2. **(v2) Start it from the dashboard (primary path).** In the **GitHub Copilot modernization** view, under **QUICKSTART**, select **Upgrade to a newer version of .NET** (it may be labelled **Upgrade Runtime & Frameworks**) and choose **.NET 10** as the target. It opens a Copilot Chat session. When it asks for input, or as your first reply, send the constraints:
 
    ```text
    Upgrade app/ContosoUniversity to .NET 10 and ASP.NET Core MVC. Convert the project to SDK-style,
@@ -169,6 +169,9 @@ Model: planning with the most capable model (Opus- or Sol-class); execution with
    Plan first and wait for my review before you change code.
    ```
 
+   **Alternative:** in Copilot Chat, pick the `modernize` agent in the agent picker and send the same text as the first prompt.
+
+   The step runs in chat, so export the chat before the commit. In the commit body, note `started from dashboard` (or `started from chat`) and both models, planning and execution.
 3. Review the assessment and plan files it writes. Edit them if something is wrong, and note what you changed.
 4. Switch to the execution model, then reply `continue` (or the button it offers) until it finishes. Keep the changes it proposes when they build.
 5. Check: `dotnet build app/ContosoUniversity` passes on the .NET 10 SDK. Point the app at the source database for a first run:
@@ -352,3 +355,4 @@ Run 1 findings folded into the protocol for run 2. Run 1 used v1, with these fix
 | Rules, 1.7, 1.9, 7 | Recording is automated: times come from commit timestamps (a step starts at the previous commit, and step 1 now ends with a commit); versions go in `runN-versions.txt`; prompts and models in `chats/runN-step<step>.json` exported with **Chat: Export Chat…**; manual fixes as one line each in the commit body. The executor fills in the results sheet and checks the exports for secrets | Owner decision at the start of run 1, so the owner doesn't fill in the sheet by hand |
 | 1.2 | Right after `gh auth login`, set the git identity from `gh api user` with the GitHub no-reply email, and run `gh auth setup-git` | A fresh VM user has no git identity, so the first commit failed with `Author identity unknown` |
 | Rules, 2, 7 | The chat export is needed only for steps prompted in Copilot Chat. For a step run only from the modernization view, the commit body says so and the model is *extension default, not selectable* | The owner ran step 2 from the assessment dashboard, with no chat and no model picker |
+| 3 | Pick the planning model first, then start the upgrade from the dashboard (**QUICKSTART** > **Upgrade to a newer version of .NET**, target .NET 10) and send the constraints as a chat reply; the `modernize` agent chat prompt is the alternative. Chat export needed; the commit body records the start route and both models | The owner started run 1's upgrade from the dashboard |
