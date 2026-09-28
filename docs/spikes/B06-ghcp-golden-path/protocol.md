@@ -323,11 +323,11 @@ If the project needs container properties (for example `ContainerBaseImage` or `
 ### C.3 Upgrade and migrate
 
 > [!WARNING]
-> **BEFORE you send:** start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Luna** with reasoning **maximum**, as for run 1's execution.
+> **BEFORE you run a task: switch the harness (Session Target) to LOCAL.** Planning works in the Copilot harness, but task execution doesn't: there, `start_task` fails with "plan.md exists but could not be parsed into tasks… internal LLM client unavailable". The Upgrade MCP server's plan parser needs a model through MCP sampling, which VS Code provides only in the **Local** harness. Once, give it access: **MCP: List Servers** > **Upgrade** > **Configure Model Access**. Then start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Luna** with reasoning **maximum**, as for run 1's execution.
 
 For each of the plan's seven tasks in order (.NET 10 upgrade, SQL Managed Instance, Blob, Service Bus, Key Vault, OpenTelemetry, CVE fixes):
 
-1. ⚠️ **BEFORE you send:** new chat, agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
+1. ⚠️ **BEFORE you send:** harness **Local** (not Copilot), new chat, agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
 2. Ask it to do that stage of its plan, for example `Do the .NET 10 upgrade task of your plan, and nothing else.` If it says a stage is out of its scope, don't force it: record that and go on to the next stage.
 3. Build, run the app, then do that task's check from the step 4 check table (the five pages, Students, a Blob upload, Service Bus send **and** receive, Key Vault with both refusals to start, telemetry in Application Insights, and the CVE list).
 4. Check `git status --short --branch`, commit and push: `compare: stage 3.N <stage>`. Put interventions in the commit body, one line each, and export the chat.
@@ -377,3 +377,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | 3, 4, 5 | The plan prompt is the file `prompts/run2-modernize-plan.md`: seven tasks (OpenTelemetry becomes task 006, CVE fixes task 007) and nine rules, from the owner's target state. New checks: telemetry in Application Insights after task 006; refusal to start outside Development without `KeyVault:VaultUri` or with a SQL login, after task 005. Step 5 only checks that nothing is left | Owner decisions after run 1: Entra authentication only on Azure, Key Vault mandatory outside Development, private backends, simple OpenTelemetry visible in Application Insights, SDK container publishing only |
 | Run 2 start | Run 2 starts from `e850869` instead of `7c2855b` | The refined prompts under `prompts/` have to be on the run branch |
 | Comparison C.2 | Fetch the prompt with `git show origin/<branch>:…/compare-upgrade-plan.md` and check it contains "exactly these seven" before pasting | The second attempt (`1ae9076`) sent a stale local copy of the old six-task prompt |
+| Comparison C.3 | Run the Upgrade agent's tasks in the **Local** harness, after **MCP: List Servers** > **Upgrade** > **Configure Model Access** | `start_task` failed in the Copilot harness with "internal LLM client unavailable": the plan parser needs MCP sampling, which only the Local harness provides |

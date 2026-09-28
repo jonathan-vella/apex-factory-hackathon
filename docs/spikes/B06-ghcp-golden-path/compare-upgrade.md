@@ -42,7 +42,7 @@ Stage 2 on a pure legacy tree (`1ae9076`; the chat is renamed `chats/compare-sta
 ## How the Upgrade dashboard was made to work (owner's discovery, 2026-09-25)
 
 - **Routing.** Left to itself, the Upgrade agent chose the `azure-migrate` scenario, which delegates assessment and planning to GitHub Copilot modernization's App Modernization session (`start_app_mod_migration_session`). With modernize disabled, that failed. Forcing the `dotnet-version-upgrade` scenario with an explicit prompt ([prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md)) gives the stateful workflow under `.github/upgrades/dotnet-version-upgrade/` that the Upgrade dashboard opens, with the kit's six tasks and rules.
-- **Harness.** The Upgrade dashboard works in the **Copilot** harness, not **Local**. That's the opposite of run 1's prompt files, which loaded only in **Local** (report findings 14 and 16). So the harness has to be chosen per tool, and the kit's guides must say which.
+- **Harness.** The Upgrade dashboard's planning works in the **Copilot** harness, but task execution (`start_task`) needs **Local**, where VS Code provides the MCP server's model through sampling. That's the opposite of run 1's prompt files, which loaded only in **Local** (report findings 14 and 16). So the harness has to be chosen per tool, and the kit's guides must say which.
 
 ## Stages
 
@@ -52,7 +52,7 @@ Where the Upgrade agent can't do a stage without GitHub Copilot modernization, t
 |---|---|---|---|---|---|---|---|
 | C.1 Set up | — | | — | — | | — | — |
 | C.2 Assess and plan (7 tasks, 9 rules) | ✅ `dotnet-version-upgrade`, Guided flow, current branch, Manual commit strategy (`114e511`) | | GPT-6 Sol, Medium | The refined prompt, then one correction reply in the same chat | 1 plan correction: "zero warnings" to "no errors; record new warnings", and the irrelevant `#skill:migrating-webapi-odata` removed from task 1 | 0 application files changed | Rules table: all 9 rows met. Task 7 has a real finding: CVE-2024-0056 in `Microsoft.Data.SqlClient` 2.1.4 |
-| C.3.1 .NET 10 upgrade | First attempt blocked before any change: "the Upgrade workflow's plan parser cannot start with its internal LLM client unavailable" (Copilot harness, GPT-6 Luna maximum). Owner retrying after granting the extension language-model access; result pending | | GPT-6 Luna, maximum | | | | Pages against `10.10.n.4`: |
+| C.3.1 .NET 10 upgrade | First attempt blocked before any change: "the Upgrade workflow's plan parser cannot start with its internal LLM client unavailable" (Copilot harness, GPT-6 Luna maximum). Runs in the **Local** harness after **Configure Model Access** for the Upgrade MCP server: execution needs MCP sampling, which the Copilot harness doesn't provide | | GPT-6 Luna, maximum | | | | Pages against `10.10.n.4`: |
 | C.3.2 SQL Managed Instance (local SQL auth kept) | | | | | | | Students against `10.10.n.4`: |
 | C.3.3 Blob | | | | | | | Upload lands in `teaching-materials`: |
 | C.3.4 Service Bus | | | | | | | Send and receive (`/Notifications/GetNotifications`): |
