@@ -20,6 +20,16 @@ Findings from the first attempt that still stand:
 - **The Upgrade agent depends on GitHub Copilot modernization for Azure migrations.** It picked the scenario `azure-migrate`, whose workflow "delegates assessment and planning to the App Modernization migration session". With modernize disabled, "the prescribed App Modernization session tool was unavailable", and it fell back to the existing AppCAT report.
 - **Leftover files steer the agents.** Untracked and ignored files from an earlier run (plans, skills, build output) survive `git switch` and change what the agents do.
 
+## Second attempt (2026-09-28): clean, but the old prompt
+
+Stage 2 on a pure legacy tree (`1ae9076`; the chat is renamed `chats/compare-stage2-sixtask.txt` on the comparison branch) used the **old six-task prompt**, because the owner's local copy was stale. It's discarded as the baseline, and stage 2 is redone with the refined seven-task prompt fetched from origin (protocol C.2). The Upgrade agent itself behaved well, which is worth keeping:
+
+- It used the `dotnet-version-upgrade` scenario. Its artifacts are under `.github/upgrades/scenarios/dotnet-version-upgrade/`: `assessment.md`, `.json` and `.csv`, per-project and NuGet reports, `dependencies-health.json`, `plan.md`, `scenario-instructions.md` and `scenario.json`.
+- It changed no application files, produced exactly the six-task chain it was asked for, and filled in the compliance table correctly.
+- It kept blocked validations apart from impossible tasks correctly.
+- Upgrade options it chose: All-at-Once, in-place rewrite, resolve inline, fix inline, direct ASP.NET Core migration, document binding redirects before removing them, and skip test coverage.
+- It flagged `Microsoft.Data.SqlClient` as vulnerable without a CVE ID. Check it again in the refined run's task 7.
+
 ## How the Upgrade dashboard was made to work (owner's discovery, 2026-09-25)
 
 - **Routing.** Left to itself, the Upgrade agent chose the `azure-migrate` scenario, which delegates assessment and planning to GitHub Copilot modernization's App Modernization session (`start_app_mod_migration_session`). With modernize disabled, that failed. Forcing the `dotnet-version-upgrade` scenario with an explicit prompt ([prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md)) gives the stateful workflow under `.github/upgrades/dotnet-version-upgrade/` that the Upgrade dashboard opens, with the kit's six tasks and rules.

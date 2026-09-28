@@ -301,14 +301,23 @@ If the project needs container properties (for example `ContainerBaseImage` or `
 > **BEFORE you send:** in the Chat panel, set the harness (**Session Target**) to **Copilot**, not **Local**. Start a **new chat**, and check that the agent picker shows **Upgrade** and the model picker shows **GPT-6 Sol** with reasoning **Medium**, as for run 1's planning. The chat uses whatever is selected. The pickers sit at the bottom of the chat input box.
 
 1. ⚠️ **BEFORE you send:** harness **Copilot**, new chat, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
-2. Copy the whole prompt [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md) and send it. The comparison branch starts from run 1's commit, which doesn't have the file, so copy it from the working branch: `git show origin/jonathan-vella-b06-ghcp-spike:docs/spikes/B06-ghcp-golden-path/prompts/compare-upgrade-plan.md | Set-Clipboard`, then paste it into the chat. It asks for:
+2. Copy the whole prompt [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md) and send it. The comparison branch starts from run 1's commit, which doesn't have the file, so fetch it straight from origin, never from a local copy (in the second attempt a stale copy sent the old six-task prompt):
+
+   ```powershell
+   git fetch origin
+   $prompt = git show origin/jonathan-vella-b06-ghcp-spike:docs/spikes/B06-ghcp-golden-path/prompts/compare-upgrade-plan.md | Out-String
+   if ($prompt -notmatch 'exactly these seven') { throw 'Stale prompt: it must contain "exactly these seven"' }
+   $prompt | Set-Clipboard
+   ```
+
+   Then paste it into the chat. It asks for:
    - the owning scenario `dotnet-version-upgrade`, never `azure-migrate`, no `start_app_mod_migration_session`, and nothing under `.github/modernize`;
    - Guided flow, assessment and planning only;
    - exactly seven tasks in a strict chain, the same tasks and rules as run 2's plan: SDK container publishing in task 1 (no Dockerfile), Entra authentication only on Azure, Key Vault mandatory outside Development, private backends, OpenTelemetry as task 6, and task 7 kept as a verified no-op if there are no CVEs;
    - the artifacts `assessment.md`, `plan.md` and `scenario-instructions.md`;
    - a 9-row compliance table, with blocked validations kept apart from impossible tasks;
    - a stop before `start_task`.
-3. Check the answer: the artifacts are under `.github\upgrades\dotnet-version-upgrade\`, there's nothing new under `.github\modernize\`, all 9 table rows are met, and the plan opens in the Upgrade dashboard. Record in `compare-upgrade.md` what it covers, anything it lists as blocked or impossible, and whether it changed any file outside `.github\upgrades\`.
+3. Check the answer: the artifacts are under `.github\upgrades\` (in the second attempt, `.github\upgrades\scenarios\dotnet-version-upgrade\`), there's nothing new under `.github\modernize\`, all 9 table rows are met, and the plan opens in the Upgrade dashboard. Record in `compare-upgrade.md` what it covers, anything it lists as blocked or impossible, and whether it changed any file outside `.github\upgrades\`.
 4. Export the chat, then commit and push: `compare: stage 2 assess and plan`.
 
 ### C.3 Upgrade and migrate
@@ -364,6 +373,7 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Gaps | Only OpenTelemetry is left; predefined task, then make Azure Monitor optional | Tasks 001–005 did the other gaps (42, 43) |
 | Comparison | Full end-to-end run with GitHub Copilot upgrade before run 2 | Owner-approved (requirement 11a; findings 19, 30) |
 | Comparison C.1 | Run `git clean -fdx -- app .github` after `git switch` (dry run first) so the tree is pure legacy; GitHub Copilot modernization stays disabled (owner decision), and a stage the Upgrade agent can't do without it is recorded as a result | The first comparison attempt's stage 2 (`a6c358d`) edited run 1's plan folder and loaded run 1's `modernize-plan` skill from leftover files; with modernize disabled, the Upgrade agent's `azure-migrate` scenario couldn't delegate |
-| Comparison C.2 | The owner's prompt file `prompts/compare-upgrade-plan.md` in the **Copilot** harness forces the stateful `dotnet-version-upgrade` scenario (six-task chain, kit rules, dashboard artifacts under `.github/upgrades/`) | The default routing picked `azure-migrate`, which needs GitHub Copilot modernization's session tool. Forcing `dotnet-version-upgrade` makes the Upgrade dashboard work, and only in the Copilot harness |
+| Comparison C.2 | The owner's prompt file `prompts/compare-upgrade-plan.md` in the **Copilot** harness forces the stateful `dotnet-version-upgrade` scenario (the seven-task chain and kit rules since the refinement, dashboard artifacts under `.github/upgrades/`) | The default routing picked `azure-migrate`, which needs GitHub Copilot modernization's session tool. Forcing `dotnet-version-upgrade` makes the Upgrade dashboard work, and only in the Copilot harness |
 | 3, 4, 5 | The plan prompt is the file `prompts/run2-modernize-plan.md`: seven tasks (OpenTelemetry becomes task 006, CVE fixes task 007) and nine rules, from the owner's target state. New checks: telemetry in Application Insights after task 006; refusal to start outside Development without `KeyVault:VaultUri` or with a SQL login, after task 005. Step 5 only checks that nothing is left | Owner decisions after run 1: Entra authentication only on Azure, Key Vault mandatory outside Development, private backends, simple OpenTelemetry visible in Application Insights, SDK container publishing only |
 | Run 2 start | Run 2 starts from `e850869` instead of `7c2855b` | The refined prompts under `prompts/` have to be on the run branch |
+| Comparison C.2 | Fetch the prompt with `git show origin/<branch>:…/compare-upgrade-plan.md` and check it contains "exactly these seven" before pasting | The second attempt (`1ae9076`) sent a stale local copy of the old six-task prompt |
