@@ -1,23 +1,29 @@
+#nullable enable
+
+using System.Threading;
+using System.Threading.Tasks;
 using ContosoUniversity.Models;
 
 namespace ContosoUniversity.Services
 {
     public interface INotificationService
     {
-        void SendNotification(
+        Task SendNotificationAsync(
             string entityType,
             string entityId,
             EntityOperation operation,
-            string userName = null);
+            string? userName = null,
+            CancellationToken cancellationToken = default);
 
-        void SendNotification(
+        Task SendNotificationAsync(
             string entityType,
             string entityId,
-            string entityDisplayName,
+            string? entityDisplayName,
             EntityOperation operation,
-            string userName = null);
+            string? userName = null,
+            CancellationToken cancellationToken = default);
 
-        Notification ReceiveNotification();
+        Task<Notification?> ReceiveNotificationAsync(CancellationToken cancellationToken = default);
 
         void MarkAsRead(int notificationId);
     }

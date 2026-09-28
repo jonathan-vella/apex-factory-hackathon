@@ -41,7 +41,7 @@ The application uses SQL Server LocalDB with the following connection string in 
    - Visual Studio 2019 or later
    - IIS Express
    - SQL Server LocalDB
-   - Microsoft Message Queue (MSMQ) Server enabled
+  - Existing Azure Service Bus namespace and queue for live notification integration checks
 
 2. **Setup**:
    - Open the project in Visual Studio

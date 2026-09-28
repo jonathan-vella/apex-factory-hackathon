@@ -1,135 +1,37 @@
-# Real-Time Admin Notification System
+# Service Bus Notification System
 
-This project now includes a real-time notification system that alerts administrators whenever entity operations (create, update, delete) are performed in the system.
-
-## Overview
-
-The notification system uses **Microsoft Message Queuing (MSMQ)** as the underlying technology to provide reliable, real-time notifications to administrators.
-
-## Features
-
-- **Real-time notifications**: Admins receive immediate notifications when entities are modified
-- **Entity coverage**: Monitors Students, Courses, Instructors, and Departments
-- **Operation tracking**: Tracks CREATE, UPDATE, and DELETE operations
-- **Admin-only**: Only users with administrator role receive notifications
-- **Non-intrusive UI**: Notifications appear in the top-right corner with auto-dismiss
-- **Reliable delivery**: Uses MSMQ for guaranteed message delivery
-
-## How It Works
-
-### Backend Components
-
-1. **NotificationService**: Handles MSMQ operations for sending/receiving messages
-2. **BaseController**: Base class that all controllers inherit from to send notifications
-3. **Notification Model**: Entity to represent notification data
-4. **NotificationsController**: API endpoints for retrieving notifications
-
-### Frontend Components
-
-1. **notifications.css**: Styling for notification UI elements
-2. **notifications.js**: JavaScript polling system that checks for new notifications
-3. **Layout integration**: Admin-only inclusion of notification assets
-
-### Technology Stack
-
-- **Microsoft Message Queuing (MSMQ)**: Message queue technology
-- **Entity Framework**: Data access for notification persistence
-- **ASP.NET MVC**: Web framework
-- **JavaScript/jQuery**: Frontend polling and UI updates
-- **Bootstrap**: UI styling
+The application sends a notification after a Student, Course, Instructor, or Department is created, updated, or deleted. The existing browser client polls the application for messages and displays them as dismissible notifications.
 
 ## Configuration
 
-The notification system is configured in `Web.config`:
+Configure both values in ASP.NET Core configuration:
 
-```xml
-<appSettings>
-    <add key="NotificationQueuePath" value=".\Private$\ContosoUniversityNotifications"/>
-</appSettings>
+- `ServiceBus:FullyQualifiedNamespace`: the standard namespace host, such as `your-namespace.servicebus.windows.net`
+- `ServiceBus:QueueName`: the existing queue name; the deployment protocol uses `notifications`
+
+For local development, set the values with user secrets:
+
+```powershell
+dotnet user-secrets set "ServiceBus:FullyQualifiedNamespace" "your-namespace.servicebus.windows.net" --project app/ContosoUniversity/ContosoUniversity.csproj
+dotnet user-secrets set "ServiceBus:QueueName" "notifications" --project app/ContosoUniversity/ContosoUniversity.csproj
 ```
 
-## Queue Details
+The application authenticates with `DefaultAzureCredential`. The standard namespace hostname must resolve through private DNS. Do not use a Service Bus connection string, SAS token, shared key, IP address, `privatelink` hostname, public endpoint, or embedded credentials. The application does not create the queue or configure Azure permissions or networking.
 
-- **Queue Path**: `.\Private$\ContosoUniversityNotifications`
-- **Queue Type**: Private queue, auto-created if not exists
-- **Permissions**: Full control for "Everyone" (suitable for development)
-- **Message Format**: JSON serialized notification objects
+## Message behavior
 
-## Usage
+- The JSON body preserves the `Notification` fields and the existing CREATE, UPDATE, and DELETE message text.
+- The legacy label is carried in the Service Bus `Subject`; normal priority is retained as application metadata. Service Bus does not provide MSMQ-style per-message priority scheduling.
+- Receiving waits up to one second and completes a received message, matching the legacy destructive receive behavior. An empty queue returns no notification.
+- `MarkAsRead` remains a no-op; notifications are not persisted to the `Notification` database table by this service.
+- `NotificationsController` returns up to ten received notifications. The browser polls every five seconds, shows up to five at once, and removes each after one minute or when dismissed.
+- Notification send failures do not undo or fail the underlying entity operation.
 
-### For Administrators
+## Verify
 
-1. Log in with an administrator account
-2. Navigate to **Notifications** in the main menu to view the dashboard
-3. Perform any CRUD operation on entities (Students, Courses, Instructors, Departments)
-4. Watch for notifications appearing in the top-right corner
-5. Notifications auto-dismiss after 1 minute or can be manually closed
+1. Start the application with the configured Development SQL secret.
+2. Confirm Home, Students, Courses, Instructors, and Departments load.
+3. With an existing authorized Service Bus namespace and queue configured, create or edit a supported entity and confirm the notification appears in the browser.
+4. Confirm the receive endpoint returns no notification when the queue is empty.
 
-### For Developers
-
-To add notification support to a new controller:
-
-1. Inherit from `BaseController` instead of `Controller`
-2. Remove the private `SchoolContext db` declaration (handled by base class)
-3. Call `SendEntityNotification()` after successful save operations:
-
-```csharp
-// Example: After creating a student
-db.Students.Add(student);
-db.SaveChanges();
-SendEntityNotification("Student", student.ID.ToString(), EntityOperation.CREATE);
-```
-
-## Notification Types
-
-- **CREATE**: Green notification for entity creation
-- **UPDATE**: Blue notification for entity updates  
-- **DELETE**: Orange notification for entity deletion
-
-## System Requirements
-
-- Windows operating system (for MSMQ)
-- MSMQ feature enabled (Windows Features → Message Queuing)
-- .NET Framework 4.8
-- SQL Server (for Entity Framework)
-
-## Testing the System
-
-1. Access the **Notifications** dashboard from the admin menu
-2. Click on any of the "Create new..." buttons provided
-3. Complete a create/edit/delete operation
-4. Observe the notification appearing in the top-right corner
-
-## Troubleshooting
-
-### Common Issues
-
-1. **MSMQ not installed**: Enable "Message Queuing" in Windows Features
-2. **Queue permissions**: Ensure the application pool identity has access to create private queues
-3. **No notifications appearing**: Check browser console for JavaScript errors
-4. **Queue not created**: Verify the application has permissions to create private queues
-
-### Development Notes
-
-- Notifications are sent asynchronously and won't block main operations if MSMQ fails
-- Failed notification sends are logged to debug output but don't affect user operations
-- JavaScript polling occurs every 5 seconds
-- Maximum of 5 notifications are displayed simultaneously
-
-## Architecture Benefits
-
-- **Decoupled**: MSMQ ensures notifications don't affect main application performance
-- **Reliable**: Messages persist even if the web application restarts
-- **Scalable**: Can easily extend to support multiple administrators
-- **Maintainable**: Clear separation between notification logic and business logic
-
-## Future Enhancements
-
-Potential improvements for production use:
-
-1. **SignalR integration**: Real-time push notifications instead of polling
-2. **Email notifications**: Send email alerts for critical operations
-3. **Notification persistence**: Store notifications in database for audit trail
-4. **User preferences**: Allow admins to configure notification types
-5. **Batch operations**: Group related notifications to reduce noise
-6. **Advanced filtering**: Filter notifications by entity type or operation
+If the namespace, queue, credentials, data-plane permissions, private DNS, or network path is unavailable, the live messaging check is blocked externally. The application pages remain available, and no Azure resources or permissions are created by the application.

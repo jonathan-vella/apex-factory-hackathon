@@ -99,7 +99,7 @@ namespace ContosoUniversity.Controllers
                 db.Courses.Add(course);
                 db.SaveChanges();
 
-                SendEntityNotification("Course", course.CourseID.ToString(), course.Title, EntityOperation.CREATE);
+                await SendEntityNotificationAsync("Course", course.CourseID.ToString(), course.Title, EntityOperation.CREATE);
 
                 return RedirectToAction("Index");
             }
@@ -163,7 +163,7 @@ namespace ContosoUniversity.Controllers
                 db.Entry(course).State = EntityState.Modified;
                 db.SaveChanges();
 
-                SendEntityNotification("Course", course.CourseID.ToString(), course.Title, EntityOperation.UPDATE);
+                await SendEntityNotificationAsync("Course", course.CourseID.ToString(), course.Title, EntityOperation.UPDATE);
 
                 return RedirectToAction("Index");
             }
@@ -244,7 +244,7 @@ namespace ContosoUniversity.Controllers
             db.Courses.Remove(course);
             db.SaveChanges();
 
-            SendEntityNotification("Course", id.ToString(), courseTitle, EntityOperation.DELETE);
+            await SendEntityNotificationAsync("Course", id.ToString(), courseTitle, EntityOperation.DELETE);
 
             return RedirectToAction("Index");
         }

@@ -73,7 +73,7 @@ namespace ContosoUniversity.Controllers
         // POST: Instructors/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create([Bind("LastName,FirstMidName,HireDate,OfficeAssignment")] Instructor instructor, string[] selectedCourses)
+        public async Task<IActionResult> Create([Bind("LastName,FirstMidName,HireDate,OfficeAssignment")] Instructor instructor, string[] selectedCourses)
         {
             instructor.CourseAssignments = new List<CourseAssignment>();
             if (selectedCourses != null)
@@ -90,7 +90,7 @@ namespace ContosoUniversity.Controllers
                 db.SaveChanges();
                 
                 // Send notification for instructor creation
-                SendEntityNotification("Instructor", instructor.ID.ToString(), EntityOperation.CREATE);
+                await SendEntityNotificationAsync("Instructor", instructor.ID.ToString(), EntityOperation.CREATE);
                 
                 return RedirectToAction("Index");
             }
@@ -175,7 +175,7 @@ namespace ContosoUniversity.Controllers
                     db.SaveChanges();
                     
                     // Send notification for instructor update
-                    SendEntityNotification("Instructor", instructorToUpdate.ID.ToString(), EntityOperation.UPDATE);
+                    await SendEntityNotificationAsync("Instructor", instructorToUpdate.ID.ToString(), EntityOperation.UPDATE);
 
                     return RedirectToAction("Index");
                 }
@@ -238,7 +238,7 @@ namespace ContosoUniversity.Controllers
         // POST: Instructors/Delete/5 - Only admins can delete instructors
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             Instructor instructor = db.Instructors
               .Include(i => i.OfficeAssignment)
@@ -258,7 +258,7 @@ namespace ContosoUniversity.Controllers
             db.SaveChanges();
             
             // Send notification for instructor deletion
-            SendEntityNotification("Instructor", id.ToString(), EntityOperation.DELETE);
+            await SendEntityNotificationAsync("Instructor", id.ToString(), EntityOperation.DELETE);
             
             return RedirectToAction("Index");
         }

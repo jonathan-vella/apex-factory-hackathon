@@ -69,7 +69,7 @@ if (!builder.Environment.IsDevelopment())
 }
 
 builder.Services.AddDbContext<SchoolContext>(options => options.UseSqlServer(connectionString));
-builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSingleton<INotificationService, NotificationService>();
 builder.Services.AddSingleton<ITeachingMaterialStorage, AzureBlobTeachingMaterialStorage>();
 builder.Services.AddControllersWithViews();
 

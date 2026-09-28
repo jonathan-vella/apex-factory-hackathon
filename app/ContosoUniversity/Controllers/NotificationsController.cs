@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
@@ -23,14 +25,14 @@ namespace ContosoUniversity.Controllers
         }
 
         [HttpGet]
-        public JsonResult GetNotifications()
+        public async Task<JsonResult> GetNotifications(CancellationToken cancellationToken)
         {
             var notifications = new List<Notification>();
 
             try
             {
                 Notification notification;
-                while ((notification = notificationService.ReceiveNotification()) != null)
+                while ((notification = await notificationService.ReceiveNotificationAsync(cancellationToken)) != null)
                 {
                     notifications.Add(notification);
 
