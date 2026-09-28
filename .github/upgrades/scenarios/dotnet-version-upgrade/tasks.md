@@ -1,6 +1,6 @@
 # Migration Progress
 
-**Progress**: 14/19 tasks complete <progress value="74" max="100"></progress> 74%
+**Progress**: 15/19 tasks complete <progress value="79" max="100"></progress> 79%
 **Status**: Not Started
 
 ## Tasks
@@ -19,7 +19,7 @@
   - ✅ 01.11-notifications-controller: Migrate NotificationsController and preserve its raw JSON contract ([Content](tasks/01.11-notifications-controller/task.md), [Progress](tasks/01.11-notifications-controller/progress-details.md))
   - ✅ 01.12-cleanup-container-validation: Remove legacy host remnants and validate build, pages, and SDK container publishing ([Content](tasks/01.12-cleanup-container-validation/task.md), [Progress](tasks/01.12-cleanup-container-validation/progress-details.md))
 - ✅ 02-azure-sql-managed-instance: Migrate the database workload to Azure SQL Managed Instance ([Content](tasks/02-azure-sql-managed-instance/task.md), [Progress](tasks/02-azure-sql-managed-instance/progress-details.md))
-- 🔲 03-azure-blob-storage: Migrate mutable file handling to Azure Blob Storage ([Content](tasks/03-azure-blob-storage/task.md))
+- ✅ 03-azure-blob-storage: Migrate mutable file handling to Azure Blob Storage ([Content](tasks/03-azure-blob-storage/task.md), [Progress](tasks/03-azure-blob-storage/progress-details.md))
 - 🔲 04-azure-service-bus: Migrate messaging to Azure Service Bus ([Content](tasks/04-azure-service-bus/task.md))
 - 🔲 05-azure-key-vault: Integrate Azure Key Vault ([Content](tasks/05-azure-key-vault/task.md))
 - 🔲 06-opentelemetry-azure-monitor: Migrate logging and tracing to OpenTelemetry with Azure Monitor ([Content](tasks/06-opentelemetry-azure-monitor/task.md))

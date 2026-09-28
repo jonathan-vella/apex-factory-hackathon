@@ -1,14 +1,16 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 
 namespace ContosoUniversity.Controllers
@@ -16,16 +18,17 @@ namespace ContosoUniversity.Controllers
     public class CoursesController : BaseController
     {
         private const long MaximumUploadSize = 5 * 1024 * 1024;
-        private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp" };
-        private readonly string uploadsPath;
+        private const string StoredImagePathPrefix = "~/Uploads/TeachingMaterials/";
+        private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
+        private readonly ITeachingMaterialStorage teachingMaterialStorage;
 
         public CoursesController(
             SchoolContext db,
             INotificationService notificationService,
-            IWebHostEnvironment environment)
+            ITeachingMaterialStorage teachingMaterialStorage)
             : base(db, notificationService)
         {
-            uploadsPath = Path.Combine(environment.ContentRootPath, "Uploads", "TeachingMaterials");
+            this.teachingMaterialStorage = teachingMaterialStorage;
         }
 
         // GET: Courses
@@ -78,17 +81,14 @@ namespace ContosoUniversity.Controllers
 
                 try
                 {
-                    Directory.CreateDirectory(uploadsPath);
                     var fileName = $"course_{course.CourseID}_{Guid.NewGuid()}{fileExtension}";
-                    var filePath = Path.Combine(uploadsPath, fileName);
-
-                    await using var stream = new FileStream(filePath, FileMode.Create);
-                    await teachingMaterialImage.CopyToAsync(stream);
-                    course.TeachingMaterialImagePath = $"~/Uploads/TeachingMaterials/{fileName}";
+                    using var stream = teachingMaterialImage.OpenReadStream();
+                    await teachingMaterialStorage.UploadAsync(fileName, stream, GetContentType(fileName));
+                    course.TeachingMaterialImagePath = StoredImagePathPrefix + fileName;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    ModelState.AddModelError("teachingMaterialImage", "Error uploading file: " + ex.Message);
+                    ModelState.AddModelError("teachingMaterialImage", "Error uploading file. Please try again.");
                     PopulateDepartments(course.DepartmentID);
                     return View(course);
                 }
@@ -143,19 +143,16 @@ namespace ContosoUniversity.Controllers
 
                 try
                 {
-                    Directory.CreateDirectory(uploadsPath);
                     var fileName = $"course_{course.CourseID}_{Guid.NewGuid()}{fileExtension}";
-                    var filePath = Path.Combine(uploadsPath, fileName);
+                    await DeleteStoredFileAsync(course.TeachingMaterialImagePath);
 
-                    DeleteStoredFile(course.TeachingMaterialImagePath);
-
-                    await using var stream = new FileStream(filePath, FileMode.Create);
-                    await teachingMaterialImage.CopyToAsync(stream);
-                    course.TeachingMaterialImagePath = $"~/Uploads/TeachingMaterials/{fileName}";
+                    using var stream = teachingMaterialImage.OpenReadStream();
+                    await teachingMaterialStorage.UploadAsync(fileName, stream, GetContentType(fileName));
+                    course.TeachingMaterialImagePath = StoredImagePathPrefix + fileName;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    ModelState.AddModelError("teachingMaterialImage", "Error uploading file: " + ex.Message);
+                    ModelState.AddModelError("teachingMaterialImage", "Error uploading file. Please try again.");
                     PopulateDepartments(course.DepartmentID);
                     return View(course);
                 }
@@ -194,10 +191,35 @@ namespace ContosoUniversity.Controllers
             return View(course);
         }
 
+        [HttpGet("/Uploads/TeachingMaterials/{fileName}")]
+        public async Task<IActionResult> TeachingMaterial(string fileName, CancellationToken cancellationToken)
+        {
+            if (!IsValidFileName(fileName))
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                var teachingMaterial = await teachingMaterialStorage.DownloadAsync(fileName, cancellationToken);
+                return teachingMaterial == null
+                    ? NotFound()
+                    : File(teachingMaterial.Content, teachingMaterial.ContentType);
+            }
+            catch (InvalidOperationException)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+            catch (RequestFailedException)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+        }
+
         // POST: Courses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             Course course = db.Courses.Find(id);
             if (course == null)
@@ -211,7 +233,7 @@ namespace ContosoUniversity.Controllers
             {
                 try
                 {
-                    DeleteStoredFile(course.TeachingMaterialImagePath);
+                    await DeleteStoredFileAsync(course.TeachingMaterialImagePath);
                 }
                 catch (Exception ex)
                 {
@@ -230,7 +252,7 @@ namespace ContosoUniversity.Controllers
         private bool TryValidateUpload(IFormFile upload, out string fileExtension)
         {
             fileExtension = Path.GetExtension(upload.FileName).ToLowerInvariant();
-            if (!AllowedExtensions.Contains(fileExtension))
+            if (!TeachingMaterialFileName.IsAllowedExtension(fileExtension))
             {
                 ModelState.AddModelError("teachingMaterialImage", "Please upload a valid image file (jpg, jpeg, png, gif, bmp).");
                 return false;
@@ -245,17 +267,43 @@ namespace ContosoUniversity.Controllers
             return true;
         }
 
-        private void DeleteStoredFile(string virtualPath)
+        private async Task DeleteStoredFileAsync(string virtualPath)
         {
-            var fileName = Path.GetFileName(virtualPath);
-            if (!string.IsNullOrEmpty(fileName))
+            if (TryGetStoredFileName(virtualPath, out var fileName))
             {
-                var filePath = Path.Combine(uploadsPath, fileName);
-                if (System.IO.File.Exists(filePath))
-                {
-                    System.IO.File.Delete(filePath);
-                }
+                await teachingMaterialStorage.DeleteAsync(fileName);
             }
+        }
+
+        private static bool TryGetStoredFileName(string virtualPath, out string fileName)
+        {
+            fileName = string.Empty;
+            if (string.IsNullOrEmpty(virtualPath) ||
+                !virtualPath.StartsWith(StoredImagePathPrefix, StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            var candidate = virtualPath[StoredImagePathPrefix.Length..];
+            if (!IsValidFileName(candidate))
+            {
+                return false;
+            }
+
+            fileName = candidate;
+            return true;
+        }
+
+        private static bool IsValidFileName(string fileName)
+        {
+            return TeachingMaterialFileName.IsValid(fileName);
+        }
+
+        private static string GetContentType(string fileName)
+        {
+            return ContentTypeProvider.TryGetContentType(fileName, out var contentType)
+                ? contentType
+                : "application/octet-stream";
         }
 
         private void PopulateDepartments(int? selectedDepartment = null)

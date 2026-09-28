@@ -2,7 +2,6 @@ using ContosoUniversity.Data;
 using ContosoUniversity.Services;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,6 +70,7 @@ if (!builder.Environment.IsDevelopment())
 
 builder.Services.AddDbContext<SchoolContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddSingleton<ITeachingMaterialStorage, AzureBlobTeachingMaterialStorage>();
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -80,21 +80,14 @@ if (!app.Environment.IsDevelopment())
 	app.UseExceptionHandler("/Home/Error");
 }
 
-var uploadsRoot = Path.Combine(app.Environment.ContentRootPath, "Uploads");
-Directory.CreateDirectory(Path.Combine(uploadsRoot, "TeachingMaterials"));
-
 using (var scope = app.Services.CreateScope())
 {
 	_ = scope.ServiceProvider.GetRequiredService<SchoolContext>();
 	_ = scope.ServiceProvider.GetRequiredService<INotificationService>();
+	_ = scope.ServiceProvider.GetRequiredService<ITeachingMaterialStorage>();
 }
 
 app.UseStaticFiles();
-app.UseStaticFiles(new StaticFileOptions
-{
-	FileProvider = new PhysicalFileProvider(uploadsRoot),
-	RequestPath = "/Uploads"
-});
 
 app.MapGet("/health", () => "ok");
 app.MapControllerRoute(

@@ -1,0 +1,321 @@
+I’ll confirm task 02 is completed and task 03 is next, then inspect the Blob task instructions and current upload path before changing anything. I’ll keep Service Bus and all later tasks untouched.
+
+
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity"
+}
+
+Task 02 is complete and no task is in progress; task 03 is next. I’m confirming its detailed acceptance criteria against the current `CoursesController`, uploads layout, and DI setup so the implementation stays limited to Blob-backed mutable files.
+
+Searched for regex `Uploads|TeachingMaterials|IWebHostEnvironment|PhysicalFileProvider|BlobService|IFileStorage|teachingMaterialImage` (`**/app/ContosoUniversity/**/*.{cs,cshtml,json,csproj}`), 48 results
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+The upload flow is local-only today: `CoursesController` writes and deletes beneath `TeachingMaterials`, and `Program.cs` exposes that directory as static files. I’ll preserve the stored path format and route shape by proxying those paths through an authenticated SDK-backed storage service; first I’m loading the task lifecycle and Azure Blob guidance.
+
+
+
+
+
+Starting task 03-azure-blob-storage
+Completed with input: {
+  "taskId": "03-azure-blob-storage"
+}
+
+The boundary is clear: keep `~/Uploads/TeachingMaterials/{name}` as the stored/browser path, but route it through the app to Blob; do not expose a blob URL or auto-create the container. The controller still owns validation, 5 MiB limit, GUID naming, and replacement/deletion semantics. I’m checking its dependency graph and choosing supported Blob SDK package versions before recording research.
+
+
+
+Analyzing code dependencies for CoursesController.cs
+Completed with input: {
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj",
+  "filePath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\Controllers\\CoursesController.cs"
+}
+
+Read 
+
+Searched for regex `Storage:BlobServiceUri|Storage:ContainerName|Azure\.Storage\.Blobs|Azure\.Identity|DefaultAzureCredential`, 70 results
+
+Searched for files matching `**/Directory.Packages.props`, no matches
+
+
+
+Getting ContosoUniversity.csproj version for Azure.Storage.Blobs
+Completed with input: {
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj",
+  "targetFrameworks": "net10.0",
+  "packageName": "Azure.Storage.Blobs",
+  "includePrerelease": false
+}
+
+Getting ContosoUniversity.csproj version for Azure.Identity
+Completed with input: {
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj",
+  "targetFrameworks": "net10.0",
+  "packageName": "Azure.Identity",
+  "includePrerelease": false
+}
+
+Getting dependencies for project ContosoUniversity.csproj
+Completed with input: {
+  "solutionPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.sln",
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj"
+}
+
+Read 
+
+Dependency discovery confirms the task can stay focused: only EF Core SQL Server is currently direct, and the app has an existing `Services` folder. Supported stable versions are Blob 12.29.2 and Identity 1.21.0; the upload folder has no existing files to migrate, only `.gitkeep`. I’m checking runtime storage settings and the SDK download/read APIs, then I’ll record this research before editing source.
+
+Ran terminal command: dotnet user-secrets list --project app/ContosoUniversity/ContosoUniversity.csproj | ForEach-Object { if ($_ -match ' = ') { ($_ -split ' = ', 2)[0] } else { $_ } }
+
+Discovering test projects
+Completed with input: {
+  "solutionPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.sln",
+  "projectPaths": [
+    "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj"
+  ]
+}
+
+Ran `get_package_context` 
+Completed with input: {
+  "solutionDirectory": "C:\\src\\apex-factory-hackathon",
+  "packageName": "Azure.Storage.Blobs",
+  "packageVersion": "12.29.2"
+}
+
+The checks support one testable hypothesis: stored paths can remain unchanged because the views already render them as app-relative URLs; replacing the `/Uploads/...` static-file mapping with a controller route should preserve the browser contract while keeping Blob URLs private. A quick disconfirming check after implementation is that `/Uploads/TeachingMaterials/test.jpg` must reach the app endpoint (503 when storage config is absent), not resolve as a local static file. I’m recording the confirmed package/config/path facts and changing the workflow boundary to stop before task 04.
+
+Generating patch (40 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+
+
+Generating patch (138 lines) in , , 
+
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+
+Ran terminal command: dotnet restore app/ContosoUniversity/ContosoUniversity.csproj --verbosity minimal
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+The Blob abstraction restored and compiled, but nullable annotations in the new files produced three CS8632 warnings because this project does not enable nullable globally. I’m enabling nullable only in the two new files, then rerunning the same build before continuing.
+
+Generating patch (12 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+The new Blob abstraction now builds cleanly with no warnings. Next I’m wiring it into DI and replacing the physical `Uploads` serving path with a same-origin controller endpoint, while keeping the existing `Course` database path format and CRUD/upload semantics intact.
+
+Generating patch (197 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+Completed with input: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+Generating patch (8 lines) in 
+
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+The controller integration now compiles cleanly after adding the missing Azure exception import. The app no longer exposes `Uploads` from disk; uploads/deletes use the storage abstraction, and the existing `/Uploads/TeachingMaterials/...` URL is handled by an app endpoint that returns the stored content or a non-leaking 503. I’m checking the Azure URI/config boundary and validating the HTTP route, then I’ll run the required pages.
+
+Ran terminal command: dotnet list app/ContosoUniversity/ContosoUniversity.csproj package --include-transitive | Select-String 'Azure\.Identity|Azure\.Storage\.Blobs|Azure\.Core'
+
+Checked , , , , no problems found
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+Searched for regex `DefaultAzureCredential|BlobServiceClient|Storage:BlobServiceUri|Storage:ContainerName|Sas|SharedKey|ConnectionString` (`**/app/ContosoUniversity/{Program.cs,Controllers/CoursesController.cs,Services/AzureBlobTeachingMaterialStorage.cs,Services/ITeachingMaterialStorage.cs}`), 20 results
+
+The implementation has no Blob shared-key/SAS path, no storage connection string, and no remaining local filesystem write/delete code in the targeted project slice; diagnostics are clean, and the selected SDK versions resolve as expected. I’m verifying that the unchanged app pages still load without Storage settings and that the old image URL is now handled by the app endpoint, not by static files.
+
+Ran terminal command: $env:ASPNETCORE_ENVIRONMENT = 'Development'; dotnet run --no-build --configuration Release --project app/ContosoUniversity/ContosoUniversity.csproj --urls http://127.0.0.1:5201
+
+Ran terminal command: $paths = @('/', '/Students', '/Courses', '/Instructors', '/Departments', '/Uploads/TeachingMaterials/course_1_00000000-0000-0000-0000-000000000000.jpg', '/Uploads/TeachingMaterials/.gitkeep'); foreach ($path in $paths) { try { $response = Invoke-WebRequest -Uri "http://127.0.0.1:5201$path" -UseBasicParsing; "{0} {1}" -f $path, [int]$response.StatusCode } catch { if ($_.Exception.Response) { "{0} {1}" -f $path, [int]$_.Exception.Response.StatusCode } else { "{0} ERROR" -f $path } } }
+
+Compacted conversation
+
+Killed terminal
+
+The five required pages returned 200. With Blob settings intentionally absent, a valid image URL returns 503, while the local `.gitkeep` URL returns 404, confirming static local upload serving is gone. I’m checking the task’s exact completion requirements and the final controller/storage behavior now; then I’ll record the verified limits and leave task 04 untouched.
+
+
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon"
+}
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Ran terminal command: git status --short
+
+Searched for files matching `**/.github/upgrades/scenarios/dotnet-version-upgrade/**/03-azure-blob-storage/**`, 1 match
+
+Searched for files matching `**/AGENTS.md`, 1 match
+
+Read 
+
+Read 
+
+Read 
+
+Searched for text `TeachingMaterialImagePath` (`**/app/ContosoUniversity/Views/Courses/**`), 10 results
+
+Searched for text `TeachingMaterialImagePath` (`**/app/ContosoUniversity/Views/Courses/**/*.cshtml`), 10 results
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read memory
+
+The review uncovered one gap in the explicit filename boundary: the current checks block path traversal and non-image extensions, but still accept any single-segment Blob key ending in an allowed extension. I’m tightening the shared validator to accept only the established `course_{id}_{guid}{extension}` format and reusing it for uploads, downloads, replacement cleanup, and Blob operations.
+
+Generating patch (97 lines) in , , 
+
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+The stricter generated-name check builds cleanly. I’m repeating the runtime checks against that final version: ordinary MVC pages must still be available without Blob configuration, generated image keys should reach the Blob boundary and report 503, and arbitrary keys/traversal/local upload artifacts should return 404.
+
+Ran terminal command: $env:ASPNETCORE_ENVIRONMENT = 'Development'; dotnet run --no-build --configuration Release --project app/ContosoUniversity/ContosoUniversity.csproj --urls http://127.0.0.1:5201
+
+Ran terminal command: $cases = @(@('/', 200), @('/Students', 200), @('/Courses', 200), @('/Instructors', 200), @('/Departments', 200), @('/Uploads/TeachingMaterials/course_1_00000000-0000-0000-0000-000000000000.jpg', 503), @('/Uploads/TeachingMaterials/arbitrary.jpg', 404), @('/Uploads/TeachingMaterials/course_1_invalid.jpg', 404), @('/Uploads/TeachingMaterials/.gitkeep', 404), @('/Uploads/TeachingMaterials/%2e%2e%2Fcourse_1_00000000-0000-0000-0000-000000000000.jpg', 404)); foreach ($case in $cases) { $path = $case[0]; $expected = [int]$case[1]; try { $response = Invoke-WebRequest -Uri "http://127.0.0.1:5201$path" -UseBasicParsing; $actual = [int]$response.StatusCode } catch { if ($_.Exception.Response) { $actual = [int]$_.Exception.Response.StatusCode } else { throw } }; "{0} {1}" -f $path, $actual; if ($actual -ne $expected) { throw "Expected $expected for $path but received $actual" } }
+
+Killed terminal
+
+The final runtime assertions passed: all five pages returned 200, generated-format Blob URLs reached the missing-configuration boundary (503), and arbitrary names, malformed names, traversal, and `.gitkeep` were 404. I’ve stopped the local server; I’m doing the final source/test/worktree checks and then recording task 03’s evidence before marking only this task complete.
+
+Ran terminal command: git diff --check
+
+Checked , , , , no problems found
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+Read 
+
+Read 
+
+Read 
+
+The final checks are clean: no local upload-directory creation, file write/delete calls, or `Uploads` physical static provider remain; package resolution and compiler diagnostics also match the expected versions with no errors. I’m writing the task record now, including that Blob credentials/configuration, container existence, DNS, RBAC, and network reachability remain unverified external dependencies.
+
+Generating patch (47 lines) in 
+
+
+```
+
+```
+
+
+Ran terminal command: npm run lint:md -- .github/upgrades/scenarios/dotnet-version-upgrade/tasks/03-azure-blob-storage/progress-details.md
+Completed with input: npm run lint:md -- .github/upgrades/scenarios/dotnet-version-upgrade/tasks/03-azure-blob-storage/progress-details.md
+
+Ran terminal command: git diff --check
+
+Task 03’s progress record is written. Its build and runtime gates are green; Markdown lint could not run because `npm` is unavailable in this environment, and the application has no .NET test project. I’m recording task 03 as complete now; task 04 will remain pending.
+
+Completing task 03-azure-blob-storage
+Completed with input: {
+  "taskId": "03-azure-blob-storage",
+  "filesModified": "[\".github/upgrades/scenarios/dotnet-version-upgrade/scenario-instructions.md\",\".github/upgrades/scenarios/dotnet-version-upgrade/scenario.json\",\".github/upgrades/scenarios/dotnet-version-upgrade/tasks.md\",\".github/upgrades/scenarios/dotnet-version-upgrade/tasks/03-azure-blob-storage/task.md\",\".github/upgrades/scenarios/dotnet-version-upgrade/tasks/03-azure-blob-storage/progress-details.md\",\"app/ContosoUniversity/ContosoUniversity.csproj\",\"app/ContosoUniversity/Program.cs\",\"app/ContosoUniversity/Controllers/CoursesController.cs\",\"app/ContosoUniversity/Services/ITeachingMaterialStorage.cs\",\"app/ContosoUniversity/Services/AzureBlobTeachingMaterialStorage.cs\"]",
+  "failed": false
+}
+
+Ran terminal command: git status --short
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon"
+}
+
+**Task 03 complete.** Course teaching-material uploads, downloads, replacement, and deletion now use the Blob storage abstraction. Local upload-directory creation and static-file serving are removed; the existing image path is handled by an application endpoint. Details are recorded in `progress-details.md`.
+
+The Release build succeeded with zero warnings or errors. All five required pages returned HTTP 200. With Blob settings absent, a valid image path returned 503; arbitrary, malformed, traversal, and local `.gitkeep` paths returned 404. No .NET test project was found. Markdown lint could not run because `npm` is unavailable.
+
+Blob configuration, identity permissions, container existence, private DNS, and network reachability remain unverified; no Azure resources or permissions were changed. Task 04 is next but remains unstarted. I also left the existing unrelated rename under `spikes` untouched.
+
+Made changes.
