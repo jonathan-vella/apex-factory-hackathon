@@ -4,10 +4,10 @@ A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, fr
 
 | Field | Value |
 |---|---|
-| Date | |
+| Date | 2026-09-28 |
 | Branch | `spike/b06-upgrade-compare` |
 | Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
-| GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) | |
+| GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) | Upgrade agent 1.1.596 (as it reports itself) |
 | GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | Disabled (Workspace) for the whole run (owner decision), so the Upgrade agent is tested on its own |
 | Models | GPT-6 Sol at Medium to assess and plan, GPT-6 Luna at maximum to execute |
 
@@ -19,6 +19,14 @@ Findings from the first attempt that still stand:
 
 - **The Upgrade agent depends on GitHub Copilot modernization for Azure migrations.** It picked the scenario `azure-migrate`, whose workflow "delegates assessment and planning to the App Modernization migration session". With modernize disabled, "the prescribed App Modernization session tool was unavailable", and it fell back to the existing AppCAT report.
 - **Leftover files steer the agents.** Untracked and ignored files from an earlier run (plans, skills, build output) survive `git switch` and change what the agents do.
+
+## Stage 2, refined prompt (2026-09-28, `114e511`)
+
+The Upgrade agent produced a compliant seven-task plan with the refined prompt: the `dotnet-version-upgrade` scenario, Guided flow, the current branch and the **Manual** commit strategy, from Upgrade agent 1.1.596. All 9 rule rows are met, it changed no application files, and it found CVE-2024-0056 in `Microsoft.Data.SqlClient` 2.1.4 for task 7. The diff from stage 1 touches only `.github/upgrades/` and the chat exports, with no secrets or IDs.
+
+- **It revises its own plan when asked.** In Guided mode the owner corrected two details in the same chat: "zero warnings" became "no errors; record new warnings", and the irrelevant `#skill:migrating-webapi-odata` came out of task 1. That's the opposite of `modernize`, which refused to revise a finished plan (report finding 26).
+- **Manual commit strategy:** the Upgrade agent doesn't commit, so the attendee commits after each task. That's more predictable than `modernize`'s mix of tool commits, `appmod/*` branches and uncommitted work (findings 29, 31, 33, 35).
+- **Noted, not corrected:** the plan calls App Service "private", although the web front end may be public. It has no code impact.
 
 ## Second attempt (2026-09-28): clean, but the old prompt
 
@@ -42,7 +50,7 @@ Where the Upgrade agent can't do a stage without GitHub Copilot modernization, t
 | Stage | Covered by the Upgrade agent? | Time | Model | Prompts | Interventions | Build / run | Live check |
 |---|---|---|---|---|---|---|---|
 | C.1 Set up | — | | — | — | | — | — |
-| C.2 Assess and plan (7 tasks, 9 rules) | | | | | | — | Rules table: |
+| C.2 Assess and plan (7 tasks, 9 rules) | ✅ `dotnet-version-upgrade`, Guided flow, current branch, Manual commit strategy (`114e511`) | | GPT-6 Sol, Medium | The refined prompt, then one correction reply in the same chat | 1 plan correction: "zero warnings" to "no errors; record new warnings", and the irrelevant `#skill:migrating-webapi-odata` removed from task 1 | 0 application files changed | Rules table: all 9 rows met. Task 7 has a real finding: CVE-2024-0056 in `Microsoft.Data.SqlClient` 2.1.4 |
 | C.3.1 .NET 10 upgrade | | | | | | | Pages against `10.10.n.4`: |
 | C.3.2 SQL Managed Instance (local SQL auth kept) | | | | | | | Students against `10.10.n.4`: |
 | C.3.3 Blob | | | | | | | Upload lands in `teaching-materials`: |
@@ -57,7 +65,7 @@ Where the Upgrade agent can't do a stage without GitHub Copilot modernization, t
 | Stage | `modernize` agent (run 1, `spike/b06-run1`) | Upgrade agent (`spike/b06-upgrade-compare`) |
 |---|---|---|
 | Assess | Custom assessment on the dashboard, App Service Linux target; default assessment targeted Windows (findings 5, 15) | |
-| Plan | `/create-modernization-plan` with the 7 kit rules met all rules first time; **Create Plan** had missed most (findings 20–27) | |
+| Plan | `/create-modernization-plan` with the 7 kit rules met all rules first time; **Create Plan** had missed most, and a finished plan can't be revised (findings 20–27) | The refined seven-task prompt met all 9 rules; the agent revised two details in the same chat when asked; Manual commit strategy (`114e511`) |
 | .NET 10 upgrade | Task 001 without the upgrade agent, builds; output stashed by the next task's branch switch and restored by hand (findings 29, 30) | |
 | SQL Managed Instance | Task 002 on an `appmod/*` branch, local SQL auth kept; five pages work (findings 31, 32) | |
 | Blob | Task 003 after a stale-tracker retry, uncommitted; upload passed (finding 33) | |
