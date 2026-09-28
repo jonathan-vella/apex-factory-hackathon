@@ -56,6 +56,8 @@ C3 fits its box. C6 is more than twice its box, mostly because of the execution 
 
 54. **Comparison task 03, Blob: done first time, no intervention** (`7f0d1ec`). The Upgrade agent added a storage abstraction, `ITeachingMaterialStorage` with `AzureBlobTeachingMaterialStorage`, using `DefaultAzureCredential` and the `Storage:*` keys, and changed `CoursesController`, `Program.cs` and the project file. There's no account key, SAS or connection string anywhere in the app. Owner checks: an upload lands in `teaching-materials`, the image shows through the app, and task 02's checks still pass. Run 1's Blob task needed a stale-tracker retry (finding 33).
 
+55. **Comparison task 04, Service Bus: clean first time, where run 1 needed a fix** (`39c4eea`). The Upgrade agent rewrote `NotificationService` and `INotificationService`, updated 4 controllers and the docs, and left no MSMQ or `System.Messaging` code and no SAS or connection strings. Receive uses `ReceiveMessageAsync(TimeSpan.FromSeconds(1))`, a positive wait, so run 1's `TimeSpan.Zero` bug (finding 36) didn't recur. The refined prompt's "validation must prove both sending and receiving" may have helped. Owner checks: send, receive through `/Notifications/GetNotifications`, and the toast all pass. No intervention.
+
 Run 2: pending.
 
 ## Findings
@@ -127,6 +129,8 @@ Run 1, steps 1 (set up) and 2 (assess):
 53. **Comparison task 02, SQL Managed Instance: done with 1 intervention** (`973f41b`). In the same Local chat as task 01, the Upgrade agent changed only `Program.cs` and the project file. Outside Development the app now rejects a SQL user, password or `Integrated Security`, requires `Authentication=Active Directory Default` and a standard private-DNS Managed Instance host name (no IP, public or `privatelink` name, or nonstandard port); in Development it passes the on-premises string unchanged. That's the owner's Entra-only target state, enforced at startup. The agent stopped mid-way and needed one `continue` (comparison intervention 1). Owner checks: the Development pages load, and Production with a SQL login refuses to start. Its chat is `chats/compare-stage3-task02.txt` (renamed from a typo); the only password in it is the agent's synthetic test value.
 
 54. **Comparison task 03, Blob: done first time, no intervention** (`7f0d1ec`). The Upgrade agent added a storage abstraction, `ITeachingMaterialStorage` with `AzureBlobTeachingMaterialStorage`, using `DefaultAzureCredential` and the `Storage:*` keys, and changed `CoursesController`, `Program.cs` and the project file. There's no account key, SAS or connection string anywhere in the app. Owner checks: an upload lands in `teaching-materials`, the image shows through the app, and task 02's checks still pass. Run 1's Blob task needed a stale-tracker retry (finding 33).
+
+55. **Comparison task 04, Service Bus: clean first time, where run 1 needed a fix** (`39c4eea`). The Upgrade agent rewrote `NotificationService` and `INotificationService`, updated 4 controllers and the docs, and left no MSMQ or `System.Messaging` code and no SAS or connection strings. Receive uses `ReceiveMessageAsync(TimeSpan.FromSeconds(1))`, a positive wait, so run 1's `TimeSpan.Zero` bug (finding 36) didn't recur. The refined prompt's "validation must prove both sending and receiving" may have helped. Owner checks: send, receive through `/Notifications/GetNotifications`, and the toast all pass. No intervention.
 
 Run 2: pending.
 
