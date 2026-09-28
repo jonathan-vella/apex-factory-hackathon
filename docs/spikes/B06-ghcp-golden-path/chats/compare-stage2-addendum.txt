@@ -1,0 +1,25 @@
+I’ll apply only the two requested textual corrections to the existing plan, verify the diff, and stop.
+
+Upgrade-get_state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity"
+}
+
+Search for `zero warnings|warning-free|#skill:migrating-webapi-odata`
+
+Search for `warn`
+
+Edit 
+
+Search for `zero warnings|with no warnings|warning-free|#skill:migrating-webapi-odata`
+
+Search for `builds? (successfully )?with no errors|succeeds with no errors|record new war...`
+
+Ran terminal command: git --no-pager status --short
+
+Updated only `plan.md`:
+
+1. Replaced warning-free build requirements throughout with: builds with no errors; record new warnings but don’t block on them.
+2. Removed the `#skill:migrating-webapi-odata` reference from Task 1.
+
+Verified no old warning language or Web API/OData skill reference remains. No tasks were started, and no other files were changed. Stopped for review.
