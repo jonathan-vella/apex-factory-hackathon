@@ -1,6 +1,6 @@
 # Migration Progress
 
-**Progress**: 13/19 tasks complete <progress value="68" max="100"></progress> 68%
+**Progress**: 14/19 tasks complete <progress value="74" max="100"></progress> 74%
 **Status**: Not Started
 
 ## Tasks
@@ -18,7 +18,7 @@
   - ✅ 01.10-courses-controller: Migrate CoursesController while preserving the later Blob boundary ([Content](tasks/01.10-courses-controller/task.md), [Progress](tasks/01.10-courses-controller/progress-details.md))
   - ✅ 01.11-notifications-controller: Migrate NotificationsController and preserve its raw JSON contract ([Content](tasks/01.11-notifications-controller/task.md), [Progress](tasks/01.11-notifications-controller/progress-details.md))
   - ✅ 01.12-cleanup-container-validation: Remove legacy host remnants and validate build, pages, and SDK container publishing ([Content](tasks/01.12-cleanup-container-validation/task.md), [Progress](tasks/01.12-cleanup-container-validation/progress-details.md))
-- 🔲 02-azure-sql-managed-instance: Migrate the database workload to Azure SQL Managed Instance ([Content](tasks/02-azure-sql-managed-instance/task.md))
+- ✅ 02-azure-sql-managed-instance: Migrate the database workload to Azure SQL Managed Instance ([Content](tasks/02-azure-sql-managed-instance/task.md), [Progress](tasks/02-azure-sql-managed-instance/progress-details.md))
 - 🔲 03-azure-blob-storage: Migrate mutable file handling to Azure Blob Storage ([Content](tasks/03-azure-blob-storage/task.md))
 - 🔲 04-azure-service-bus: Migrate messaging to Azure Service Bus ([Content](tasks/04-azure-service-bus/task.md))
 - 🔲 05-azure-key-vault: Integrate Azure Key Vault ([Content](tasks/05-azure-key-vault/task.md))

@@ -4,7 +4,7 @@
 - **Flow Mode**: Guided
 - **Target Framework**: net10.0
 - **Scope**: app/ContosoUniversity
-- **Workflow Boundary**: Execute task 01 only, then stop for review before task 02
+- **Workflow Boundary**: Task 01 is complete and approved; execute task 02 only, then stop for review before task 03
 
 ## Source Control
 - **Source Branch**: spike/b06-upgrade-compare
@@ -37,10 +37,11 @@
 - Every task validation must include a successful build and local `dotnet run` verification that Home, Students, Courses, Instructors, and Departments pages load.
 - A missing local SQL-authentication secret blocks runtime validation until supplied; it does not make the task impossible and must remain in the plan.
 - Allow workflow tooling to generate `tasks.md` for approved task execution; never create it manually.
-- Execute approved task 01 only, then stop for review without starting task 02.
+- Task 01 is complete and approved. Execute approved task 02 only, then stop for review without starting task 03.
 
 ## Decisions
-- **Task 1 execution approval**: Plan approved as written; execute `01-upgrade-dotnet-aspnet-core` only, then stop for review before task 02.
+- **Task 1 execution approval**: Completed; reviewed and approved before task 02.
+- **Task 2 execution approval**: Execute `02-azure-sql-managed-instance` only, then stop for review before task 03.
 - **Upgrade Strategy**: All-at-Once
 - **Project Approach**: In-place rewrite
 - **Unsupported Packages**: Resolve Inline

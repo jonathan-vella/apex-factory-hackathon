@@ -1,0 +1,370 @@
+I’ll resume the approved .NET upgrade scenario, confirm task 01 is complete and task 02 is next, then execute only the Managed Instance task and stop before task 03.
+
+
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity"
+}
+
+The persisted workflow confirms task 01 is complete and task 02 is the next available item. I’m loading task 02’s execution guidance and exact scope before starting it; later tasks remain outside the boundary.
+
+
+
+Read 
+
+Read 
+
+Read , lines 75 to 104
+
+Read 
+
+Read 
+
+The approved task 02 artifact exists and is pending; the persisted instructions still describe the previous task-01 boundary, so I’ll treat your latest approval as authoritative and update that workflow note. I’m retrieving the task lifecycle and assessment-query tools, then I’ll inspect the exact database code and EF package state.
+
+
+
+Getting instructions
+Completed with input: {
+  "kind": "skill",
+  "query": "managing-package-references"
+}
+
+Read , lines 49 to 104
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+The active code confirms the task’s core boundary: `SchoolContext` contains the model mappings, while `Program.cs` conditionally configures SQL Server only when a connection string exists. I’m checking assessment details and the EF/package migration rules next; the likely fix is to upgrade the provider stack and make startup enforce the Development-versus-non-Development credential policy without changing any database.
+
+Ran Query assessment data 
+Completed with input: {
+  "query": "summary",
+  "scope": "global/project",
+  "params": {
+    "projectPath": "app/ContosoUniversity/ContosoUniversity.csproj"
+  }
+}
+
+Getting instructions
+Completed with input: {
+  "kind": "skill",
+  "query": "EF Core major version upgrade SQL Server provider model mapping validation"
+}
+
+Read 
+
+The migration skill confirms package versions are declared directly in this project (no central package file was found in the workspace), and `SchoolContext`’s nine sets/mappings are centralized. The first structured assessment call used the wrong payload shape, so I’m correcting it and loading dependency discovery before changing package references.
+
+
+
+Starting task 02-azure-sql-managed-instance
+Completed with input: {
+  "taskId": "02-azure-sql-managed-instance"
+}
+
+Task 02 is now marked in progress, with task 03 still pending. Its required skills include EF DbContext registration, ASP.NET Core configuration, package management, and build validation; I’m reading those now and checking resolved dependency versions plus the structured EF assessment before edits.
+
+Getting dependencies for project ContosoUniversity.csproj
+Completed with input: {
+  "solutionPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.sln",
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj"
+}
+
+Querying assessment to get overview of project [project]
+Completed with input: {
+  "query": "{\"query\":\"summary\",\"scope\":\"global/project\",\"params\":{\"projectPath\":\"app/ContosoUniversity/ContosoUniversity.csproj\"}}"
+}
+
+Read 
+
+Read 
+
+The project-dependency tool confirms there is no central package version file and the only direct references are `Microsoft.Data.SqlClient` 2.1.4 and EF Core SQL Server 3.1.32. Since the old host’s deployment status is not evidenced and the plan forbids schema changes, I’m loading the shared-database safeguard and checking whether application code directly depends on SqlClient types before choosing the minimal package change.
+
+Getting instructions
+Completed with input: {
+  "kind": "skill",
+  "query": "managing-shared-database-schema"
+}
+
+Querying assessment to get overview of project [project]
+Completed with input: {
+  "query": "{\"query\":\"summary\",\"scope\":\"global/project\",\"params\":{\"projectPath\":\"C:\\\\src\\\\apex-factory-hackathon\\\\app\\\\ContosoUniversity\\\\ContosoUniversity.csproj\"}}"
+}
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+Read 
+
+Read 
+
+No application source directly uses SqlClient APIs, so the direct 2.1.4 reference is likely redundant once EF Core SQL Server is raised. The local Development override is empty, and the structured assessment still rejects the project path; I’m resolving the assessment path and verifying exact EF/SqlClient package compatibility before the first edit.
+
+
+
+Ran terminal command: dotnet user-secrets list --project app/ContosoUniversity/ContosoUniversity.csproj | ForEach-Object { if ($_ -match ' = ') { ($_ -split ' = ', 2)[0] } else { $_ } }
+
+Querying assessment
+Completed with input: {
+  "query": "{\"query\":\"list_projects\",\"scope\":\"global\"}"
+}
+
+Getting ContosoUniversity.csproj version for Microsoft.EntityFrameworkCore.SqlServer
+Completed with input: {
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj",
+  "targetFrameworks": "net10.0",
+  "packageName": "Microsoft.EntityFrameworkCore.SqlServer",
+  "includePrerelease": false
+}
+
+Read 
+
+The shared-database safeguard is now explicit: task 02 will not create migrations, run `Migrate`/`EnsureCreated`, or change schema/data; this code-only pass leaves schema ownership untouched. I’m checking EF Core 10 provider dependencies and the assessment’s EF findings, then I’ll record the confirmed scope in `task.md` before editing code.
+
+Querying assessment
+Completed with input: {
+  "query": "{\"query\":\"help\",\"scope\":\"global\"}"
+}
+
+Getting instructions
+Completed with input: {
+  "kind": "skill",
+  "query": "Entity Framework Core breaking changes when upgrading EF Core 3.1 to 10"
+}
+
+Getting ContosoUniversity.csproj version for Microsoft.EntityFrameworkCore.SqlServer
+Completed with input: {
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj",
+  "targetFrameworks": "net10.0",
+  "packageName": "Microsoft.EntityFrameworkCore.SqlServer",
+  "includePrerelease": false
+}
+
+Searched for regex `Database\.Migrate|EnsureCreated|MigrateDatabaseToLatestVersion|Database\.SetInitializer|DbMigrator|Update-Database|CREATE TABLE|ALTER TABLE|__MigrationHistory|__EFMigrationsHistory` (`**/*.{cs,sql,config,json,ps1,csproj}`), 2 results
+
+Searched for files matching `**/Directory.{Build,Packages}.props`, no matches
+
+The schema-writer scan found a legacy deployment script that calls `EnsureCreated()` during warm-up. I’ll document that as an existing schema-creating path, avoid adding any EF startup DDL or migrations, and keep this task strictly to the EF provider/configuration contract; next I’m checking the script and exact assessment package findings.
+
+Ran terminal command: dotnet user-secrets list --project app/ContosoUniversity/ContosoUniversity.csproj | ForEach-Object { if ($_ -match ' = ') { ($_ -split ' = ', 2)[0] } else { $_ } }
+
+Querying assessment to get overview of entire assessment results
+Completed with input: {
+  "query": "{\"query\":\"summary\",\"scope\":\"global\"}"
+}
+
+Querying assessment to get matching data for 'EntityFrameworkCore'
+Completed with input: {
+  "query": "{\"query\":\"search\",\"scope\":\"global\",\"filters\":{\"searchQuery\":\"EntityFrameworkCore\",\"limit\":20}}"
+}
+
+Searched for regex `projectPath|EntityFrameworkCore|SqlClient` (`**/.github/upgrades/scenarios/dotnet-version-upgrade/assessment.json`), 215 results
+
+Read 
+
+
+
+Querying assessment to get overview of project [project]
+Completed with input: {
+  "query": "{\"query\":\"summary\",\"scope\":\"global/project\",\"params\":{\"projectPath\":\"ContosoUniversity.csproj\"}}"
+}
+
+Querying assessment to get list all issues in this project [project]
+Completed with input: {
+  "query": "{\"query\":\"list_issues\",\"scope\":\"global/project\",\"params\":{\"projectPath\":\"ContosoUniversity.csproj\"},\"filters\":{\"limit\":20}}"
+}
+
+Searched for regex `DbSet<|HasColumnType\("datetime2"\)|ToTable\(|HasDiscriminator|HasKey\(|HasOne\(|WithOne\(` (`**/app/ContosoUniversity/Data/SchoolContext.cs`), 23 results
+
+Searched for files matching `**/app/ContosoUniversity/**/Migrations/**`, no matches
+
+The research is complete: assessment confirms the EF Core package move to `Microsoft.EntityFrameworkCore.SqlServer` 10.0.12; the current user-secret key is configured (I did not inspect its value); all nine model sets/mappings are present; and the legacy warm-up script is the only schema-creating path found. I’m recording those facts and the strict no-DDL boundary in task 02’s research notes, and updating the workflow note to stop after task 02.
+
+Generating patch (46 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+
+
+Checked , , no problems found
+
+The task notes are in place and pass diagnostics. I’m making two focused implementation changes now: upgrade the SQL Server EF provider to 10.0.12 while removing the stale direct SqlClient pin, and replace the conditional provider setup with fail-fast connection validation that passes the original Development secret unchanged and enforces passwordless `Active Directory Default` plus standard-host/private-endpoint constraints outside Development.
+
+Generating patch (76 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+The source edit is in; I’m immediately restoring just the upgraded project to check whether EF Core 10.0.12 resolves a compatible SQL client graph after the obsolete direct pin is removed.
+
+Ran terminal command: dotnet restore app/ContosoUniversity/ContosoUniversity.csproj --verbosity minimal
+
+Restore succeeded without package conflicts. Next I’m compiling the project to catch any EF Core 10 API incompatibility, especially the SQL connection-string policy’s use of the upgraded provider’s parser.
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+The upgraded project compiles cleanly with no warnings, and the model file remains untouched. I’m starting the app in Development now to verify Home plus the four database-backed pages using the configured secret without printing its value; afterward I’ll test the non-Development rejection/acceptance rules with synthetic connection strings only.
+
+Ran terminal command: $env:ASPNETCORE_ENVIRONMENT = 'Development'; dotnet run --no-build --configuration Release --project app/ContosoUniversity/ContosoUniversity.csproj --urls http://127.0.0.1:5194
+
+The Development host started successfully on localhost. I’m collecting only HTTP status codes for the five required pages so no page data or secret value is exposed.
+
+Ran terminal command: $paths = @('/', '/Students', '/Courses', '/Instructors', '/Departments'); foreach ($path in $paths) { try { $response = Invoke-WebRequest -Uri "http://127.0.0.1:5194$path" -UseBasicParsing; "{0} {1}" -f $path, [int]$response.StatusCode } catch { if ($_.Exception.Response) { "{0} {1}" -f $path, [int]$_.Exception.Response.StatusCode } else { "{0} ERROR" -f $path } } }
+
+All five required Development pages returned HTTP 200, so the configured secret works with the upgraded provider and model. I’m stopping that local host, then I’ll exercise the Production policy with non-secret synthetic inputs and verify the final task state.
+
+Killed terminal
+
+Ran terminal command: $oldEnvironment = $env:ASPNETCORE_ENVIRONMENT; $oldConnection = $env:ConnectionStrings__DefaultConnection; try { $env:ASPNETCORE_ENVIRONMENT = 'Production'; $env:ConnectionStrings__DefaultConnection = 'Server=cu-mi.zone.database.windows.net;Database=ContosoUniversity;User ID=validation-user;Password=validation-password;Authentication=Active Directory Default'; $output = (& dotnet app/ContosoUniversity/bin/Release/net10.0/ContosoUniversity.dll 2>&1) -join [Environment]::NewLine; $exitCode = $LASTEXITCODE; if ($exitCode -eq 0 -or $output -notmatch 'SQL usernames and passwords are not allowed outside Development') { throw 'Production did not reject a credential-bearing connection string as expected.' }; 'Production credential rejection passed.' } finally { if ($null -eq $oldEnvironment) { Remove-Item Env:ASPNETCORE_ENVIRONMENT -ErrorAction SilentlyContinue } else { $env:ASPNETCORE_ENVIRONMENT = $oldEnvironment }; if ($null -eq $oldConnection) { Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue } else { $env:ConnectionStrings__DefaultConnection = $oldConnection } }
+
+The Production guard rejects a synthetic username/password connection as required, without exposing the test value. I’m now checking that a passwordless `Active Directory Default` connection using a standard MI hostname is accepted at startup and serves the health endpoint, without making any database or Azure network call.
+
+Ran terminal command: $env:ASPNETCORE_ENVIRONMENT = 'Production'; $env:ConnectionStrings__DefaultConnection = 'Server=cu-mi.zone.database.windows.net;Database=ContosoUniversity;Encrypt=True;Authentication=Active Directory Default'; dotnet app/ContosoUniversity/bin/Release/net10.0/ContosoUniversity.dll --urls http://127.0.0.1:5196
+
+Ran terminal command: $response = Invoke-WebRequest -Uri 'http://127.0.0.1:5196/health' -UseBasicParsing; 'Production /health {0}' -f [int]$response.StatusCode
+
+The accepted Production connection configuration started successfully and `/health` returned 200 without connecting to SQL. The only startup warning came from launching the DLL from the repository root (wrong content root), so I’ll use the project launch path for any remaining probes; next I’m stopping this host and checking rejected endpoint forms.
+
+Killed terminal
+
+I found one gap in the first guard: it would reject the usual `public` hostname only when port 3342 was supplied, but could accept a `public` DNS label on another port or integrated security. I’m tightening those checks (while retaining default/1433 private MI access), then immediately rebuilding the touched project.
+
+Generating patch (25 lines) in 
+
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+The Development run proves the unchanged user-secret string reaches SQL and all five required pages load; the Production test passed the passwordless private-MI startup path. I’ve tightened public-label, port, IP, and integrated-security rejection and rebuilt; now I’m running negative-policy cases, checking the resolved transitive SqlClient version, and confirming whether any test project exists.
+
+Ran terminal command: $previousEnvironment = $env:ASPNETCORE_ENVIRONMENT; $previousConnection = $env:ConnectionStrings__DefaultConnection; try { $env:ASPNETCORE_ENVIRONMENT = 'Production'; $cases = @(@{ Name = 'public endpoint'; Connection = 'Server=cu-mi.public.database.windows.net,3342;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'nonstandard port' }, @{ Name = 'privatelink hostname'; Connection = 'Server=cu-mi.privatelink.database.windows.net;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'privatelink' }, @{ Name = 'IP endpoint'; Connection = 'Server=10.20.30.40;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'privatelink' }, @{ Name = 'wrong authentication'; Connection = 'Server=cu-mi.zone.database.windows.net;Database=ContosoUniversity;Integrated Security=True'; Expected = 'Authentication=Active Directory Default' }); foreach ($case in $cases) { $env:ConnectionStrings__DefaultConnection = $case.Connection; $output = (& dotnet app/ContosoUniversity/bin/Release/net10.0/ContosoUniversity.dll 2>&1) -join [Environment]::NewLine; $exitCode = $LASTEXITCODE; if ($exitCode -eq 0 -or $output -notmatch [regex]::Escape($case.Expected)) { throw "Production policy test failed: $($case.Name)." }; "Rejected: $($case.Name)" } } finally { if ($null -eq $previousEnvironment) { Remove-Item Env:ASPNETCORE_ENVIRONMENT -ErrorAction SilentlyContinue } else { $env:ASPNETCORE_ENVIRONMENT = $previousEnvironment }; if ($null -eq $previousConnection) { Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue } else { $env:ConnectionStrings__DefaultConnection = $previousConnection } }
+Completed with input: $previousEnvironment = $env:ASPNETCORE_ENVIRONMENT; $previousConnection = $env:ConnectionStrings__DefaultConnection; try { $env:ASPNETCORE_ENVIRONMENT = 'Production'; $cases = @(@{ Name = 'public endpoint'; Connection = 'Server=cu-mi.public.database.windows.net,3342;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'nonstandard port' }, @{ Name = 'privatelink hostname'; Connection = 'Server=cu-mi.privatelink.database.windows.net;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'privatelink' }, @{ Name = 'IP endpoint'; Connection = 'Server=10.20.30.40;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'privatelink' }, @{ Name = 'wrong authentication'; Connection = 'Server=cu-mi.zone.database.windows.net;Database=ContosoUniversity;Integrated Security=True'; Expected = 'Authentication=Active Directory Default' }); foreach ($case in $cases) { $env:ConnectionStrings__DefaultConnection = $case.Connection; $output = (& dotnet app/ContosoUniversity/bin/Release/net10.0/ContosoUniversity.dll 2>&1) -join [Environment]::NewLine; $exitCode = $LASTEXITCODE; if ($exitCode -eq 0 -or $output -notmatch [regex]::Escape($case.Expected)) { throw "Production policy test failed: $($case.Name)." }; "Rejected: $($case.Name)" } } finally { if ($null -eq $previousEnvironment) { Remove-Item Env:ASPNETCORE_ENVIRONMENT -ErrorAction SilentlyContinue } else { $env:ASPNETCORE_ENVIRONMENT = $previousEnvironment }; if ($null -eq $previousConnection) { Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue } else { $env:ConnectionStrings__DefaultConnection = $previousConnection } }
+
+Ran terminal command: dotnet list app/ContosoUniversity/ContosoUniversity.csproj package --include-transitive | Select-String 'EntityFrameworkCore|SqlClient|Package reference'
+
+Checked , , no problems found
+
+The endpoint guards correctly rejected public, `privatelink`, and IP targets. One assertion exposed an imprecise error path: `Integrated Security=True` is rejected, but currently gets the embedded-credentials message instead of the authentication-policy message. The provider now resolves EF Core 10.0.12 with transitive SqlClient 6.1.6; I’m making the error branches precise, then I’ll rerun the same guard matrix.
+
+Generating patch (18 lines) in 
+
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+Ran terminal command: $previousEnvironment = $env:ASPNETCORE_ENVIRONMENT; $previousConnection = $env:ConnectionStrings__DefaultConnection; try { $env:ASPNETCORE_ENVIRONMENT = 'Production'; $cases = @(@{ Name = 'embedded credentials'; Connection = 'Server=cu-mi.zone.database.windows.net;Database=ContosoUniversity;User ID=validation-user;Password=validation-password;Authentication=Active Directory Default'; Expected = 'SQL usernames and passwords are not allowed outside Development' }, @{ Name = 'public endpoint'; Connection = 'Server=cu-mi.public.database.windows.net,3342;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'nonstandard port' }, @{ Name = 'privatelink hostname'; Connection = 'Server=cu-mi.privatelink.database.windows.net;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'privatelink hostname' }, @{ Name = 'IP endpoint'; Connection = 'Server=10.20.30.40;Database=ContosoUniversity;Authentication=Active Directory Default'; Expected = 'privatelink hostname' }, @{ Name = 'integrated authentication'; Connection = 'Server=cu-mi.zone.database.windows.net;Database=ContosoUniversity;Integrated Security=True'; Expected = 'Integrated security is not allowed' }); foreach ($case in $cases) { $env:ConnectionStrings__DefaultConnection = $case.Connection; $output = (& dotnet app/ContosoUniversity/bin/Release/net10.0/ContosoUniversity.dll 2>&1) -join [Environment]::NewLine; $exitCode = $LASTEXITCODE; if ($exitCode -eq 0 -or $output -notmatch [regex]::Escape($case.Expected)) { throw "Production policy test failed: $($case.Name)." }; "Rejected as expected: $($case.Name)" } } finally { if ($null -eq $previousEnvironment) { Remove-Item Env:ASPNETCORE_ENVIRONMENT -ErrorAction SilentlyContinue } else { $env:ASPNETCORE_ENVIRONMENT = $previousEnvironment }; if ($null -eq $previousConnection) { Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue } else { $env:ConnectionStrings__DefaultConnection = $previousConnection } }
+
+The authentication messages now distinguish embedded SQL credentials from integrated security, and all five negative Production cases pass with the expected rejection. I’m doing the final post-edit Development page run and test discovery now, then I’ll record exact results and complete task 02 without starting task 03.
+
+
+
+
+
+Ran terminal command: $env:ASPNETCORE_ENVIRONMENT = 'Development'; dotnet run --no-build --configuration Release --project app/ContosoUniversity/ContosoUniversity.csproj --urls http://127.0.0.1:5198
+
+Discovering test projects
+Completed with input: {
+  "solutionPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.sln",
+  "projectPaths": [
+    "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj"
+  ]
+}
+
+Test discovery returned no .NET test projects. The final Development host is running from the project directory with the configured user secret; I’m confirming the five required page statuses, then I’ll write task progress evidence, complete task 02, and verify task 03 remains pending.
+
+Ran terminal command: $paths = @('/', '/Students', '/Courses', '/Instructors', '/Departments'); foreach ($path in $paths) { try { $response = Invoke-WebRequest -Uri "http://127.0.0.1:5198$path" -UseBasicParsing; "{0} {1}" -f $path, [int]$response.StatusCode } catch { if ($_.Exception.Response) { "{0} {1}" -f $path, [int]$_.Exception.Response.StatusCode } else { "{0} ERROR" -f $path } } }
+
+All five final Development page checks returned HTTP 200. I’m shutting down the local host and writing the task’s completion record with package versions, policy test results, model preservation evidence, and the external limitations; no schema or Azure resource action was performed.
+
+Killed terminal
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.sln --configuration Release --no-restore --verbosity minimal
+
+The final Release solution build also passes with no errors or warnings. I’m doing one last positive Production smoke test from the project directory with the synthetic passwordless MI string, plus a missing-connection failure check; neither test makes a SQL connection.
+
+Ran terminal command: $previousEnvironment = $env:ASPNETCORE_ENVIRONMENT; $previousConnection = $env:ConnectionStrings__DefaultConnection; try { $env:ASPNETCORE_ENVIRONMENT = 'Production'; $env:ConnectionStrings__DefaultConnection = 'Server=cu-mi.zone.database.windows.net;Database=ContosoUniversity;Encrypt=True;Authentication=Active Directory Default'; dotnet run --no-build --configuration Release --project app/ContosoUniversity/ContosoUniversity.csproj --urls http://127.0.0.1:5199 } finally { if ($null -eq $previousEnvironment) { Remove-Item Env:ASPNETCORE_ENVIRONMENT -ErrorAction SilentlyContinue } else { $env:ASPNETCORE_ENVIRONMENT = $previousEnvironment }; if ($null -eq $previousConnection) { Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue } else { $env:ConnectionStrings__DefaultConnection = $previousConnection } }
+
+Ran terminal command: $response = Invoke-WebRequest -Uri 'http://127.0.0.1:5199/health' -UseBasicParsing; 'Production /health {0}' -f [int]$response.StatusCode
+
+Killed terminal
+
+The final Production positive smoke test starts with a passwordless standard MI hostname and serves `/health` with HTTP 200. I’m checking the blank-connection failure path, then I’ll write the completion log and use the workflow tool to complete only task 02.
+
+Ran terminal command: $previousEnvironment = $env:ASPNETCORE_ENVIRONMENT; $previousConnection = $env:ConnectionStrings__DefaultConnection; try { $env:ASPNETCORE_ENVIRONMENT = 'Production'; $env:ConnectionStrings__DefaultConnection = ''; $output = (& dotnet app/ContosoUniversity/bin/Release/net10.0/ContosoUniversity.dll 2>&1) -join [Environment]::NewLine; $exitCode = $LASTEXITCODE; if ($exitCode -eq 0 -or $output -notmatch 'ConnectionStrings:DefaultConnection is required') { throw 'Missing connection string was not rejected as expected.' }; 'Missing connection string rejected at startup.' } finally { if ($null -eq $previousEnvironment) { Remove-Item Env:ASPNETCORE_ENVIRONMENT -ErrorAction SilentlyContinue } else { $env:ASPNETCORE_ENVIRONMENT = $previousEnvironment }; if ($null -eq $previousConnection) { Remove-Item Env:ConnectionStrings__DefaultConnection -ErrorAction SilentlyContinue } else { $env:ConnectionStrings__DefaultConnection = $previousConnection } }
+
+
+
+The blank `DefaultConnection` path now fails at startup with a safe message. I’m adding the required task-02 progress record; it will make clear that local DB access succeeded with the existing Development secret, while the Azure private endpoint itself was intentionally not contacted.
+
+Generating patch (44 lines) in 
+
+
+```
+
+```
+
+
+Checked , , , , no problems found
+
+The completion record and touched code files report no diagnostics. I’m running the final whitespace check now, then I’ll record task 02 as completed in workflow state and verify task 03 was not started.
+
+Ran terminal command: git diff --check
+
+Completing task 02-azure-sql-managed-instance
+Completed with input: {
+  "taskId": "02-azure-sql-managed-instance",
+  "filesModified": "[\"C:\\src\\apex-factory-hackathon\\.github\\upgrades\\scenarios\\dotnet-version-upgrade\\scenario-instructions.md\",\"C:\\src\\apex-factory-hackathon\\.github\\upgrades\\scenarios\\dotnet-version-upgrade\\tasks\\02-azure-sql-managed-instance\\task.md\",\"C:\\src\\apex-factory-hackathon\\.github\\upgrades\\scenarios\\dotnet-version-upgrade\\tasks\\02-azure-sql-managed-instance\\progress-details.md\",\"C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj\",\"C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\Program.cs\"]",
+  "failed": false,
+  "errorMessage": null
+}
+
+Task 02 is recorded complete in the workflow. I’m checking the final state once to confirm the next task is 03 and no task remains in progress; I will not start it.
+
+Ran terminal command: git status --short
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity"
+}
+
+Task `02-azure-sql-managed-instance` is complete. EF Core SQL Server is upgraded to 10.0.12; SqlClient 6.1.6 now resolves transitively. Startup requires `ConnectionStrings:DefaultConnection`, preserves the Development secret unchanged, and enforces passwordless `Active Directory Default` with private, standard MI endpoint checks outside Development. The EF model mappings were left unchanged.
+
+Validation passed: restore and Release project/solution builds with zero warnings; all five required Development pages returned HTTP 200; Production configuration acceptance and rejection checks passed. No .NET test project was found. The Azure endpoint was not contacted, and no database, schema, legacy deployment, or Azure resource was changed.
+
+Task 03 remains pending and was not started. Details: task progress, `Program.cs`, `ContosoUniversity.csproj`.
+
+Made changes.
