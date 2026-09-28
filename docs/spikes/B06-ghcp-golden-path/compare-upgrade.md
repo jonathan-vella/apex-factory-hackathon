@@ -26,6 +26,7 @@ The Upgrade agent produced a compliant seven-task plan with the refined prompt: 
 
 - **It revises its own plan when asked.** In Guided mode the owner corrected two details in the same chat: "zero warnings" became "no errors; record new warnings", and the irrelevant `#skill:migrating-webapi-odata` came out of task 1. That's the opposite of `modernize`, which refused to revise a finished plan (report finding 26).
 - **Manual commit strategy:** the Upgrade agent doesn't commit, so the attendee commits after each task. That's more predictable than `modernize`'s mix of tool commits, `appmod/*` branches and uncommitted work (findings 29, 31, 33, 35).
+- **Corrections committed:** `81f9dc0` changes "zero warnings" to "record new warnings" in eight places and removes the OData skill; the correction chat is `chats/compare-stage2-addendum.txt` on the comparison branch.
 - **Noted, not corrected:** the plan calls App Service "private", although the web front end may be public. It has no code impact.
 
 ## Second attempt (2026-09-28): clean, but the old prompt
@@ -51,7 +52,7 @@ Where the Upgrade agent can't do a stage without GitHub Copilot modernization, t
 |---|---|---|---|---|---|---|---|
 | C.1 Set up | — | | — | — | | — | — |
 | C.2 Assess and plan (7 tasks, 9 rules) | ✅ `dotnet-version-upgrade`, Guided flow, current branch, Manual commit strategy (`114e511`) | | GPT-6 Sol, Medium | The refined prompt, then one correction reply in the same chat | 1 plan correction: "zero warnings" to "no errors; record new warnings", and the irrelevant `#skill:migrating-webapi-odata` removed from task 1 | 0 application files changed | Rules table: all 9 rows met. Task 7 has a real finding: CVE-2024-0056 in `Microsoft.Data.SqlClient` 2.1.4 |
-| C.3.1 .NET 10 upgrade | | | | | | | Pages against `10.10.n.4`: |
+| C.3.1 .NET 10 upgrade | First attempt blocked before any change: "the Upgrade workflow's plan parser cannot start with its internal LLM client unavailable" (Copilot harness, GPT-6 Luna maximum). Owner retrying after granting the extension language-model access; result pending | | GPT-6 Luna, maximum | | | | Pages against `10.10.n.4`: |
 | C.3.2 SQL Managed Instance (local SQL auth kept) | | | | | | | Students against `10.10.n.4`: |
 | C.3.3 Blob | | | | | | | Upload lands in `teaching-materials`: |
 | C.3.4 Service Bus | | | | | | | Send and receive (`/Notifications/GetNotifications`): |

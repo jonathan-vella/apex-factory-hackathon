@@ -48,6 +48,8 @@ C3 fits its box. C6 is more than twice its box, mostly because of the execution 
 
 50. **Comparison stage 2 with the refined prompt: compliant, and revisable** (`114e511`). The Upgrade agent (1.1.596) planned the seven tasks in the `dotnet-version-upgrade` scenario, Guided flow, with the Manual commit strategy. All 9 rules were met, no application files changed, and it found CVE-2024-0056 in `Microsoft.Data.SqlClient` 2.1.4. Unlike `modernize` (finding 26), it revised its own plan in the same chat when the owner asked (warnings wording, an irrelevant OData skill in task 1). With the Manual commit strategy the attendee commits after each task, which avoids `modernize`'s branch surprises. It calls App Service "private" although the front end may be public; no code impact.
 
+51. **Comparison stage 3, task 01 blocked before any change.** With the plan corrected (`81f9dc0`), the Upgrade agent in the Copilot harness with GPT-6 Luna at maximum stopped at task 01: "the Upgrade workflow's plan parser cannot start with its internal LLM client unavailable". Nothing changed. The owner is checking the Output log, granting the extension language-model access (**Chat: Manage Language Model Access**), reloading and retrying, with the Local harness as the fallback. Result: pending.
+
 Run 2: pending.
 
 ## Findings
@@ -111,6 +113,8 @@ Run 1, steps 1 (set up) and 2 (assess):
 49. **Comparison, second attempt: clean tree, stale prompt** (`1ae9076`). The owner's local copy of the prompt was the old six-task version, so the attempt is discarded and stage 2 is redone with the refined seven-task prompt. The Upgrade agent behaved well on the clean tree: the `dotnet-version-upgrade` scenario with stateful artifacts under `.github/upgrades/scenarios/dotnet-version-upgrade/`, no application files changed, the exact task chain and a correct compliance table, and blocked separated from impossible. It flagged `Microsoft.Data.SqlClient` as vulnerable without a CVE ID. Protocol C.2 now fetches the prompt from origin and checks it says "exactly these seven". Details in [compare-upgrade.md](compare-upgrade.md).
 
 50. **Comparison stage 2 with the refined prompt: compliant, and revisable** (`114e511`). The Upgrade agent (1.1.596) planned the seven tasks in the `dotnet-version-upgrade` scenario, Guided flow, with the Manual commit strategy. All 9 rules were met, no application files changed, and it found CVE-2024-0056 in `Microsoft.Data.SqlClient` 2.1.4. Unlike `modernize` (finding 26), it revised its own plan in the same chat when the owner asked (warnings wording, an irrelevant OData skill in task 1). With the Manual commit strategy the attendee commits after each task, which avoids `modernize`'s branch surprises. It calls App Service "private" although the front end may be public; no code impact.
+
+51. **Comparison stage 3, task 01 blocked before any change.** With the plan corrected (`81f9dc0`), the Upgrade agent in the Copilot harness with GPT-6 Luna at maximum stopped at task 01: "the Upgrade workflow's plan parser cannot start with its internal LLM client unavailable". Nothing changed. The owner is checking the Output log, granting the extension language-model access (**Chat: Manage Language Model Access**), reloading and retrying, with the Local harness as the fallback. Result: pending.
 
 Run 2: pending.
 
