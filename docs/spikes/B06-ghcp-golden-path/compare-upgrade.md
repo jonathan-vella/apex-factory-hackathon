@@ -52,7 +52,7 @@ Where the Upgrade agent can't do a stage without GitHub Copilot modernization, t
 |---|---|---|---|---|---|---|---|
 | C.1 Set up | — | | — | — | | — | — |
 | C.2 Assess and plan (7 tasks, 9 rules) | ✅ `dotnet-version-upgrade`, Guided flow, current branch, Manual commit strategy (`114e511`) | | GPT-6 Sol, Medium | The refined prompt, then one correction reply in the same chat | 1 plan correction: "zero warnings" to "no errors; record new warnings", and the irrelevant `#skill:migrating-webapi-odata` removed from task 1 | 0 application files changed | Rules table: all 9 rows met. Task 7 has a real finding: CVE-2024-0056 in `Microsoft.Data.SqlClient` 2.1.4 |
-| C.3.1 .NET 10 upgrade | First attempt blocked before any change: "the Upgrade workflow's plan parser cannot start with its internal LLM client unavailable" (Copilot harness, GPT-6 Luna maximum). Runs in the **Local** harness after **Configure Model Access** for the Upgrade MCP server: execution needs MCP sampling, which the Copilot harness doesn't provide | | GPT-6 Luna, maximum | | | | Pages against `10.10.n.4`: |
+| C.3.1 .NET 10 upgrade | ✅ in the **Local** harness (`c1ebad4`). The first attempts in the Copilot harness were blocked before any change (no MCP sampling) | | GPT-6 Luna, maximum | `start_task` for task 01 | None reported | SDK-style `Microsoft.NET.Sdk.Web`, `net10.0`, `Program.cs`; `packages.config` and `Global.asax` removed; static files under `wwwroot`; SDK container properties (`aspnet:10.0`, `contoso-university`, port 8080) and no `Dockerfile`; the workflow generated `tasks.md`; `UserSecretsId` `ContosoUniversity-Configuration`. The diff touches only `app/`, `.github/upgrades/` and the chats, with no secrets | Ran against `10.10.1.4` in Development: 2 of the 5 pages tested and loaded; the other 3 **untested** |
 | C.3.2 SQL Managed Instance (local SQL auth kept) | | | | | | | Students against `10.10.n.4`: |
 | C.3.3 Blob | | | | | | | Upload lands in `teaching-materials`: |
 | C.3.4 Service Bus | | | | | | | Send and receive (`/Notifications/GetNotifications`): |
@@ -67,7 +67,7 @@ Where the Upgrade agent can't do a stage without GitHub Copilot modernization, t
 |---|---|---|
 | Assess | Custom assessment on the dashboard, App Service Linux target; default assessment targeted Windows (findings 5, 15) | |
 | Plan | `/create-modernization-plan` with the 7 kit rules met all rules first time; **Create Plan** had missed most, and a finished plan can't be revised (findings 20–27) | The refined seven-task prompt met all 9 rules; the agent revised two details in the same chat when asked; Manual commit strategy (`114e511`) |
-| .NET 10 upgrade | Task 001 without the upgrade agent, builds; output stashed by the next task's branch switch and restored by hand (findings 29, 30) | |
+| .NET 10 upgrade | Task 001 without the upgrade agent, builds; output stashed by the next task's branch switch and restored by hand (findings 29, 30) | Task 01 in the Local harness after two blocked starts in Copilot; no intervention; SDK container properties already in the project (`c1ebad4`) |
 | SQL Managed Instance | Task 002 on an `appmod/*` branch, local SQL auth kept; five pages work (findings 31, 32) | |
 | Blob | Task 003 after a stale-tracker retry, uncommitted; upload passed (finding 33) | |
 | Service Bus | Task 004; send worked, receive broken (`TimeSpan.Zero`), one manual fix, then round trip passed (findings 35, 36) | |
