@@ -1,65 +1,88 @@
 using System;
 using System.Collections.Generic;
-using System.Web.Mvc;
-using ContosoUniversity.Services;
+using System.Text.Json;
+using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using ContosoUniversity.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ContosoUniversity.Controllers
 {
     public class NotificationsController : BaseController
     {
-        // GET: api/notifications - Get pending notifications for admin
+        private static readonly JsonSerializerOptions ContractJsonOptions = new()
+        {
+            PropertyNamingPolicy = null
+        };
+
+        public NotificationsController(
+            SchoolContext db,
+            INotificationService notificationService)
+            : base(db, notificationService)
+        {
+        }
+
         [HttpGet]
         public JsonResult GetNotifications()
         {
             var notifications = new List<Notification>();
-            
+
             try
             {
-                // Read all available notifications from the queue
                 Notification notification;
                 while ((notification = notificationService.ReceiveNotification()) != null)
                 {
                     notifications.Add(notification);
-                    
-                    // Limit to prevent overwhelming the UI
+
                     if (notifications.Count >= 10)
+                    {
                         break;
+                    }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error retrieving notifications: {ex.Message}");
-                return Json(new { success = false, message = "Error retrieving notifications" }, JsonRequestBehavior.AllowGet);
+                return ContractJson(new
+                {
+                    success = false,
+                    message = "Error retrieving notifications"
+                });
             }
 
-            return Json(new { 
-                success = true, 
+            return ContractJson(new
+            {
+                success = true,
                 notifications = notifications,
-                count = notifications.Count 
-            }, JsonRequestBehavior.AllowGet);
+                count = notifications.Count
+            });
         }
 
-        // POST: api/notifications/mark-read
         [HttpPost]
         public JsonResult MarkAsRead(int id)
         {
             try
             {
                 notificationService.MarkAsRead(id);
-                return Json(new { success = true });
+                return ContractJson(new { success = true });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error marking notification as read: {ex.Message}");
-                return Json(new { success = false, message = "Error updating notification" });
+                return ContractJson(new
+                {
+                    success = false,
+                    message = "Error updating notification"
+                });
             }
         }
 
-        // GET: Notifications/Index - Admin notification dashboard
-        public ActionResult Index()
+        public IActionResult Index()
         {
             return View();
+        }
+
+        private static JsonResult ContractJson(object value)
+        {
+            return new JsonResult(value, ContractJsonOptions);
         }
     }
 }

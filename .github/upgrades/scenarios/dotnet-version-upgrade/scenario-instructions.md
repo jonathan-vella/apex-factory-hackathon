@@ -4,7 +4,7 @@
 - **Flow Mode**: Guided
 - **Target Framework**: net10.0
 - **Scope**: app/ContosoUniversity
-- **Workflow Boundary**: Assessment and planning only; do not start or execute tasks
+- **Workflow Boundary**: Execute task 01 only, then stop for review before task 02
 
 ## Source Control
 - **Source Branch**: spike/b06-upgrade-compare
@@ -36,10 +36,11 @@
 - Preserve exactly seven top-level tasks in the specified order and dependency chain, even when an implementation step is already satisfied; plan verification and record such implementation as a no-op.
 - Every task validation must include a successful build and local `dotnet run` verification that Home, Students, Courses, Instructors, and Departments pages load.
 - A missing local SQL-authentication secret blocks runtime validation until supplied; it does not make the task impossible and must remain in the plan.
-- Do not create `tasks.md`; workflow tooling may generate it only after task execution is explicitly approved later.
-- Stop after `assessment.md` and `plan.md` are ready for review.
+- Allow workflow tooling to generate `tasks.md` for approved task execution; never create it manually.
+- Execute approved task 01 only, then stop for review without starting task 02.
 
 ## Decisions
+- **Task 1 execution approval**: Plan approved as written; execute `01-upgrade-dotnet-aspnet-core` only, then stop for review before task 02.
 - **Upgrade Strategy**: All-at-Once
 - **Project Approach**: In-place rewrite
 - **Unsupported Packages**: Resolve Inline
@@ -87,3 +88,6 @@
 - Resolve incompatible packages and unsupported APIs inside their owning approved task; do not create extra top-level tasks or defer work through compatibility stubs.
 - Preserve controllers, Razor views, observable behavior, and EF mappings while moving directly to native ASP.NET Core APIs without System.Web Adapters.
 - Do not provision, configure, deploy, assign roles, push images, alter Azure resources, or change the on-premises SQL Server, database, logins, or legacy deployment.
+
+## Build Tool Decisions
+- **ContosoUniversity.csproj**: `dotnet build` (SDK-style `Microsoft.NET.Sdk.Web`, `net10.0`, with no desktop/resource/tooling requirements).

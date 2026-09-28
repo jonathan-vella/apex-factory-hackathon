@@ -31,11 +31,11 @@
         </dd>
     </dl>
     
-    @using (Html.BeginForm()) {
-        @Html.AntiForgeryToken()
+    <form asp-action="Delete" method="post">
+        <input asp-for="ID" type="hidden" />
         <div class="form-actions no-color">
             <input type="submit" value="Delete" class="btn btn-default" /> |
-            @Html.ActionLink("Back to List", "Index")
+            <a asp-action="Index">Back to List</a>
         </div>
-    }
+    </form>
 </div>

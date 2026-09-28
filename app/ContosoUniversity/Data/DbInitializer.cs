@@ -8,9 +8,6 @@ namespace ContosoUniversity.Data
     {
         public static void Initialize(SchoolContext context)
         {
-            // Ensure the database is created
-            context.Database.EnsureCreated();
-
             // Look for any students.
             if (context.Students.Any())
             {
@@ -237,9 +234,9 @@ namespace ContosoUniversity.Data
 
             foreach (Enrollment e in enrollments)
             {
-                var enrollmentInDataBase = context.Enrollments.Where(
-                    s => s.StudentID == e.StudentID &&
-                         s.CourseID == e.CourseID).SingleOrDefault();
+                var enrollmentInDataBase = Queryable.SingleOrDefault(
+                    context.Enrollments,
+                    s => s.StudentID == e.StudentID && s.CourseID == e.CourseID);
                 if (enrollmentInDataBase == null)
                 {
                     context.Enrollments.Add(e);

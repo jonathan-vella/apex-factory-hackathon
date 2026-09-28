@@ -39,13 +39,12 @@
         </dd>
     </dl>
     
-    @using (Html.BeginForm()) {
-        @Html.AntiForgeryToken()
-        @Html.HiddenFor(model => model.DepartmentID)
-        @Html.HiddenFor(model => model.RowVersion)
+    <form asp-action="Delete" asp-route-id="@Model.DepartmentID" method="post">
+        <input asp-for="DepartmentID" type="hidden" />
+        <input asp-for="RowVersion" type="hidden" />
         <div class="form-actions no-color">
             <input type="submit" value="Delete" class="btn btn-default" /> |
-            @Html.ActionLink("Back to List", "Index")
+            <a asp-action="Index">Back to List</a>
         </div>
-    }
+    </form>
 </div>

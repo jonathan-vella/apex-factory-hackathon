@@ -3,9 +3,23 @@
   "operationId": "77422a34-46a2-470b-97b5-bd5156e7b14f",
   "description": "Upgrade .NET projects to newer .NET versions, including guidance on current release status, support lifecycle (LTS/STS), and recommended upgrade targets.",
   "startTime": "2026-09-28T08:07:45.4456181Z",
-  "lastUpdateTime": "2026-09-28T08:08:31.1183617Z",
+  "lastUpdateTime": "2026-09-28T10:30:23.9245319Z",
   "properties": {
-    "UpgradeTargetFramework": "net10.0"
+    "taskStates": {
+      "01-upgrade-dotnet-aspnet-core": "Completed",
+      "01.01-wire-contract-baseline": "Completed",
+      "01.02-sdk-host": "Completed",
+      "01.03-configuration-di-boundaries": "Completed",
+      "01.04-static-shared-razor": "Completed",
+      "01.05-base-controller": "Completed",
+      "01.06-home-controller": "Completed",
+      "01.07-students-controller": "Completed",
+      "01.08-departments-controller": "Completed",
+      "01.09-instructors-controller": "Completed",
+      "01.10-courses-controller": "Completed",
+      "01.11-notifications-controller": "Completed",
+      "01.12-cleanup-container-validation": "Completed"
+    }
   },
   "folderPath": ""
 }

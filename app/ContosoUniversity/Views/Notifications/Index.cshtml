@@ -19,8 +19,7 @@
                     <i class="bi bi-bell"></i> Notification Settings
                 </h3>
             </div>
-            </div>
-            <div class="panel-body">
+            <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
                         <h4>Monitored Operations</h4>
@@ -64,43 +63,45 @@
             </div>
         </div>
         
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h3 class="panel-title">
+        <div class="card mt-3">
+            <div class="card-header">
+                <h3 class="card-title">
                     <i class="glyphicon glyphicon-cog"></i> Technology Information
                 </h3>
             </div>
-            <div class="panel-body">
+            <div class="card-body">
                 <div class="alert alert-warning" role="alert">
-                    <strong>Note:</strong> This notification system uses Microsoft Message Queuing (MSMQ) as the underlying technology for reliable message delivery.
+                    <strong>Messaging unavailable:</strong> Broker-backed delivery is deferred until the approved messaging migration task.
                 </div>
                 
                 <h4>Features:</h4>
                 <ul>
                     <li><strong>Real-time delivery</strong> - Notifications appear immediately when operations occur</li>
-                    <li><strong>Reliable messaging</strong> - MSMQ ensures messages are not lost</li>
+                    <li><strong>Reliable messaging</strong> - Broker integration will be restored by the approved messaging migration</li>
                     <li><strong>Admin-only</strong> - Only administrators receive these notifications</li>
                     <li><strong>Auto-dismiss</strong> - Notifications automatically disappear after 8 seconds</li>
                     <li><strong>User-friendly</strong> - Click the × to dismiss notifications manually</li>
                 </ul>
                 
                 <h4>Queue Information:</h4>
-                <p><strong>Queue Path:</strong> <code>.\\Private$\\ContosoUniversityNotifications</code></p>
+                <p><strong>Broker:</strong> Not configured during the application framework upgrade</p>
                 <p><strong>Check Interval:</strong> 5 seconds</p>
                 <p><strong>Max Visible Notifications:</strong> 5 at a time</p>
             </div>
         </div>
         
-        <div class="well">
+        <div class="card mt-3">
+            <div class="card-body">
             <h4>Quick Test</h4>
             <p>To test the notification system, try performing any of the following operations:</p>
             <ul>
-                <li>@Html.ActionLink("Create a new student", "Create", "Students", null, new { @class = "btn btn-sm btn-primary" })</li>
-                <li>@Html.ActionLink("Create a new course", "Create", "Courses", null, new { @class = "btn btn-sm btn-success" })</li>
-                <li>@Html.ActionLink("Create a new instructor", "Create", "Instructors", null, new { @class = "btn btn-sm btn-warning" })</li>
-                <li>@Html.ActionLink("Create a new department", "Create", "Departments", null, new { @class = "btn btn-sm btn-info" })</li>
+                <li><a asp-controller="Students" asp-action="Create" class="btn btn-sm btn-primary">Create a new student</a></li>
+                <li><a asp-controller="Courses" asp-action="Create" class="btn btn-sm btn-success">Create a new course</a></li>
+                <li><a asp-controller="Instructors" asp-action="Create" class="btn btn-sm btn-warning">Create a new instructor</a></li>
+                <li><a asp-controller="Departments" asp-action="Create" class="btn btn-sm btn-info">Create a new department</a></li>
             </ul>
             <p class="text-muted">After creating, editing, or deleting any entity, you should see a notification appear in the top-right corner of your screen.</p>
+            </div>
         </div>
     </div>
 </div>
