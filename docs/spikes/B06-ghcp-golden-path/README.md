@@ -120,6 +120,7 @@ Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clon
 
 - [assessment/](assessment/): the saved assessment reports per run.
 - [compare-upgrade.md](compare-upgrade.md): the end-to-end GitHub Copilot upgrade vs `modernize` comparison, stage by stage.
+- **Archived on `vm-dev01`, not in the repo:** `C:\src\b06-archive\run1-modernize` holds run 1's ignored `.github/modernize` folder, including the per-task `code-migration/<timestamp>/{plan,progress,summary}.md` reports and the assessment engine state. `C:\src\b06-archive\compare-attempt1-upgrades` holds the invalid comparison attempt's `.github/upgrades`. The owner moved both out of the clone before the comparison's `git clean`.
 - [pe-probe.md](pe-probe.md): the private-endpoint probe from `vm-dev01` and the deployed settings.
 - [run1.md](run1.md) and [run2.md](run2.md): the results sheets, filled in by the executor from the run branches.
 - `chats/` and `runN-versions.txt` on the run branches: the chat exports per step (checked for secrets) and the tool versions.

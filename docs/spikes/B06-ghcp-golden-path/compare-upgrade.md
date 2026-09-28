@@ -13,7 +13,7 @@ A full end-to-end run with the **Upgrade** agent from GitHub Copilot upgrade, fr
 
 ## First attempt (2026-09-25): invalid as a baseline
 
-Stage 2 (`a6c358d`, `chats/compare-stage2.txt`) can't be compared with run 1. The branch was clean legacy in git (only the chat file differs from `da4e5f6`), but run 1's untracked and ignored files were still in the working tree on `vm-dev01`. So the Upgrade agent reported that "the current source already satisfies most tasks and builds successfully on .NET 10", and it edited run 1's plan folder `.github/modernize/contoso-university-dotnet10-azure` (`plan.md`, `tasks.json`, `assessment.md`) instead of creating its own. It also loaded run 1's `modernize-plan` skill. The comparison restarts from a pure legacy tree (protocol C.1).
+Stage 2 (`a6c358d`; its chat is kept as [chats/compare-attempt1-stage2.txt](chats/compare-attempt1-stage2.txt), because the comparison branch is reset to `8a4a938` for the restart) can't be compared with run 1. The branch was clean legacy in git (only the chat file differs from `da4e5f6`), but run 1's untracked and ignored files were still in the working tree on `vm-dev01`. So the Upgrade agent reported that "the current source already satisfies most tasks and builds successfully on .NET 10", and it edited run 1's plan folder `.github/modernize/contoso-university-dotnet10-azure` (`plan.md`, `tasks.json`, `assessment.md`) instead of creating its own. It also loaded run 1's `modernize-plan` skill. The comparison restarts from a pure legacy tree (protocol C.1). Before the `git clean`, the owner moved the attempt's ignored `.github/upgrades` folder out of the repo, to `C:\src\b06-archive\compare-attempt1-upgrades` on `vm-dev01`.
 
 Findings from the first attempt that still stand:
 
