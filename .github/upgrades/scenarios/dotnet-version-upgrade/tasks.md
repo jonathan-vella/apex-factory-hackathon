@@ -1,6 +1,6 @@
 # Migration Progress
 
-**Progress**: 16/19 tasks complete <progress value="84" max="100"></progress> 84%
+**Progress**: 17/19 tasks complete <progress value="89" max="100"></progress> 89%
 **Status**: Not Started
 
 ## Tasks
@@ -21,7 +21,7 @@
 - ✅ 02-azure-sql-managed-instance: Migrate the database workload to Azure SQL Managed Instance ([Content](tasks/02-azure-sql-managed-instance/task.md), [Progress](tasks/02-azure-sql-managed-instance/progress-details.md))
 - ✅ 03-azure-blob-storage: Migrate mutable file handling to Azure Blob Storage ([Content](tasks/03-azure-blob-storage/task.md), [Progress](tasks/03-azure-blob-storage/progress-details.md))
 - ✅ 04-azure-service-bus: Migrate messaging to Azure Service Bus ([Content](tasks/04-azure-service-bus/task.md), [Progress](tasks/04-azure-service-bus/progress-details.md))
-- 🔲 05-azure-key-vault: Integrate Azure Key Vault ([Content](tasks/05-azure-key-vault/task.md))
+- ✅ 05-azure-key-vault: Integrate Azure Key Vault ([Content](tasks/05-azure-key-vault/task.md), [Progress](tasks/05-azure-key-vault/progress-details.md))
 - 🔲 06-opentelemetry-azure-monitor: Migrate logging and tracing to OpenTelemetry with Azure Monitor ([Content](tasks/06-opentelemetry-azure-monitor/task.md))
 - 🔲 07-dependency-cve-audit: Audit and remediate dependency CVEs ([Content](tasks/07-dependency-cve-audit/task.md))
 

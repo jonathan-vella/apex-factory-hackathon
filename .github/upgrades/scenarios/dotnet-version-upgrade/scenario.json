@@ -3,7 +3,7 @@
   "operationId": "77422a34-46a2-470b-97b5-bd5156e7b14f",
   "description": "Upgrade .NET projects to newer .NET versions, including guidance on current release status, support lifecycle (LTS/STS), and recommended upgrade targets.",
   "startTime": "2026-09-28T08:07:45.4456181Z",
-  "lastUpdateTime": "2026-09-28T11:59:39.7801905Z",
+  "lastUpdateTime": "2026-09-29T15:01:18.7026045Z",
   "properties": {
     "taskStates": {
       "01-upgrade-dotnet-aspnet-core": "Completed",
@@ -21,7 +21,8 @@
       "01.12-cleanup-container-validation": "Completed",
       "02-azure-sql-managed-instance": "Completed",
       "03-azure-blob-storage": "Completed",
-      "04-azure-service-bus": "Completed"
+      "04-azure-service-bus": "Completed",
+      "05-azure-key-vault": "Completed"
     }
   },
   "folderPath": ""

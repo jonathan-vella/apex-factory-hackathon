@@ -63,3 +63,10 @@ The application uses Entity Framework Core Code First with a database initialize
 - Creates the database if it doesn't exist
 - Seeds sample data including students, instructors, courses, and departments
 - Handles model changes by recreating the database
+
+## Runtime Connection Configuration
+
+- In Development, configure `ConnectionStrings:DefaultConnection` with .NET user secrets. Key Vault is not required.
+- Outside Development, configure only `KeyVault:VaultUri` as a non-secret application setting, using the standard `https://<vault-name>.vault.azure.net/` hostname resolved through private DNS.
+- Store the SQL connection string in the existing Key Vault secret named `ConnectionStrings--DefaultConnection`. The application loads it with `DefaultAzureCredential` before registering the database context; a missing vault setting, inaccessible vault, or missing secret prevents startup.
+- Do not put the SQL secret in appsettings files, source control, logs, or client-visible responses. Azure vault, identity, permission, and network configuration are managed outside this application.

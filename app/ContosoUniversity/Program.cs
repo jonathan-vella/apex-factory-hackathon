@@ -1,10 +1,50 @@
 using ContosoUniversity.Data;
 using ContosoUniversity.Services;
+using Azure.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (!builder.Environment.IsDevelopment())
+{
+	var vaultUriSetting = builder.Configuration["KeyVault:VaultUri"];
+	if (!Uri.TryCreate(vaultUriSetting, UriKind.Absolute, out var vaultUri) ||
+		!string.Equals(vaultUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) ||
+		!vaultUri.IsDefaultPort ||
+		!string.Equals(vaultUri.AbsolutePath, "/", StringComparison.Ordinal) ||
+		!string.IsNullOrEmpty(vaultUri.UserInfo) ||
+		!string.IsNullOrEmpty(vaultUri.Query) ||
+		!string.IsNullOrEmpty(vaultUri.Fragment) ||
+		IPAddress.TryParse(vaultUri.Host, out _) ||
+		vaultUri.Host.Contains("privatelink", StringComparison.OrdinalIgnoreCase) ||
+		!vaultUri.Host.EndsWith(".vault.azure.net", StringComparison.OrdinalIgnoreCase))
+	{
+		throw new InvalidOperationException(
+			"KeyVault:VaultUri is required outside Development and must be an HTTPS standard *.vault.azure.net hostname resolved through private DNS.");
+	}
+
+	try
+	{
+		builder.Configuration.AddAzureKeyVault(vaultUri, new DefaultAzureCredential());
+	}
+	catch (Exception exception)
+	{
+		throw new InvalidOperationException(
+			"Failed to load mandatory Key Vault configuration. Verify the private vault endpoint and DefaultAzureCredential access.",
+			exception);
+	}
+
+	var keyVaultProvider = ((IConfigurationRoot)builder.Configuration).Providers.Last();
+	if (!keyVaultProvider.TryGet("ConnectionStrings:DefaultConnection", out var keyVaultConnectionString) ||
+		string.IsNullOrWhiteSpace(keyVaultConnectionString))
+	{
+		throw new InvalidOperationException(
+			"Key Vault must contain a non-empty ConnectionStrings--DefaultConnection secret.");
+	}
+}
 
 builder.Host.UseDefaultServiceProvider(options =>
 {

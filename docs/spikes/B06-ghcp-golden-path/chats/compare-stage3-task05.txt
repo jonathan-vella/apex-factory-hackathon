@@ -1,0 +1,199 @@
+I’ll verify that the Key Vault task is next and no other task is active, then read its requirements and current configuration setup. I’ll execute only task 05 and stop before task 06.
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon"
+}
+
+Task 05 is confirmed as next, with no active task; task 06 remains pending. I’m checking the Key Vault task text, current host configuration, resolved package patterns, and worktree changes before starting the workflow task.
+
+Ran terminal command: git status --short
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+The task confirms Key Vault must load before the SQL connection is read, be mandatory only outside Development, and map the existing `ConnectionStrings--DefaultConnection` secret. The instructions still describe task 04 as current, so after starting task 05 I’ll update that boundary and enrich its task record before changing application code.
+
+Starting task 05-azure-key-vault
+Completed with input: {
+  "taskId": "05-azure-key-vault"
+}
+
+Task 05 is active, and its reminders require project findings plus relevant skill guidance before the first source edit. I’m reading the configuration/DbContext/build instructions and checking the target package version and configuration-key presence without exposing any secret values.
+
+Ran terminal command: dotnet user-secrets list --project app/ContosoUniversity/ContosoUniversity.csproj | ForEach-Object { ($_ -split '=', 2)[0].Trim() }
+
+Getting ContosoUniversity.csproj version for Azure.Extensions.AspNetCore.Configuration.Secrets
+Completed with input: {
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj",
+  "targetFrameworks": "net10.0",
+  "packageName": "Azure.Extensions.AspNetCore.Configuration.Secrets",
+  "includePrerelease": false
+}
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+The local state matches the intended split: `ConnectionStrings:DefaultConnection` exists only as a user-secret key for Development; there are no Key Vault keys or appsettings endpoints. The owning path is `Program.cs`, where database configuration is read before EF registration, so the Key Vault provider must be added before that read. I’m checking the package API, then I’ll record these findings and update the workflow boundary before source edits.
+
+Ran `get_package_context` 
+Completed with input: {
+  "solutionDirectory": "C:\\src\\apex-factory-hackathon",
+  "packageName": "Azure.Extensions.AspNetCore.Configuration.Secrets",
+  "packageVersion": "1.5.2"
+}
+
+The provider documentation confirms `AddAzureKeyVault(new Uri(vaultUri), new DefaultAzureCredential())` and the `--` to `:` secret-name mapping; supported package version is 1.5.2. I’m recording the exact startup order, existing Development secret key, package versions, and test constraints, while moving the approval boundary to task 05 only.
+
+Generating patch (40 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+I have a narrow implementation hypothesis: add the Key Vault provider immediately after host creation and before reading `DefaultConnection`, then verify the secret on the Key Vault provider itself so an appsettings/environment value cannot silently substitute for a missing vault secret. The discriminating checks are a clean build, Production startup rejection without a vault URI before SQL validation, and Development page availability with user secrets. I’m making that package/startup change now.
+
+Generating patch (59 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --verbosity minimal
+Completed with input: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --verbosity minimal
+
+The first build exposed a small API mismatch: `ConfigurationManager` exposes providers through `IConfigurationRoot`, not directly. I’m changing only that access to the documented interface cast, then rerunning the same focused build.
+
+Generating patch (6 lines) in 
+
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --verbosity minimal
+
+The configuration change now builds cleanly after using `IConfigurationRoot` to inspect the newly added provider. I’m exercising the two local Production guard cases without contacting Azure: absent Key Vault URI and an invalid/non-HTTPS vault URI must both fail before any SQL secret lookup.
+
+Ran terminal command: $dll = 'app/ContosoUniversity/bin/Release/net10.0/ContosoUniversity.dll'; $env:ASPNETCORE_ENVIRONMENT = 'Production'; Remove-Item Env:KeyVault__VaultUri -ErrorAction SilentlyContinue; $missingOutput = dotnet $dll 2>&1; $missingExit = $LASTEXITCODE; $missingText = $missingOutput -join "`n"; if ($missingExit -eq 0 -or $missingText -notmatch 'KeyVault:VaultUri is required') { throw 'Missing-vault startup guard did not fail as expected.' }; $env:KeyVault__VaultUri = 'http://vault.vault.azure.net/'; $invalidOutput = dotnet $dll 2>&1; $invalidExit = $LASTEXITCODE; $invalidText = $invalidOutput -join "`n"; if ($invalidExit -eq 0 -or $invalidText -notmatch 'KeyVault:VaultUri is required') { throw 'Invalid-vault startup guard did not fail as expected.' }; Remove-Item Env:KeyVault__VaultUri -ErrorAction SilentlyContinue; 'Production startup rejected absent and invalid KeyVault:VaultUri before SQL connection-string validation; no Azure request was made.'
+
+Checked , , no problems found
+
+Searched for regex `ConnectionStrings--DefaultConnection|ConnectionStrings:DefaultConnection|KeyVault:VaultUri|DefaultAzureCredential|AddAzureKeyVault` (`**/app/ContosoUniversity/{Program.cs,ContosoUniversity.csproj,appsettings*.json}`), 9 results
+
+Both Production guard tests passed: missing and malformed Key Vault URIs are rejected before SQL connection-string validation, with no Azure request. Diagnostics remain clear; I’m now validating that Development ignores Key Vault entirely and still serves the five required pages using the existing user secret.
+
+Ran terminal command: $env:ASPNETCORE_ENVIRONMENT = 'Development'; Remove-Item Env:KeyVault__VaultUri -ErrorAction SilentlyContinue; dotnet run --no-build --configuration Release --project app/ContosoUniversity/ContosoUniversity.csproj --urls http://127.0.0.1:5203
+
+Ran terminal command: $paths = @('/', '/Students', '/Courses', '/Instructors', '/Departments'); foreach ($path in $paths) { $response = Invoke-WebRequest -Uri "http://127.0.0.1:5203$path" -UseBasicParsing; "{0} {1}" -f $path, [int]$response.StatusCode; if ([int]$response.StatusCode -ne 200) { throw "Unexpected status for $path" } }
+
+Killed terminal
+
+Development ignored the absent Key Vault URI and all five required pages returned 200; Production guard checks rejected missing/invalid vault configuration before reading SQL settings. The live vault cannot be exercised here because no vault URI is configured. I’m checking the best place to document the runtime settings and confirming the test-project/package state before the final gate.
+
+
+
+I’m checking whether the solution has any applicable .NET test projects and reading the app README’s configuration section to place the Key Vault instructions without broad unrelated cleanup. I’ll also verify the package graph after restore.
+
+Ran terminal command: dotnet list app/ContosoUniversity/ContosoUniversity.csproj package --include-transitive | Select-String 'Azure.Extensions.AspNetCore.Configuration.Secrets|Azure.Identity|Azure.Core'
+
+Discovering test projects
+Completed with input: {
+  "solutionPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.sln",
+  "projectPaths": [
+    "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj"
+  ]
+}
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+Read 
+
+Test discovery found no .NET test projects, and package resolution confirms `Azure.Extensions.AspNetCore.Configuration.Secrets` 1.5.2 with existing `Azure.Identity` 1.21.0. The app README is still mostly legacy framework guidance and lacks current runtime configuration, so I’m adding a concise Key Vault section only, without expanding into a general README rewrite.
+
+Generating patch (15 lines) in 
+
+
+```
+
+```
+The README now documents the Development-versus-Key-Vault connection contract without changing any secret or Azure resource. I’m running the final solution build and reviewing the startup guard’s diff, whitespace, and compiler diagnostics before writing the completion record.
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.sln --configuration Release --verbosity minimal
+
+Ran terminal command: git diff --check
+
+Checked , , no problems found
+
+No matches found. Your search pattern might be excluded completely by either the search.exclude settings or .*ignore files.
+If you believe that it should have results, you can check into the .*ignore files and the exclude setting (here are some excluded patterns for reference:[**/node_modules,**/bower_components,**/*.code-search]).
+Then if you want to include those files you can call the tool again by setting "includeIgnoredFiles" to true.
+
+Read 
+
+The final solution build succeeded with zero warnings or errors; compiler diagnostics are clean, and no .NET test projects were found. The five Development pages passed, and the only unverified gate is live Key Vault access because no vault URI is configured; I’m recording that boundary now.
+
+Generating patch (43 lines) in 
+
+
+```
+
+```
+The completion record has been written with the private-vault integration checks explicitly marked external. I’m checking its whitespace and the final worktree state; after that I’ll record only task 05 as complete and confirm task 06 remains pending.
+
+Ran terminal command: $path = '.github/upgrades/scenarios/dotnet-version-upgrade/tasks/05-azure-key-vault/progress-details.md'; $matches = Select-String -Path $path -Pattern '[ \t]+$'; if ($matches) { $matches; throw 'Progress record has trailing whitespace.' } else { 'Task 05 progress record whitespace check passed.' }
+
+Ran terminal command: git diff --check
+
+Ran terminal command: git status --short
+
+The progress record and tracked diff checks are clean; the worktree contains only the Key Vault task, its application configuration changes, and workflow artifacts. I’m recording task 05 complete now and will verify the next task is still task 06, not started.
+
+Completing task 05-azure-key-vault
+Completed with input: {
+  "taskId": "05-azure-key-vault",
+  "filesModified": "[\".github/upgrades/scenarios/dotnet-version-upgrade/scenario-instructions.md\",\".github/upgrades/scenarios/dotnet-version-upgrade/scenario.json\",\".github/upgrades/scenarios/dotnet-version-upgrade/tasks.md\",\".github/upgrades/scenarios/dotnet-version-upgrade/tasks/05-azure-key-vault/task.md\",\".github/upgrades/scenarios/dotnet-version-upgrade/tasks/05-azure-key-vault/progress-details.md\",\"app/ContosoUniversity/ContosoUniversity.csproj\",\"app/ContosoUniversity/Program.cs\",\"app/ContosoUniversity/README.md\"]",
+  "failed": false
+}
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon"
+}
+
+**Task 05 is complete; task 06 remains unstarted.**
+
+The app now loads mandatory Key Vault configuration outside Development, before reading the SQL connection string. It requires the `ConnectionStrings--DefaultConnection` secret from the Key Vault provider itself, preventing fallback to another configuration source. Development skips Key Vault and continues using user secrets. Details are recorded in `progress-details.md`.
+
+The solution build succeeded with zero warnings or errors. Production startup checks rejected missing and invalid vault URIs; all five required Development pages returned 200. No .NET test projects were found. Live vault access remains unverified because no `KeyVault:VaultUri` is configured; no Azure resources, permissions, or network settings were changed.
+
+Made changes.
