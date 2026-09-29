@@ -218,7 +218,7 @@ dotnet run --no-launch-profile               # must refuse to start: the Key Vau
 Remove-Item Env:ASPNETCORE_ENVIRONMENT, Env:KeyVault__VaultUri
 ```
 
-User secrets load only in Development, so the Production runs read `KeyVault:VaultUri` from the environment variable. Put the failure messages in the commit body.
+User secrets load only in Development, so the Production runs read `KeyVault:VaultUri` from the environment variable. Put the failure messages in the commit body. **If the agent loads Key Vault only outside Development** (as the Upgrade agent did in the comparison), the first run can't show a Key Vault read. Then the third run is the proof: with `KeyVault__VaultUri` set in Production, the app must read `ConnectionStrings--DefaultConnection` from Key Vault and then refuse its SQL login. Say in the commit body which design the agent chose.
 
 Task 006's check. `appi-uni-<suffix>-b06` has local authentication off, so ingestion uses your Azure CLI sign-in through `DefaultAzureCredential` and the Monitoring Metrics Publisher role:
 
@@ -439,3 +439,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Comparison C.2 | Fetch the prompt with `git show origin/<branch>:…/compare-upgrade-plan.md` and check it contains "exactly these seven" before pasting | The second attempt (`1ae9076`) sent a stale local copy of the old six-task prompt |
 | Comparison C.3 | Run the Upgrade agent's tasks in the **Local** harness, after **MCP: List Servers** > **Upgrade** > **Configure Model Access** | `start_task` failed in the Copilot harness with "internal LLM client unavailable": the plan parser needs MCP sampling, which only the Local harness provides |
 | Copilot app comparison | **Owner-approved** (requirement 11b): after the VS Code comparison, repeat it in the GitHub Copilot app with the `upgrade-agent` plugin, on `spike/b06-upgrade-app` from `da4e5f6` | Only the host changes, to see whether the app is a better home for the Upgrade agent than VS Code |
+| 4 task 005 | If Key Vault loads only outside Development, prove the Key Vault read with Production plus `KeyVault__VaultUri`, expecting the refusal of the SQL login | The comparison's Upgrade agent loaded Key Vault only outside Development, so a Development run never reads it (`9f70212`) |
