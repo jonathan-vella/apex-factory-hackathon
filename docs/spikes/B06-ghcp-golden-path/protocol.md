@@ -6,9 +6,10 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 |---|---|---|---|
 | 1 | `spike/b06-run1` | `da4e5f606983332001c94ce69b48634f9c1864b3` | v1 (changed into v2 during the run) |
 | Comparison | `spike/b06-upgrade-compare` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Comparison section](#comparison-github-copilot-upgrade-after-run-1-before-run-2) |
+| Comparison in the Copilot app | `spike/b06-upgrade-app` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Copilot app section](#comparison-github-copilot-upgrade-in-the-copilot-app-after-the-vs-code-comparison-before-run-2) |
 | 2 | `spike/b06-run2` | `e850869e438556c1234dd672f12aa133a2bed644` | v2 |
 
-Order: the comparison run first, then run 2.
+Order: the VS Code comparison, then the Copilot app comparison, then run 2.
 
 At the event, App Service, the container registry, SQL Managed Instance and the datacenter are already deployed for each attendee. The plan and every step assume existing resources whose endpoints come from configuration; nothing here provisions anything.
 
@@ -334,6 +335,65 @@ For each of the plan's seven tasks in order (.NET 10 upgrade, SQL Managed Instan
 
 After the last stage, re-enable GitHub Copilot modernization if you disabled it, and tell the executor the branch is pushed. For run 2, note in `compare-upgrade.md` whether the `modernize` agent behaves differently with the upgrade extension installed.
 
+## Comparison: GitHub Copilot upgrade in the Copilot app (after the VS Code comparison, before run 2)
+
+**(Owner-approved, 2026-09-29, requirement 11b.)** Repeat the full Upgrade agent comparison in the **GitHub Copilot app** instead of VS Code. Only the host changes: the same Upgrade agent from the [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins) marketplace (plugin `upgrade-agent`, marketplace version 1.1.596, checked 2026-09-29, the same version the VS Code comparison reported), the same refined seven-task prompt, models, kit rules, configuration keys and live checks. Install only `upgrade-agent@upgrade-agent-plugins`: no modernization plugin. Fill in [compare-upgrade-app.md](compare-upgrade-app.md) stage by stage, and write down what's different about the app as you go (see its **Questions** section).
+
+### A.1 Set up
+
+1. Install the GitHub Copilot app on `vm-dev01` by hand (nothing in the kit installs it), sign in with the account that has the Copilot seat, and record its version.
+2. Add the marketplace and install the plugin, either way, and record which way worked:
+   - the README's deep link, [Add this marketplace in the GitHub Copilot app](https://github.com/copilot/app/launch?entry_point=upgrade_agent_plugins_readme&open=ghapp%3A%2F%2Fplugins%2Fmarketplace%2Fadd%3Fsource%3Dmicrosoft%2Fupgrade-agent-plugins), then **Install** on `upgrade-agent`; or
+   - in a session: `/plugin marketplace add microsoft/upgrade-agent-plugins`, then `/plugin install upgrade-agent@upgrade-agent-plugins`.
+
+   Record the plugin version. The README says app versions before 1.0.3 need a restart after the install before the Upgrade agent appears.
+3. Create the branch from run 1's start commit and make the tree pure legacy, as in C.1 (leftover files steer the agents):
+
+   ```powershell
+   Set-Location C:\src\apex-factory-hackathon
+   git status --short                   # must print nothing
+   git fetch origin
+   git switch -c spike/b06-upgrade-app da4e5f606983332001c94ce69b48634f9c1864b3
+   git clean -ndx -- app .github         # dry run
+   git clean -fdx -- app .github
+   git status --short --ignored -- app .github    # must print nothing
+   git commit --allow-empty -m "app: stage 1 set up"
+   git push -u origin spike/b06-upgrade-app
+   ```
+
+4. In the Copilot app, add `C:\src\apex-factory-hackathon` as a project and use a **branch** session on the existing clone, not a worktree, on `spike/b06-upgrade-app`.
+5. 🔎 VERIFY how the Copilot app exports a conversation. If there's no export, select all in the conversation, copy it and save it as `docs\spikes\B06-ghcp-golden-path\chats\app-stage<N>.txt`. Record which way you used.
+
+### A.2 Assess and plan
+
+> [!WARNING]
+> **BEFORE you send:** start a **new session**, pick **Upgrade** in the agent picker, and pick **GPT-6 Sol** with reasoning **Medium**.
+
+1. ⚠️ **BEFORE you send:** new session, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
+2. Fetch the prompt straight from origin and check it, as in C.2, then paste it and send it:
+
+   ```powershell
+   git fetch origin
+   $prompt = git show origin/jonathan-vella-b06-ghcp-spike:docs/spikes/B06-ghcp-golden-path/prompts/compare-upgrade-plan.md | Out-String
+   if ($prompt -notmatch 'exactly these seven') { throw 'Stale prompt: it must contain "exactly these seven"' }
+   $prompt | Set-Clipboard
+   ```
+
+3. Check the answer as in C.2.3: the artifacts under `.github\upgrades\`, nothing under `.github\modernize\`, all 9 table rows met, no application files changed. Note whether the app offers anything like the Upgrade dashboard. Save the conversation, then commit and push: `app: stage 2 assess and plan`.
+
+### A.3 Tasks 1–7
+
+> [!WARNING]
+> **BEFORE you run a task:** check that the agent is **Upgrade** and the model is **GPT-6 Luna** with reasoning **maximum**.
+
+For each of the plan's seven tasks in order, the same way as the VS Code comparison: start the task in the same session with the Upgrade agent (`start_task`), and reply `continue` when it asks. If a task blocks, start a new session with the same agent and model.
+
+1. ⚠️ **BEFORE you run it:** agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
+2. Build, run the app, then do that task's check from the step 4 check table, as in C.3.3.
+3. Check `git status --short --branch`: the app's own session or branch handling mustn't move the work off `spike/b06-upgrade-app`. Commit and push: `app: stage 3.N <stage>`, with interventions in the commit body, one line each. Save the conversation.
+
+After the last task, tell the executor the branch is pushed.
+
 ## Optional: step 2 with Copilot CLI
 
 After step 2, repeat the assessment with Copilot CLI on a throwaway branch, and note the differences (time, findings, tasks, premium requests) in the commit message body when you copy its report in:
@@ -378,3 +438,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Run 2 start | Run 2 starts from `e850869` instead of `7c2855b` | The refined prompts under `prompts/` have to be on the run branch |
 | Comparison C.2 | Fetch the prompt with `git show origin/<branch>:…/compare-upgrade-plan.md` and check it contains "exactly these seven" before pasting | The second attempt (`1ae9076`) sent a stale local copy of the old six-task prompt |
 | Comparison C.3 | Run the Upgrade agent's tasks in the **Local** harness, after **MCP: List Servers** > **Upgrade** > **Configure Model Access** | `start_task` failed in the Copilot harness with "internal LLM client unavailable": the plan parser needs MCP sampling, which only the Local harness provides |
+| Copilot app comparison | **Owner-approved** (requirement 11b): after the VS Code comparison, repeat it in the GitHub Copilot app with the `upgrade-agent` plugin, on `spike/b06-upgrade-app` from `da4e5f6` | Only the host changes, to see whether the app is a better home for the Upgrade agent than VS Code |

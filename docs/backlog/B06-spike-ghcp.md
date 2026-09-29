@@ -7,7 +7,7 @@
 | Depends on | B04 |
 | Unblocks | B07, B09, B10 |
 | Effort | 2–3 days elapsed, including two owner-driven runs of about 3–4 hours each |
-| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; Log Analytics and Application Insights bill per GB ingested, about $2.99/GB after the first 5 GB a month, so effectively $0 at spike volume; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.55/hour |
+| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; Log Analytics and Application Insights bill per GB ingested, about $2.99/GB after the first 5 GB a month, so effectively $0 at spike volume; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.55/hour. Requirement 11b adds about 4 hours of both, about $2.60/hour, so about $10 |
 | Teardown | Delete `rg-spike-b06` and `snet-pe-spike` at the end. **Keep** `rg-datacenter` for B07 |
 | PRD | §5 C3, C6; §6 App modernization; §8 GHCP risk |
 
@@ -66,6 +66,8 @@
 
 11a. *(Owner-approved addition, 2026-09-25.)* After run 1 and before run 2, the owner does a full end-to-end run with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, the Upgrade agent), installed by hand on `vm-dev01`, on the branch `spike/b06-upgrade-compare` from run 1's start commit: assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus and Key Vault, with the same kit rules, configuration keys and live checks as run 1. GitHub Copilot modernization is disabled for this run by default. `compare-upgrade.md` records per stage whether the Upgrade agent covers it, time, prompts, interventions and results, compares it with run 1 stage by stage, and notes whether `modernize` behaves differently with the upgrade extension installed. The report recommends which extension or extensions the kit's dev VM should install; the owner decides, and B04's extension list isn't changed in this item.
 
+11b. *(Owner-approved addition, 2026-09-29.)* After the VS Code comparison and before run 2, the owner repeats the full comparison in the **GitHub Copilot app** on `vm-dev01`, on the branch `spike/b06-upgrade-app` from run 1's start commit. Only the host changes: the Copilot app and the `upgrade-agent@upgrade-agent-plugins` plugin from [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins) (no modernization plugin) are installed by hand, and the run uses the same refined seven-task prompt (`prompts/compare-upgrade-plan.md`), models (GPT-6 Sol at Medium to plan, GPT-6 Luna at maximum to execute), kit rules, configuration keys and live checks. `compare-upgrade-app.md` records the results per stage and a three-way side-by-side (run 1 with `modernize` in VS Code, the Upgrade agent in VS Code, the Upgrade agent in the Copilot app). The report's recommendation covers which extensions or plugins and which host the dev VM should offer; the owner decides, and B04's install list isn't changed in this item.
+
 ### Check each run
 
 12. For each run branch, check and record in the report:
@@ -94,8 +96,9 @@
 
 - `docs/spikes/B06-ghcp-golden-path/README.md`, `protocol.md`, `run1.md`, `run2.md`, the saved assessment reports and `infra/main.bicep`.
 - `docs/spikes/B06-ghcp-golden-path/compare-upgrade.md` (requirement 11a).
-- Branches `spike/b06-run1`, `spike/b06-run2` and `spike/b06-upgrade-compare`, pushed and not merged.
-- `versions.md` rows for the VS Code app modernization extension, the .NET 10 SDK and Copilot CLI versions used.
+- `docs/spikes/B06-ghcp-golden-path/compare-upgrade-app.md` (requirement 11b).
+- Branches `spike/b06-run1`, `spike/b06-run2`, `spike/b06-upgrade-compare` and `spike/b06-upgrade-app`, pushed and not merged.
+- `versions.md` rows for the VS Code app modernization extension, the .NET 10 SDK and Copilot CLI versions used, and, from requirement 11b, the GitHub Copilot app and the `upgrade-agent` plugin.
 
 ## Verify
 
@@ -113,6 +116,7 @@ npm run check
 - [ ] Both runs are recorded, and every check in requirement 12 is recorded per run.
 - [ ] The report gives B10 a sequence, prompts and hot-spot list it can build on.
 - [ ] The end-to-end upgrade-agent comparison is recorded stage by stage in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
+- [ ] The Copilot app comparison is recorded stage by stage in `compare-upgrade-app.md`, with the three-way side-by-side, and the report's recommendation covers the extensions or plugins and the host (requirement 11b).
 - [ ] Spike resources are deleted, and the datacenter is still deployed.
 
 ## Commit message
