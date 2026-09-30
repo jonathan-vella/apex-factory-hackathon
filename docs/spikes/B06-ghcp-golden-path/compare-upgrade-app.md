@@ -11,7 +11,7 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 | `upgrade-agent` plugin | Marketplace version 1.1.596 (checked 2026-09-29); installed: |
 | Other plugins | None (no modernization plugin) |
 | Session type | **Worktree** session (the app's default), under `C:\Users\labadmin\.copilot\repos\copilot-worktrees\apex-factory-hackathon\<session-branch>`, not the planned branch session on `C:\src`; the owner continued in it, as the attendee default |
-| Models | GPT-6 Sol at Medium to assess and plan, GPT-6 Luna at maximum to execute |
+| Models | GPT-6 Sol at Medium to assess and plan, GPT-6 Luna at maximum to execute, switched in the model picker of **one** session |
 
 ## Questions this run answers
 
@@ -43,7 +43,7 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 
 | Stage | `modernize` in VS Code (run 1) | Upgrade agent in VS Code (`spike/b06-upgrade-compare`) | Upgrade agent in the Copilot app (`spike/b06-upgrade-app`) |
 |---|---|---|---|
-| Set up and harness | VS Code; prompt files needed the Local harness, the dashboard the Copilot harness | Planning in the Copilot harness, tasks only in Local (MCP sampling) | |
+| Set up and harness | VS Code; prompt files needed the Local harness, the dashboard the Copilot harness | Planning in the Copilot harness, tasks only in Local (MCP sampling) | One session from assessment through execution; no harness split; the default session is a worktree |
 | Assess and plan | Custom assessment, then `/create-modernization-plan` with the kit rules; a finished plan can't be revised | Refined prompt met all 9 rules; revised its plan when asked | Refined prompt met all rules; two Guided gates (assessment, then plan); approved as is, with no correction |
 | .NET 10 upgrade | Work stashed by the next task's branch switch, restored by hand | First time, no intervention | |
 | SQL Managed Instance | On an `appmod/*` branch | One `continue`; Entra-only enforced at startup | |
