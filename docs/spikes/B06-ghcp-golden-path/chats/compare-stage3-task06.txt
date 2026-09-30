@@ -1,0 +1,297 @@
+I’ll confirm task 06 is next and no task is active, then review its scope and the app’s current logging/telemetry paths. I’ll execute task 06 only and stop before the dependency audit.
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon"
+}
+
+Task 06 is confirmed as next, with no active task; task 07 remains pending. I’m checking the telemetry requirements against the existing logging call sites, package set, and worktree so the migration doesn’t drift into the final CVE task.
+
+Ran terminal command: git status --short
+
+Searched for regex `Trace\.|Debug\.|ILogger<|ActivitySource|Meter|UseAzureMonitor|AddOpenTelemetry` (`**/app/ContosoUniversity/**/*.{cs,csproj,json}`), 6 results
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+Read 
+
+The assessed active calls are five: three `Trace.TraceError` entries in Students, one `Debug.WriteLine` in BaseController, one in Courses, plus notification deserialization debug logging. `LoggingService.cs` is empty, and Program has no telemetry setup. I’m starting task 06 now; then I’ll read its required telemetry/build skills and record findings before editing source.
+
+Starting task 06-opentelemetry-azure-monitor
+Completed with input: {
+  "taskId": "06-opentelemetry-azure-monitor"
+}
+
+Task 06 is active. Its scope is limited to structured logging and the single conditional Azure Monitor boundary; I’m loading the logging, package-reference, and build guidance and querying the supported exporter package version before touching files.
+
+Getting ContosoUniversity.csproj version for Azure.Monitor.OpenTelemetry.AspNetCore
+Completed with input: {
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj",
+  "targetFrameworks": "net10.0",
+  "packageName": "Azure.Monitor.OpenTelemetry.AspNetCore",
+  "includePrerelease": false
+}
+
+Read 
+
+Read 
+
+Read 
+
+Task 06’s package selection is `Azure.Monitor.OpenTelemetry.AspNetCore` 1.6.0. The project uses direct `PackageReference` today, but the package-management skill requires confirming there is no central version file before editing; I’m loading that dependency-inspection tool and finishing the logging guidance.
+
+
+
+Getting dependencies for project ContosoUniversity.csproj
+Completed with input: {
+  "solutionPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.sln",
+  "projectPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj"
+}
+
+Ran `get_package_context` 
+Completed with input: {
+  "solutionDirectory": "C:\\src\\apex-factory-hackathon",
+  "packageName": "Azure.Monitor.OpenTelemetry.AspNetCore",
+  "packageVersion": "1.6.0"
+}
+
+Read 
+
+The package dependency inspection confirms versions are declared directly in the project, with no imported package-version file or central package management. The telemetry distro itself bundles ASP.NET Core, HttpClient, SQL Client instrumentation, logs, and metrics, so I’ll add no individual instrumentation packages; first I’m recording the verified call sites and moving the workflow boundary to task 06.
+
+Generating patch (39 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+The task research is recorded. I’m making the first source change in the telemetry registration boundary: add the single approved distro package and one conditional `UseAzureMonitor` registration that uses the configured connection string plus `DefaultAzureCredential`; I’ll build immediately afterward.
+
+Generating patch (37 lines) in , 
+
+
+```
+
+```
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --verbosity minimal
+
+The conditional telemetry registration compiles cleanly. I’m now mapping the inherited controller constructors and the exact catch blocks so each log becomes structured and retains the exception object, without including student names, dates of birth, SQL strings, or telemetry connection strings.
+
+Searched for regex `: BaseController|public .*Controller\(` (`**/app/ContosoUniversity/Controllers/**/*.cs`), 12 results
+
+Read 
+
+Read , lines 1 to 90
+
+Read , lines 1 to 55
+
+Read 
+
+Read , lines 1 to 130
+
+The logger dependencies are clear: `BaseController` owns best-effort notification logging, while Courses and Students need their own typed loggers; the remaining derived controllers only need to pass a base logger through. I’m confirming their exact constructor forms and cleanup catch before the logging edit.
+
+Read 
+
+Read , lines 1 to 35
+
+Read , lines 1 to 38
+
+Read , lines 220 to 250
+
+Read , lines 100 to 229
+
+I’m converting the six direct logging calls to `ILogger<T>` with exception objects and non-sensitive structured context. I’ll also thread `ILogger<BaseController>` through its six derived-controller constructors, while giving Courses and Students their own typed loggers.
+
+Generating patch (185 lines) in , , , , , , , 
+
+The patch was rejected because it listed `DepartmentsController.cs` twice; no files changed. I’m resubmitting the same logging migration with one patch section per file.
+
+Generating patch (183 lines) in , , , , , , , 
+
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+```
+
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.csproj --configuration Release --no-restore --verbosity minimal
+
+The full typed-logger migration builds cleanly with no warnings. I’m verifying the static contract now: no direct Trace/Debug calls, exactly one conditional `UseAzureMonitor`, and no new package beyond the approved distro; then I’ll add the optional telemetry setting to the app runtime docs.
+
+Ran terminal command: dotnet list app/ContosoUniversity/ContosoUniversity.csproj package --include-transitive | Select-String 'Azure.Monitor.OpenTelemetry.AspNetCore|OpenTelemetry\.Instrumentation|OpenTelemetry.Exporter'
+
+Checked , , , , , , , , , no problems found
+
+Searched for regex `Trace\.|Debug\.WriteLine|UseAzureMonitor|AddOpenTelemetry` (`**/app/ContosoUniversity/**/*.cs`), 1 result
+
+Searched for text `ILogger<` (`**/app/ContosoUniversity/{Controllers,Services}/**/*.cs`), 14 results
+
+Read , lines 34 to 73
+
+Static checks find no remaining Trace/Debug calls and exactly one `UseAzureMonitor` registration; compiler diagnostics are clean. The instrumentation/exporter packages shown in the resolved graph are transitive components of the approved distro, not direct references. I’m documenting the two optional connection-string sources and the no-telemetry default in the app README.
+
+Generating patch (13 lines) in 
+
+
+```
+
+```
+
+
+Ran terminal command: git diff --check
+
+The README now documents optional Azure Monitor activation and confirms startup is independent of telemetry; the documentation diff check passed. I’m doing the final restore/build, checking whether any telemetry connection-string key is present without revealing values, and confirming test-project availability before the Development page run.
+
+Ran terminal command: dotnet build app/ContosoUniversity/ContosoUniversity.sln --configuration Release --verbosity minimal
+
+Ran terminal command: $keys = @('APPLICATIONINSIGHTS_CONNECTION_STRING', 'ApplicationInsights__ConnectionString'); foreach ($key in $keys) { if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($key))) { "$key=UNSET" } else { "$key=SET" } }; dotnet user-secrets list --project app/ContosoUniversity/ContosoUniversity.csproj | ForEach-Object { ($_ -split '=', 2)[0].Trim() } | Where-Object { $_ -like 'ApplicationInsights:*' }
+
+Compacted conversation
+
+Discovering test projects
+Completed with input: {
+  "solutionPath": "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.sln",
+  "projectPaths": [
+    "C:\\src\\apex-factory-hackathon\\app\\ContosoUniversity\\ContosoUniversity.csproj"
+  ]
+}
+
+Checked , , , , , , , , , no problems found
+
+Searched for regex `Trace\.Trace|Trace\.Write|Debug\.WriteLine|UseAzureMonitor\(|AddOpenTelemetry\(` (`**/app/ContosoUniversity/**/*.cs`), 1 result
+
+The final solution build succeeds, no App Insights connection-string key is configured, and this solution has no discovered .NET test project. The only `UseAzureMonitor` call remains the single conditional registration; I’m checking Development startup’s database configuration before exercising the requested routes.
+
+Searched for regex `ConnectionStrings:DefaultConnection|ConnectionStrings__DefaultConnection|DefaultConnection|ApplicationInsights:ConnectionString` (`**/app/ContosoUniversity/**`), 17 results
+
+Searched for files matching `**/app/ContosoUniversity/appsettings*.json`, 2 matches
+
+Searched for files matching `**/.github/upgrades/scenarios/dotnet-version-upgrade/tasks/**`, 20 matches
+
+Searched for regex `Task 06|06-opentelemetry-azure-monitor|progress-details` (`**/.github/upgrades/scenarios/dotnet-version-upgrade/**`), 71 results
+
+Read , lines 1 to 145
+
+Development bypasses Key Vault but still requires `ConnectionStrings:DefaultConnection`; `appsettings.json` has it blank. I’ll verify only whether the documented user-secret key exists (without printing its value), then either run the page smoke test or report that specific prerequisite.
+
+Ran terminal command: $matches = dotnet user-secrets list --project app/ContosoUniversity/ContosoUniversity.csproj | ForEach-Object { ($_ -split '=', 2)[0].Trim() } | Where-Object { $_ -eq 'ConnectionStrings:DefaultConnection' }; if ($matches) { 'ConnectionStrings:DefaultConnection=SET' } else { 'ConnectionStrings:DefaultConnection=UNSET' }
+
+Read 
+
+Read 
+
+Read , lines 120 to 153
+
+The required Development SQL secret key is present, and the README confirms messaging settings are not needed for normal MVC pages. I’ll launch the app in Development with Azure Monitor settings absent and hit the five required routes, then stop the server and record the evidence in task 06.
+
+Created 4 todos
+
+Ran terminal command: dotnet run --no-build --configuration Release --project app/ContosoUniversity/ContosoUniversity.csproj --environment Development --urls http://127.0.0.1:5157
+
+The first smoke-test launch exited before listening: this host still selected a non-Development environment despite the `dotnet run` option. I’m checking the SDK’s run-option behavior and current environment variables, then I’ll relaunch with the environment set explicitly in the process.
+
+Ran terminal command: dotnet run --help | Select-String -Pattern 'environment|launch-profile'
+
+Ran terminal command: [pscustomobject]@{ DOTNET_ENVIRONMENT = $env:DOTNET_ENVIRONMENT; ASPNETCORE_ENVIRONMENT = $env:ASPNETCORE_ENVIRONMENT } | Format-List
+
+The shell inherited `ASPNETCORE_ENVIRONMENT=Production`; `dotnet run --environment` expects a `NAME=VALUE` assignment, so my initial argument was malformed. I’ll now set both ASP.NET Core environment selectors explicitly and disable launch profiles for the smoke test.
+
+Ran terminal command: $env:ASPNETCORE_ENVIRONMENT = 'Development'; $env:DOTNET_ENVIRONMENT = 'Development'; dotnet run --no-build --configuration Release --project app/ContosoUniversity/ContosoUniversity.csproj --no-launch-profile --urls http://127.0.0.1:5157
+
+Ran terminal command: $client = [System.Net.Http.HttpClient]::new(); foreach ($route in @('/', '/Students', '/Courses', '/Instructors', '/Departments')) { try { $response = $client.GetAsync("http://127.0.0.1:5157$route").GetAwaiter().GetResult(); "{0} {1}" -f $route, [int]$response.StatusCode; $response.Dispose() } catch { "{0} ERROR {1}" -f $route, $_.Exception.GetBaseException().Message } }; $client.Dispose()
+
+All five Development routes returned HTTP 200 with telemetry settings absent, confirming normal startup uses the built-in logging path. I’m stopping the temporary server, then I’ll write task 06’s evidence record and update the workflow state without touching task 07.
+
+Killed terminal
+
+Read 
+
+Read 
+
+Read 
+
+
+
+The smoke test is complete and the temporary server is stopped. I’m recording the implementation, build and route results, absent telemetry configuration, and the unverified Azure ingestion boundary in task 06’s required progress file before updating workflow status.
+
+Created 
+
+Ran terminal command: git diff --check
+
+The required progress record is in place and passes `git diff --check`; it explicitly records Azure ingestion as externally unverified. I’m checking the workflow still has task 06 active before marking only that task complete, then I’ll verify task 07 remains pending.
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon"
+}
+
+Starting: *Complete task and stop* (4/4)
+
+Completing task 06-opentelemetry-azure-monitor
+Completed with input: {
+  "taskId": "06-opentelemetry-azure-monitor",
+  "filesModified": "[\".github/upgrades/scenarios/dotnet-version-upgrade/scenario-instructions.md\", \".github/upgrades/scenarios/dotnet-version-upgrade/tasks/06-opentelemetry-azure-monitor/task.md\", \".github/upgrades/scenarios/dotnet-version-upgrade/tasks/06-opentelemetry-azure-monitor/progress-details.md\", \"app/ContosoUniversity/ContosoUniversity.csproj\", \"app/ContosoUniversity/Program.cs\", \"app/ContosoUniversity/Controllers/BaseController.cs\", \"app/ContosoUniversity/Controllers/CoursesController.cs\", \"app/ContosoUniversity/Controllers/DepartmentsController.cs\", \"app/ContosoUniversity/Controllers/HomeController.cs\", \"app/ContosoUniversity/Controllers/InstructorsController.cs\", \"app/ContosoUniversity/Controllers/NotificationsController.cs\", \"app/ContosoUniversity/Controllers/StudentsController.cs\", \"app/ContosoUniversity/Services/NotificationService.cs\", \"app/ContosoUniversity/README.md\"]",
+  "failed": false
+}
+
+Task 06 is now recorded complete (18/19, 95%), and the workflow tool reports task 07 as the only available next task. I’m making the final state and whitespace check now; I will not start task 07.
+
+Ran terminal command: git diff --check
+
+Getting state
+Completed with input: {
+  "path": "C:\\src\\apex-factory-hackathon"
+}
+
+Completed: *Complete task and stop* (4/4)
+
+Task 06 is complete and recorded as **18/19**. Azure Monitor 1.6.0 is conditionally registered with `DefaultAzureCredential`; direct Trace/Debug calls are now structured `ILogger<T>` logs, with student personal data excluded. Configuration and validation evidence are in `progress-details.md`; implementation is in `Program.cs` and `ContosoUniversity.csproj`.
+
+The Release solution build passed with 0 warnings and errors. All five required Development routes returned HTTP 200 without telemetry configured; no .NET test project was found. Live Azure Monitor ingestion remains unverified because no connection string is configured. **Task 07 remains unstarted. I’m stopping here for your review.**
+
+Made changes.

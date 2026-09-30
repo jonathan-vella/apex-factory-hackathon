@@ -7,6 +7,7 @@ using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
@@ -19,8 +20,9 @@ namespace ContosoUniversity.Controllers
 
         public NotificationsController(
             SchoolContext db,
-            INotificationService notificationService)
-            : base(db, notificationService)
+            INotificationService notificationService,
+            ILogger<BaseController> baseLogger)
+            : base(db, notificationService, baseLogger)
         {
         }
 

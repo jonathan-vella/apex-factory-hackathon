@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ContosoUniversity.Services;
 using ContosoUniversity.Models;
 using ContosoUniversity.Data;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
@@ -11,11 +12,16 @@ namespace ContosoUniversity.Controllers
     {
         protected readonly SchoolContext db;
         protected readonly INotificationService notificationService;
+        protected readonly ILogger<BaseController> baseLogger;
 
-        protected BaseController(SchoolContext db, INotificationService notificationService)
+        protected BaseController(
+            SchoolContext db,
+            INotificationService notificationService,
+            ILogger<BaseController> baseLogger)
         {
             this.db = db;
             this.notificationService = notificationService;
+            this.baseLogger = baseLogger;
         }
 
         protected Task SendEntityNotificationAsync(string entityType, string entityId, EntityOperation operation)
@@ -32,8 +38,7 @@ namespace ContosoUniversity.Controllers
             }
             catch (Exception ex)
             {
-                // Log the error but don't break the main operation
-                System.Diagnostics.Debug.WriteLine($"Failed to send notification: {ex.Message}");
+                baseLogger.LogError(ex, "Failed to send notification for {EntityType} {EntityId}.", entityType, entityId);
             }
         }
 

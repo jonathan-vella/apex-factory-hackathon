@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
@@ -21,14 +22,18 @@ namespace ContosoUniversity.Controllers
         private const string StoredImagePathPrefix = "~/Uploads/TeachingMaterials/";
         private static readonly FileExtensionContentTypeProvider ContentTypeProvider = new();
         private readonly ITeachingMaterialStorage teachingMaterialStorage;
+        private readonly ILogger<CoursesController> logger;
 
         public CoursesController(
             SchoolContext db,
             INotificationService notificationService,
-            ITeachingMaterialStorage teachingMaterialStorage)
-            : base(db, notificationService)
+            ITeachingMaterialStorage teachingMaterialStorage,
+            ILogger<BaseController> baseLogger,
+            ILogger<CoursesController> logger)
+            : base(db, notificationService, baseLogger)
         {
             this.teachingMaterialStorage = teachingMaterialStorage;
+            this.logger = logger;
         }
 
         // GET: Courses
@@ -237,7 +242,7 @@ namespace ContosoUniversity.Controllers
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine($"Error deleting file: {ex.Message}");
+                    logger.LogWarning(ex, "Failed to delete teaching material for course {CourseId}.", id);
                 }
             }
 

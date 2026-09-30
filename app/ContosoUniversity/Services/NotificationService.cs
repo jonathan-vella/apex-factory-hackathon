@@ -1,7 +1,6 @@
 #nullable enable
 
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using System.Threading;
@@ -10,6 +9,7 @@ using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using ContosoUniversity.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Services
 {
@@ -19,9 +19,11 @@ namespace ContosoUniversity.Services
         private const string QueueConfigurationKey = "ServiceBus:QueueName";
         private readonly Lazy<ServiceBusClients> serviceBusClients;
         private readonly SemaphoreSlim receiveGate = new(1, 1);
+        private readonly ILogger<NotificationService> logger;
 
-        public NotificationService(IConfiguration configuration)
+        public NotificationService(IConfiguration configuration, ILogger<NotificationService> logger)
         {
+            this.logger = logger;
             serviceBusClients = new Lazy<ServiceBusClients>(
                 () => CreateServiceBusClients(configuration),
                 LazyThreadSafetyMode.ExecutionAndPublication);
@@ -85,7 +87,7 @@ namespace ContosoUniversity.Services
                 }
                 catch (JsonException exception)
                 {
-                    Debug.WriteLine($"Failed to deserialize notification: {exception.Message}");
+                    logger.LogError(exception, "Failed to deserialize notification message.");
                     return null;
                 }
             }

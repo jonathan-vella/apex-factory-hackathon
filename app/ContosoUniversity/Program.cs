@@ -1,6 +1,7 @@
 using ContosoUniversity.Data;
 using ContosoUniversity.Services;
 using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -44,6 +45,21 @@ if (!builder.Environment.IsDevelopment())
 		throw new InvalidOperationException(
 			"Key Vault must contain a non-empty ConnectionStrings--DefaultConnection secret.");
 	}
+}
+
+var applicationInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+if (string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
+{
+	applicationInsightsConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+}
+
+if (!string.IsNullOrWhiteSpace(applicationInsightsConnectionString))
+{
+	builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
+	{
+		options.ConnectionString = applicationInsightsConnectionString;
+		options.Credential = new DefaultAzureCredential();
+	});
 }
 
 builder.Host.UseDefaultServiceProvider(options =>

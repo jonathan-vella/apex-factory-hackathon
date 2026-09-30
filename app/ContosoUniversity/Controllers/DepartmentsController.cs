@@ -6,13 +6,17 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
     public class DepartmentsController : BaseController
     {
-        public DepartmentsController(SchoolContext db, INotificationService notificationService)
-            : base(db, notificationService)
+        public DepartmentsController(
+            SchoolContext db,
+            INotificationService notificationService,
+            ILogger<BaseController> baseLogger)
+            : base(db, notificationService, baseLogger)
         {
         }
 

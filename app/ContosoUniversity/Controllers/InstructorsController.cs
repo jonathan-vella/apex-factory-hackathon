@@ -8,13 +8,17 @@ using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Models.SchoolViewModels;
 using ContosoUniversity.Services;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Controllers
 {
     public class InstructorsController : BaseController
     {
-        public InstructorsController(SchoolContext db, INotificationService notificationService)
-            : base(db, notificationService)
+        public InstructorsController(
+            SchoolContext db,
+            INotificationService notificationService,
+            ILogger<BaseController> baseLogger)
+            : base(db, notificationService, baseLogger)
         {
         }
 

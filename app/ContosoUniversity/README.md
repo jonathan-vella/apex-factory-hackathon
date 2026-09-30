@@ -70,3 +70,10 @@ The application uses Entity Framework Core Code First with a database initialize
 - Outside Development, configure only `KeyVault:VaultUri` as a non-secret application setting, using the standard `https://<vault-name>.vault.azure.net/` hostname resolved through private DNS.
 - Store the SQL connection string in the existing Key Vault secret named `ConnectionStrings--DefaultConnection`. The application loads it with `DefaultAzureCredential` before registering the database context; a missing vault setting, inaccessible vault, or missing secret prevents startup.
 - Do not put the SQL secret in appsettings files, source control, logs, or client-visible responses. Azure vault, identity, permission, and network configuration are managed outside this application.
+
+## Optional Azure Monitor Telemetry
+
+- Set either `APPLICATIONINSIGHTS_CONNECTION_STRING` or `ApplicationInsights:ConnectionString` to enable the Azure Monitor OpenTelemetry distro.
+- The application uses `DefaultAzureCredential` for ingestion and the distro's built-in ASP.NET Core, HTTP client, SQL client, metrics, and logging instrumentation.
+- If neither setting has a value, no Azure Monitor provider is registered; the built-in ASP.NET Core logging providers remain active and telemetry is not required for startup.
+- The connection string and Application Insights resource are supplied by the environment. This application does not create or configure Application Insights or its network access.
