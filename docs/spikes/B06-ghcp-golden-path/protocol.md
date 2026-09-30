@@ -363,7 +363,7 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
    git push -u origin spike/b06-upgrade-app
    ```
 
-4. In the Copilot app, add `C:\src\apex-factory-hackathon` as a project and use a **branch** session on the existing clone, not a worktree, on `spike/b06-upgrade-app`.
+4. In the Copilot app, add `C:\src\apex-factory-hackathon` as a project and start a session. **The app's default is a worktree session**: it creates its own checkout and branch under `C:\Users\<user>\.copilot\repos\copilot-worktrees\apex-factory-hackathon\<session-branch>`, not in `C:\src`. The chat footer shows the session's path and branch. The comparison uses that default, because it's what an attendee gets. Check the worktree's branch and base commit (`git -C <worktree-path> log --oneline -1`, which must be `da4e5f6` or `spike/b06-upgrade-app`), and push its work to `spike/b06-upgrade-app` after each stage: `git -C <worktree-path> push origin HEAD:spike/b06-upgrade-app`. If the app offers a **branch** session on the existing clone, that works too; note which you used.
 5. 🔎 VERIFY how the Copilot app exports a conversation. If there's no export, select all in the conversation, copy it and save it as `docs\spikes\B06-ghcp-golden-path\chats\app-stage<N>.txt`. Record which way you used.
 
 ### A.2 Assess and plan
@@ -381,7 +381,7 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
    $prompt | Set-Clipboard
    ```
 
-3. Check the answer as in C.2.3: the artifacts under `.github\upgrades\`, nothing under `.github\modernize\`, all 9 table rows met, no application files changed. Note whether the app offers anything like the Upgrade dashboard. Save the conversation, then commit and push: `app: stage 2 assess and plan`.
+3. Check the answer as in C.2.3: the artifacts under `.github\upgrades\`, nothing under `.github\modernize\`, all 9 table rows met, no application files changed. The Upgrade dashboard renders inside the app (tabs Overview, Assessment, Plan, Execution and Activity). In Guided mode the app pauses at the **assessment** gate before planning; approve it to continue to the plan (VS Code ran assessment and planning in one go). Save the conversation, then commit and push: `app: stage 2 assess and plan`.
 
 ### A.3 Tasks 1–7
 
@@ -444,3 +444,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | 4 task 005 | If Key Vault loads only outside Development, prove the Key Vault read with Production plus `KeyVault__VaultUri`, expecting the refusal of the SQL login | The comparison's Upgrade agent loaded Key Vault only outside Development, so a Development run never reads it (`9f70212`) |
 | 4 task 006 | Install the `application-insights` CLI extension first, and check that the connection string starts with `InstrumentationKey=` before setting the user secret | In the comparison, the extension auto-installed mid-command, the secret got a garbled value, and the app crashed at startup on the invalid connection string |
 | 4 task 006 | Read the Application Insights query with `--query "tables[0].rows" -o tsv` | `az monitor app-insights query … -o table` printed nothing for this result shape in the comparison |
+| Copilot app A.1, A.2 | The app's default session is a worktree under `.copilot\repos\copilot-worktrees\`; find it in the chat footer and push its work to `spike/b06-upgrade-app`. The dashboard renders in the app, and Guided mode pauses at the assessment gate | The first Copilot app session was a worktree, not a branch session on `C:\src`; the owner continued in it as the attendee default |

@@ -4,13 +4,13 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 
 | Field | Value |
 |---|---|
-| Date | |
+| Date | 2026-09-30 |
 | Branch | `spike/b06-upgrade-app` |
 | Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
 | GitHub Copilot app | |
 | `upgrade-agent` plugin | Marketplace version 1.1.596 (checked 2026-09-29); installed: |
 | Other plugins | None (no modernization plugin) |
-| Session type | Branch session on `C:\src\apex-factory-hackathon` (no worktree) |
+| Session type | **Worktree** session (the app's default), under `C:\Users\labadmin\.copilot\repos\copilot-worktrees\apex-factory-hackathon\<session-branch>`, not the planned branch session on `C:\src`; the owner continued in it, as the attendee default |
 | Models | GPT-6 Sol at Medium to assess and plan, GPT-6 Luna at maximum to execute |
 
 ## Questions this run answers
@@ -19,16 +19,16 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 |---|---|
 | Does the plugin install from the README's deep link, from `/plugin`, or both? Is a restart needed? | |
 | Does `start_task` run in the Copilot app? In VS Code it needed the Local harness for MCP sampling (report finding 51) | |
-| Is there an equivalent of the Upgrade dashboard, or is the run chat-only? | |
-| Do the `dotnet-version-upgrade` routing, Guided flow and Manual commit strategy behave as in VS Code? | |
-| Does the app's session or branch handling clash with the agent's? | |
+| Is there an equivalent of the Upgrade dashboard, or is the run chat-only? | Yes: the Upgrade Agent Dashboard renders inside the app, with Overview, Assessment, Plan, Execution and Activity tabs ("Step 1 of 5"; "Baseline failing 0/1 projects built", expected for the .NET Framework 4.8 project) |
+| Do the `dotnet-version-upgrade` routing, Guided flow and Manual commit strategy behave as in VS Code? | Guided flow differs: the app paused at the **assessment** gate before planning, while VS Code ran assessment and planning in one go. Routing and commit strategy: pending |
+| Does the app's session or branch handling clash with the agent's? | The app's default is a worktree session with its own branch, so the work isn't in `C:\src` and has to be pushed to `spike/b06-upgrade-app` from the worktree. The first commit on `spike/b06-upgrade-app` (`f0b2927`) holds only a 6-line chat note. Clashes with the agent: pending |
 | How do you export a conversation? | |
 
 ## Stages
 
 | Stage | Covered by the Upgrade agent? | Time | Model | Prompts | Interventions | Build / run | Live check |
 |---|---|---|---|---|---|---|---|
-| A.1 Set up | — | | — | — | | — | — |
+| A.1 Set up | — | `f0b2927` (a chat note only; the stage 1 commit body kept placeholders for the app and plugin versions) | — | — | The session opened as a worktree, not a branch session on `C:\src` | — | — |
 | A.2 Assess and plan (7 tasks, 9 rules) | | | | | | — | Rules table: |
 | A.3.1 .NET 10 upgrade | | | | | | | Pages against `10.10.n.4`: |
 | A.3.2 SQL Managed Instance | | | | | | | Development pages; Production with a SQL login refuses to start: |
