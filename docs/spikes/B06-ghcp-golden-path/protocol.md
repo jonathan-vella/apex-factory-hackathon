@@ -381,7 +381,7 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
    $prompt | Set-Clipboard
    ```
 
-3. Check the answer as in C.2.3: the artifacts under `.github\upgrades\`, nothing under `.github\modernize\`, all 9 table rows met, no application files changed. The Upgrade dashboard renders inside the app (tabs Overview, Assessment, Plan, Execution and Activity). In Guided mode the app pauses at the **assessment** gate and again at the **plan** gate; approve each to continue (VS Code ran assessment and planning in one go). Save the conversation, then commit and push: `app: stage 2 assess and plan`.
+3. Check the answer as in C.2.3: the artifacts under `.github\upgrades\`, nothing under `.github\modernize\`, all 9 table rows met, no application files changed. **(Owner-reviewed after the first Copilot app attempt.)** If task 01 references `#skill:migrating-webapi-odata`, ask the agent to remove it before you approve the plan: the app is MVC with no Web API or OData, and in the Copilot app that skill's compatibility gate stopped task 01. In the VS Code comparison it was removed the same way. The Upgrade dashboard renders inside the app (tabs Overview, Assessment, Plan, Execution and Activity). In Guided mode the app pauses at the **assessment** gate and again at the **plan** gate; approve each to continue (VS Code ran assessment and planning in one go). Save the conversation, then commit and push: `app: stage 2 assess and plan`.
 
 ### A.3 Tasks 1–7
 
@@ -394,6 +394,9 @@ For each of the plan's seven tasks in order:
 
 1. ⚠️ **BEFORE you run it:** same session, agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
 2. Start the task with the Upgrade agent (`start_task`, or approve it in the dashboard's **Execution** tab), and reply `continue` when it asks. If a task blocks, record the message and start a new session with the same agent and model.
+
+   - **If the OData compatibility gate returns STOP** (the plan kept `#skill:migrating-webapi-odata`), answer it and retry the task: `The only consumer of the notification JSON endpoints is the app's own notifications.js. Preserve their routes, HTTP methods and JSON shape, treat the compatibility gate as passed, and retry the task.`
+   - **Keep validation in the app.** If the agent runs repo-level scripts that aren't part of the app (the kit's PowerShell preflight or `npm test`), stop it and reply: `Scope all validation to app/ContosoUniversity: build, run and test only that project. Don't run the repository's other scripts.`
 3. Build, run the app, then do that task's check from the step 4 check table, as in C.3.3.
 4. Check the worktree's branch with `git -C <worktree-path> status --short --branch`: the app's session handling mustn't move the work elsewhere. Commit in the worktree, with the interventions in the commit body, one line each, and push to the comparison branch: `git -C <worktree-path> push origin HEAD:spike/b06-upgrade-app`. Use the message `app: stage 3.N <stage>`. Save the conversation.
 After the last task, tell the executor the branch is pushed.
@@ -448,3 +451,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | 4 task 006 | Read the Application Insights query with `--query "tables[0].rows" -o tsv` | `az monitor app-insights query … -o table` printed nothing for this result shape in the comparison |
 | Copilot app A.1, A.2 | The app's default session is a worktree under `.copilot\repos\copilot-worktrees\`; find it in the chat footer and push its work to `spike/b06-upgrade-app`. The dashboard renders in the app, and Guided mode pauses at the assessment gate | The first Copilot app session was a worktree, not a branch session on `C:\src`; the owner continued in it as the attendee default |
 | Copilot app A.3 | One session from assessment through execution; switch only the model picker (GPT-6 Sol Medium to plan, GPT-6 Luna maximum for each task); commit in the worktree and push to `spike/b06-upgrade-app` | The Copilot app has no Copilot/Local harness split, so the VS Code rule that execution needs Local doesn't apply |
+| Copilot app A.2, A.3 | Remove `#skill:migrating-webapi-odata` from task 01 before approving the plan; if its gate still stops a task, answer it with the notification-endpoint reply. Keep validation inside `app/ContosoUniversity` | The Copilot app's task 01 was blocked by the OData skill's compatibility gate (unknown consumers of the notification JSON endpoints, no API contract tests), which the VS Code run had removed from the plan. The agent also ran the kit's PowerShell preflight and `npm test`, which aren't part of the app |

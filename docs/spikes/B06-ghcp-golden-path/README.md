@@ -70,6 +70,8 @@ C3 fits its box. C6 is more than twice its box, mostly because of the execution 
 
 61. **In the Copilot app, one session covers the whole run.** The owner stays in the same session from assessment through execution and switches only the model picker: GPT-6 Sol at Medium to plan, GPT-6 Luna at maximum for the tasks. The app has no Copilot/Local harness split, so VS Code's rule that task execution needs the Local harness (finding 51) doesn't apply. That's simpler for attendees than VS Code's split. Protocol A.3 now says so; whether every task then runs without a block is recorded per task.
 
+62. **Copilot app task 01 blocked by the OData skill's gate (intervention 1 for 11b).** Before any code change, the `#skill:migrating-webapi-odata` compatibility gate returned STOP: the notification JSON endpoints have an unknown external-consumer inventory and no API contract tests. The workflow recorded task 01 as failed. The VS Code comparison had removed that skill from its plan by correction; in the app the owner accepted the plan as is (finding 60), so the gate ran. The owner answered it (the only consumer is the app's own `notifications.js`; preserve the routes, methods and JSON shape) and asked for a retry. The agent also ran the kit's PowerShell preflight and tried `npm test`, which have nothing to do with the app. Protocol A.2 and A.3 now remove the skill before approving the plan, give the answer to the gate, and keep validation inside `app/ContosoUniversity`.
+
 Run 2: pending.
 
 ## Findings
@@ -156,6 +158,8 @@ Run 1, steps 1 (set up) and 2 (assess):
 
 61. **In the Copilot app, one session covers the whole run.** The owner stays in the same session from assessment through execution and switches only the model picker: GPT-6 Sol at Medium to plan, GPT-6 Luna at maximum for the tasks. The app has no Copilot/Local harness split, so VS Code's rule that task execution needs the Local harness (finding 51) doesn't apply. That's simpler for attendees than VS Code's split. Protocol A.3 now says so; whether every task then runs without a block is recorded per task.
 
+62. **Copilot app task 01 blocked by the OData skill's gate (intervention 1 for 11b).** Before any code change, the `#skill:migrating-webapi-odata` compatibility gate returned STOP: the notification JSON endpoints have an unknown external-consumer inventory and no API contract tests. The workflow recorded task 01 as failed. The VS Code comparison had removed that skill from its plan by correction; in the app the owner accepted the plan as is (finding 60), so the gate ran. The owner answered it (the only consumer is the app's own `notifications.js`; preserve the routes, methods and JSON shape) and asked for a retry. The agent also ran the kit's PowerShell preflight and tried `npm test`, which have nothing to do with the app. Protocol A.2 and A.3 now remove the skill before approving the plan, give the answer to the gate, and keep validation inside `app/ContosoUniversity`.
+
 Run 2: pending.
 
 **False start and reset.** Findings 4–14 come from run 1's false start: the assessment and **Create Plan** in the Agent Host harness, then prompt files that Agent Host didn't load. The owner then reset run 1 (commit `run1: reset for a fresh start in the Local harness`, removing the plan folders and `assessment/run1`) and redid steps 2 and 3 in the Local harness. Run 1's step times count from that reset commit.
@@ -190,6 +194,7 @@ Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clon
 - **B10 playbook: run the app after every task.** `dotnet run` locally and open a page before committing, because the agents' validations never start the app: the OpenTelemetry task passed its validation and then crashed at startup (finding 43), and the Service Bus receive path failed silently (finding 36).
 - **B10 playbook: a bad Application Insights connection string stops the app.** Install the `application-insights` CLI extension before reading the connection string, and check it starts with `InstrumentationKey=` (finding 57).
 - **B10 playbook: the benign `TaskCanceledException`.** A cancelled notification poll logs `fail: … TaskCanceledException` (499) on navigation. Tell attendees it's expected (finding 43).
+- **B10 playbook: the Upgrade agent's OData skill and scope.** For an MVC-only app, remove `#skill:migrating-webapi-odata` from the plan, or answer its compatibility gate in the plan prompt, and keep the agent's validation inside the app project, because it runs unrelated repository scripts (finding 62).
 - **B10 playbook: scope every prompt to the app.** "Scope: app/ContosoUniversity only; never edit files outside it", because the agent's repo-wide checks edited the kit's `docs/prd.md` (finding 44).
 - **B10 playbook: verify Service Bus send and receive.** Check a round trip, not just a build: the `modernize` agent's validation missed a receive path that always threw (finding 36). Also tell it to log, not swallow, exceptions in controllers.
 - **B10 lifelines: cut them at task boundaries that work end to end.** Between tasks 001 and 004 notifications are in memory only (finding 34).
