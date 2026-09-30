@@ -1,0 +1,6 @@
+**Stopped at the Guided assessment review gate.** No plan or tasks were created or started.
+
+- Assessment: `C:\Users\labadmin\.copilot\repos\copilot-worktrees\apex-factory-hackathon\jonathan-vella-cautious-journey\.github\upgrades\scenarios\dotnet-version-upgrade\assessment.md`
+- Scenario instructions: `C:\Users\labadmin\.copilot\repos\copilot-worktrees\apex-factory-hackathon\jonathan-vella-cautious-journey\.github\upgrades\scenarios\dotnet-version-upgrade\scenario-instructions.md`
+
+No application files, Azure resources, on-premises resources, or deployments were changed.
