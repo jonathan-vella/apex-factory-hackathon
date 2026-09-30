@@ -4,7 +4,7 @@
 - **Flow Mode**: Guided
 - **Target Framework**: net10.0
 - **Scope**: app/ContosoUniversity
-- **Workflow Boundary**: Tasks 01 through 05 are complete and approved; execute task 06 only, then stop for review before task 07
+- **Workflow Boundary**: Tasks 01 through 06 are complete and approved; execute task 07 only, then stop for review
 
 ## Source Control
 - **Source Branch**: spike/b06-upgrade-compare
@@ -37,7 +37,7 @@
 - Every task validation must include a successful build and local `dotnet run` verification that Home, Students, Courses, Instructors, and Departments pages load.
 - A missing local SQL-authentication secret blocks runtime validation until supplied; it does not make the task impossible and must remain in the plan.
 - Allow workflow tooling to generate `tasks.md` for approved task execution; never create it manually.
-- Tasks 01 through 05 are complete and approved. Execute approved task 06 only, then stop for review without starting task 07.
+- Tasks 01 through 06 are complete and approved. Execute approved task 07 only, then stop for review without starting any further work.
 
 ## Decisions
 - **Task 1 execution approval**: Completed; reviewed and approved before task 02.
@@ -45,7 +45,8 @@
 - **Task 3 execution approval**: Completed; reviewed and approved before task 04.
 - **Task 4 execution approval**: Completed; reviewed and approved before task 05.
 - **Task 5 execution approval**: Completed; reviewed and approved before task 06.
-- **Task 6 execution approval**: Execute `06-opentelemetry-azure-monitor` only, then stop for review before task 07.
+- **Task 6 execution approval**: Completed; reviewed and approved before task 07.
+- **Task 7 execution approval**: Execute `07-dependency-cve-audit` only, then stop for review.
 - **Upgrade Strategy**: All-at-Once
 - **Project Approach**: In-place rewrite
 - **Unsupported Packages**: Resolve Inline
