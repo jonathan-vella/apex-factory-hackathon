@@ -229,7 +229,7 @@ if ($cs -notmatch '^InstrumentationKey=') { throw 'Bad connection string: it mus
 Set-Location C:\src\apex-factory-hackathon\app\ContosoUniversity
 dotnet user-secrets set 'APPLICATIONINSIGHTS_CONNECTION_STRING' $cs
 dotnet run                                   # open the five pages, edit a student, then wait 3-5 minutes
-az monitor app-insights query -g rg-spike-b06 -a appi-uni-<suffix>-b06 --analytics-query "union requests, dependencies, traces | where timestamp > ago(30m) | summarize count() by itemType" -o table
+az monitor app-insights query -g rg-spike-b06 -a appi-uni-<suffix>-b06 --analytics-query "union requests, dependencies, traces | where timestamp > ago(30m) | summarize count() by itemType" --query "tables[0].rows" -o tsv    # -o table prints nothing for this result shape
 ```
 
 All three item types must show. You can also look in the portal: **Application Insights** > **Transaction search**. A connection string that's set but invalid crashes the app at startup ("Required keyword 'InstrumentationKey' is missing in connection string"), because the Azure Monitor distro checks it when the host starts. The app only has to start with **no** value, so check the value before you set it. The connection string isn't a secret, but it stays in user secrets, not in a committed file.
@@ -443,3 +443,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Copilot app comparison | **Owner-approved** (requirement 11b): after the VS Code comparison, repeat it in the GitHub Copilot app with the `upgrade-agent` plugin, on `spike/b06-upgrade-app` from `da4e5f6` | Only the host changes, to see whether the app is a better home for the Upgrade agent than VS Code |
 | 4 task 005 | If Key Vault loads only outside Development, prove the Key Vault read with Production plus `KeyVault__VaultUri`, expecting the refusal of the SQL login | The comparison's Upgrade agent loaded Key Vault only outside Development, so a Development run never reads it (`9f70212`) |
 | 4 task 006 | Install the `application-insights` CLI extension first, and check that the connection string starts with `InstrumentationKey=` before setting the user secret | In the comparison, the extension auto-installed mid-command, the secret got a garbled value, and the app crashed at startup on the invalid connection string |
+| 4 task 006 | Read the Application Insights query with `--query "tables[0].rows" -o tsv` | `az monitor app-insights query … -o table` printed nothing for this result shape in the comparison |

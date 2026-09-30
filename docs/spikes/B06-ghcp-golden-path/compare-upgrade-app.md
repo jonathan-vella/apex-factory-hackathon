@@ -50,7 +50,7 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 | Blob | Stale-tracker retry | First time, no intervention | |
 | Service Bus | Receive bug, one hand fix | First time, no intervention | |
 | Key Vault | Delegation blocked three ways; direct prompt worked | First time, no intervention; Key Vault only outside Development | |
-| OpenTelemetry | Startup crash, one hand fix; edited `docs/prd.md` | | |
+| OpenTelemetry | Startup crash, one hand fix; edited `docs/prd.md` | No intervention; telemetry in Application Insights with Entra | |
 | CVE fixes | Nothing to fix | | |
 | Interventions in total | 2 code fixes, 2 git recoveries | | |
 
