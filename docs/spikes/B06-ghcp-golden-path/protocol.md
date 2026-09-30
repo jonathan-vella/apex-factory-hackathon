@@ -6,7 +6,7 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 |---|---|---|---|
 | 1 | `spike/b06-run1` | `da4e5f606983332001c94ce69b48634f9c1864b3` | v1 (changed into v2 during the run) |
 | Comparison | `spike/b06-upgrade-compare` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Comparison section](#comparison-github-copilot-upgrade-after-run-1-before-run-2) |
-| Comparison in the Copilot app | `spike/b06-upgrade-app` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Copilot app section](#comparison-github-copilot-upgrade-in-the-copilot-app-after-the-vs-code-comparison-before-run-2) |
+| Comparison in the Copilot app | `spike/b06-upgrade-app-v2` (attempt 2; attempt 1 on `spike/b06-upgrade-app` was abandoned) | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Copilot app section](#comparison-github-copilot-upgrade-in-the-copilot-app-after-the-vs-code-comparison-before-run-2) |
 | 2 | `spike/b06-run2` | `e850869e438556c1234dd672f12aa133a2bed644` | v2 |
 
 Order: the VS Code comparison, then the Copilot app comparison, then run 2.
@@ -339,67 +339,78 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
 
 ## Comparison: GitHub Copilot upgrade in the Copilot app (after the VS Code comparison, before run 2)
 
-**(Owner-approved, 2026-09-29, requirement 11b.)** Repeat the full Upgrade agent comparison in the **GitHub Copilot app** instead of VS Code. Only the host changes: the same Upgrade agent from the [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins) marketplace (plugin `upgrade-agent`, marketplace version 1.1.596, checked 2026-09-29, the same version the VS Code comparison reported), the same refined seven-task prompt, models, kit rules, configuration keys and live checks. Install only `upgrade-agent@upgrade-agent-plugins`: no modernization plugin. Fill in [compare-upgrade-app.md](compare-upgrade-app.md) stage by stage, and write down what's different about the app as you go (see its **Questions** section).
+**(Owner-approved, 2026-09-29, requirement 11b.)** Repeat the full Upgrade agent comparison in the **GitHub Copilot app** instead of VS Code, with the Upgrade agent from the [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins) marketplace (plugin `upgrade-agent`, marketplace version 1.1.596, checked 2026-09-29, the same version the VS Code comparison reported), the same kit rules, configuration keys and live checks. Install only `upgrade-agent@upgrade-agent-plugins`: no modernization plugin. Fill in [compare-upgrade-app.md](compare-upgrade-app.md) stage by stage, and write down what's different about the app as you go (see its **Questions** section).
+
+**Attempt 2 (owner decision, 2026-09-30).** Attempt 1, on `spike/b06-upgrade-app`, was abandoned during task 01 (see `compare-upgrade-app.md`). Attempt 2 runs from scratch on **`spike/b06-upgrade-app-v2`**, with two owner-approved changes:
+
+- **Models:** **Claude Opus 5.5** to assess and plan, **Claude Sonnet 5.5** to execute. The VS Code comparison used GPT-6 Sol and GPT-6 Luna, so the two comparisons aren't like for like on models.
+- **Prompt:** the refined [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md) verbatim, followed by the owner-decisions addendum [prompts/compare-upgrade-app-addendum.md](prompts/compare-upgrade-app-addendum.md), which answers attempt 1's blockers up front: no OData skill, the interim queue until task 4, no work outside the seven tasks, validation only in the app, no LocalDB, and Manual commits with branch sync off.
 
 ### A.1 Set up
 
-1. Install the GitHub Copilot app on `vm-dev01` by hand (nothing in the kit installs it), sign in with the account that has the Copilot seat, and record its version.
-2. Add the marketplace and install the plugin, either way, and record which way worked:
-   - the README's deep link, [Add this marketplace in the GitHub Copilot app](https://github.com/copilot/app/launch?entry_point=upgrade_agent_plugins_readme&open=ghapp%3A%2F%2Fplugins%2Fmarketplace%2Fadd%3Fsource%3Dmicrosoft%2Fupgrade-agent-plugins), then **Install** on `upgrade-agent`; or
-   - in a session: `/plugin marketplace add microsoft/upgrade-agent-plugins`, then `/plugin install upgrade-agent@upgrade-agent-plugins`.
-
-   Record the plugin version. The README says app versions before 1.0.3 need a restart after the install before the Upgrade agent appears.
-3. Create the branch from run 1's start commit and make the tree pure legacy, as in C.1 (leftover files steer the agents):
+1. The GitHub Copilot app and the `upgrade-agent` plugin are already installed from attempt 1. If you install them again, use the README's deep link, [Add this marketplace in the GitHub Copilot app](https://github.com/copilot/app/launch?entry_point=upgrade_agent_plugins_readme&open=ghapp%3A%2F%2Fplugins%2Fmarketplace%2Fadd%3Fsource%3Dmicrosoft%2Fupgrade-agent-plugins), then **Install** on `upgrade-agent`, or in a session `/plugin marketplace add microsoft/upgrade-agent-plugins` then `/plugin install upgrade-agent@upgrade-agent-plugins`. App versions before 1.0.3 need a restart after the install. **Record the app and plugin versions** (attempt 1 didn't).
+2. Close attempt 1's session in the app. Its worktree, with about 50,000 uncommitted changes, stays as it is: don't commit or push from it.
+3. Create the attempt 2 branch from run 1's start commit and make the tree pure legacy, as in C.1:
 
    ```powershell
    Set-Location C:\src\apex-factory-hackathon
    git status --short                   # must print nothing
    git fetch origin
-   git switch -c spike/b06-upgrade-app da4e5f606983332001c94ce69b48634f9c1864b3
+   git switch -c spike/b06-upgrade-app-v2 da4e5f606983332001c94ce69b48634f9c1864b3
    git clean -ndx -- app .github         # dry run
    git clean -fdx -- app .github
    git status --short --ignored -- app .github    # must print nothing
-   git commit --allow-empty -m "app: stage 1 set up"
-   git push -u origin spike/b06-upgrade-app
+   git commit --allow-empty -m "app: stage 1 set up" -m "Copilot app <version>; upgrade-agent <version>"
+   git push -u origin spike/b06-upgrade-app-v2
    ```
 
-4. In the Copilot app, add `C:\src\apex-factory-hackathon` as a project and start a session. **The app's default is a worktree session**: it creates its own checkout and branch under `C:\Users\<user>\.copilot\repos\copilot-worktrees\apex-factory-hackathon\<session-branch>`, not in `C:\src`. The chat footer shows the session's path and branch. The comparison uses that default, because it's what an attendee gets. Check the worktree's branch and base commit (`git -C <worktree-path> log --oneline -1`, which must be `da4e5f6` or `spike/b06-upgrade-app`), and push its work to `spike/b06-upgrade-app` after each stage: `git -C <worktree-path> push origin HEAD:spike/b06-upgrade-app`. If the app offers a **branch** session on the existing clone, that works too; note which you used.
-5. 🔎 VERIFY how the Copilot app exports a conversation. If there's no export, select all in the conversation, copy it and save it as `docs\spikes\B06-ghcp-golden-path\chats\app-stage<N>.txt`. Record which way you used.
+4. In the Copilot app, start a new session on the project. **The app's default is a worktree session**: it creates its own checkout and branch under `C:\Users\<user>\.copilot\repos\copilot-worktrees\apex-factory-hackathon\<session-branch>`, not in `C:\src`, and the chat footer shows the path and branch. That's what an attendee gets, so use it. Check the worktree's base (`git -C <worktree-path> log --oneline -1` must be `da4e5f6` or `spike/b06-upgrade-app-v2`), and push its work to `spike/b06-upgrade-app-v2` after each stage: `git -C <worktree-path> push origin HEAD:spike/b06-upgrade-app-v2`. If the app offers a **branch** session on the existing clone, that works too; note which you used.
+5. **Set the user secrets for the worktree's project before any check** (step 1.8, with `--project <worktree-path>\app\ContosoUniversity`). The project's `UserSecretsId` can differ from the one in `C:\src`, and without the SQL secret the app falls back to LocalDB.
+6. 🔎 VERIFY how the Copilot app exports a conversation. If there's no export, select all in the conversation, copy it and save it as `docs\spikes\B06-ghcp-golden-path\chats\app-v2-stage<N>.txt`. Record which way you used.
 
 ### A.2 Assess and plan
 
 > [!WARNING]
-> **BEFORE you send:** start a **new session**, pick **Upgrade** in the agent picker, and pick **GPT-6 Sol** with reasoning **Medium**. Keep this session for the whole run, including the tasks.
+> **BEFORE you send:** start a **new session**, pick **Upgrade** in the agent picker, and pick **Claude Opus 5.5**. Keep this session for the whole run, including the tasks.
 
-1. ⚠️ **BEFORE you send:** new session, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
-2. Fetch the prompt straight from origin and check it, as in C.2, then paste it and send it:
+1. ⚠️ **BEFORE you send:** new session, agent **Upgrade**, model **Claude Opus 5.5**.
+2. Fetch the prompt and the addendum straight from origin, check them, and paste them as one message, the prompt first:
 
    ```powershell
    git fetch origin
-   $prompt = git show origin/jonathan-vella-b06-ghcp-spike:docs/spikes/B06-ghcp-golden-path/prompts/compare-upgrade-plan.md | Out-String
+   $base = 'origin/jonathan-vella-b06-ghcp-spike:docs/spikes/B06-ghcp-golden-path/prompts'
+   $prompt = git show "$base/compare-upgrade-plan.md" | Out-String
+   $addendum = git show "$base/compare-upgrade-app-addendum.md" | Out-String
    if ($prompt -notmatch 'exactly these seven') { throw 'Stale prompt: it must contain "exactly these seven"' }
-   $prompt | Set-Clipboard
+   if ($addendum -notmatch 'Owner decisions for this run') { throw 'Missing addendum' }
+   ($prompt.TrimEnd() + "`n`n" + $addendum) | Set-Clipboard
    ```
 
-3. Check the answer as in C.2.3: the artifacts under `.github\upgrades\`, nothing under `.github\modernize\`, all 9 table rows met, no application files changed. **(Owner-reviewed after the first Copilot app attempt.)** If task 01 references `#skill:migrating-webapi-odata`, ask the agent to remove it before you approve the plan: the app is MVC with no Web API or OData, and in the Copilot app that skill's compatibility gate stopped task 01. In the VS Code comparison it was removed the same way. The Upgrade dashboard renders inside the app (tabs Overview, Assessment, Plan, Execution and Activity). In Guided mode the app pauses at the **assessment** gate and again at the **plan** gate; approve each to continue (VS Code ran assessment and planning in one go). Save the conversation, then commit and push: `app: stage 2 assess and plan`.
+3. When the scenario settings come up, set **commit strategy Manual** and **branch sync off**, as the addendum says. Attempt 1 defaulted to After Each Task with Auto (Merge). Record what the app showed.
+4. The dashboard renders inside the app (Overview, Assessment, Plan, Execution and Activity tabs). In Guided mode the app pauses at the **assessment** gate and again at the **plan** gate; approve each to continue.
+5. Check the plan as in C.2.3: the artifacts under `.github\upgrades\`, nothing under `.github\modernize\`, exactly seven tasks in a strict chain, all 9 table rows met, no application files changed, and **no `#skill:migrating-webapi-odata`**. If the skill is there anyway, ask the agent to remove it before you approve the plan.
+6. Save the conversation, commit in the worktree and push to `spike/b06-upgrade-app-v2`: `app: stage 2 assess and plan`.
 
 ### A.3 Tasks 1–7
 
-**(Owner's method.)** Stay in the **same session** from assessment through execution, and switch only the model picker. The Copilot app has no Copilot/Local harness split, so VS Code's rule that execution needs the Local harness (C.3) doesn't apply here.
+Stay in the **same session** from assessment through execution, and switch only the model picker. The Copilot app has no Copilot/Local harness split, so VS Code's rule that execution needs the Local harness (C.3) doesn't apply here.
 
 > [!WARNING]
-> **BEFORE each task:** in the same session, check that the agent is still **Upgrade**, and switch the model picker from GPT-6 Sol to **GPT-6 Luna** with reasoning **maximum**.
+> **BEFORE each task:** in the same session, check that the agent is still **Upgrade**, and switch the model picker to **Claude Sonnet 5.5**.
 
 For each of the plan's seven tasks in order:
 
-1. ⚠️ **BEFORE you run it:** same session, agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
-2. Start the task with the Upgrade agent (`start_task`, or approve it in the dashboard's **Execution** tab), and reply `continue` when it asks. If a task blocks, record the message and start a new session with the same agent and model.
+1. ⚠️ **BEFORE you run it:** same session, agent **Upgrade**, model **Claude Sonnet 5.5**.
+2. Start the task (`start_task`, or approve it in the dashboard's **Execution** tab), and reply `continue` when it asks. If a task blocks, record the message and start a new session with the same agent and model. If the agent drifts from the addendum anyway, remind it with one line:
+   - OData gate: `The only consumer of the notification JSON endpoints is the app's own notifications.js. Don't use migrating-webapi-odata; preserve the routes, methods and JSON shape.`
+   - Durable queue: `Keep the interim in-process queue until task 4, which replaces it with Service Bus.`
+   - Extra work: `Do no work outside this task. Record the finding as a recommendation only.`
+   - Repo checks: `Scope all validation to app/ContosoUniversity. Don't run the repository's PowerShell or npm checks.`
 
-   - **If the OData compatibility gate returns STOP** (the plan kept `#skill:migrating-webapi-odata`), answer it and retry the task: `The only consumer of the notification JSON endpoints is the app's own notifications.js. Preserve their routes, HTTP methods and JSON shape, treat the compatibility gate as passed, and retry the task.`
-   - **Keep validation in the app.** If the agent runs repo-level scripts that aren't part of the app (the kit's PowerShell preflight or `npm test`), stop it and reply: `Scope all validation to app/ContosoUniversity: build, run and test only that project. Don't run the repository's other scripts.`
-3. Build, run the app, then do that task's check from the step 4 check table, as in C.3.3. **In the worktree**, set the user secrets first (step 1.8) with `dotnet user-secrets --project <worktree-path>\app\ContosoUniversity`: the project's `UserSecretsId` can differ from the one in `C:\src`, and without the SQL secret the app falls back to LocalDB and the database pages fail.
-   - **If the workflow asks to move Service Bus into task 01** because the in-process notification queue isn't durable, answer: `Keep the interim in-process queue until task 04, which replaces it with Service Bus.` Run 1 did the same (finding 34).
-4. Check the worktree's branch with `git -C <worktree-path> status --short --branch`: the app's session handling mustn't move the work elsewhere. The app's scenario commits **After Each Task** with branch sync **Auto (Merge)**, so check what it committed and merged before you push. Check the number of changed files too (`git -C <worktree-path> status --short | Measure-Object`): hundreds is normal, tens of thousands means build or restore output (`bin`, `obj`, `.vs`, packages) isn't ignored. Don't commit it: fix `.gitignore` first. Commit in the worktree, with the interventions in the commit body, one line each, and push to the comparison branch: `git -C <worktree-path> push origin HEAD:spike/b06-upgrade-app`. Use the message `app: stage 3.N <stage>`. Save the conversation.
+   Each reminder counts as an intervention.
+3. Build, run the app, then do that task's check from the step 4 check table, as in C.3.3.
+4. Check the worktree with `git -C <worktree-path> status --short --branch`, and count the changed files (`git -C <worktree-path> status --short | Measure-Object`): hundreds is normal, tens of thousands means build or restore output (`bin`, `obj`, `.vs`, packages) isn't ignored. Don't commit that: fix `.gitignore` first. Commit in the worktree with the message `app: stage 3.N <stage>` and the interventions in the body, one line each, then push: `git -C <worktree-path> push origin HEAD:spike/b06-upgrade-app-v2`. Save the conversation.
+
 After the last task, tell the executor the branch is pushed.
 
 ## Optional: step 2 with Copilot CLI
@@ -454,3 +465,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Copilot app A.3 | One session from assessment through execution; switch only the model picker (GPT-6 Sol Medium to plan, GPT-6 Luna maximum for each task); commit in the worktree and push to `spike/b06-upgrade-app` | The Copilot app has no Copilot/Local harness split, so the VS Code rule that execution needs Local doesn't apply |
 | Copilot app A.2, A.3 | Remove `#skill:migrating-webapi-odata` from task 01 before approving the plan; if its gate still stops a task, answer it with the notification-endpoint reply. Keep validation inside `app/ContosoUniversity` | The Copilot app's task 01 was blocked by the OData skill's compatibility gate (unknown consumers of the notification JSON endpoints, no API contract tests), which the VS Code run had removed from the plan. The agent also ran the kit's PowerShell preflight and `npm test`, which aren't part of the app |
 | Copilot app A.3 | Set user secrets for the worktree's project before the checks; keep the interim notification queue until task 04; check the app's automatic commits and merges, and the changed-file count, before pushing | Task 01's page checks fell back to LocalDB without the SQL secret; the workflow asked to pull Service Bus into task 01; the app's scenario uses After Each Task commits with Auto (Merge) sync; the run showed more than 50,000 changed files before any commit |
+| Copilot app comparison | **Owner decision:** restart from scratch as attempt 2 on `spike/b06-upgrade-app-v2`, with Claude Opus 5.5 to plan and Claude Sonnet 5.5 to execute (not like for like with the VS Code comparison's GPT-6 models), and the prompt followed by `prompts/compare-upgrade-app-addendum.md` | Attempt 1 was stopped by the OData gate, the default After Each Task and Auto (Merge) settings, an unplanned task split, a LocalDB fallback, out-of-scope checks and about 50,000 unpushed file changes |
