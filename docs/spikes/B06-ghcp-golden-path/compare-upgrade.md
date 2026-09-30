@@ -72,6 +72,7 @@ Where the Upgrade agent can't do a stage without GitHub Copilot modernization, t
 | Blob | Task 003 after a stale-tracker retry, uncommitted; upload passed (finding 33) | Task 03 first time, no intervention; upload and display passed (`7f0d1ec`) |
 | Service Bus | Task 004; send worked, receive broken (`TimeSpan.Zero`), one manual fix, then round trip passed (findings 35, 36) | Task 04 first time, no intervention; send and receive both passed (`39c4eea`) |
 | Key Vault | Task 005: delegation blocked three ways, then a direct prompt worked (findings 37–40) | Task 05 first time, no intervention; Key Vault only outside Development, and the connection string must come from it (`9f70212`) |
+| OpenTelemetry | Step 5 gap after the plan; the predefined task crashed the app at startup, one hand fix; edited `docs/prd.md` (findings 43, 44) | Task 06 in the plan, no intervention; telemetry shows in Application Insights with Entra |
 | Execution reliability | Delegation blocked 3 of 5 tasks | |
 | Interventions in total | | |
 
