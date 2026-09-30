@@ -18,9 +18,9 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 | Question | Answer |
 |---|---|
 | Does the plugin install from the README's deep link, from `/plugin`, or both? Is a restart needed? | |
-| Does `start_task` run in the Copilot app? In VS Code it needed the Local harness for MCP sampling (report finding 51) | |
+| Does `start_task` run in the Copilot app? In VS Code it needed the Local harness for MCP sampling (report finding 51) | Pending: task 01 is next, with GPT-6 Luna at maximum |
 | Is there an equivalent of the Upgrade dashboard, or is the run chat-only? | Yes: the Upgrade Agent Dashboard renders inside the app, with Overview, Assessment, Plan, Execution and Activity tabs ("Step 1 of 5"; "Baseline failing 0/1 projects built", expected for the .NET Framework 4.8 project) |
-| Do the `dotnet-version-upgrade` routing, Guided flow and Manual commit strategy behave as in VS Code? | Guided flow differs: the app paused at the **assessment** gate before planning, while VS Code ran assessment and planning in one go. Routing and commit strategy: pending |
+| Do the `dotnet-version-upgrade` routing, Guided flow and Manual commit strategy behave as in VS Code? | Routing: `dotnet-version-upgrade`, as in VS Code. Guided flow differs: the app paused at the **assessment** gate and again at the **plan** gate, while VS Code ran assessment and planning in one go. Commit strategy: pending |
 | Does the app's session or branch handling clash with the agent's? | The app's default is a worktree session with its own branch, so the work isn't in `C:\src` and has to be pushed to `spike/b06-upgrade-app` from the worktree. The first commit on `spike/b06-upgrade-app` (`f0b2927`) holds only a 6-line chat note. Clashes with the agent: pending |
 | How do you export a conversation? | |
 
@@ -29,7 +29,7 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 | Stage | Covered by the Upgrade agent? | Time | Model | Prompts | Interventions | Build / run | Live check |
 |---|---|---|---|---|---|---|---|
 | A.1 Set up | — | `f0b2927` (a chat note only; the stage 1 commit body kept placeholders for the app and plugin versions) | — | — | The session opened as a worktree, not a branch session on `C:\src` | — | — |
-| A.2 Assess and plan (7 tasks, 9 rules) | | | | | | — | Rules table: |
+| A.2 Assess and plan (7 tasks, 9 rules) | ✅ `dotnet-version-upgrade`, in the app's worktree session (`6372965`) | About 5 h wall-clock (06:04–11:09 UTC, including the two Guided gates and any pauses) | GPT-6 Sol, Medium | The refined prompt fetched from origin; the owner approved the assessment gate, then the plan gate | **None**: the plan was approved as is | 0 application files changed; no `.vs` folder committed; the diff stays in `.github/upgrades/` and the chats, with no secrets | Rules: all met. Seven tasks in a strict chain; SQL Managed Instance only (Azure SQL Database excluded); Blob only (no Azure Files); `DefaultAzureCredential` and `Authentication=Active Directory Default`; one `UseAzureMonitor()`; Key Vault mandatory outside Development; SDK container publishing with no Dockerfile; `privatelink` names and Dockerfiles appear only as prohibitions. Task 01 again references `#skill:migrating-webapi-odata`, framed as a behavior-preservation gate; the owner accepted it, where the VS Code comparison had removed it |
 | A.3.1 .NET 10 upgrade | | | | | | | Pages against `10.10.n.4`: |
 | A.3.2 SQL Managed Instance | | | | | | | Development pages; Production with a SQL login refuses to start: |
 | A.3.3 Blob | | | | | | | Upload lands in `teaching-materials` and shows through the app: |
@@ -44,7 +44,7 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 | Stage | `modernize` in VS Code (run 1) | Upgrade agent in VS Code (`spike/b06-upgrade-compare`) | Upgrade agent in the Copilot app (`spike/b06-upgrade-app`) |
 |---|---|---|---|
 | Set up and harness | VS Code; prompt files needed the Local harness, the dashboard the Copilot harness | Planning in the Copilot harness, tasks only in Local (MCP sampling) | |
-| Assess and plan | Custom assessment, then `/create-modernization-plan` with the kit rules; a finished plan can't be revised | Refined prompt met all 9 rules; revised its plan when asked | |
+| Assess and plan | Custom assessment, then `/create-modernization-plan` with the kit rules; a finished plan can't be revised | Refined prompt met all 9 rules; revised its plan when asked | Refined prompt met all rules; two Guided gates (assessment, then plan); approved as is, with no correction |
 | .NET 10 upgrade | Work stashed by the next task's branch switch, restored by hand | First time, no intervention | |
 | SQL Managed Instance | On an `appmod/*` branch | One `continue`; Entra-only enforced at startup | |
 | Blob | Stale-tracker retry | First time, no intervention | |
