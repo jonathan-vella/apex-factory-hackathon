@@ -4,11 +4,13 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 
 **Attempt 1 was abandoned and the run restarted (owner decision, 2026-09-30).** Attempt 2 adds an owner-decisions addendum to the prompt ([prompts/compare-upgrade-app-addendum.md](prompts/compare-upgrade-app-addendum.md)) and uses **different models** (owner-approved deviation): Claude Opus 5.5 to assess and plan, Claude Sonnet 5.5 to execute. The VS Code comparison used GPT-6 Sol and GPT-6 Luna, so **the app-versus-VS Code comparison isn't like for like on models, on the prompt, or (after the reinstall) on the plugin version**.
 
+**Paused (owner decision, 2026-10-01: "drop the github copilot app for now").** The redo of attempt 2's stage 2 stopped because the Upgrade MCP server exposed no tools after the clean reinstall: `get_state` and `initialize_scenario` were still missing after the first turn (plugin 1.1.612), so the prompt's tools guard stopped the run before any assessment or plan. `spike/b06-upgrade-app-v2` stays at `37a22b6`. The tables below stay incomplete. The Copilot app with the `upgrade-agent` plugin **isn't a recommendation for attendees at this point**. The VS Code comparison ([compare-upgrade.md](compare-upgrade.md)) and run 2 are unaffected.
+
 ## Attempt 2
 
 | Field | Value |
 |---|---|
-| Date | |
+| Date | 2026-09-30 to 2026-10-01; paused 2026-10-01 |
 | Branch | `spike/b06-upgrade-app-v2` |
 | Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
 | GitHub Copilot app | |
@@ -49,7 +51,7 @@ The first stage 2 of attempt 2 ran **without the .NET analysis tools**: `generat
 | Do the `dotnet-version-upgrade` routing, Guided flow and commit strategy behave as in VS Code? | Routing yes. Guided flow paused at the assessment and plan gates (VS Code ran both in one go). Commit strategy defaulted to **After Each Task** with branch sync **Auto (Merge)**, not Manual | |
 | Does the app's session or branch handling clash with the agent's? | The default session is a worktree under `.copilot\repos\copilot-worktrees\`, not `C:\src`; the work has to be pushed from there | |
 | How do you export a conversation? | Not recorded (a short note was committed instead) | |
-| Do the .NET analysis tools load? | Not recorded | First stage 2: **no**, silently; the generic Assessor wrote `assessment.md` by hand and the run was voided. Redo: |
+| Do the .NET analysis tools load? | Not recorded | First stage 2: **no**, silently; the generic Assessor wrote `assessment.md` by hand and the run was voided. Redo after the clean reinstall: **no tools at all**, not even `get_state` or `initialize_scenario` after the first turn; paused |
 
 ### Stages
 
@@ -107,4 +109,4 @@ The Copilot app column is attempt 2. It isn't like for like with the VS Code com
 
 ## Recommendation
 
-Which extensions or plugins, and which host (VS Code or the Copilot app), the kit's dev VM should offer, for the owner to decide. B04's install list isn't changed until then. Weigh the Copilot app result against the model and prompt differences above.
+**Not at this point.** The comparison is paused (owner decision, 2026-10-01) because the Upgrade MCP server exposed no tools in the Copilot app after a clean reinstall, so it gives no evidence for offering the GitHub Copilot app on the dev VM. Which extensions or plugins and which host the dev VM offers is decided from the VS Code comparison and run 2; the owner decides, and B04's install list isn't changed until then.
