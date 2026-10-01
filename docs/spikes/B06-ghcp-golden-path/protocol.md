@@ -343,7 +343,7 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
 
 **(Owner request, 2026-10-01.)** Rerun the VS Code comparison from scratch to retest finding 51: does `start_task` work in the **Copilot** harness once the Upgrade MCP server has model access? The finished comparison ([compare-upgrade.md](compare-upgrade.md)) stays as it is. Fill in [compare-upgrade-v2.md](compare-upgrade-v2.md) stage by stage.
 
-**v2 and v3 (owner decision, 2026-10-01).** v2, on `spike/b06-upgrade-compare-v2`, ran stage 2 in the **Copilot** harness (`b49ce4b`: tool-based assessment and a compliant plan, 0 interventions) and is kept as evidence; `start_task` wasn't tried there. **v3 restarts from scratch in the Local harness** on `spike/b06-upgrade-compare-v3` from `da4e5f6`, with the same prompt, addendum and models. For v3, follow R.1–R.3 with these changes:
+**v2 and v3 (owner decision, 2026-10-01).** v2, on `spike/b06-upgrade-compare-v2`, ran stage 2 in the **Copilot** harness (`b49ce4b`: tool-based assessment and a compliant plan, 0 interventions) and is kept as evidence; `start_task` then failed there with internal LLM client unavailable (`859d4ed`), confirming finding 51 on 1.1.612. **v3 restarts from scratch in the Local harness** on `spike/b06-upgrade-compare-v3` from `da4e5f6`, with the same prompt, addendum and models. For v3, follow R.1–R.3 with these changes:
 
 - Use `spike/b06-upgrade-compare-v3` wherever R.1–R.3 say `spike/b06-upgrade-compare-v2`.
 - Set the harness (**Session Target**) to **Local** for stage 2 **and** every task, instead of Copilot. The fallback in R.3 step 2 doesn't apply.
