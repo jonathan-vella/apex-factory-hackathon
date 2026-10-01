@@ -1,0 +1,114 @@
+# .NET 10 Upgrade and Azure Migration Plan — ContosoUniversity
+
+## Overview
+
+Upgrade `app/ContosoUniversity` (ASP.NET MVC 5 on .NET Framework 4.8) to ASP.NET Core MVC on `net10.0`, then migrate its workloads to existing Azure services in a strict dependency chain. On Azure, the target state uses Microsoft Entra authentication only (`DefaultAzureCredential` / managed identity) and private endpoints for every backend service. The hosting target is an **existing** Azure App Service for Linux (containers). This plan provisions, configures and deploys nothing, and it makes no change to the on-premises SQL Server, its database, its logins or the legacy deployment.
+
+Source: [assessment.md](assessment.md): 1 project, 3,392 LOC, 157 issues (MSMQ 57, System.Web 16, legacy configuration 16), 2 incompatible packages, 1 known vulnerability (Microsoft.Data.SqlClient 2.1.4, CVE-2024-0056).
+
+### Selected Strategy
+**All-At-Once**: all projects are upgraded together in a single operation.
+**Rationale**: 1 project on .NET Framework 4.8 with no project references. Prerequisites, SDK-style conversion and the TFM upgrade are merged into Task 01 under the 1-2 project adaptation rule. Tasks 02-07 are owner-mandated migration and audit tasks, and each one runs on the upgraded `net10.0` application.
+
+### Projects
+| Project | Current | Target | Type |
+|---|---|---|---|
+| app/ContosoUniversity/ContosoUniversity.csproj | net48 (old-style csproj, packages.config) | net10.0 (`Microsoft.NET.Sdk.Web`) | ASP.NET MVC web app |
+
+No test project exists. Validation therefore means build plus local run, and any tests that exist at execution time are also run.
+
+### Task dependency chain
+`01 -> 02 -> 03 -> 04 -> 05 -> 06 -> 07`. Task 01 has no dependencies. Each later task depends on the task before it.
+
+### Standard validation (applies to every task)
+1. `dotnet build` of `app/ContosoUniversity` succeeds with 0 errors and 0 warnings, and all available tests pass.
+2. A local `dotnet run` in the `Development` environment on vm-dev01 loads the Home, Students, Courses, Instructors and Departments pages successfully. A passing build alone is not sufficient.
+3. The local database connection comes from the `ConnectionStrings:DefaultConnection` .NET user secret (SQL authentication with the existing `contosoapp` login against the unchanged on-premises database). The plan never falls back to LocalDB. If the secret is unavailable, runtime validation is recorded as **blocked until the owner supplies it**; the task is not dropped.
+4. Validation is scoped to `app/ContosoUniversity` only. The repository's PowerShell and npm checks are not run.
+
+### Cross-cutting rules (all tasks)
+- **Authentication on Azure:** Microsoft Entra only. Every Azure SDK client uses `DefaultAzureCredential` (managed identity on App Service, the developer's Azure CLI sign-in locally). No credential types, client, tenant or object IDs, endpoints or secrets are hard-coded. The plan prohibits SQL logins, user names and passwords on Azure; Storage and Service Bus shared keys, SAS tokens and connection strings; and Application Insights local (instrumentation-key-only) authentication.
+- **Configuration keys read at runtime:** `ConnectionStrings:DefaultConnection`, `Storage:BlobServiceUri`, `Storage:ContainerName`, `ServiceBus:FullyQualifiedNamespace`, `ServiceBus:QueueName`, `KeyVault:VaultUri`, `APPLICATIONINSIGHTS_CONNECTION_STRING` (or `ApplicationInsights:ConnectionString`).
+- **Network:** SQL Managed Instance, Blob Storage, Service Bus, Key Vault and the container registry have public network access disabled and are reached only through private endpoints or the VNet. Configuration uses each service's standard host name, which private DNS resolves to the private address. It never uses `privatelink` host names, IP addresses or the SQL MI public data endpoint (port 3342), and no IP firewall rules are added. The only public endpoints are the App Service front end and Application Insights ingestion.
+- **No identity work:** no Microsoft Entra ID user sign-in, now or later. IIS Express Windows Authentication and LocalDB `Integrated Security` settings are local hosting and database evidence only.
+- **No secrets in source control or planning artifacts.**
+- **Out of scope (never planned):** resource provisioning, IaC, role assignments, private endpoint/DNS configuration, registry creation, image push, deployment, and creation of databases, storage accounts, Service Bus namespaces, Key Vaults or secrets.
+- **Already-satisfied work:** where current source already satisfies part of a task, the executor verifies it and records that implementation step as a no-op.
+
+## Upgrade Options
+
+| Option | Selected | Why |
+|--------|----------|-----|
+| Upgrade Strategy | All-at-Once | Single .NET Framework project with no project references, so there is no dependency graph to order. |
+| Project Approach | In-place rewrite | Small MVC app (6 controllers, 3.4k LOC); the required seven-task chain needs every later task to run on the upgraded net10.0 app, and side-by-side would inject extra scaffold/migrate tasks. |
+| Unsupported Packages | Resolve Inline | Only 2 incompatible packages (Microsoft.AspNet.Web.Optimization, Antlr), both used solely for bundling, which becomes plain static files. |
+| Unsupported API Handling | Fix Inline | 89 API issues in one project; MSMQ gets an interim in-process queue in Task 1 (Service Bus in Task 4), so nothing needs stubbing. |
+| System.Web Adapters | Direct Migration to ASP.NET Core APIs | In-place rewrite of a small MVC app with no HttpContext.Current usage; native ASP.NET Core APIs leave no shim to remove later. |
+| Assembly Binding Redirects | Remove Binding Redirects | All 22 Web.config redirects are Visual Studio/NuGet-generated boilerplate that ASP.NET Core does not read; a review step would add work outside the seven tasks. |
+| Nullable Reference Types | Leave Disabled | Assessment rates the migration High difficulty; enabling nullable would add warning churn that must be fixed under the warning-free rule. |
+| Test Coverage | Skip | Assessment recommends coverage (High difficulty), but Generate would inject test-baseline tasks outside the mandated seven-task plan; Skip is the opt-in default. |
+
+## Tasks
+
+### 01-aspnetcore-net10: Upgrade to .NET 10 and ASP.NET Core MVC
+
+**Depends on**: none. Scope: `app/ContosoUniversity/ContosoUniversity.csproj`. This task converts the old-style csproj to an SDK-style `Microsoft.NET.Sdk.Web` project targeting `net10.0` and replaces `packages.config` with `PackageReference`. It removes packages whose functionality is now part of the framework (Microsoft.AspNet.Mvc/Razor/WebPages, CodeDom provider, Web.Infrastructure and others) and resolves the two incompatible packages inline: `Microsoft.AspNet.Web.Optimization` and the bundling-only `Antlr`/`WebGrease` chain become static files. EF Core 3.1.32 and Microsoft.Extensions 3.1.32 move to the net10.0-compatible line, and the vulnerable `Microsoft.Data.SqlClient` 2.1.4 (CVE-2024-0056) moves to a patched version. All 22 binding redirects are removed. The applicable `Web.config` settings move to `appsettings.json`, `appsettings.Development.json` and ASP.NET Core configuration: `DefaultConnection`, the client-validation flags, the notification queue setting, and the request size limits (`maxRequestLength` 10 MB and `maxAllowedContentLength` become Kestrel/form options). `Global.asax`, `RouteConfig`, `FilterConfig` and `BundleConfig` are replaced by `Program.cs` with nothing lost: the default `{controller=Home}/{action=Index}/{id?}` route, the global filters (e.g. HandleError becomes an exception handler or error page), and the bundled CSS/JS, now served as static files from `wwwroot` with explicit `<link>`/`<script>` tags in `_Layout.cshtml` and the views that call `Scripts.Render("~/bundles/jqueryval")`. The database context (`SchoolContext`, replacing `SchoolContextFactory`/`ConfigurationManager`) and the notification service are registered with dependency injection, and `DbInitializer` runs at startup. Container image support is added through .NET SDK container publishing (`dotnet publish /t:PublishContainer`), with project-file properties for base image `mcr.microsoft.com/dotnet/aspnet:10.0`, repository `contoso-university`, and the port the app listens on. No Dockerfile is added and Docker is not required.
+
+MSMQ (`System.Messaging`, 57 issues, the largest API category) does not exist on .NET 10. Under the owner decision, `NotificationService` becomes an **interim in-process queue** behind the same send/receive surface, so notifications keep working until Task 04. The `NotificationsController` JSON endpoints used by `Scripts/notifications.js` (`/Notifications/GetNotifications` and the mark-as-read POST) keep their routes, HTTP methods and JSON shape. The `migrating-webapi-odata` skill and its compatibility gate are **not** used: there is no Web API or OData surface. All controllers (Base, Home, Students, Courses, Instructors, Departments, Notifications), Razor views, user-visible behavior, and the EF Core entity model, relationships and mappings are preserved. `HttpPostedFileBase` becomes `IFormFile`, `Server.MapPath` becomes `IWebHostEnvironment`, and `[Bind(Include=...)]` becomes `[Bind(...)]`. Teaching-material uploads stay on the local file system in this task. A `UserSecretsId` is added so the `ConnectionStrings:DefaultConnection` user secret can be used locally. Microsoft Entra ID user sign-in is **not** added. IIS Express Windows Authentication properties are dropped as local hosting configuration, and stale "Windows Authentication" / "Entity Framework 6" wording (`Views/Home/Index.cshtml`, `SETUP_TESTING_GUIDE.md`) may be corrected here. That wording does not lead to an identity task.
+
+Known risks and research starting points:
+- **Linux case-sensitive file names:** `BundleConfig` references `~/Content/site.css`, but the file is `Content/Site.css`. `~/Content/bootstrap.css` is not in source control; it came from the bootstrap 5.3.3 NuGet content package. The scripts on disk are `jquery-3.4.1*.js` while packages.config lists jQuery 3.7.1. The executor must align file names and references and make sure every CSS/JS asset the layout needs exists in `wwwroot`.
+- **Notifications:** `BaseController` creates `NotificationService` with `new`, and it must be injected instead.
+- **Logging:** `Services/LoggingService.cs` is empty, and `Debug.WriteLine` calls remain until Task 06.
+- **Uploads:** check `Uploads/TeachingMaterials` and `~/` paths in `TeachingMaterialImagePath`. Existing stored paths must still render after the move to `wwwroot` or an equivalent static path.
+
+**Done when**: the project is SDK-style `Microsoft.NET.Sdk.Web`, `net10.0`, with PackageReference only (no `packages.config`, `Global.asax` or `App_Start`, and no `System.Web`/`System.Messaging` references). Container properties are in the csproj and `dotnet publish /t:PublishContainer` produces a local image tarball or image without a Dockerfile or Docker, or that step is recorded as verified-by-configuration if the environment can't produce one. The build has 0 errors and 0 warnings, and any tests pass. Under `dotnet run` (Development, with the user-secret `DefaultConnection`) the Home, Students, Courses, Instructors and Departments pages load with CSS/JS applied, and creating, editing or deleting an entity raises a notification that `notifications.js` reads back through the unchanged JSON endpoints.
+
+### 02-sql-managed-instance: Migrate the database workload to Azure SQL Managed Instance
+
+**Depends on**: 01-aspnetcore-net10. This task makes the upgraded app ready to use the **existing** Azure SQL Managed Instance as its only Azure database target. Azure SQL Database is not proposed or planned. The connection is still read from `ConnectionStrings:DefaultConnection`. On Azure, the connection string uses `Authentication=Active Directory Default`, carries no user name or password, and points at the managed instance's private, VNet-local host name, never the public data endpoint (port 3342). It is supplied through configuration (Key Vault from Task 05), never source control. Note the authentication-mode change: `Microsoft.Data.SqlClient` resolves `Active Directory Default` through Azure.Identity (managed identity on App Service, Azure CLI locally). The executor must confirm that the package version from Task 01 supports it, and that the app does not hard-code any credential type or ID.
+
+A startup guard enforces the authentication rules. In the `Development` environment only, a SQL-authenticated `DefaultConnection` (the existing `contosoapp` login, supplied through .NET user secrets, pointing at the unchanged on-premises SQL Server) is passed to EF Core unchanged. Outside `Development`, the application refuses to start if `DefaultConnection` contains a user name or password; the guard parses it with `SqlConnectionStringBuilder` (`User ID`/`UID`/`Password`/`PWD`). A SQL-authenticated connection string is never converted to managed identity automatically. The EF Core model, relationships, mappings, `DbInitializer` behavior and application behavior are preserved. The plan adds no schema migration against, and no change to, the on-premises database or logins, and it creates no database on Azure. Research starting points: `DbInitializer.Initialize` (startup seeding/`EnsureCreated` behavior against an existing MI database), retry-on-failure settings suitable for MI, and the `TeachingMaterialImagePath` column the model expects.
+
+**Done when**: the build has 0 errors and 0 warnings, and any tests pass. `dotnet run` in Development, using the user-secret SQL-auth `DefaultConnection`, loads all five pages against the on-premises database. Running with a non-Development environment and a `DefaultConnection` that contains a user name or password fails fast at startup with a clear error, and a connection string with `Authentication=Active Directory Default` and no credentials passes the guard. No secrets are committed. If the user secret is unavailable, runtime validation is recorded as blocked until the owner supplies it.
+
+### 03-blob-storage: Migrate mutable file handling to Azure Blob Storage
+
+**Depends on**: 02-sql-managed-instance. Scope: mutable, application-managed files only, meaning teaching-material image upload, replacement, retrieval and deletion in `CoursesController` (Create, Edit, DeleteConfirmed) and their display in `Views/Courses/Index`, `Details` and `Edit`. These move from `Uploads/TeachingMaterials` on the local file system to the **existing** Azure Blob Storage account, which is the only target for these files. Azure Files, storage mounts, shared keys, SAS tokens and storage connection strings are not used. `BlobServiceClient` is created from `Storage:BlobServiceUri` with `DefaultAzureCredential`, using container `Storage:ContainerName`. Both values come from configuration at runtime, and the standard `*.blob.core.windows.net` host is resolved privately by DNS.
+
+The storage account has no public access, so stored images are **served through the application**: a controller action streams the blob, and views reference an app URL rather than a blob URL. Browsers are never linked to blob URLs. All existing behavior is preserved: the allowed extensions (`.jpg`, `.jpeg`, `.png`, `.gif`, `.bmp`), the 5 MB size limit, the file-naming scheme, deleting the old file on replacement, deleting on course delete, the validation messages, the controllers and the views. Ordinary CSS, JavaScript, images and other static assets stay in the app. Research starting points: how existing `~/Uploads/TeachingMaterials/{file}` values in `TeachingMaterialImagePath` map to blob names, so that existing rows keep working without a schema change, and how content types are set on upload and download.
+
+**Done when**: the build has 0 errors and 0 warnings, and any tests pass. `dotnet run` on vm-dev01 (Development, with the user-secret DB and the owner's Azure CLI sign-in) loads all five pages. Uploading, replacing and deleting a course image round-trips through the configured blob container, and the image renders from an application URL with no blob URL in the HTML. Invalid type and oversized uploads are still rejected with the existing messages. No storage key, SAS token or connection string appears in code or configuration.
+
+### 04-service-bus: Migrate messaging to Azure Service Bus
+
+**Depends on**: 03-blob-storage. This task replaces the interim in-process notification queue from Task 01 (the former MSMQ/`System.Messaging` behavior) with the **existing** Azure Service Bus queue, which is the only messaging target. `ServiceBusClient` is created with `DefaultAzureCredential` from `ServiceBus:FullyQualifiedNamespace`, and the queue is `ServiceBus:QueueName`. Both values come from configuration at runtime. SAS authentication is disabled on the namespace, so shared access keys, SAS tokens and Service Bus connection strings are not used or proposed. The Service Bus resource is not created, configured, provisioned or deployed.
+
+Notification semantics stay the same. Creating, editing or deleting an entity sends a notification with the same JSON `Notification` payload (EntityType, EntityId, Operation, Message, CreatedAt, CreatedBy, IsRead) and label. Failing to send is logged and never breaks the entity operation. `NotificationsController` reads notifications back through its unchanged JSON endpoints for `notifications.js`. Research starting points: the receive pattern that replaces `MessageQueue.Receive(TimeSpan.FromSeconds(1))` with an empty-queue timeout (receiver with a short max wait, settlement and lifetime of a singleton client/sender/receiver), and the serialization choice (keep the Newtonsoft.Json payload shape or switch to System.Text.Json with an identical shape).
+
+**Done when**: the build has 0 errors and 0 warnings, and any tests pass. `dotnet run` on vm-dev01 loads all five pages. Creating, editing and deleting an entity each **sends** a message to the configured queue, and the notifications UI **receives** and shows it through `/Notifications/GetNotifications`, so both directions are proven. No Service Bus key, SAS token or connection string appears in code or configuration.
+
+### 05-key-vault: Integrate Azure Key Vault
+
+**Depends on**: 04-service-bus. This task adds the **existing** Azure Key Vault as an ASP.NET Core configuration source (`Azure.Extensions.AspNetCore.Configuration.Secrets`), authenticated with `DefaultAzureCredential`, using `KeyVault:VaultUri`. Outside `Development`, Key Vault is mandatory: the app refuses to start if `KeyVault:VaultUri` is missing. On Azure, the secret `ConnectionStrings--DefaultConnection` (which maps to `ConnectionStrings:DefaultConnection`) holds the SQL Managed Instance connection string with Microsoft Entra authentication and no password. App Service application settings hold only `KeyVault:VaultUri` and the non-secret endpoints (`Storage:*`, `ServiceBus:*`, `APPLICATIONINSIGHTS_CONNECTION_STRING`). The Task 02 credential guard still applies to whatever value Key Vault supplies.
+
+In `Development`, `KeyVault:VaultUri` is optional and .NET user secrets remain allowed for the on-premises SQL login only. A SQL-authenticated `DefaultConnection` in Development is never replaced or reinterpreted, and when both sources are present, configuration source order must keep the Development user secret in effect. This task does not provision a Key Vault, create secrets or identities, assign roles or deploy anything, and it adds no Microsoft Entra ID user sign-in.
+
+**Done when**: the build has 0 errors and 0 warnings, and any tests pass. `dotnet run` on vm-dev01 in Development loads all five pages both without `KeyVault:VaultUri` and with it set to the existing vault (read through the private endpoint with the owner's Azure CLI sign-in), and the Development SQL-auth `DefaultConnection` still wins. A non-Development start without `KeyVault:VaultUri` fails fast with a clear error.
+
+### 06-opentelemetry-azure-monitor: Migrate logging and tracing to OpenTelemetry with Azure Monitor
+
+**Depends on**: 05-key-vault. This task replaces every `System.Diagnostics.Trace`/`Debug` call (in `BaseController`, `NotificationService`, `CoursesController`, `NotificationsController` and anything that remains) with `ILogger<T>`, and removes or repurposes the empty `Services/LoggingService.cs`. It adds the Azure Monitor OpenTelemetry distro `Azure.Monitor.OpenTelemetry.AspNetCore` with a single `UseAzureMonitor()` call, with no individual instrumentation packages or custom exporters. The distro is registered **only** when `APPLICATIONINSIGHTS_CONNECTION_STRING` or `ApplicationInsights:ConnectionString` has a value, and its credential is set to `DefaultAzureCredential` so ingestion uses Microsoft Entra authentication (local authentication is disabled on Application Insights). When no connection string is configured, nothing extra is registered: the built-in ASP.NET Core console logging applies and the app starts and runs normally.
+
+**Done when**: the build has 0 errors and 0 warnings, and any tests pass. No `System.Diagnostics.Trace`/`Debug` calls remain. `dotnet run` loads all five pages with and without a connection string. With a connection string configured, requests, SQL and HTTP dependencies, and logs from a local run appear in Application Insights within a few minutes.
+
+### 07-cve-remediation: Audit and remediate dependency CVEs
+
+**Depends on**: 06-opentelemetry-azure-monitor. This task runs last, after all upgrade and migration work. It is a fresh audit of direct and transitive NuGet dependencies of the final `net10.0` app, using `dotnet list package --vulnerable --include-transitive` plus NuGet audit warnings. For each detected vulnerability it upgrades to the minimum compatible patched version and documents any major-version change and breaking-change risk. The CVE-2024-0056 finding on `Microsoft.Data.SqlClient` 2.1.4 is expected to have been fixed in Task 01, and this task verifies that. If no known vulnerabilities are found, the task is kept and recorded as a verified no-op. CVE findings are never invented.
+
+**Done when**: the audit output is recorded in progress-details.md, either every reported vulnerability is remediated or the task is recorded as a verified no-op, the final `net10.0` build has 0 errors and 0 warnings, all available tests pass, and `dotnet run` loads all five pages.
+
+## Recommendations (not planned work)
+
+- Add an automated test project for controllers and services after the upgrade. The assessment recommends behavior-locking coverage, and Test Coverage was skipped to keep the seven-task plan.
+- `NotificationService.MarkAsRead` is a no-op today. Persisting read state is outside this plan.
