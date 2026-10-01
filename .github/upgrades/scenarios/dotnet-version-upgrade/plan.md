@@ -30,8 +30,8 @@
 | Notification transport before task 04 | Interim in-process queue (singleton) | Owner decision; Service Bus stays in task 04 |
 | Web API / OData handling | None; `migrating-webapi-odata` skill and gate not used | Owner decision: no Web API/OData surface; the JSON endpoints are used only by `notifications.js` |
 | Container port | 8080 | Default HTTP port of `mcr.microsoft.com/dotnet/aspnet:10.0` (`ASPNETCORE_HTTP_PORTS`) |
-| Static client libraries (A1) | Bootstrap 5.3.3 CSS+JS, jQuery 3.7.1 (plus jquery.validation 1.21.0, unobtrusive 4.0.0, modernizr 2.6.2) under `wwwroot` | Matches `packages.config` and the Bootstrap 5 markup in `_Layout`. **Flagged for Guided review** |
-| Notification JSON date format (A2) | Default: whatever keeps `notifications.js` working. Verify the consumer first. Use ISO-8601 if the consumer parses it; keep the legacy `"\/Date(ms)\/"` format through a converter only if the consumer depends on it | Owner: preserve routes, methods, property names and shape. **Flagged for Guided review** |
+| Static client libraries (A1) | **Owner rejected the proposal to ship Bootstrap 5.3.3/jQuery 3.7.1.** Move the existing `Scripts` and `Content` files into `wwwroot` at their current versions, unchanged; no library is added or upgraded | Owner decision (Guided review). The Bootstrap 5 markup vs Bootstrap 3 files mismatch and the jQuery 3.4.1 advisories are recommendations only |
+| Notification JSON date format (A2) | Whatever keeps `notifications.js` working. Verify the consumer first. Use ISO-8601 if the consumer parses it; keep the legacy `"\/Date(ms)\/"` format through a converter only if the consumer depends on it | Owner: preserve routes, methods, property names and shape. **Approved by owner** |
 | Commit Strategy | Manual (unchanged) | Owner scenario setting; overrides the All-at-Once default recommendation |
 
 ## Tasks
@@ -63,12 +63,13 @@
 - The connection name is already `DefaultConnection`.
 - There is no user sign-in to remove.
 
-**Items for the user's Guided review:**
-- **A1 — static assets:**
-  - Fix the `Site.css`/`site.css` casing (Linux is case-sensitive), and make every static file name match its reference.
-  - Ship Bootstrap **5.3.3** CSS+JS and jQuery **3.7.1**, consistent with `packages.config` and the Bootstrap 5 page markup. Today the on-disk Bootstrap 3.4.1 JS and jQuery 3.4.1 are out of step, and `bootstrap.css` is missing.
+**Guided review decisions (owner-approved):**
+- **A1 — static assets (owner rejected the library upgrade):**
+  - Move the existing `Scripts` and `Content` files into `wwwroot` **at their current versions, unchanged**. Do not add Bootstrap 5.3.3 or jQuery 3.7.1, and do not upgrade, add or fetch any client library.
+  - Fix the `Site.css`/`site.css` casing (Linux is case-sensitive), and make every static file reference match its file name. Name and reference consistency only; file contents stay unchanged.
+  - Keep the existing Bootstrap 5 markup vs Bootstrap 3 files mismatch (including the missing `bootstrap.css`) as is; it is a recommendation, not Task 01 work.
   - These are static files under `wwwroot`, not NuGet.
-- **A2 — notification JSON:** preserve the `/Notifications/GetNotifications` (GET), `/Notifications/MarkAsRead` (POST) and `/Notifications/Index` routes and methods, and the response shape.
+- **A2 — notification JSON (approved):** preserve the `/Notifications/GetNotifications` (GET), `/Notifications/MarkAsRead` (POST) and `/Notifications/Index` routes and methods, and the response shape.
   - Keep the PascalCase `Notification` property names: turn off the camelCase naming policy, or use Newtonsoft with the default resolver.
   - For `CreatedAt`, check how `notifications.js` actually parses it first. Choose the format that keeps it working. Keep the legacy format with a converter only if the consumer depends on it. Record the choice for review.
 
@@ -89,13 +90,13 @@ Stale view or doc text about Windows Authentication/EF6 (e.g. `Views/Home/Index.
 
 **Done when**:
 - `dotnet build` succeeds for `net10.0`, and no `packages.config`, `System.Web` or `System.Messaging` references remain.
-- `dotnet run` (Development, user-secret `DefaultConnection`) loads the home, Students, Courses, Instructors and Departments pages with styling.
+- `dotnet run` (Development, user-secret `DefaultConnection`) loads the home, Students, Courses, Instructors and Departments pages, with every existing CSS and JavaScript file served from `wwwroot` (no 404s) and the same styling as the legacy app.
   - **BLOCKED** until the student sets the secret after the `UserSecretsId` exists.
 - Creating, editing or deleting an entity produces a notification that `/Notifications/GetNotifications` returns once, with PascalCase properties.
 - A teaching-material upload still validates, saves and displays.
 - `dotnet publish /t:PublishContainer` produces an image without a Dockerfile. Use `ContainerArchiveOutputPath` so no Docker daemon is needed; nothing is pushed.
 - Tests: none exist, and that is recorded.
-- The A1/A2 choices are recorded for review.
+- The A1 decision (existing static files moved unchanged) and the A2 date-format choice are recorded in `progress-details.md`.
 
 ---
 
@@ -313,7 +314,8 @@ After all other work, run a fresh audit of the direct and transitive NuGet depen
 ## Recommendations
 
 These are recommendations only, not tasks:
-- **jQuery advisories:** the on-disk jQuery 3.4.1 has published advisories (CVE-2020-11022/11023). They are resolved if A1 (ship 3.7.1) is accepted in task 01; otherwise update the static file.
+- **jQuery advisories:** the on-disk jQuery 3.4.1 has published advisories (CVE-2020-11022/11023). The owner rejected upgrading it in task 01, so it stays at 3.4.1; consider updating the static file separately.
+- **Bootstrap version mismatch:** the views use Bootstrap 5 markup, but the on-disk files are Bootstrap 3.4.1 JS and `bootstrap.css` is missing. The owner chose to keep this as is in task 01; consider aligning the library and markup separately.
 - **XSS in `notifications.js`:** it builds HTML with `innerHTML` from entity names, a stored-XSS risk. Consider `textContent`.
 - **`MarkAsRead` endpoint:** the POST has no antiforgery token and no consumer.
 - **Details actions:** they use `.Single()`, which returns a 500 instead of a 404 for missing IDs.

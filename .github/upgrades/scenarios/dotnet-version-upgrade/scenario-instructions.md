@@ -43,8 +43,9 @@
 - Task 7: fresh audit of direct + transitive NuGet after all other work; minimum patched versions; verified no-op if none; never invent CVEs.
 - Extra findings are recommendations only — never added as tasks.
 - Artifact location: the workflow tool placed artifacts under `.github/upgrades/scenarios/dotnet-version-upgrade/` (tool-determined path); do not use `azure-migrate`, `start_app_mod_migration_session`, or `.github/modernize`.
-- A1 (Guided review, Task 01): ship Bootstrap 5.3.3 CSS+JS and jQuery 3.7.1 (plus jquery.validation 1.21.0, unobtrusive 4.0.0, modernizr 2.6.2) as `wwwroot` static files; fix `Site.css`/`site.css` casing.
-- A2 (Guided review, Task 01): preserve notification routes/methods/PascalCase property names/shape; `CreatedAt` wire format = whatever keeps `notifications.js` working. Verify the consumer; preserve the legacy format via a converter only if the consumer depends on it. Record the choice.
+- Plan approved by owner (2026-10-01), with the A1 change below. Do not start Task 1 until the owner explicitly says so.
+- A1 (Task 01) — owner REJECTED the Bootstrap 5.3.3/jQuery 3.7.1 proposal: move the existing `Scripts` and `Content` files into `wwwroot` at their current versions, unchanged; do not add, upgrade or fetch any client library. Still fix `Site.css`/`site.css` casing and keep file names and references consistent. The Bootstrap 5 markup vs Bootstrap 3 files mismatch and the jQuery 3.4.1 advisories are recommendations only.
+- A2 (Task 01) — APPROVED by owner: preserve notification routes/methods/PascalCase property names/shape; `CreatedAt` wire format = whatever keeps `notifications.js` working. Verify the consumer; preserve the legacy format via a converter only if the consumer depends on it. Record the choice.
 - Container port: 8080 (aspnet:10.0 default).
 
 ## Upgrade Options
