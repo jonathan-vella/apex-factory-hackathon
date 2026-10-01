@@ -6,7 +6,8 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 |---|---|---|---|
 | 1 | `spike/b06-run1` | `da4e5f606983332001c94ce69b48634f9c1864b3` | v1 (changed into v2 during the run) |
 | Comparison | `spike/b06-upgrade-compare` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Comparison section](#comparison-github-copilot-upgrade-after-run-1-before-run-2) |
-| 11a rerun | `spike/b06-upgrade-compare-v2` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [11a rerun section](#11a-rerun-github-copilot-upgrade-in-vs-code) |
+| 11a rerun, Copilot harness (stage 2 only, kept as evidence) | `spike/b06-upgrade-compare-v2` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [11a rerun section](#11a-rerun-github-copilot-upgrade-in-vs-code) |
+| 11a rerun, Local harness (full run) | `spike/b06-upgrade-compare-v3` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [11a rerun section](#11a-rerun-github-copilot-upgrade-in-vs-code) |
 | Comparison in the Copilot app | `spike/b06-upgrade-app-v2` (attempt 2; attempt 1 on `spike/b06-upgrade-app` was abandoned) | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Copilot app section](#comparison-github-copilot-upgrade-in-the-copilot-app-after-the-vs-code-comparison-before-run-2) |
 | 2 | `spike/b06-run2` | `e850869e438556c1234dd672f12aa133a2bed644` | v2 |
 
@@ -342,6 +343,12 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
 
 **(Owner request, 2026-10-01.)** Rerun the VS Code comparison from scratch to retest finding 51: does `start_task` work in the **Copilot** harness once the Upgrade MCP server has model access? The finished comparison ([compare-upgrade.md](compare-upgrade.md)) stays as it is. Fill in [compare-upgrade-v2.md](compare-upgrade-v2.md) stage by stage.
 
+**v2 and v3 (owner decision, 2026-10-01).** v2, on `spike/b06-upgrade-compare-v2`, ran stage 2 in the **Copilot** harness (`b49ce4b`: tool-based assessment and a compliant plan, 0 interventions) and is kept as evidence; `start_task` wasn't tried there. **v3 restarts from scratch in the Local harness** on `spike/b06-upgrade-compare-v3` from `da4e5f6`, with the same prompt, addendum and models. For v3, follow R.1–R.3 with these changes:
+
+- Use `spike/b06-upgrade-compare-v3` wherever R.1–R.3 say `spike/b06-upgrade-compare-v2`.
+- Set the harness (**Session Target**) to **Local** for stage 2 **and** every task, instead of Copilot. The fallback in R.3 step 2 doesn't apply.
+- Name the chat exports `chats\compare-v3-stage2.txt` and `chats\compare-v3-task0N.txt`.
+
 > [!NOTE]
 > **Run this after issue #28** (Bastion Standard with the native RDP client). That redeploy drops your Bastion session, so don't start the rerun before it's done. The spike resources keep running for the rerun, at about $1.05/hour.
 
@@ -547,3 +554,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Copilot app comparison | **Owner decision:** restart from scratch as attempt 2 on `spike/b06-upgrade-app-v2`, with Claude Opus 5.5 to plan and Claude Sonnet 5.5 to execute (not like for like with the VS Code comparison's GPT-6 models), and the prompt followed by `prompts/compare-upgrade-app-addendum.md` | Attempt 1 was stopped by the OData gate, the default After Each Task and Auto (Merge) settings, an unplanned task split, a LocalDB fallback, out-of-scope checks and about 50,000 unpushed file changes |
 | Copilot app comparison, attempt 2 stage 2 | **Owner-directed:** the prompt requires the Upgrade workflow tools and the dedicated .NET assessor, pauses at the assessment gate, answers the pre-initialization confirmation and is pure ASCII; a NuGet-cache preflight (A.1 step 7), UTF-8 and mis-encoding checks on the clipboard block, and `assessment.json` plus a populated dashboard required in A.2 step 5 | Finding 65: the void first stage 2 ran without the .NET analysis tools (cause unknown) |
 | 11a rerun | **Owner request:** rerun the VS Code comparison on `spike/b06-upgrade-compare-v2` with **Configure Model Access** set before stage 2, and `start_task` in the **Copilot** harness; Local only if it fails with `internal LLM client unavailable` | Retests finding 51 |
+| 11a rerun v3 | **Owner decision:** keep v2's Copilot-harness stage 2 (`b49ce4b`) as evidence and run the full rerun in the **Local** harness on `spike/b06-upgrade-compare-v3` | v2 showed planning works in the Copilot harness with model access allowed |
