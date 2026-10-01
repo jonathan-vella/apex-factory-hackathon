@@ -1,5 +1,308 @@
-**Task 01 is blocked and recorded as failed in the workflow; Task 02 was not started.** The ASP.NET Framework-to-Core compatibility gate returned **STOP**: the app exposes notification JSON endpoints, including a GET endpoint used by its JavaScript, but the external-consumer inventory is unknown and no API contract tests were found. Because the approved plan requires preserving the wire contracts, the host conversion needs an owner-approved preservation or replanning decision first. This is a decision blocker, not an impossible task.
+I'll read the attached file to see what you're asking for.
 
-No application source files were changed. The PowerShell preflight passed 21/21 checks, but it is unrelated to the app. `npm test` could not start because Node.js/npm is unavailable. .NET build and tests, container publishing, and local `dotnet run` page checks were **not run**; they remain unassessed, not passed. No Azure or on-premises resources were changed, no deployment or commit was made, and TaskBreaker registered no subtasks.
 
-Workflow records: `C:\Users\labadmin\.copilot\repos\copilot-worktrees\apex-factory-hackathon\jonathan-vella-cautious-journey\.github\upgrades\scenarios\dotnet-version-upgrade\tasks.md`, plus Task 01’s `task.md`, `progress-details.md`, and `breakdown-context.md` under `...\tasks\01-upgrade-dotnet-aspnet-core\`.
+
+
+
+### Read C:\Users\labadmin\.copilot\attachments\pasted-text-07a95c3b-7499-47ad-ae58-101446abd124.txt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Copilot said: I'll run the `dotnet-version-upgrade` scenario for this request. First I'm sending a read-only agent to collect the setup details from…
+
+I'll run the `dotnet-version-upgrade` scenario for this request. First I'm sending a read-only agent to collect the setup details from the repo.
+
+
+
+
+
+Upgrade Agent:dotnet Version Scenario Initializer: Gather dotnet-version-upgrade pre-init params·Worked for 23s
+
+
+
+
+
+
+
+
+
+
+
+
+
+Asked user:Confirm these options?
+
+
+
+Answer:Confirm and proceed
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thought for 35s
+
+
+
+Options confirmed. Next I'm handing off setup, assessment and planning to the Upgrade Agent. It has the workflow tools needed to create state the dashboard can read.
+
+
+
+
+
+Upgrade Agent:upgrade: Initialize, assess and plan upgrade·Worked for 14m 42s
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Copilot said: The Upgrade Agent reported that it could not run `git status`. I'm sending an agent to check for changed files,…
+
+Thought for 7s
+
+
+
+The Upgrade Agent reported that it could not run `git status`. I'm sending an agent to check for changed files, and reading `plan.md` myself at the same time.
+
+
+
+
+
+Upgrade Agent:terminal Executor: Verify git status and scan·Worked for 7h 57m
+
+View plan.md
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Copilot said: Assessment and plan for `app/ContosoUniversity` are ready, in Guided mode. No task was started. One difference from your request: the…
+
+Thought for 20s
+
+
+
+Assessment and plan for `app/ContosoUniversity` are ready, in Guided mode. No task was started. One difference from your request: the workflow tool put the artifacts under `.github\upgrades\scenarios\dotnet-version-upgrade\`, not `.github\upgrades\dotnet-version-upgrade\`. That path is the tool's convention and the Upgrade Agent could not change it. Nothing was created under `.github\modernize`, and the `azure-migrate` scenario was not used.
+
+
+## 1. Artifacts
+
+
+
+- `C:\Users\labadmin\.copilot\repos\copilot-worktrees\apex-factory-hackathon\jonathan-vella-stunning-garbanzo\.github\upgrades\scenarios\dotnet-version-upgrade\assessment.md`
+
+- `C:\Users\labadmin\.copilot\repos\copilot-worktrees\apex-factory-hackathon\jonathan-vella-stunning-garbanzo\.github\upgrades\scenarios\dotnet-version-upgrade\plan.md`
+
+- `C:\Users\labadmin\.copilot\repos\copilot-worktrees\apex-factory-hackathon\jonathan-vella-stunning-garbanzo\.github\upgrades\scenarios\dotnet-version-upgrade\scenario-instructions.md`
+
+- `scenario.json` in the same folder is the workflow state file the dashboard reads.
+
+
+
+`tasks.md` was not created; the workflow generates it when you approve execution.
+
+
+## 2. Tasks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+| # | Task | Depends on |
+| --- | --- | --- |
+| 1 | Upgrade to .NET 10 and ASP.NET Core MVC | none |
+| 2 | Migrate the database workload to Azure SQL Managed Instance | 1 |
+| 3 | Migrate mutable file handling to Azure Blob Storage | 2 |
+| 4 | Migrate messaging to Azure Service Bus | 3 |
+| 5 | Integrate Azure Key Vault | 4 |
+| 6 | Migrate logging and tracing to OpenTelemetry with Azure Monitor | 5 |
+| 7 | Audit and remediate dependency CVEs | 6 |
+
+
+
+## 3. How the plan complies with each rule
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+| Rule | How the plan complies |
+| --- | --- |
+| 1 | Task 1 comes first. It moves the project to an SDK-style `net10.0` web project using `PackageReference` and keeps all controllers, Razor views and the EF Core model. Container settings go in the project file: base image `mcr.microsoft.com/dotnet/aspnet:10.0`, repository `contoso-university`, port 8080. Validation uses `/t:PublishContainer` writing an archive, so there is no Dockerfile and Docker isn't needed. |
+| 2 | No task adds sign-in, and Tasks 1 and 5 explicitly forbid it. Windows Authentication and LocalDB are treated as local hosting evidence only; stale text about them may be fixed in Task 1. |
+| 3 | Task 2 targets SQL Managed Instance only and forbids Azure SQL Database. Task 3 targets Blob Storage only and forbids Azure Files and storage mounts. |
+| 4 | On Azure the database connection uses `Authentication=Active Directory Default` with no password. Outside Development the app refuses to start if the connection string has a user name or password. In Development the user-secret SQL login is passed to EF Core unchanged. Tasks 3–6 use `DefaultAzureCredential` with no keys, SAS tokens or connection strings. |
+| 5 | Task 5: outside Development the app refuses to start without `KeyVault:VaultUri`. The vault secret `ConnectionStrings--DefaultConnection` supplies the database connection, and App Service settings hold only the vault URI and non-secret endpoints. |
+| 6 | Host names come from configuration only. `privatelink` host names, IP addresses, the SQL Managed Instance public port 3342 and firewall rules are all forbidden. Images are served through the app, never by linking to blob URLs. |
+| 7 | Task 6 adds `Azure.Monitor.OpenTelemetry.AspNetCore` with one `UseAzureMonitor()` call using `DefaultAzureCredential`, registered only when a connection string is set. `Trace` and `Debug` calls move to `ILogger<T>`. |
+| 8 | The seven tasks form a strict chain. Every task's completion criteria require a build and a `dotnet run` in which the home, Students, Courses, Instructors and Departments pages load. |
+| 9 | The target is the existing App Service for Linux containers. There are no provisioning, infrastructure-as-code, role, DNS, registry, image push or deployment tasks, and nothing on-premises changes. |
+
+
+
+## 4–5. What couldn't be assessed or validated
+
+
+Several checks are **blocked**, meaning they wait on an input from you. **No task is impossible.**
+
+
+
+- **Local runs:** the project has no `UserSecretsId` yet, so no `DefaultConnection` secret exists. Task 1 adds the ID and then you set the secret. Until then every task's page-load check is blocked. There is no LocalDB fallback.
+
+- **Azure checks:** SQL Managed Instance, Blob Storage, Service Bus (send and receive), Key Vault and Application Insights need an Azure CLI sign-in and access to the private network.
+
+- **Vulnerability scan:** the assessment agents had no shell, so no NuGet vulnerability scan was run. Two possible CVEs were noted from advisory data: Microsoft.Data.SqlClient 2.1.4 and Microsoft.Identity.Client 4.21.1. Task 7 does the real audit.
+
+
+
+Two choices in Task 1 are flagged for your review:
+
+
+
+- **Client libraries:** use Bootstrap 5.3.3 and jQuery 3.7.1.
+
+- **Notification dates:** use the JSON date format that `notifications.js` actually parses.
+
+
+
+## 6. Changes
+
+
+I confirmed with `git status` that the only new files are the four scenario files above plus the Upgrade Agent's own logs under `.vs\upgrade\` (`activity.jsonl` and 6 `.patch` files). No application files changed and nothing was committed. No Azure resources, on-premises resources or deployments were touched.
+
+
+Waiting for your review; `start_task` has not been called.
