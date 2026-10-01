@@ -45,7 +45,9 @@
 ## User Preferences
 
 ### Execution Style
-- Assessment and planning only in this run; do not call start_task or execute any task until the owner explicitly approves.
+- Assessment and planning were the only work in the initial run. The owner has now approved Task 01 only; do not start Task 02.
+- `start_task` could not parse `plan.md` before Task 01 began. The owner reloaded VS Code / the Upgrade MCP connection, but the retry returned the same error. No task started; do not reformat the plan to work around the parser. Retry Task 01 only after the Upgrade MCP internal LLM client is restored.
+- The owner chose to stop after the repeated parser failure. Do not attempt another task start or begin implementation until the owner explicitly resumes.
 - Guided: pause at the assessment gate for approval, then plan, then stop at the plan gate.
 - Do no work outside the seven planned tasks; record extra findings as recommendations only.
 - Validation is limited to app/ContosoUniversity: build, run and test only that project. Do not run the repository's PowerShell or npm checks.
