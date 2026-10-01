@@ -367,12 +367,12 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
    git push -u origin spike/b06-upgrade-compare-v2
    ```
 
-3. **The variable under test, before stage 2:** **MCP: List Servers** > **Upgrade** > **Configure Model Access**, and allow **GPT-6 Sol** and **GPT-6 Luna**. In 11a this was done only after `start_task` had failed in the Copilot harness.
+3. **The variable under test, before stage 2:** **MCP: List Servers** > **Upgrade** > **Configure Model Access**, and allow **Claude Opus 5.5** and **GPT-6 Luna**. In 11a this was done only after `start_task` had failed in the Copilot harness. If `chat.mcp.serverSampling` already allows `GitHub Copilot upgrade: Upgrade` (`allowedDuringChat: true`), left from 11a, record that and change nothing.
 
 ### R.2 Assess and plan
 
 > [!WARNING]
-> **BEFORE you send:** harness (**Session Target**) **Copilot**, a new chat, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
+> **BEFORE you send:** harness (**Session Target**) **Copilot**, a new chat, agent **Upgrade**, model **Claude Opus 5.5** at **Medium** (owner decision, 2026-10-01; 11a planned with GPT-6 Sol).
 
 1. Fetch the same prompt and addendum as the Copilot app comparison straight from origin, and paste them as one message, the prompt first:
 

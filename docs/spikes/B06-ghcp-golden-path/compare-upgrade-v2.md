@@ -4,15 +4,15 @@ A from-scratch rerun of the VS Code comparison ([compare-upgrade.md](compare-upg
 
 | Field | Value |
 |---|---|
-| Date | |
+| Date | 2026-10-01 (set-up) |
 | Branch | `spike/b06-upgrade-compare-v2` |
 | Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
-| GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) | 11a: 1.1.596; rerun: |
-| GitHub Copilot modernization | Disabled (Workspace); confirmed: |
-| Models | GPT-6 Sol at Medium to assess and plan, GPT-6 Luna at maximum to execute |
+| GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) | **1.1.612** (11a: 1.1.596) |
+| GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | 1.24.0, Disabled (Workspace) |
+| Models | **Claude Opus 5.5 at Medium** to assess and plan (owner decision, 2026-10-01; 11a used GPT-6 Sol at Medium, so stage 2 isn't like for like on the model), GPT-6 Luna at maximum to execute |
 | Prompt | `prompts/compare-upgrade-plan.md`, then `prompts/compare-upgrade-app-addendum.md` (11a used the prompt without the addendum) |
-| Model access | Configured before stage 2 for GPT-6 Sol and GPT-6 Luna: |
-| Head | |
+| Model access | Already set before stage 2: `chat.mcp.serverSampling` still had `"GitHub Copilot upgrade: Upgrade": { allowedDuringChat: true }` from 11a, so no change was needed |
+| Head | `443c963` (stage 1 set up, pushed) |
 
 ## Harness result
 
@@ -27,8 +27,8 @@ A from-scratch rerun of the VS Code comparison ([compare-upgrade.md](compare-upg
 
 | Stage | Harness | Time | Model | Prompts | Interventions | Build / run | Live check |
 |---|---|---|---|---|---|---|---|
-| 1 Set up | — | | — | — | | — | — |
-| 2 Assess and plan (7 tasks, 9 rules) | Copilot | | GPT-6 Sol, Medium | Prompt plus addendum | | — | Rules table: |
+| 1 Set up (`443c963`) | — | | — | — | | — | — |
+| 2 Assess and plan (7 tasks, 9 rules) | Copilot | | Claude Opus 5.5, Medium | Prompt plus addendum | | — | Rules table: |
 | 3.1 .NET 10 upgrade | | | GPT-6 Luna, maximum | | | | Pages against `10.10.n.4`: |
 | 3.2 SQL Managed Instance | | | GPT-6 Luna, maximum | | | | Development pages; Production with a SQL login refuses to start: |
 | 3.3 Blob | | | GPT-6 Luna, maximum | | | | Upload lands in `teaching-materials` and shows through the app: |
@@ -44,4 +44,5 @@ A from-scratch rerun of the VS Code comparison ([compare-upgrade.md](compare-upg
 |---|---|---|
 | Harness for tasks | Local only, after `start_task` failed in Copilot | |
 | Interventions | 1 `continue`, 0 code fixes | |
-| Upgrade agent version | 1.1.596 | |
+| Upgrade agent version | 1.1.596 | 1.1.612 |
+| Planning model | GPT-6 Sol, Medium | Claude Opus 5.5, Medium |
