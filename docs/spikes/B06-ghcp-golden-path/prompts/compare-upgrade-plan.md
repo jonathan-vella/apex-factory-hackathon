@@ -1,20 +1,22 @@
-Use the GitHub Copilot Upgrade Agent’s stateful, dashboard-compatible workflow for this request.
+Use the GitHub Copilot Upgrade agent's stateful, dashboard-compatible workflow for this request. This prompt must run with the Upgrade agent selected. If the Upgrade workflow tools (get_state, initialize_scenario) are not available to you, stop and tell me; don't assess or plan without them.
 
 ## Workflow Requirements
 
 - Scope the work to `app/ContosoUniversity` on the current branch.
 - Use the `dotnet-version-upgrade` scenario as the owning scenario.
-- Initialize or resume the scenario under `.github/upgrades/dotnet-version-upgrade`.
+- Initialize or resume the scenario with the Upgrade workflow tools, and keep its artifacts where the tools write them (`.github/upgrades/scenarios/dotnet-version-upgrade/`).
+- For the pre-initialization confirmation: target framework `net10.0`, Guided, stay on the current branch (no new working branch), commit strategy Manual, branch sync off.
 - Do not use the `azure-migrate` scenario.
 - Do not invoke `start_app_mod_migration_session`.
 - Do not create planning artifacts under `.github/modernize`.
-- Use Guided flow mode.
+- Use Guided flow mode: pause at the assessment gate for my approval, then plan, then stop at the plan gate.
+- Run the assessment through the dedicated .NET assessor, so `generate_dotnet_upgrade_assessment` writes `assessment.md` and the dashboard data (`assessment.json`, `dependencies-health.json`). Don't write or rewrite `assessment.md` by hand. If the dedicated assessor reports that tool unavailable, stop and tell me instead of falling back to the generic Assessor.
 - Perform assessment and planning only.
 - Do not start or execute any planned task.
 - Do not modify application source files.
 - Do not change, provision, or deploy Azure resources.
 - Do not change the on-premises environment: the SQL Server on the app VM, its database, its logins, and the legacy deployment of the application stay exactly as they are.
-- Stop after the assessment and plan are ready for review.
+- Stop after the plan is ready for review.
 - Preserve the task order and dependencies specified below even when the current source already satisfies part of a task. In that case, plan verification and record the implementation step as a no-op where appropriate.
 
 ## Goal
@@ -252,15 +254,18 @@ Container packaging and local container validation may be planned, but deploymen
 
 Create the normal stateful Upgrade Agent artifacts under:
 
-`.github/upgrades/dotnet-version-upgrade/`
+`.github/upgrades/scenarios/dotnet-version-upgrade/`
 
 At minimum, produce:
 
 - `assessment.md`
+- `assessment.json`
+- `dependencies-health.json`
 - `plan.md`
 - `scenario-instructions.md`
+- `scenario.json`
 
-Use the Upgrade Agent’s workflow state tools so the scenario can be opened in the Upgrade Agent dashboard.
+Use the Upgrade Agent's workflow state tools so the scenario can be opened in the Upgrade Agent dashboard.
 
 Do not manually create `tasks.md`. Let the Upgrade Agent workflow generate and maintain it when task execution is explicitly approved later.
 

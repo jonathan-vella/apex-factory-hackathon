@@ -339,16 +339,16 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
 
 ## Comparison: GitHub Copilot upgrade in the Copilot app (after the VS Code comparison, before run 2)
 
-**(Owner-approved, 2026-09-29, requirement 11b.)** Repeat the full Upgrade agent comparison in the **GitHub Copilot app** instead of VS Code, with the Upgrade agent from the [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins) marketplace (plugin `upgrade-agent`, marketplace version 1.1.596, checked 2026-09-29, the same version the VS Code comparison reported), the same kit rules, configuration keys and live checks. Install only `upgrade-agent@upgrade-agent-plugins`: no modernization plugin. Fill in [compare-upgrade-app.md](compare-upgrade-app.md) stage by stage, and write down what's different about the app as you go (see its **Questions** section).
+**(Owner-approved, 2026-09-29, requirement 11b.)** Repeat the full Upgrade agent comparison in the **GitHub Copilot app** instead of VS Code, with the Upgrade agent from the [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins) marketplace (plugin `upgrade-agent`, marketplace version 1.1.596, checked 2026-09-29, the same version the VS Code comparison reported; attempt 2 runs 1.1.612 after a clean reinstall), the same kit rules, configuration keys and live checks. Install only `upgrade-agent@upgrade-agent-plugins`: no modernization plugin. Fill in [compare-upgrade-app.md](compare-upgrade-app.md) stage by stage, and write down what's different about the app as you go (see its **Questions** section).
 
 **Attempt 2 (owner decision, 2026-09-30).** Attempt 1, on `spike/b06-upgrade-app`, was abandoned during task 01 (see `compare-upgrade-app.md`). Attempt 2 runs from scratch on **`spike/b06-upgrade-app-v2`**, with two owner-approved changes:
 
 - **Models:** **Claude Opus 5.5** to assess and plan, **Claude Sonnet 5.5** to execute. The VS Code comparison used GPT-6 Sol and GPT-6 Luna, so the two comparisons aren't like for like on models.
-- **Prompt:** the refined [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md) verbatim, followed by the owner-decisions addendum [prompts/compare-upgrade-app-addendum.md](prompts/compare-upgrade-app-addendum.md), which answers attempt 1's blockers up front: no OData skill, the interim queue until task 4, no work outside the seven tasks, validation only in the app, no LocalDB, and Manual commits with branch sync off.
+- **Prompt:** the refined [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md) verbatim, followed by the owner-decisions addendum [prompts/compare-upgrade-app-addendum.md](prompts/compare-upgrade-app-addendum.md), which answers attempt 1's blockers up front: no OData skill, the interim queue until task 4, no work outside the seven tasks, validation only in the app, no LocalDB, and backend checks expected to run inside the VNet. *(Owner-directed, 2026-10-01.)* The prompt itself now requires the Upgrade workflow tools and the dedicated .NET assessor, pauses at the assessment gate, and answers the pre-initialization confirmation (`net10.0`, Guided, current branch, Manual commits, branch sync off).
 
 ### A.1 Set up
 
-1. The GitHub Copilot app and the `upgrade-agent` plugin are already installed from attempt 1. If you install them again, use the README's deep link, [Add this marketplace in the GitHub Copilot app](https://github.com/copilot/app/launch?entry_point=upgrade_agent_plugins_readme&open=ghapp%3A%2F%2Fplugins%2Fmarketplace%2Fadd%3Fsource%3Dmicrosoft%2Fupgrade-agent-plugins), then **Install** on `upgrade-agent`, or in a session `/plugin marketplace add microsoft/upgrade-agent-plugins` then `/plugin install upgrade-agent@upgrade-agent-plugins`. App versions before 1.0.3 need a restart after the install. **Record the app and plugin versions** (attempt 1 didn't).
+1. The GitHub Copilot app and the `upgrade-agent` plugin are already installed from attempt 1. If you install them again, use the README's deep link, [Add this marketplace in the GitHub Copilot app](https://github.com/copilot/app/launch?entry_point=upgrade_agent_plugins_readme&open=ghapp%3A%2F%2Fplugins%2Fmarketplace%2Fadd%3Fsource%3Dmicrosoft%2Fupgrade-agent-plugins), then **Install** on `upgrade-agent`, or in a session `/plugin marketplace add microsoft/upgrade-agent-plugins` then `/plugin install upgrade-agent@upgrade-agent-plugins`. App versions before 1.0.3 need a restart after the install. **Record the app and plugin versions** in the stage 1 commit body and `compare-upgrade-app.md` (attempt 1 didn't). For attempt 2 the owner reinstalled the app and the plugin from clean, which gave plugin **1.1.612**, not the 1.1.596 the VS Code comparison used, so the Upgrade agent's version now differs between the two comparisons.
 2. Close attempt 1's session in the app. Its worktree, with about 50,000 uncommitted changes, stays as it is: don't commit or push from it.
 3. Create the attempt 2 branch from run 1's start commit and make the tree pure legacy, as in C.1:
 
@@ -364,9 +364,18 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
    git push -u origin spike/b06-upgrade-app-v2
    ```
 
+   Done for attempt 2. Its first stage 2 was void (finding 65) and was removed in `37a22b6`; redo stage 2 from there.
+
 4. In the Copilot app, start a new session on the project. **The app's default is a worktree session**: it creates its own checkout and branch under `C:\Users\<user>\.copilot\repos\copilot-worktrees\apex-factory-hackathon\<session-branch>`, not in `C:\src`, and the chat footer shows the path and branch. That's what an attendee gets, so use it. Check the worktree's base (`git -C <worktree-path> log --oneline -1` must be `da4e5f6` or `spike/b06-upgrade-app-v2`), and push its work to `spike/b06-upgrade-app-v2` after each stage: `git -C <worktree-path> push origin HEAD:spike/b06-upgrade-app-v2`. If the app offers a **branch** session on the existing clone, that works too; note which you used.
 5. **Set the user secrets for the worktree's project before any check** (step 1.8, with `--project <worktree-path>\app\ContosoUniversity`). The project's `UserSecretsId` can differ from the one in `C:\src`, and without the SQL secret the app falls back to LocalDB.
 6. 🔎 VERIFY how the Copilot app exports a conversation. If there's no export, select all in the conversation, copy it and save it as `docs\spikes\B06-ghcp-golden-path\chats\app-v2-stage<N>.txt`. Record which way you used.
+7. **Preflight before stage 2: the .NET analysis tools.** The plugin's .NET analysis tools, including `generate_dotnet_upgrade_assessment`, come from a separate extension server (`Microsoft.GitHubCopilot.Upgrade.DotNet.Mcp`). In attempt 2's void first stage 2 they never appeared, for an unknown reason (finding 65). Pick **Upgrade** in the agent picker and start a new session, but don't send the prompt yet. Then run this in PowerShell:
+
+   ```powershell
+   Get-ChildItem "$env:USERPROFILE\.nuget\packages" -Directory | Where-Object Name -like 'microsoft.githubcopilot.upgrade*' | ForEach-Object { $_.Name + ' ' + ((Get-ChildItem $_.FullName -Name) -join ',') }
+   ```
+
+   It must list both `microsoft.githubcopilot.upgrade.mcp` and `microsoft.githubcopilot.upgrade.dotnet.mcp`, each with its versions. If either is missing, don't send the prompt: tell the executor. Both being listed doesn't prove the tools load: the proof is that the dedicated assessor produces `assessment.json` (A.2 step 5). If it doesn't, or the agent says the tool is unavailable, stop and tell the executor.
 
 ### A.2 Assess and plan
 
@@ -378,17 +387,19 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
 
    ```powershell
    git fetch origin
+   [Console]::OutputEncoding = [Text.Encoding]::UTF8
    $base = 'origin/jonathan-vella-b06-ghcp-spike:docs/spikes/B06-ghcp-golden-path/prompts'
    $prompt = git show "$base/compare-upgrade-plan.md" | Out-String
    $addendum = git show "$base/compare-upgrade-app-addendum.md" | Out-String
    if ($prompt -notmatch 'exactly these seven') { throw 'Stale prompt: it must contain "exactly these seven"' }
    if ($addendum -notmatch 'Owner decisions for this run') { throw 'Missing addendum' }
+   if ($prompt -match 'ΓÇ') { throw 'Mis-encoded prompt' }
    ($prompt.TrimEnd() + "`n`n" + $addendum) | Set-Clipboard
    ```
 
-3. When the scenario settings come up, set **commit strategy Manual** and **branch sync off**, as the addendum says. Attempt 1 defaulted to After Each Task with Auto (Merge). Record what the app showed.
-4. The dashboard renders inside the app (Overview, Assessment, Plan, Execution and Activity tabs). In Guided mode the app pauses at the **assessment** gate and again at the **plan** gate; approve each to continue.
-5. Check the plan as in C.2.3: the artifacts under `.github\upgrades\`, nothing under `.github\modernize\`, exactly seven tasks in a strict chain, all 9 table rows met, no application files changed, and **no `#skill:migrating-webapi-odata`**. If the skill is there anyway, ask the agent to remove it before you approve the plan.
+3. The prompt answers the pre-initialization confirmation: target framework `net10.0`, Guided, the current branch (no new working branch), **commit strategy Manual** and **branch sync off**. Check the app shows those settings, and record what it showed. Attempt 1 defaulted to After Each Task with Auto (Merge).
+4. The dashboard renders inside the app (Overview, Assessment, Plan, Execution and Activity tabs). In Guided mode the app pauses at the **assessment** gate and again at the **plan** gate; approve each to continue. Attempt 2's void first stage 2 ran straight through the assessment gate, so the prompt now asks for that pause.
+5. Check the plan as in C.2.3: the artifacts under `.github\upgrades\scenarios\dotnet-version-upgrade\`, including `assessment.json` and `dependencies-health.json` next to `assessment.md`; the dashboard's **Assessment** tab populated; the properties in `scenario.json` include `UpgradeTargetFramework` `net10.0`; nothing under `.github\modernize\`, exactly seven tasks in a strict chain, all 9 table rows met, no application files changed, and **no `#skill:migrating-webapi-odata`**. If the skill is there anyway, ask the agent to remove it before you approve the plan.
 6. Save the conversation, commit in the worktree and push to `spike/b06-upgrade-app-v2`: `app: stage 2 assess and plan`.
 
 ### A.3 Tasks 1–7
@@ -466,3 +477,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Copilot app A.2, A.3 | Remove `#skill:migrating-webapi-odata` from task 01 before approving the plan; if its gate still stops a task, answer it with the notification-endpoint reply. Keep validation inside `app/ContosoUniversity` | The Copilot app's task 01 was blocked by the OData skill's compatibility gate (unknown consumers of the notification JSON endpoints, no API contract tests), which the VS Code run had removed from the plan. The agent also ran the kit's PowerShell preflight and `npm test`, which aren't part of the app |
 | Copilot app A.3 | Set user secrets for the worktree's project before the checks; keep the interim notification queue until task 04; check the app's automatic commits and merges, and the changed-file count, before pushing | Task 01's page checks fell back to LocalDB without the SQL secret; the workflow asked to pull Service Bus into task 01; the app's scenario uses After Each Task commits with Auto (Merge) sync; the run showed more than 50,000 changed files before any commit |
 | Copilot app comparison | **Owner decision:** restart from scratch as attempt 2 on `spike/b06-upgrade-app-v2`, with Claude Opus 5.5 to plan and Claude Sonnet 5.5 to execute (not like for like with the VS Code comparison's GPT-6 models), and the prompt followed by `prompts/compare-upgrade-app-addendum.md` | Attempt 1 was stopped by the OData gate, the default After Each Task and Auto (Merge) settings, an unplanned task split, a LocalDB fallback, out-of-scope checks and about 50,000 unpushed file changes |
+| Copilot app comparison, attempt 2 stage 2 | **Owner-directed:** the prompt requires the Upgrade workflow tools and the dedicated .NET assessor, pauses at the assessment gate, answers the pre-initialization confirmation and is pure ASCII; a NuGet-cache preflight (A.1 step 7), UTF-8 and mis-encoding checks on the clipboard block, and `assessment.json` plus a populated dashboard required in A.2 step 5 | Finding 65: the void first stage 2 ran without the .NET analysis tools (cause unknown) |

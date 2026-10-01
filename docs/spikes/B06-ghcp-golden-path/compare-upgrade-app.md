@@ -2,7 +2,7 @@
 
 The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead of VS Code (requirement 11b, owner-approved 2026-09-29). The same Upgrade agent (plugin `upgrade-agent@upgrade-agent-plugins` from [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins)), the same refined seven-task prompt ([prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md)), kit rules, configuration keys and live checks as [compare-upgrade.md](compare-upgrade.md). The executor fills this in from the run branch, its commits and the saved conversations. Protocol: [Comparison: GitHub Copilot upgrade in the Copilot app](protocol.md#comparison-github-copilot-upgrade-in-the-copilot-app-after-the-vs-code-comparison-before-run-2).
 
-**Attempt 1 was abandoned and the run restarted (owner decision, 2026-09-30).** Attempt 2 adds an owner-decisions addendum to the prompt ([prompts/compare-upgrade-app-addendum.md](prompts/compare-upgrade-app-addendum.md)) and uses **different models** (owner-approved deviation): Claude Opus 5.5 to assess and plan, Claude Sonnet 5.5 to execute. The VS Code comparison used GPT-6 Sol and GPT-6 Luna, so **the app-versus-VS Code comparison isn't like for like on models or on the prompt**.
+**Attempt 1 was abandoned and the run restarted (owner decision, 2026-09-30).** Attempt 2 adds an owner-decisions addendum to the prompt ([prompts/compare-upgrade-app-addendum.md](prompts/compare-upgrade-app-addendum.md)) and uses **different models** (owner-approved deviation): Claude Opus 5.5 to assess and plan, Claude Sonnet 5.5 to execute. The VS Code comparison used GPT-6 Sol and GPT-6 Luna, so **the app-versus-VS Code comparison isn't like for like on models, on the prompt, or (after the reinstall) on the plugin version**.
 
 ## Attempt 2
 
@@ -12,14 +12,22 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 | Branch | `spike/b06-upgrade-app-v2` |
 | Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
 | GitHub Copilot app | |
-| `upgrade-agent` plugin | Marketplace version 1.1.596 (checked 2026-09-29); installed: |
+| `upgrade-agent` plugin | **1.1.612** after the clean reinstall (the VS Code comparison used 1.1.596, so the versions differ) |
 | Other plugins | None (no modernization plugin) |
 | Session type | |
-| Scenario settings | Commit strategy Manual, branch sync off (from the addendum); confirmed: |
+| Scenario settings | Target `net10.0`, Guided, current branch, commit strategy Manual, branch sync off (from the prompt); confirmed: |
 | Models | Claude Opus 5.5 to assess and plan, Claude Sonnet 5.5 to execute, switched in the model picker of one session |
-| Prompt | The refined `compare-upgrade-plan.md` verbatim, then `compare-upgrade-app-addendum.md` |
+| Prompt | `compare-upgrade-plan.md` (refined, plus the owner-directed Upgrade-tool fixes of 2026-10-01), then `compare-upgrade-app-addendum.md` |
+| Restart point | `37a22b6` (the void first stage 2 removed) |
 
-### Questions this run answers
+### First stage 2: void (2026-09-30 to 2026-10-01)
+
+The first stage 2 of attempt 2 ran **without the .NET analysis tools**: `generate_dotnet_upgrade_assessment` wasn't available, so the generic Assessor wrote `assessment.md` by hand. There was no `assessment.json` or `dependencies-health.json`, the dashboard's **Assessment** tab was empty, and the properties in `scenario.json` were empty. It also ran straight through the assessment gate. The owner voided it: commits `b347103..a2572e3` were removed in `37a22b6`, the app and the plugin were reinstalled from clean (plugin **1.1.612**), and stage 2 is redone.
+
+**Cause: unknown.** The plugin (1.1.612) has two MCP servers. `Microsoft.GitHubCopilot.Upgrade.Mcp` provides the 8 core workflow tools (`get_state` to `open_dashboard`). The .NET analysis tools, including `generate_dotnet_upgrade_assessment`, come from a separate extension server, `Microsoft.GitHubCopilot.Upgrade.DotNet.Mcp`, which `upgrade/dotnet/upgrade-extension.json` starts with `dnx --yes --ignore-failed-sources` and a 300-second start-up timeout. In that session the extension server never exposed its tools, and the first retry reported `StateManager not initialized`. A failed download is ruled out: both packages are in the NuGet cache on `vm-dev01`, in versions 1.1.539, 1.1.596 and 1.1.612. Without the analysis tools the agent fell back to the generic Assessor instead of stopping. Separately, in 1.1.612 the `azure-migrate` scenario only hands off to `start_app_mod_migration_session`, which needs the modernization extension, so `dotnet-version-upgrade` is the only workable scenario for this run.
+
+**Fixes (owner-directed, 2026-10-01).** The prompt now requires the Upgrade workflow tools and the dedicated .NET assessor and stops if either is missing, pauses at the assessment gate, answers the pre-initialization confirmation, and lists the dashboard data among the required artifacts; it's pure ASCII. The addendum says the backend checks are expected to run inside the VNet. Protocol A.1 step 7 checks that both packages are listed in the NuGet cache before the prompt is sent, and A.2 step 5 requires the dedicated assessor's `assessment.json`. Neither check is a diagnosis: the cause is still unknown.
+
 
 | Question | Attempt 1 | Attempt 2 |
 |---|---|---|
@@ -29,6 +37,7 @@ The full Upgrade agent comparison repeated in the **GitHub Copilot app** instead
 | Do the `dotnet-version-upgrade` routing, Guided flow and commit strategy behave as in VS Code? | Routing yes. Guided flow paused at the assessment and plan gates (VS Code ran both in one go). Commit strategy defaulted to **After Each Task** with branch sync **Auto (Merge)**, not Manual | |
 | Does the app's session or branch handling clash with the agent's? | The default session is a worktree under `.copilot\repos\copilot-worktrees\`, not `C:\src`; the work has to be pushed from there | |
 | How do you export a conversation? | Not recorded (a short note was committed instead) | |
+| Do the .NET analysis tools load? | Not recorded | First stage 2: **no**, silently; the generic Assessor wrote `assessment.md` by hand and the run was voided. Redo: |
 
 ### Stages
 
