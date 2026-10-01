@@ -28,6 +28,18 @@ The first stage 2 of attempt 2 ran **without the .NET analysis tools**: `generat
 
 **Fixes (owner-directed, 2026-10-01).** The prompt now requires the Upgrade workflow tools and the dedicated .NET assessor and stops if either is missing, pauses at the assessment gate, answers the pre-initialization confirmation, and lists the dashboard data among the required artifacts; it's pure ASCII. The addendum says the backend checks are expected to run inside the VNet. Protocol A.1 step 7 checks that both packages are listed in the NuGet cache before the prompt is sent, and A.2 step 5 requires the dedicated assessor's `assessment.json`. Neither check is a diagnosis: the cause is still unknown.
 
+### Learn documentation against plugin 1.1.612
+
+**Owner decision:** requirement 11b uses only the Upgrade agent in the GitHub Copilot app, as in [Upgrade a .NET app with GitHub Copilot upgrade](https://learn.microsoft.com/en-us/dotnet/core/porting/github-copilot-upgrade/dotnet-how-to-upgrade-with-github-copilot). Where Learn (the overview and the how-to, both updated 2026-09-25) and the installed plugin disagree, the run follows the plugin:
+
+| Topic | Learn | Plugin 1.1.612 | Effect on this run |
+|---|---|---|---|
+| Artifact folder | `.github/upgrades/{scenarioId}` | `.github/upgrades/scenarios/{scenarioId}` | The prompt and protocol use the plugin's path |
+| Confirmed options | Saved to `upgrade-options.md` | The `dotnet-version-upgrade` scenario's `planning.md`: "Do not write an options file. There is no upgrade-options.md." | Don't expect or check for `upgrade-options.md` |
+| Azure migration | The overview points Azure migration to the modernization agent | `azure-migrate` only hands off to `start_app_mod_migration_session`, which needs the modernization extension | **Owner decision**, as in 11a: all seven tasks, including the Azure ones, run through the Upgrade agent in `dotnet-version-upgrade` |
+| Starting in the app | Choose **Upgrade** in the agent picker | `upgrade.agent.md` notes the Upgrade tools can be dropped on a session's first turn while the MCP server starts | The first redo session stopped at the prompt's new tools guard: `get_state` and `initialize_scenario` were unavailable on the first turn |
+
+### Questions this run answers
 
 | Question | Attempt 1 | Attempt 2 |
 |---|---|---|
