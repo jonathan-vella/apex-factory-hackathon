@@ -1,21 +1,24 @@
 # Datacenter kit
 
-The datacenter is each member's simulated on-premises estate, the starting point of the modernization. It runs in the member's workload subscription, in `rg-datacenter`, and nothing in it is reachable from the internet:
+The datacenter is each member's simulated on-premises estate, the starting point of the modernization. It runs in the member's workload subscription, in `rg-datacenter`, and no VM in it is reachable from the internet (only Bastion's own endpoint is public):
 
 - `vm-app01` plays both on-premises servers: Windows Server 2022 with IIS running the legacy Contoso University (.NET Framework 4.8, MSMQ for notifications) and SQL Server 2022 Developer holding its database, which the [DB perf kit](../../db/perf-kit/README.md) seeds with volume and five planted performance issues. SQL Server is prepared for MI link: the availability groups feature and the trace flags `-T1800` and `-T9567` are on.
 - `vm-dev01` is the member's Windows 11 Enterprise workstation, with the tools for the modernization.
-- The VNet has a NAT gateway for outbound traffic and Bastion Developer for access. Later, vending peers it to the hub (simulated ExpressRoute).
+- The VNet has a NAT gateway for outbound traffic and Bastion Standard for access, with native client support so members can use their local Remote Desktop client. Later, vending peers it to the hub (simulated ExpressRoute).
 
 Members deploy it as pre-work, by T-3, and check it with `scripts/Test-Datacenter.ps1`.
 
 ```mermaid
 flowchart LR
-  user(["Member's browser"]) -- "Azure portal" --> bas["bas-datacenter<br/>Bastion Developer"]
+  user(["Member: Azure portal or<br/>local Remote Desktop client"]) -- "HTTPS 443" --> bas
   subgraph rg["rg-datacenter"]
     subgraph vnet["vnet-datacenter 10.10.n.0/24"]
       subgraph snet["snet-servers 10.10.n.0/25 (nsg-servers, no default outbound)"]
         app["vm-app01 10.10.n.4<br/>IIS + Contoso University<br/>SQL Server 2022 Developer<br/>MSMQ"]
         dev["vm-dev01 10.10.n.5<br/>Windows 11 Enterprise<br/>VS Code, Build Tools, SSMS"]
+      end
+      subgraph basnet["AzureBastionSubnet 10.10.n.192/26"]
+        bas["bas-datacenter<br/>Bastion Standard<br/>pip-bas-datacenter"]
       end
     end
     nat["nat-datacenter<br/>pip-nat-datacenter"]
@@ -35,10 +38,12 @@ flowchart LR
 | Resource group | `rg-datacenter` | In `location` (default `swedencentral`) |
 | VNet | `vnet-datacenter` | `10.10.n.0/24` |
 | Subnet | `snet-servers` | `10.10.n.0/25`, default outbound access off, NAT gateway and NSG attached |
-| NSG | `nsg-servers` | Allows RDP (TCP 3389) from `168.63.129.16`, the address Bastion Developer connects from. No inbound rules from the internet |
+| Subnet | `AzureBastionSubnet` | `10.10.n.192/26`, no NSG and no route table. `10.10.n.128/27` stays free for later items' subnets |
+| NSG | `nsg-servers` | Allows RDP (TCP 3389) from `AzureBastionSubnet` (`10.10.n.192/26`). No inbound rules from the internet |
 | NAT gateway | `nat-datacenter` | Standard, no zone |
 | Public IP | `pip-nat-datacenter` | Standard, static, outbound only. No `zones` set: it's zone-redundant automatically in regions with zones |
-| Bastion | `bas-datacenter` | Developer SKU: free, no subnet or public IP, one session at a time |
+| Bastion | `bas-datacenter` | Standard SKU (never Developer), in `AzureBastionSubnet`, with native client support (`enableTunneling`). Several sessions at once, and works across the hub peering |
+| Public IP | `pip-bas-datacenter` | Standard, static, Bastion's endpoint. No `zones` set. With `pip-nat-datacenter`, the datacenter's only public IPs |
 | App VM | `vm-app01` | `10.10.n.4`. `MicrosoftSQLServer:sql2022-ws2022:sqldev-gen2:latest`. NIC `nic-vm-app01`, OS disk `osdisk-vm-app01` (image default size), data disk `disk-data-vm-app01` (P30, 1,024 GiB, LUN 0, `ReadOnly` caching) as `F:` |
 | Dev VM | `vm-dev01` | `10.10.n.5`. `MicrosoftWindowsDesktop:windows-11:win11-25h2-ent:latest`. NIC `nic-vm-dev01`, OS disk `osdisk-vm-dev01` (127 GiB) at performance tier P30. No data disk |
 
@@ -80,7 +85,7 @@ You need PowerShell 7.4 or later and the Azure CLI, signed in to the member's te
 |---|---|---|
 | `SubscriptionId` | Required | The member's workload subscription |
 | `MemberIndex` | `1` | 1–20. Sets the address space `10.10.n.0/24` |
-| `Location` | `swedencentral` | Fallback: `germanywestcentral`, which also offers Bastion Developer |
+| `Location` | `swedencentral` | Fallback: `germanywestcentral` |
 | `VmSize` | `Standard_D8as_v6` | Any Gen2 size that supports Trusted Launch, for example a v7 size |
 | `DevImageSku` | `win11-25h2-ent` | Windows 11 Enterprise image SKU for `vm-dev01` |
 | `ScriptsRef` | `main` | Git ref the VMs download their scripts from |
@@ -100,7 +105,23 @@ Running it again converges: nothing is replaced, and the run commands skip work 
 
 ### Connect
 
-In the Azure portal, open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**, and sign in as `labadmin` with the lab password (see **Credentials**). From `vm-dev01`, browse to `http://10.10.n.4/` for the app, and connect SSMS to `10.10.n.4` with SQL authentication as `contosoapp`.
+Bastion Standard allows several sessions at once, so you can be connected to both VMs. Sign in as `labadmin` with the lab password (see **Credentials**). VS Code extensions install at first logon.
+
+**From your local Remote Desktop client** (Windows only), through Bastion's native client support:
+
+```powershell
+./scripts/Connect-DatacenterVm.ps1 -SubscriptionId '<workload-subscription-id>' -VmName vm-dev01
+```
+
+`-VmName` is `vm-dev01` (default) or `vm-app01`. The script runs `az network bastion rdp`, which opens `mstsc` through `bas-datacenter`; keep the PowerShell window open while you're connected. It needs:
+
+- a Windows computer, with the Azure CLI and its bastion extension: `az extension add --name bastion` (or `az extension update --name bastion`);
+- `az login` to the member's tenant;
+- Reader on the VM, its NIC and `bas-datacenter`. The member's Owner or Contributor role on the workload subscription covers it.
+
+**From the Azure portal**, which also works from Cloud Shell, macOS and Linux, where native client RDP doesn't: open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**.
+
+From `vm-dev01`, browse to `http://10.10.n.4/` for the app, and connect SSMS to `10.10.n.4` with SQL authentication as `contosoapp`.
 
 ## Credentials
 
@@ -111,7 +132,7 @@ The datacenter uses fixed, documented lab credentials, so attendees and coaches 
 | `labadmin` | Local admin on `vm-app01` and `vm-dev01`, and a SQL Server sysadmin on `vm-app01` | `FactoryLab-2026-Pw` |
 | `contosoapp` | SQL login on `vm-app01`, `db_owner` of `ContosoUniversity`, used by the legacy app | `FactoryLab-2026-Pw` |
 
-This is an exception to the kit's rule that passwords are generated, and it applies to the datacenter only. It's acceptable because the datacenter has no public IPs and is reachable only through Bastion, behind Entra ID and Azure RBAC, and because it's a throwaway lab, never production. Don't reuse this password anywhere else. To use your own, pass `-AdminPassword` and `-SqlAppPassword` (secure strings) to `Deploy-Datacenter.ps1`; a re-run applies them to an existing datacenter.
+This is an exception to the kit's rule that passwords are generated, and it applies to the datacenter only. It's acceptable because the VMs have no public IPs and are reachable only through Bastion, behind Entra ID and Azure RBAC, and because it's a throwaway lab, never production. Don't reuse this password anywhere else. To use your own, pass `-AdminPassword` and `-SqlAppPassword` (secure strings) to `Deploy-Datacenter.ps1`; a re-run applies them to an existing datacenter.
 
 ## Test
 
@@ -121,7 +142,7 @@ This is an exception to the kit's rule that passwords are generated, and it appl
 
 It checks, without changing anything:
 
-- **Azure:** both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP; the `vm-app01` P30 data disk; no data disk on `vm-dev01` and its OS disk at tier P30; no public IP in `rg-datacenter` except `pip-nat-datacenter`.
+- **Azure:** both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP; the `vm-app01` P30 data disk; no data disk on `vm-dev01` and its OS disk at tier P30; no public IP in `rg-datacenter` except `pip-nat-datacenter` and `pip-bas-datacenter`; `bas-datacenter` on the Standard SKU in `AzureBastionSubnet`, with native client support on.
 - **`vm-app01`**, through a run command: the app returns HTTP 200 with "Contoso University"; `F:` exists; the database files are on `F:`; the app's tables exist with at least 8 students (the app's seed data); availability groups are on; trace flags 1800 and 9567 are on; the MSMQ queue exists. For the DB perf kit: students and enrollments within 5% of 200,000 and 2,000,000; `dbo.usp_SearchStudents`, `dbo.usp_GetStudentEnrollments` and `dbo.vw_EnrollmentStatistics` exist; compatibility level 110; Query Store read-write.
 - **`vm-dev01`**, through a run command: `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, the .NET 10 SDK, `code`, `msbuild` and SSMS are installed; outbound HTTPS to `github.com` works.
 
@@ -133,10 +154,10 @@ List prices in `swedencentral`, per hour:
 
 | State | With Azure Hybrid Benefit (default) | Without |
 |---|---|---|
-| Running | About $1.25 | About $2.00 |
-| Stopped (deallocated) | About $0.48 | About $0.48 |
+| Running | About $1.55 | About $2.30 |
+| Stopped (deallocated) | About $0.78 | About $0.78 |
 
-Running means 2 × D8as_v6 at the Linux rate ($0.39 each with Hybrid Benefit), 2 × P30 ($0.20: the `vm-app01` data disk and the `vm-dev01` OS disk, billed at its P30 tier), 1 × P10 OS disk ($0.03), and the NAT gateway and its IP ($0.05). Bastion Developer is free. Stopped VMs still pay for their disks, the NAT gateway and the IP.
+Running means 2 × D8as_v6 at the Linux rate ($0.39 each with Hybrid Benefit), 2 × P30 ($0.20 each: the `vm-app01` data disk and the `vm-dev01` OS disk, billed at its P30 tier), 1 × P10 OS disk ($0.03), the NAT gateway and its IP ($0.05), and Bastion Standard ($0.29) and its IP ($0.005). Native client support has no extra charge. Stopped VMs still pay for their disks, the NAT gateway, Bastion and the IPs: Bastion bills while it exists.
 
 There's no auto-shutdown. Stop the VMs when you're not using them:
 
@@ -172,7 +193,8 @@ To turn it back on, use `--license-type Windows_Server`. Leave `vm-dev01` on `Wi
 - **Quota.** The script doesn't check quota. If the deployment fails for lack of D-family vCPUs, request more quota, or pick another size or region with `-VmSize` and `-Location`.
 - **No default outbound access.** All outbound traffic goes through `nat-datacenter`. Without it, the downloads in the run commands fail.
 - **NVMe disks.** v6 and v7 sizes are NVMe-only, so disk numbers inside Windows don't match LUNs. The data disk script finds the data disk as the only raw disk.
-- **Bastion Developer** allows one session at a time and doesn't work across peering. Both VMs are in its own VNet, so that's fine. Sign out of one VM before you connect to the other.
+- **Bastion Standard** takes several minutes to deploy and bills (about $0.29/hour) while it exists, even with the VMs stopped. Its public IP, `pip-bas-datacenter`, is the documented exception to the datacenter's "no public IPs" rule, next to the NAT gateway's. Native client RDP (`Connect-DatacenterVm.ps1`) needs Windows; use the portal from Cloud Shell, macOS or Linux.
+- **Subnets added later stay.** The subnets are child resources and the VNet doesn't list them, so re-running `Deploy-Datacenter.ps1` keeps subnets that later items add to `vnet-datacenter`.
 - **Connection strings use the IP**, `10.10.n.4`, not the VM name, because name resolution changes once the datacenter uses the hub's DNS.
 - **Run commands stop working after Arc onboarding**, which turns off the Azure guest agent. Anything that needs a run command, including `Test-Datacenter.ps1`'s in-VM checks, has to happen before that.
 - **Always On without a cluster.** SQL Server 2022 enables the availability groups feature without a Windows failover cluster, which is all MI link needs.

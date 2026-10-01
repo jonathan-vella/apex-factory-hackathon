@@ -1,4 +1,4 @@
-// The member's "on-premises" datacenter: rg-datacenter with vm-app01, vm-dev01, NAT gateway and Bastion Developer.
+// The member's "on-premises" datacenter: rg-datacenter with vm-app01, vm-dev01, NAT gateway and Bastion Standard.
 // Deploy it with scripts/Deploy-Datacenter.ps1, which generates the passwords.
 targetScope = 'subscription'
 
