@@ -6,6 +6,7 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 |---|---|---|---|
 | 1 | `spike/b06-run1` | `da4e5f606983332001c94ce69b48634f9c1864b3` | v1 (changed into v2 during the run) |
 | Comparison | `spike/b06-upgrade-compare` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Comparison section](#comparison-github-copilot-upgrade-after-run-1-before-run-2) |
+| 11a rerun | `spike/b06-upgrade-compare-v2` | `da4e5f606983332001c94ce69b48634f9c1864b3` | [11a rerun section](#11a-rerun-github-copilot-upgrade-in-vs-code) |
 | Comparison in the Copilot app | `spike/b06-upgrade-app-v2` (attempt 2; attempt 1 on `spike/b06-upgrade-app` was abandoned) | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Copilot app section](#comparison-github-copilot-upgrade-in-the-copilot-app-after-the-vs-code-comparison-before-run-2) |
 | 2 | `spike/b06-run2` | `e850869e438556c1234dd672f12aa133a2bed644` | v2 |
 
@@ -337,6 +338,73 @@ For each of the plan's seven tasks in order (.NET 10 upgrade, SQL Managed Instan
 
 After the last stage, re-enable GitHub Copilot modernization if you disabled it, and tell the executor the branch is pushed. For run 2, note in `compare-upgrade.md` whether the `modernize` agent behaves differently with the upgrade extension installed.
 
+## 11a rerun: GitHub Copilot upgrade in VS Code
+
+**(Owner request, 2026-10-01.)** Rerun the VS Code comparison from scratch to retest finding 51: does `start_task` work in the **Copilot** harness once the Upgrade MCP server has model access? The finished comparison ([compare-upgrade.md](compare-upgrade.md)) stays as it is. Fill in [compare-upgrade-v2.md](compare-upgrade-v2.md) stage by stage.
+
+> [!NOTE]
+> **Run this after issue #28** (Bastion Standard with the native RDP client). That redeploy drops your Bastion session, so don't start the rerun before it's done. The spike resources keep running for the rerun, at about $1.05/hour.
+
+### R.1 Set up
+
+1. Check that GitHub Copilot modernization is still **Disabled (Workspace)**, as in C.1 step 2, and record the extension versions. 11a reported Upgrade agent 1.1.596; the Copilot app's plugin is now 1.1.612:
+
+   ```powershell
+   code --list-extensions --show-versions | Select-String 'upgrade-agent|migrate-java-to-azure'
+   ```
+
+2. Create the branch and make the tree pure legacy, as in C.1:
+
+   ```powershell
+   Set-Location C:\src\apex-factory-hackathon
+   git status --short                   # must print nothing
+   git fetch origin
+   git switch -c spike/b06-upgrade-compare-v2 da4e5f606983332001c94ce69b48634f9c1864b3
+   git clean -ndx -- app .github         # dry run
+   git clean -fdx -- app .github
+   git status --short --ignored -- app .github    # must print nothing
+   git commit --allow-empty -m "app: stage 1 set up" -m "upgrade-agent <version>; modernization disabled (Workspace)"
+   git push -u origin spike/b06-upgrade-compare-v2
+   ```
+
+3. **The variable under test, before stage 2:** **MCP: List Servers** > **Upgrade** > **Configure Model Access**, and allow **GPT-6 Sol** and **GPT-6 Luna**. In 11a this was done only after `start_task` had failed in the Copilot harness.
+
+### R.2 Assess and plan
+
+> [!WARNING]
+> **BEFORE you send:** harness (**Session Target**) **Copilot**, a new chat, agent **Upgrade**, model **GPT-6 Sol** at **Medium**.
+
+1. Fetch the same prompt and addendum as the Copilot app comparison straight from origin, and paste them as one message, the prompt first:
+
+   ```powershell
+   git fetch origin
+   [Console]::OutputEncoding = [Text.Encoding]::UTF8
+   $base = 'origin/jonathan-vella-b06-ghcp-spike:docs/spikes/B06-ghcp-golden-path/prompts'
+   $prompt = git show "$base/compare-upgrade-plan.md" | Out-String
+   $addendum = git show "$base/compare-upgrade-app-addendum.md" | Out-String
+   if ($prompt -notmatch 'exactly these seven') { throw 'Stale prompt: it must contain "exactly these seven"' }
+   if ($addendum -notmatch 'Owner decisions for this run') { throw 'Missing addendum' }
+   if ($prompt -match 'ΓÇ') { throw 'Mis-encoded prompt' }
+   ($prompt.TrimEnd() + "`n`n" + $addendum) | Set-Clipboard
+   ```
+
+2. Check the plan as in C.2.3 and A.2.5: the artifacts under `.github\upgrades\scenarios\dotnet-version-upgrade\`, including `assessment.json` and `dependencies-health.json`; the dashboard's **Assessment** tab populated; nothing under `.github\modernize\`; exactly seven tasks in a strict chain; all 9 rows met; no application files changed; no `#skill:migrating-webapi-odata`.
+3. Export the chat as `chats\compare-v2-stage2.txt`, commit and push: `app: stage 2 assess and plan`.
+
+### R.3 Tasks 1–7
+
+> [!WARNING]
+> **BEFORE each task:** stay in the **Copilot** harness. New chat, agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
+
+For each of the plan's seven tasks in order:
+
+1. ⚠️ **BEFORE you send:** harness **Copilot**, new chat, agent **Upgrade**, model **GPT-6 Luna** at **maximum**.
+2. Start the task with `start_task` (or from the dashboard's **Execution** tab). **Only if it fails with "internal LLM client unavailable"**, copy the exact error text into the commit body, switch the harness to **Local**, and run the task there; that confirms finding 51. Record which harness each task ran in.
+3. Build, run the app, and do that task's check, as in C.3.3.
+4. Check `git status --short --branch`, then commit and push to `spike/b06-upgrade-compare-v2`: `app: stage 3.N <stage>`. Put the harness and the interventions in the commit body, one line each, and export the chat as `chats\compare-v2-task0N.txt`.
+
+After the last task, tell the executor the branch is pushed. Leave GitHub Copilot modernization disabled until run 2 needs it.
+
 ## Comparison: GitHub Copilot upgrade in the Copilot app (after the VS Code comparison, before run 2)
 
 **(Owner-approved, 2026-09-29, requirement 11b.)** Repeat the full Upgrade agent comparison in the **GitHub Copilot app** instead of VS Code, with the Upgrade agent from the [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins) marketplace (plugin `upgrade-agent`, marketplace version 1.1.596, checked 2026-09-29, the same version the VS Code comparison reported; attempt 2 runs 1.1.612 after a clean reinstall), the same kit rules, configuration keys and live checks. Install only `upgrade-agent@upgrade-agent-plugins`: no modernization plugin. Fill in [compare-upgrade-app.md](compare-upgrade-app.md) stage by stage, and write down what's different about the app as you go (see its **Questions** section).
@@ -478,3 +546,4 @@ Run 1 started from v1 and changed it during the run; v2 is the result. Details a
 | Copilot app A.3 | Set user secrets for the worktree's project before the checks; keep the interim notification queue until task 04; check the app's automatic commits and merges, and the changed-file count, before pushing | Task 01's page checks fell back to LocalDB without the SQL secret; the workflow asked to pull Service Bus into task 01; the app's scenario uses After Each Task commits with Auto (Merge) sync; the run showed more than 50,000 changed files before any commit |
 | Copilot app comparison | **Owner decision:** restart from scratch as attempt 2 on `spike/b06-upgrade-app-v2`, with Claude Opus 5.5 to plan and Claude Sonnet 5.5 to execute (not like for like with the VS Code comparison's GPT-6 models), and the prompt followed by `prompts/compare-upgrade-app-addendum.md` | Attempt 1 was stopped by the OData gate, the default After Each Task and Auto (Merge) settings, an unplanned task split, a LocalDB fallback, out-of-scope checks and about 50,000 unpushed file changes |
 | Copilot app comparison, attempt 2 stage 2 | **Owner-directed:** the prompt requires the Upgrade workflow tools and the dedicated .NET assessor, pauses at the assessment gate, answers the pre-initialization confirmation and is pure ASCII; a NuGet-cache preflight (A.1 step 7), UTF-8 and mis-encoding checks on the clipboard block, and `assessment.json` plus a populated dashboard required in A.2 step 5 | Finding 65: the void first stage 2 ran without the .NET analysis tools (cause unknown) |
+| 11a rerun | **Owner request:** rerun the VS Code comparison on `spike/b06-upgrade-compare-v2` with **Configure Model Access** set before stage 2, and `start_task` in the **Copilot** harness; Local only if it fails with `internal LLM client unavailable` | Retests finding 51 |
