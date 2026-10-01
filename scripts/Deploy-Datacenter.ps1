@@ -6,12 +6,13 @@ Deploys the member's "on-premises" datacenter into rg-datacenter.
 .DESCRIPTION
 Deploys infra/datacenter/main.bicep at subscription scope: vm-app01 (Windows Server 2022, IIS with the
 legacy Contoso University, SQL Server 2022 Developer, MSMQ), vm-dev01 (Windows 11 Enterprise with the
-developer tools), a private VNet with a NAT gateway for outbound traffic and Bastion Developer.
-Nothing is reachable from the internet. The run takes up to 60 minutes and is unattended.
+developer tools), a private VNet with a NAT gateway for outbound traffic and Bastion Standard with native
+client support. No VM is reachable from the internet: only Bastion's own endpoint is public. The run
+takes up to 60 minutes and is unattended.
 
 labadmin (both VMs) and the SQL login contosoapp use the fixed, documented lab password
-FactoryLab-2026-Pw unless you pass -AdminPassword or -SqlAppPassword. The datacenter has no public IPs
-and is reachable only through Bastion, so a documented lab password is acceptable here, and only here.
+FactoryLab-2026-Pw unless you pass -AdminPassword or -SqlAppPassword. The VMs have no public IPs
+and are reachable only through Bastion, so a documented lab password is acceptable here, and only here.
 The script saves the values it deploys in $HOME/.apex-factory/<subscription-id>/datacenter.json.
 Re-runs converge an existing datacenter to those values.
 
@@ -122,20 +123,22 @@ $ahbText = if ($hybridBenefit) {
 else {
     'OFF for vm-app01 (-NoHybridBenefit). Windows Server is billed at the pay-as-you-go rate.'
 }
-$costText = if ($hybridBenefit) { 'about $1.25/hour while running' } else { 'about $2.00/hour while running' }
+$costText = if ($hybridBenefit) { 'about $1.55/hour while running' } else { 'about $2.30/hour while running' }
 
 Write-Information @"
 
 Deploying the datacenter for member $MemberIndex to ${Location}:
   Resource group   $resourceGroup
   Network          vnet-datacenter 10.10.$MemberIndex.0/24, snet-servers 10.10.$MemberIndex.0/25, nsg-servers,
-                   nat-datacenter with pip-nat-datacenter, bas-datacenter (Bastion Developer, free)
+                   AzureBastionSubnet 10.10.$MemberIndex.192/26, nat-datacenter with pip-nat-datacenter,
+                   bas-datacenter (Bastion Standard, native client support) with pip-bas-datacenter
   vm-app01         10.10.$MemberIndex.4, $VmSize, Windows Server 2022 + SQL Server 2022 Developer, IIS, MSMQ,
                    legacy Contoso University. P30 data disk for SQL Server
   vm-dev01         10.10.$MemberIndex.5, $VmSize, Windows 11 Enterprise ($DevImageSku), developer tools.
                    OS disk at performance tier P30
   Scripts          $repository at '$ScriptsRef'
-Cost: $costText, about `$0.48/hour when both VMs are stopped (deallocated). There's no auto-shutdown.
+Cost: $costText, about `$0.78/hour when both VMs are stopped (deallocated): Bastion Standard keeps
+  billing (about `$0.29/hour) while it exists. There's no auto-shutdown.
 Azure Hybrid Benefit: $ahbText
 vm-dev01 always uses Windows_Client (multitenant hosting rights), which Windows 11 on Azure needs.
 Quota is not checked. If the deployment fails on quota, request more or use another size or region.
@@ -195,12 +198,16 @@ The datacenter is deployed ($([int] $elapsed.TotalMinutes) minutes).
   $($outputs.devVmName.value)  $($outputs.devVmPrivateIp.value)
   Bastion   $($outputs.bastionName.value)
 
-Connect: in the Azure portal, open $resourceGroup > vm-dev01 > Connect > Bastion, and sign in as
-  labadmin. Bastion Developer allows one session at a time. VS Code extensions install at first logon.
+Connect with your local Remote Desktop client (Windows, with az login and the Azure CLI bastion extension:
+  az extension add --name bastion). Your account needs Reader on the VM, its NIC and bas-datacenter:
+  ./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName vm-dev01
+  Or in the Azure portal (also from Cloud Shell, macOS or Linux): open $resourceGroup > vm-dev01 >
+  Connect > Bastion. Sign in as labadmin. Bastion Standard allows several sessions at once, so you can
+  connect to both VMs. VS Code extensions install at first logon.
 Credentials: labadmin and the SQL login contosoapp use the documented lab password unless you overrode it.
   They're saved in $secretsFile
 Test:  ./scripts/Test-Datacenter.ps1 -SubscriptionId <subscription-id> -MemberIndex $MemberIndex
-Stop when idle (you still pay for disks, about `$0.48/hour):
+Stop when idle (you still pay for disks, the NAT gateway and Bastion, about `$0.78/hour):
   az vm deallocate --subscription <subscription-id> -g $resourceGroup -n vm-app01 --no-wait
   az vm deallocate --subscription <subscription-id> -g $resourceGroup -n vm-dev01 --no-wait
 Start again:
