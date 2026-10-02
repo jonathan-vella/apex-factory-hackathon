@@ -69,7 +69,7 @@
 20. Record the seeding time and the database size.
 21. Validate the read-only replica: connect with the Entra admin from `vm-dev01` (SSMS or `sqlcmd`), check row counts against the source, and check the compatibility level is still `110` and the perf kit objects exist.
 22. **Abort path (Day 2 curveball):** before cutting over, delete the link without failing over, confirm the source is untouched and the app still works, then recreate the link and let it reseed. Record the steps and timings.
-23. **Cutover:** do a planned failover that removes the link. Confirm the MI database is read-write. Run `db/perf-kit/Start-Workload.ps1 -Authentication ActiveDirectoryDefault` against the MI for 5 minutes as a smoke test.
+23. **Cutover:** do a planned failover that removes the link. Confirm the MI database is read-write. Run `db/perf-kit/Start-Workload.ps1 -Authentication ActiveDirectoryInteractive` from `vm-dev01` against the MI for 5 minutes as a smoke test (owner decision, 2026-10-02: `ActiveDirectoryDefault` signs in as `vm-dev01`'s managed identity, so the perf kit gained `ActiveDirectoryInteractive`).
 24. **Failback (bonus):** try a failback to the source with a new link. Record whether it works on the General Purpose MI with the SQL Server 2022 update policy, and the steps. If it doesn't work, record why and move on.
 25. **LRS:** if MI link can't seed or cut over on the MI after two attempts, stop and ask whether to test Log Replay Service instead (PRD §6, LRS fallback).
 
