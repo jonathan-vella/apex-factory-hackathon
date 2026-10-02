@@ -54,13 +54,23 @@ Every deployment ran `az deployment ... what-if` first and was checked: only B07
 
 ## Timings
 
-In progress.
+Times are UTC+2.
+
+| Step | Time | Notes |
+|---|---|---|
+| MI provisioning (General Purpose, new subnet) | 7 min (11:42–11:49) | |
+| Datacenter re-run with `-ScriptsRef` (requirement 3) | 9 min (11:47–11:56) | Places `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` |
+| Kit script, attempt 1 | Stopped after the prep (12:01–12:03) | Removing `MDE.Windows` took 35 s; staging the task 47 s. The task ran the prep, then failed (finding 4) |
+| Portal onboarding (owner), steps 3–5 | In progress | On the `vm-app01` the kit script had already prepped (steps 1–2), owner-approved order |
+| Kit script, round two | To do | On a rebuilt `vm-app01`; final state for the assessment and the MI link |
 
 ## Findings
 
 1. **A datacenter redeploy wipes NSG rules that later items add.** `nsg-servers` lists its rules inline in B04's Bicep, so `Deploy-Datacenter.ps1` removes the MI link rules this spike adds as child `securityRules`. B07 re-applies them with [infra/main.bicep](infra/main.bicep) after every datacenter redeploy.
 2. **A policy above the kit changes the VMs.** `vm-dev01` has a system-assigned managed identity and the Guest Configuration extension `AzurePolicyforWindows`, and `vm-app01` has `MDE.Windows` (Defender for Servers). None of them is in B04's template. The what-if for a datacenter redeploy lists `vm-dev01`'s identity as deleted, but after the re-run it was still `SystemAssigned`, so that's what-if noise (or the policy re-added it at once).
 3. **The MI provisioned in 7 minutes** (11:42–11:49): a new General Purpose instance in a new subnet, with `licenseType: 'BasePrice'` accepted. Backup storage redundancy is the default, Geo, because the template doesn't set it.
+4. **Kit script attempt 1 failed after the prep, from a bug in the staged task, now fixed.** `Connect-AppArc.ps1` called the prep script with `&` and then checked `$LASTEXITCODE`, which a script that succeeds without `exit` leaves `$null`, so the task stopped before installing the agent. It now runs the prep in its own `powershell.exe`. With the guest agent already off, run commands can't reach the VM any more, so the only ways forward from a half-done onboarding are Bastion or a rebuild: the owner finished this `vm-app01` the portal way (order owner-approved), and the kit script ran as round two on a rebuilt `vm-app01`.
+5. **The MI is reachable from `vm-dev01` with an Entra token.** A VM run command on `vm-dev01` ([scripts/Invoke-MiQuery.ps1](scripts/Invoke-MiQuery.ps1)) connected to the MI's private host name over the peering as the Entra admin, with the caller's token for `https://database.windows.net/` as a protected parameter, and read the MI's HADR port (`11002`, inside 11000–11999).
 
 ## Decisions
 
