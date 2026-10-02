@@ -55,6 +55,7 @@ module serversRoute 'datacenter-subnet.bicep' = {
     addressPrefix: serversSubnet.properties.addressPrefix
     natGatewayId: serversSubnet.properties.natGateway.id
     networkSecurityGroupId: serversSubnet.properties.networkSecurityGroup.id
+    privateEndpointNetworkPolicies: serversSubnet.properties.privateEndpointNetworkPolicies
     routeTableId: serversRouteTable.id
   }
   dependsOn: [

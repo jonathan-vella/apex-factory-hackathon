@@ -154,9 +154,15 @@ Traffic inside the spoke (the app to its private endpoints and to the MI) stays 
 
 ## Exemptions
 
-The datacenter existed before vending moved the workload subscription into `mg-factory-corp`, so the deny policies didn't block it, but it can show as non-compliant. `scripts/New-DatacenterExemptions.ps1` scans `rg-datacenter`, finds each policy assignment it violates and creates one exemption per assignment, scoped to `rg-datacenter` only: category Waiver, an expiry date (default 14 days), and a description with the owner, the reason ("pre-existing on-premises simulation, migrating in C7") and the target date. It prints a table for the deferred-work register. It never exempts the spoke or the workload resources. That's the lesson (PRD §4): deferred work needs an owner, a target and a timeline.
+The datacenter existed before vending moved the workload subscription into `mg-factory-corp`, so the deny policies didn't block it, but it can show as non-compliant. `scripts/New-DatacenterExemptions.ps1` scans `rg-datacenter` and finds the policy assignments it violates. It creates one exemption for each **ALZ-lite** assignment (display name `ALZ-lite: ...`) among them, plus any assignment named with `-IncludeAssignment`, scoped to `rg-datacenter` only: category Waiver, an expiry date (default 14 days), and a description with the owner, the reason ("pre-existing on-premises simulation, migrating in C7") and the target date. Other violated assignments are listed but never exempted unless named. It prints a table for the deferred-work register. It never exempts the spoke or the workload resources. That's the lesson (PRD §4): deferred work needs an owner, a target and a timeline.
 
-The core policies target what the archetype deploys, so a fresh datacenter may violate none of them; the script then says so. Assignments from above the kit (for example tenant-level policies) also show up, and the script exempts them the same way: run it with `-WhatIf` first to see the list.
+The core policies target what the archetype deploys, so a fresh datacenter violates none of them (B08 validation). The policy the simulated on-premises servers legitimately fail is the **Microsoft cloud security benchmark**, which Defender for Cloud assigns in most tenants (for example as "Azure Security Baseline" or "ASC Default"). Name it to exempt it:
+
+```powershell
+./scripts/New-DatacenterExemptions.ps1 -SubscriptionId <subscription-id> -Owner '<owner name>' -IncludeAssignment 'Azure Security Baseline' -WhatIf
+```
+
+Run it with `-WhatIf` first to see what it would create.
 
 ## Probes
 

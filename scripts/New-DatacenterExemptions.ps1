@@ -6,17 +6,23 @@ Records the datacenter's deliberate policy exceptions as exemptions, with owner 
 .DESCRIPTION
 The datacenter existed before the workload subscription moved under <MgPrefix>-corp, so it isn't
 blocked by the landing zone's policies but can show as non-compliant. This script starts a compliance
-scan of rg-datacenter, finds the policy assignments that rg-datacenter violates, and creates one
-exemption per assignment, scoped to rg-datacenter only: category Waiver, the expiry date, and a
+scan of rg-datacenter, finds the kit's ALZ-lite assignments (display name "ALZ-lite: ...") that
+rg-datacenter violates, plus any assignment named with -IncludeAssignment, and creates one exemption
+per assignment, scoped to rg-datacenter only: category Waiver, the expiry date, and a
 description with the owner, the reason (pre-existing on-premises simulation, migrating in C7) and the
 target date. It never exempts the spoke or the workload resources. Then it prints a table to paste into
-the deferred-work register. A re-run updates the same exemptions. Use -WhatIf to list them only.
+the deferred-work register. Other violated assignments (for example tenant policies) are listed but
+never exempted unless named. A re-run updates the same exemptions. Use -WhatIf to list them only.
 .PARAMETER SubscriptionId
 The member's workload subscription.
 .PARAMETER Owner
 The name of the person who owns the deferred work.
 .PARAMETER ExpiresOn
 The exemptions' expiry and target date. Default: 14 days from today.
+.PARAMETER IncludeAssignment
+Names or display names of other assignments to exempt too, for example the Microsoft cloud security
+benchmark that Defender for Cloud assigns ("Azure Security Baseline" or "ASC Default"). Only those the
+datacenter violates are exempted.
 .PARAMETER SkipScan
 Use the current compliance results instead of starting a scan, which takes several minutes.
 .EXAMPLE
@@ -24,6 +30,8 @@ Use the current compliance results instead of starting a scan, which takes sever
 .EXAMPLE
 $s = Get-Content (Join-Path '.local' 'settings.json') | ConvertFrom-Json
 ./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $s.subscriptionId -Owner 'Alex Kim' -ExpiresOn 2026-11-30 -WhatIf
+.EXAMPLE
+./scripts/New-DatacenterExemptions.ps1 -SubscriptionId '<workload-subscription-id>' -Owner 'Alex Kim' -IncludeAssignment 'Azure Security Baseline'
 #>
 
 [CmdletBinding(SupportsShouldProcess)]
@@ -35,6 +43,7 @@ param(
     [ValidateNotNullOrEmpty()]
     [string] $Owner,
     [datetime] $ExpiresOn = (Get-Date).Date.AddDays(14),
+    [string[]] $IncludeAssignment = @(),
     [switch] $SkipScan
 )
 
@@ -44,6 +53,7 @@ $subscription = $SubscriptionId
 $resourceGroup = 'rg-datacenter'
 $reason = 'pre-existing on-premises simulation, migrating in C7'
 $targetDate = $ExpiresOn.ToString('yyyy-MM-dd')
+$included = $IncludeAssignment
 
 function Invoke-AzureCli {
     param([string[]] $Arguments)
@@ -73,17 +83,17 @@ if (-not $SkipScan) {
 $states = @(Invoke-AzureCli -Arguments @('policy', 'state', 'list', '--resource-group', $resourceGroup,
         '--filter', "complianceState eq 'NonCompliant'"))
 $violations = @($states | Group-Object -Property policyAssignmentId)
-if ($violations.Count -eq 0) {
-    Write-Information "$resourceGroup violates no policy assignment: nothing to exempt."
-    return
-}
-
+$skipped = [System.Collections.Generic.List[string]]::new()
 $register = foreach ($violation in $violations) {
-    $first = $violation.Group[0]
-    $assignmentName = $first.policyAssignmentName
+    $assignmentName = $violation.Group[0].policyAssignmentName
     $assignment = Invoke-AzureCli -Arguments @('rest', '--method', 'get', '--uri',
         "https://management.azure.com$($violation.Name)?api-version=2025-03-01")
     $displayName = if ($assignment.properties.displayName) { $assignment.properties.displayName } else { $assignmentName }
+    # Only the kit's own assignments, unless the member names another one.
+    if (-not ($displayName -like 'ALZ-lite:*' -or $included -contains $assignmentName -or $included -contains $displayName)) {
+        $skipped.Add("$displayName ($assignmentName)")
+        continue
+    }
     $exemptionName = ("exempt-datacenter-$assignmentName" -replace '[^A-Za-z0-9-]', '-')
     $exemptionName = $exemptionName.Substring(0, [Math]::Min(64, $exemptionName.Length))
     $description = "Owner: $Owner. Reason: $reason. Target date: $targetDate."
@@ -102,6 +112,15 @@ $register = foreach ($violation in $violations) {
         Reason = $reason
         Target = $targetDate
     }
+}
+
+if ($skipped.Count) {
+    Write-Information 'Violated but not exempted (not ALZ-lite; name them with -IncludeAssignment to exempt them):'
+    $skipped | ForEach-Object { Write-Information "  $_" }
+}
+if (-not $register) {
+    Write-Information "$resourceGroup violates no assignment to exempt: nothing to do."
+    return
 }
 
 Write-Information "`nPaste this into your deferred-work register:`n"

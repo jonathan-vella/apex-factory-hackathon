@@ -1,8 +1,10 @@
-// snet-servers with B04's settings plus rt-servers. defaultOutboundAccess stays off, as in B04.
+// snet-servers with B04's settings, read from the live subnet, plus rt-servers. defaultOutboundAccess stays
+// off, as in B04.
 param vnetName string
 param addressPrefix string
 param natGatewayId string
 param networkSecurityGroupId string
+param privateEndpointNetworkPolicies string
 param routeTableId string
 
 resource vnet 'Microsoft.Network/virtualNetworks@2025-09-01' existing = {
@@ -15,6 +17,7 @@ resource serversSubnet 'Microsoft.Network/virtualNetworks/subnets@2025-09-01' = 
   properties: {
     addressPrefix: addressPrefix
     defaultOutboundAccess: false
+    privateEndpointNetworkPolicies: privateEndpointNetworkPolicies
     natGateway: {
       id: natGatewayId
     }
