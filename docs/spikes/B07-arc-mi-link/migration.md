@@ -64,6 +64,7 @@ The go/no-go check fails, so the cutover is called off and re-planned:
 3. Check the MI database is read-write (`SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability')` returns `READ_WRITE`).
 4. Before anything restarts the MI, check that it has taken its first full backup of the database (`msdb.dbo.backupset`, `type = 'D'`). Dropping the link before that backup can leave the database unavailable after a restart.
 5. Smoke test from `vm-dev01`: `db/perf-kit/Start-Workload.ps1 -Server <mi-host-name> -Authentication ActiveDirectoryDefault -DurationMinutes 5` against the MI.
+6. Once the link is removed and no failback is planned, remove the MI link startup trace flags `-T1800` and `-T9567` from the source (SQL Server Configuration Manager > SQL Server service > **Startup Parameters**, then restart SQL Server). They're why the assessment warns "Trace flags not supported in Azure SQL Managed Instance": source-side only, not needed on the MI, not a blocker.
 
 After cutover the MI can be stopped, which an active link prevents.
 

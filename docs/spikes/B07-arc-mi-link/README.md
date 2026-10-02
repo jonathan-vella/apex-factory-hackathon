@@ -54,6 +54,20 @@ The test endpoint and certificate were dropped afterwards, and the `NetHelper` j
 
 Compatibility level 110, full recovery model, `dbo.usp_SearchStudents`, `dbo.usp_GetStudentEnrollments` and `dbo.vw_EnrollmentStatistics` present. Data files 200 MB; the compressed full backup is 33 MB and took 1 second.
 
+### Arc SQL migration assessment (requirement 12)
+
+The owner selected **Run assessment** in the portal (**Database migration** > **Assess source instance**) at about 13:05. The API shows the result uploaded at **13:07:56**, so it took under 3 minutes on demand, and it was available 18 minutes after onboarding finished (12:49). Without the button, the first scheduled assessment runs on Sunday at 23:00 server time, and the docs warn a new instance's first one can take days. The owner started the MI link at about 13:09, without waiting to review the result: by the API it had already finished a minute earlier.
+
+Result, saved in [evidence/arc-sql-assessment.json](evidence/arc-sql-assessment.json) (it holds no IDs):
+
+| Target | Readiness | Recommendation |
+|---|---|---|
+| Azure SQL Managed Instance | **Ready**, 0 blockers; 1 warning: "Trace flags not supported in Azure SQL Managed Instance" for `1800` and `9567`, which MI link itself needs on the source (finding 9) | Next-gen General Purpose, Gen5, 4 vCores; predicted data 200 MB, log 136 MB |
+| SQL Server on Azure VM | Ready, 0 blockers | `Standard_D2as_v4`, P2 data and log disks |
+| Azure SQL Database | Not ready | Same trace flag warning |
+
+The assessment's default settings price the targets in **West US**, with 3-year reserved instances and Azure Hybrid Benefit, not in the datacenter's region (finding 8).
+
 ### Target MI
 
 Deployed with [infra/main.bicep](infra/main.bicep) into `rg-spike-b07`. A **paid** General Purpose MI, not the free offer (owner decision, 2026-10-02):
@@ -117,6 +131,8 @@ Times are UTC+2.
 5. **The MI is reachable from `vm-dev01` with an Entra token.** A VM run command on `vm-dev01` ([scripts/Invoke-MiQuery.ps1](scripts/Invoke-MiQuery.ps1)) connected to the MI's private host name over the peering as the Entra admin, with the caller's token for `https://database.windows.net/` as a protected parameter, and read the MI's HADR port (`11002`, inside 11000–11999).
 6. **Defender for Cloud follows `vm-app01` into Arc.** On the Arc machine it added `MicrosoftDefenderForSQL` and `MDE.Windows` within minutes, and it also re-added `MDE.Windows` to the Azure VM, where it stays in `Creating` because the guest agent is off. It's the subscription's Defender plan, outside the kit; attendee subscriptions on Foundational CSPM only (PRD §6) won't see it.
 7. **Run commands on an Arc machine work as IaC.** `Microsoft.HybridCompute/machines/runCommands` (API `2025-01-13`) deploys from Bicep with `loadTextContent` and parameters, like a VM run command, so the MI link prep after onboarding needs no Bastion session. Each one takes 1–3 minutes of overhead.
+8. **The Arc migration assessment prices targets in West US by default.** Its settings (`targetLocation: West US`, 3-year RI, AHB on) aren't the member's region, so its monthly cost (MI compute about $490 list, $220 with 3-year RI) isn't the swedencentral price. Attendees change it under **Assessment settings**. ARM has no action to start an assessment (only `getMigrationReadinessReport`, which rejected an empty body), so **Run assessment** stays a portal click.
+9. **The assessment's only warning is self-inflicted: "Trace flags not supported in Azure SQL Managed Instance"** (owner, 2026-10-02), for trace flags `1800` and `9567`. B04 sets them on the source for MI link ([Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation): `1800` for disks with different sector sizes, `9567` to compress automatic seeding). They're source-side only, aren't needed on the MI and don't block the migration. Remove them from the source after the link is removed ([migration.md](migration.md#6-cut-over), step 6). B11's C3 has attendees triage it.
 
 ## Decisions
 
