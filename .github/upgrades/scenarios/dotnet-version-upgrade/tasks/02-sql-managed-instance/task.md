@@ -7,3 +7,10 @@ Make the EF Core data layer target Azure SQL Managed Instance as the only Azure 
 Preserve the EF Core model and behavior, including `EnsureCreated`/seed on startup (research whether the startup seed is acceptable against SQL MI permissions and keep it behavior-equivalent). Much of the reading path is already satisfied by Task 01 (configuration key and DI registration) — where so, record the implementation step as a no-op with verification. No credentials or connection-string values in source control or planning artifacts; no database, login or on-prem changes.
 
 **Done when**: `dotnet build` succeeds; a startup guard rejects user/password connection strings outside Development (verified by running with `ASPNETCORE_ENVIRONMENT` set to a non-Development value and a credentialed string, then with an `Active Directory Default` string); Microsoft.Data.SqlClient supports `Active Directory Default`; local `dotnet run` (Development, on-prem SQL login via user secret) loads home, Students, Courses, Instructors, Departments — **BLOCKED** until the user secret is supplied.
+
+## Research findings (executor)
+- Program.cs already reads ConnectionStrings:DefaultConnection and registers SchoolContext via UseSqlServer (Task 01): verified no-op.
+- Resolved Microsoft.Data.SqlClient 6.1.6 (via EF Core SqlServer 10.0.12) with Azure.Identity 1.17.1 transitive; 'Active Directory Default' supported. No package change needed.
+- DbInitializer uses EnsureCreated + seed unchanged; behavior-equivalent on MI (requires create-table rights for the managed identity; no code change).
+- Change: add a startup guard in Program.cs using SqlConnectionStringBuilder: outside Development reject UserID/Password; Development passes string unchanged. Never log values.
+- User secret key ConnectionStrings:DefaultConnection exists (value not read).

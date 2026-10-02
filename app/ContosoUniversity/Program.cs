@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +22,17 @@ if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
         "ConnectionStrings:DefaultConnection is not configured. In Development set it with 'dotnet user-secrets set \"ConnectionStrings:DefaultConnection\" \"<value>\"'.");
+}
+
+// Outside Development the connection must use Entra auth (Authentication=Active Directory Default); never echo the value.
+if (!builder.Environment.IsDevelopment())
+{
+    var csb = new SqlConnectionStringBuilder(connectionString);
+    if (!string.IsNullOrEmpty(csb.UserID) || !string.IsNullOrEmpty(csb.Password))
+    {
+        throw new InvalidOperationException(
+            "ConnectionStrings:DefaultConnection must not contain a user name or password outside Development. Use 'Authentication=Active Directory Default'.");
+    }
 }
 
 builder.Services.Configure<KestrelServerOptions>(o => o.Limits.MaxRequestBodySize = MaxRequestBodyBytes);
