@@ -7,7 +7,9 @@ Shared helpers for the DB perf kit scripts: loads the SqlServer module and build
 Imported by Start-Workload.ps1 and Reset-PerfKit.ps1. SqlPassword connects as contosoapp with the password
 from the datacenter secrets file ($HOME/.apex-factory/<subscription-id>/datacenter.json), or the
 documented lab password when the file isn't on this machine. ActiveDirectoryDefault connects as the
-signed-in Entra identity, which SQL MI needs after cutover because it's Entra-only.
+signed-in Entra identity, which SQL MI needs after cutover because it's Entra-only. On vm-dev01, which
+has a managed identity, ActiveDirectoryDefault signs in as the VM; use ActiveDirectoryInteractive there,
+which signs in as you in a browser.
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -39,7 +41,8 @@ function Get-PerfKitConnectionString {
     .PARAMETER Server
     The source SQL Server (10.10.n.4) or the SQL MI host name.
     .PARAMETER Authentication
-    SqlPassword (contosoapp, source only) or ActiveDirectoryDefault (Entra, MI after cutover).
+    SqlPassword (contosoapp, source only), ActiveDirectoryDefault (Entra, MI after cutover) or
+    ActiveDirectoryInteractive (Entra with a browser sign-in, for machines with a managed identity).
     .EXAMPLE
     Get-PerfKitConnectionString -Server 10.10.1.4 -Authentication SqlPassword
     #>
@@ -49,7 +52,7 @@ function Get-PerfKitConnectionString {
         [Parameter(Mandatory)]
         [string] $Server,
         [Parameter(Mandatory)]
-        [ValidateSet('SqlPassword', 'ActiveDirectoryDefault')]
+        [ValidateSet('SqlPassword', 'ActiveDirectoryDefault', 'ActiveDirectoryInteractive')]
         [string] $Authentication
     )
     $builder = [Microsoft.Data.SqlClient.SqlConnectionStringBuilder]::new()
@@ -76,6 +79,10 @@ function Get-PerfKitConnectionString {
         $builder['Password'] = $password
         # The source SQL Server has a self-signed certificate.
         $builder['TrustServerCertificate'] = $true
+    }
+    elseif ($Authentication -eq 'ActiveDirectoryInteractive') {
+        # One browser sign-in per run: SqlClient caches the token for every connection in the process.
+        $builder['Authentication'] = 'Active Directory Interactive'
     }
     else {
         $builder['Authentication'] = 'Active Directory Default'

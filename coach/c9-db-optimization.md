@@ -10,7 +10,7 @@ The numbers on this page were measured in the workload subscription on 2026-09-2
 ## Set up
 
 1. Put the issues back and clear Query Store: `./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>`. See the [perf kit README](../db/perf-kit/README.md#reset).
-2. Run the workload: `./db/perf-kit/Start-Workload.ps1 -MemberIndex <n>`. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryDefault`.
+2. Run the workload: `./db/perf-kit/Start-Workload.ps1 -MemberIndex <n>`. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive` (on `vm-dev01`, `ActiveDirectoryDefault` signs in as the VM's managed identity).
 3. In SSMS, open **ContosoUniversity > Query Store > Top Resource Consuming Queries**. Look at **Duration** and then **CPU Time**, with the **Total** statistic, over the last hour.
 
 ## Before

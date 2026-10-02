@@ -18,10 +18,12 @@ The member index n, 1-20, which sets the default Server.
 .PARAMETER Authentication
 SqlPassword connects as contosoapp with the password from the datacenter secrets file (source only).
 ActiveDirectoryDefault uses the signed-in Entra identity, which SQL MI needs after cutover.
+ActiveDirectoryInteractive signs in as you in a browser. Use it on vm-dev01: its managed identity makes
+ActiveDirectoryDefault sign in as the VM.
 .EXAMPLE
 ./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex 1
 .EXAMPLE
-./db/perf-kit/Reset-PerfKit.ps1 -Server '<sql-mi-host-name>' -Authentication ActiveDirectoryDefault
+./db/perf-kit/Reset-PerfKit.ps1 -Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive
 #>
 
 [CmdletBinding()]
@@ -29,7 +31,7 @@ param(
     [string] $Server,
     [ValidateRange(1, 20)]
     [int] $MemberIndex = 1,
-    [ValidateSet('SqlPassword', 'ActiveDirectoryDefault')]
+    [ValidateSet('SqlPassword', 'ActiveDirectoryDefault', 'ActiveDirectoryInteractive')]
     [string] $Authentication = 'SqlPassword'
 )
 
