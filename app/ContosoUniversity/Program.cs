@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using ContosoUniversity.Data;
 using ContosoUniversity.Services;
 using Microsoft.AspNetCore.Builder;
@@ -16,6 +19,28 @@ using Microsoft.Extensions.Hosting;
 const long MaxRequestBodyBytes = 10 * 1024 * 1024;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Key Vault is added last so it overrides env/appsettings; in Development an existing DefaultConnection (user secret) is never replaced.
+var vaultUri = builder.Configuration["KeyVault:VaultUri"];
+if (!string.IsNullOrWhiteSpace(vaultUri))
+{
+    if (!Uri.TryCreate(vaultUri, UriKind.Absolute, out var vaultUriParsed))
+    {
+        throw new InvalidOperationException("KeyVault:VaultUri is not a valid absolute URI.");
+    }
+
+    var keepLocalConnection = builder.Environment.IsDevelopment()
+        && !string.IsNullOrWhiteSpace(builder.Configuration.GetConnectionString("DefaultConnection"));
+    builder.Configuration.AddAzureKeyVault(
+        vaultUriParsed,
+        new DefaultAzureCredential(),
+        new LocalFirstSecretManager(keepLocalConnection));
+}
+else if (!builder.Environment.IsDevelopment())
+{
+    throw new InvalidOperationException(
+        "KeyVault:VaultUri is not configured. Outside Development set it (for example via the KeyVault__VaultUri app setting).");
+}
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
