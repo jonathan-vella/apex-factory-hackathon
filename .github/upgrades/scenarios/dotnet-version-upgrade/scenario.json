@@ -3,7 +3,7 @@
   "operationId": "8170567a-880e-48d5-9a6d-9575bc070c02",
   "description": "Upgrade .NET projects to newer .NET versions, including guidance on current release status, support lifecycle (LTS/STS), and recommended upgrade targets.",
   "startTime": "2026-10-01T12:53:12.2598661Z",
-  "lastUpdateTime": "2026-10-02T08:00:28.3507142Z",
+  "lastUpdateTime": "2026-10-02T08:21:27.0370422Z",
   "properties": {
     "UpgradeTargetFramework": "net10.0",
     "taskStates": {
@@ -11,7 +11,8 @@
       "02-sql-managed-instance": "Completed",
       "03-blob-storage-files": "Completed",
       "04-service-bus-messaging": "Completed",
-      "05-key-vault-config": "Completed"
+      "05-key-vault-config": "Completed",
+      "06-opentelemetry-azure-monitor": "Completed"
     }
   },
   "folderPath": ""
