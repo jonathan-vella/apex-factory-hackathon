@@ -68,7 +68,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
 
    🔎 VERIFY each built-in definition ID with `az policy definition list`. Record the IDs in `infra/foundation/README.md`.
 5. Microsoft Defender for Cloud stays on **Foundational CSPM** (free) on both subscriptions: every paid plan off, set with `Microsoft.Security/pricings`.
-6. `scripts/Deploy-AlzLite.ps1` (attendee script conventions) deploys requirements 1–5 for a team. Parameters: `SharedSubscriptionId`, `Location`, `MgPrefix`. It checks the management group permissions first and explains how to get them if missing (Owner at Tenant Root, or a Global Admin elevating access). It prints the cost per hour and how long it took. A re-run converges.
+6. `scripts/Deploy-AlzLite.ps1` (attendee script conventions) deploys requirements 1–5 for a team. Parameters: `SharedSubscriptionId`, `Location`, `MgPrefix`, and the switch `SkipDefender`, which leaves the subscription's Defender for Cloud plans as they are (owner decision 2026-10-02, for subscriptions that host other workloads; off by default). It checks the management group permissions first and explains how to get them if missing (Owner at Tenant Root, or a Global Admin elevating access). It prints the cost per hour and how long it took. A re-run converges.
 
 ### Vending: workload subscription
 
@@ -81,7 +81,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    - a rule collection group for member `n` in `afwp-hub`, allowing only: dev VM to `snet-pe` and `snet-app` on 443 (and 5671 for Service Bus); dev VM to `snet-sqlmi` on 1433 and 11000–11999; MI link between `10.10.n.4` and `snet-sqlmi` (the rules from the B07 report); App Service outbound to Entra ID, to Microsoft Container Registry (`mcr.microsoft.com` and its data endpoints, for the archetype's placeholder image) and to the Azure Monitor ingestion endpoints (the documented private-only exception; 🔎 VERIFY the endpoints on [Azure Monitor network access](https://learn.microsoft.com/azure/azure-monitor/fundamentals/azure-monitor-network-access));
    - Owner on the workload subscription for the member (a parameter; skipped when empty);
    - a monthly budget on the workload subscription (parameter, default 500 in the billing currency) with an alert at 80% to an email parameter.
-8. `scripts/Deploy-Vending.ps1` deploys it. Parameters: `WorkloadSubscriptionId`, `SharedSubscriptionId`, `MemberIndex`, `Location`, `MgPrefix`, `MemberPrincipalId` (optional), `BudgetAmount`, `BudgetEmail`. It discovers the hub's IDs in the shared subscription by the ALZ-lite names and prints them. Run it after the datacenter exists, so the datacenter is peered too; a re-run after deploying the datacenter adds its peering.
+8. `scripts/Deploy-Vending.ps1` deploys it. Parameters: `WorkloadSubscriptionId`, `SharedSubscriptionId`, `MemberIndex`, `Location`, `MgPrefix`, `MemberPrincipalId` (optional), `BudgetAmount`, `BudgetEmail`, `SkipDefender` (as in requirement 6). It discovers the hub's IDs in the shared subscription by the ALZ-lite names and prints them. Run it after the datacenter exists, so the datacenter is peered too; a re-run after deploying the datacenter adds its peering.
 9. The platform lead runs vending for every member, because it writes to the shared subscription (peering and firewall rules). Members need no role on the shared subscription.
 
 ### Exemptions
@@ -103,7 +103,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
 
 ### Validate for real
 
-16. Deploy ALZ-lite with the shared subscription.
+16. Deploy ALZ-lite with the shared subscription. The build subscriptions host other workloads, so deploy ALZ-lite and vending there with `-SkipDefender`, and check requirement 5 with a what-if without it (owner decision 2026-10-02).
 17. Deploy the datacenter into the workload subscription with `scripts/Deploy-Datacenter.ps1`, then vending with member index `1`.
 18. Run the exemptions script and check that `rg-datacenter` shows as exempt for the assignments it violated.
 19. Run `scripts/Test-Connectivity.ps1`: every applicable check passes.

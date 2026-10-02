@@ -27,3 +27,13 @@ What-if summaries and results from validating the foundation for real in the bui
 | Shared services subscription | Create `rg-hub` and `rg-management`. **Modify 12 Defender for Cloud plans from `Standard` to `Free`** (requirement 5): AI, AppServices, Arm, CloudPosture, Containers, CosmosDbs, KeyVaults, OpenSourceRelationalDatabases, SqlServerVirtualMachines, SqlServers, StorageAccounts, VirtualMachines. `Api` is already `Free` |
 | `rg-hub` | Create `vnet-hub`, `pip-afw-hub`, `afwp-hub`, `afw-hub` with its diagnostic setting, the 4 privatelink zones with their `link-vnet-hub` links, and 4 role assignments (private DNS identities, Network Contributor) |
 | `rg-management` | Create `log-management` and 7 role assignments (diagnostics identities, Log Analytics Contributor) |
+
+This first what-if checks requirement 5. The owner chose to leave the build subscriptions' Defender plans untouched (owner decision 2026-10-02: they host unrelated workloads; event subscriptions are dedicated), so the deployment uses `-SkipDefender`.
+
+### ALZ-lite with `-SkipDefender` (2026-10-02)
+
+61 to create, 0 to modify, 0 to delete, no `Microsoft.Security/pricings` changes. The same creates as above.
+
+### Datacenter (`infra/datacenter/main.bicep`, the parameters `Deploy-Datacenter.ps1` passes, 2026-10-02)
+
+27 to create, nothing modified or deleted: `rg-datacenter` with B04's network (`vnet-datacenter` and its two subnets, `nsg-servers`, `nat-datacenter`, `bas-datacenter` Standard, `pip-nat-datacenter`, `pip-bas-datacenter`), both VMs with their NICs, and their run commands (including B07's `app-07-arc-prep`). The two public IPs are the datacenter's documented ones. No zones.

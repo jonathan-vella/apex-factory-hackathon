@@ -10,7 +10,7 @@ Deploys infra/foundation/alz-lite/main.bicep at the Tenant Root management group
 - in it: rg-management with log-management (30-day retention), and rg-hub with vnet-hub 10.100.0.0/16,
   afw-hub (Azure Firewall Standard, no zones) with pip-afw-hub and afwp-hub (DNS proxy on), and the
   privatelink zones for Blob, Service Bus, ACR and Key Vault linked to vnet-hub;
-- Microsoft Defender for Cloud on Foundational CSPM only (every paid plan off);
+- Microsoft Defender for Cloud on Foundational CSPM only (every paid plan off, unless -SkipDefender);
 - the core policies at <MgPrefix>-corp (built-in definitions, display names prefixed ALZ-lite:).
 The platform lead runs it once per team, then scripts/Deploy-Vending.ps1 for every member. It needs
 Owner at the Tenant Root management group and checks that first. A re-run converges. Use -WhatIf to
@@ -23,6 +23,10 @@ The Azure region. Fallback: germanywestcentral.
 Prefix of the kit's management groups, so several kits can coexist in one tenant.
 .PARAMETER AdditionalAllowedLocation
 Regions to allow at <MgPrefix>-corp besides Location and global, for example the fallback region.
+.PARAMETER SkipDefender
+Leave the subscription's Defender for Cloud plans as they are. Without it, every paid plan is turned off
+subscription-wide (Foundational CSPM only), including for resources the kit didn't create. Use it only in
+a subscription that hosts other workloads; event subscriptions are dedicated, so leave it off there.
 .EXAMPLE
 ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
 .EXAMPLE
@@ -38,7 +42,8 @@ param(
     [string] $Location = 'swedencentral',
     [ValidatePattern('^[A-Za-z0-9-]{2,40}$')]
     [string] $MgPrefix = 'mg-factory',
-    [string[]] $AdditionalAllowedLocation = @()
+    [string[]] $AdditionalAllowedLocation = @(),
+    [switch] $SkipDefender
 )
 
 $ErrorActionPreference = 'Stop'
@@ -90,7 +95,7 @@ Deploying ALZ-lite to ${Location}:
   rg-management      log-management (30-day retention)
   rg-hub             vnet-hub 10.100.0.0/16, afw-hub (Azure Firewall Standard, no zones) with pip-afw-hub,
                      afwp-hub (DNS proxy on), privatelink zones for Blob, Service Bus, ACR and Key Vault
-  Defender for Cloud Foundational CSPM only: every paid plan off on the shared services subscription
+  Defender for Cloud $(if ($SkipDefender) { 'left as it is (-SkipDefender)' } else { 'Foundational CSPM only: every paid plan off on the shared services subscription' })
   Policies           at $MgPrefix-corp: allowed locations ($(@($Location, 'global') + $AdditionalAllowedLocation -join ', ')),
                      no public IPs on NICs, public network access off (Storage, Key Vault, Service Bus, ACR,
                      SQL MI), private DNS registration and diagnostics to log-management
@@ -109,6 +114,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "alz-lite-$([guid]
         mgPrefix = @{ value = $MgPrefix }
         sharedSubscriptionId = @{ value = $SharedSubscriptionId }
         additionalAllowedLocations = @{ value = @($AdditionalAllowedLocation) }
+        setDefenderFoundationalOnly = @{ value = -not $SkipDefender.IsPresent }
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
 

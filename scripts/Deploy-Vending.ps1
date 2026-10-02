@@ -16,7 +16,7 @@ log-management) and prints what it found. Then it:
   egress on the NAT gateway;
 - adds rule collection group rcg-member-n to afwp-hub;
 - gives the member Owner on the workload subscription (if -MemberPrincipalId is set), adds a monthly
-  budget with an alert at 80%, and sets Defender for Cloud to Foundational CSPM only.
+  budget with an alert at 80%, and sets Defender for Cloud to Foundational CSPM only (unless -SkipDefender).
 The platform lead runs it for every member, because it writes to the shared services subscription;
 members need no role there. It needs Owner at the Tenant Root management group. Run it after the
 datacenter exists, and again after any datacenter redeploy, which resets the datacenter's DNS servers
@@ -37,6 +37,10 @@ Object ID of the member (user or group), who gets Owner on the workload subscrip
 Monthly budget on the workload subscription, in the billing currency.
 .PARAMETER BudgetEmail
 Email address for the budget alert at 80%.
+.PARAMETER SkipDefender
+Leave the subscription's Defender for Cloud plans as they are. Without it, every paid plan is turned off
+subscription-wide (Foundational CSPM only), including for resources the kit didn't create. Use it only in
+a subscription that hosts other workloads; event subscriptions are dedicated, so leave it off there.
 .EXAMPLE
 ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<workload-subscription-id>' -SharedSubscriptionId '<shared-services-subscription-id>' -MemberIndex 1 -BudgetEmail 'lead@contoso.com'
 .EXAMPLE
@@ -63,7 +67,8 @@ param(
     [int] $BudgetAmount = 500,
     [Parameter(Mandatory)]
     [ValidatePattern('^[^@\s]+@[^@\s]+$')]
-    [string] $BudgetEmail
+    [string] $BudgetEmail,
+    [switch] $SkipDefender
 )
 
 $ErrorActionPreference = 'Stop'
@@ -153,7 +158,7 @@ Vending member $MemberIndex to ${Location}:
   Firewall rules     rcg-member-$MemberIndex in afwp-hub
   Owner              $(if ($MemberPrincipalId) { $MemberPrincipalId } else { 'skipped (no -MemberPrincipalId)' })
   Budget             $BudgetAmount a month from $budgetStart, alert at 80% to $BudgetEmail
-  Defender for Cloud Foundational CSPM only on the workload subscription
+  Defender for Cloud $(if ($SkipDefender) { 'left as it is (-SkipDefender)' } else { 'Foundational CSPM only on the workload subscription' })
 Cost: no hourly cost. Peering traffic is billed per GB, and the hub's firewall processes it.
 
 "@
@@ -178,6 +183,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "vending-$([guid]:
         budgetEmail = @{ value = $BudgetEmail }
         budgetStartDate = @{ value = $budgetStart }
         connectDatacenter = @{ value = $connectDatacenter }
+        setDefenderFoundationalOnly = @{ value = -not $SkipDefender.IsPresent }
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
 
