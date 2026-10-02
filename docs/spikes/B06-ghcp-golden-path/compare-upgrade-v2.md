@@ -54,7 +54,7 @@ Times are UTC+2 on 2026-10-02, from the owner and the commit times; task times i
 | 3.7 CVE fixes | `54b5b45` | about 20 min | Claude Sonnet 5.5, Medium | 0 | ✅ Verified no-op: no vulnerable or deprecated packages; `Microsoft.Data.SqlClient` 6.1.6, `Microsoft.Identity.Client` 4.84.2 |
 | **Total** | | **About 14 min to plan plus about 1 h 46 min for 7 tasks (08:56–10:42)** | | **0 interventions, 0 code fixes** | 7 of 7 tasks |
 
-The executor's checks on `54b5b45`: no secrets, tenant, subscription or object IDs in the diff from `da4e5f6`; no `System.Web`, `System.Messaging` or `MessageQueue` in `app/`; no Dockerfile. When the agent finished, it offered Aspire, ARM64 and a report; the owner declined them as out of scope.
+The executor's checks on `54b5b45`: a clean-clone `dotnet build -c Release` on `vm-dev01` (SDK 10.0.401, 2026-10-02, in `C:\LabTools\b06-check`, deleted afterwards) with 0 warnings and 0 errors, and no vulnerable packages; no secrets, tenant, subscription or object IDs in the diff from `da4e5f6`; no `System.Web`, `System.Messaging` or `MessageQueue` in `app/`; no Dockerfile. When the agent finished, it offered Aspire, ARM64 and a report; the owner declined them as out of scope.
 
 ### v3 findings
 

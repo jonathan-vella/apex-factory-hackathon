@@ -11,7 +11,7 @@ The steps the owner follows on `vm-dev01` for each run of the [B06 spike](../../
 | Comparison in the Copilot app | `spike/b06-upgrade-app-v2` (attempt 2; attempt 1 on `spike/b06-upgrade-app` was abandoned) | `da4e5f606983332001c94ce69b48634f9c1864b3` | [Copilot app section](#comparison-github-copilot-upgrade-in-the-copilot-app-after-the-vs-code-comparison-before-run-2) |
 | 2 | `spike/b06-run2` | `e850869e438556c1234dd672f12aa133a2bed644` | v2 |
 
-Order: the VS Code comparison, then the Copilot app comparison, then run 2.
+Order: the VS Code comparison, then the Copilot app comparison, then run 2. **Run 2 was skipped and the Copilot app comparison paused (owner decisions, 2026-10-01 and 2026-10-02).** The golden path is the [11a rerun](#11a-rerun-github-copilot-upgrade-in-vs-code) v3 stack; steps 1–7 stay as reference for B10.
 
 At the event, App Service, the container registry, SQL Managed Instance and the datacenter are already deployed for each attendee. The plan and every step assume existing resources whose endpoints come from configuration; nothing here provisions anything.
 

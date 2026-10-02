@@ -2,10 +2,10 @@
 
 | Field | Value |
 |---|---|
-| Date | In progress (started 2026-09-24; run 1 done 2026-09-25) |
-| Result | Pending: set after run 2 |
+| Date | 2026-09-24 to 2026-10-02 (run 1 on 2026-09-25; the VS Code comparison 2026-09-28 to 2026-09-30; the rerun 2026-10-01 to 2026-10-02; teardown 2026-10-02) |
+| Result | ✅ Pass. Judged on run 1, the VS Code comparison (11a) and its v3 rerun, because the owner skipped run 2 (owner-approved deviation, 2026-10-02). The v3 rerun reached a packaged image in the private registry with every check passing and no intervention, inside both time boxes. The golden path uses GitHub Copilot upgrade (the Upgrade agent), not the `modernize` agent the runbook assumed; see [The golden path](#the-golden-path) |
 | Region | swedencentral |
-| Versions | .NET 10 SDK `10.0.401`; GitHub Copilot modernization `1.24.26091501` (marketplace, 2026-09-24); GitHub Copilot upgrade's Upgrade agent 1.1.596 (VS Code comparison) and plugin 1.1.612 (Copilot app comparison, attempt 2); VS Code `1.139.0` on `vm-dev01`. Versions used in each run are in [run1.md](run1.md) and [run2.md](run2.md) |
+| Versions | Golden path: GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) 1.1.612, GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) 1.24.0 installed but disabled for the workspace, .NET 10 SDK `10.0.401`, VS Code `1.139.0` (recorded in run 1), Claude Opus 5.5 and Claude Sonnet 5.5 at Medium. Evidence runs: modernization `1.24.26091501` (run 1), Upgrade agent 1.1.596 (11a), Copilot app plugin 1.1.612 (11b, paused). Copilot CLI wasn't tried. All pinned in [versions.md](../../../versions.md) |
 
 ## Question
 
@@ -15,8 +15,10 @@ Is there a repeatable sequence of GitHub Copilot steps and prompts that takes Co
 
 1. Deployed the spike services private-only into `rg-spike-b06` with [infra/main.bicep](infra/main.bicep): Storage `stuni<suffix>b06` (container `teaching-materials`), Service Bus Premium `sbns-uni-<suffix>-b06` (queue `notifications`), ACR Premium `cruni<suffix>b06` and Key Vault `kv-uni-<suffix>-b06`. For run 2 and the comparison, a Log Analytics workspace `log-uni-<suffix>-b06` (PerGB2018, 30 days) and a workspace-based Application Insights `appi-uni-<suffix>-b06` with local authentication off were added (owner-approved), so the OpenTelemetry task's telemetry has to show up in Application Insights through Entra. Ingestion stays public, the kit's documented exception. Private endpoints are in `snet-pe-spike` (`10.10.n.128/27`) of `vnet-datacenter`, created by [infra/modules/subnet.bicep](infra/modules/subnet.bicep), and the four private DNS zones in `rg-spike-b06` are linked to `vnet-datacenter`. The owner has Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, AcrPush, Key Vault Secrets Officer and, on Application Insights, Monitoring Metrics Publisher.
 2. Checked from `vm-dev01` with a run command that every hostname resolves to `snet-pe-spike` and that TCP 443 (and 5671 for Service Bus) connects.
-3. The owner ran the [protocol](protocol.md) twice, on the branches `spike/b06-run1` and `spike/b06-run2`, committing after each step with manual fixes in the commit body, a chat export per step in `chats/` and the tool versions in `runN-versions.txt`. The executor filled in [run1.md](run1.md) and [run2.md](run2.md) from those: times from the commit timestamps, models and prompts from the exports, changes from the diff of each commit.
-4. The executor checked each run branch: `dotnet build` on the .NET 10 SDK, no `System.Web`, `System.Messaging` or MSMQ references, the image tag in the registry and no secrets in the diff.
+3. The owner ran the [protocol](protocol.md) once, on `spike/b06-run1` with the `modernize` agent; run 2 was skipped (owner decision, 2026-10-02). The owner committed after each step with manual fixes in the commit body, a chat export per step in `chats/` and the tool versions in `runN-versions.txt`. The executor filled in [run1.md](run1.md) from those: times from the commit timestamps, models and prompts from the exports, changes from the diff of each commit.
+4. The owner ran the same seven tasks with GitHub Copilot upgrade's Upgrade agent in VS Code (requirement 11a, [compare-upgrade.md](compare-upgrade.md)), then reran it from scratch (v2 in the Copilot harness for planning, v3 in the Local harness end to end, [compare-upgrade-v2.md](compare-upgrade-v2.md)). The same comparison in the GitHub Copilot app (requirement 11b, [compare-upgrade-app.md](compare-upgrade-app.md)) was paused.
+5. The executor checked each run branch (`spike/b06-run1`, `spike/b06-upgrade-compare`, `spike/b06-upgrade-compare-v3`): a clean-clone `dotnet build -c Release` on the .NET 10 SDK on `vm-dev01`, no `System.Web`, `System.Messaging` or MSMQ references, the image tag in the registry and no secrets in the diff.
+6. Tore down `rg-spike-b06` (and purged its Key Vault) and `snet-pe-spike` on 2026-10-02, keeping `rg-datacenter` for B07.
 
 ## Timings
 
@@ -38,11 +40,82 @@ Run 1, 2026-09-25, wall-clock from the commits (details in [run1.md](run1.md)). 
 | **C6 total** | **about 6 h 54 min** | **3 h** |
 | **Run 1 total from the reset** | **about 7 h 23 min** (8 h 48 min with the false start) | 4 h |
 
-C3 fits its box. C6 is more than twice its box, mostly because of the execution routine's blocks and the two bugs the agent's validation missed. Run 2 is timed with the refined protocol v2.
+C3 fits its box. C6 is more than twice its box, mostly because of the execution routine's blocks and the two bugs the agent's validation missed.
 
-Run 2: pending.
+The golden path, the v3 rerun on 2026-10-02 (details in [compare-upgrade-v2.md](compare-upgrade-v2.md)), wall-clock from the owner's report and the commits, UTC+2. Task times include the owner's checks.
+
+| Stage | v3 rerun | Time box |
+|---|---|---|
+| C3 assess and plan (Claude Opus 5.5, Medium) | 08:39–08:53, about 14 min | 1 h |
+| Task 01, .NET 10 upgrade | about 30 min | C6 |
+| Task 02, SQL Managed Instance | about 6 min | C6 |
+| Task 03, Blob | about 12 min | C6 |
+| Task 04, Service Bus | about 13 min | C6 |
+| Task 05, Key Vault | about 16 min | C6 |
+| Task 06, OpenTelemetry | about 12 min | C6 |
+| Task 07, CVE audit | about 20 min (verified no-op) | C6 |
+| **C6 total (tasks 01–07)** | **about 1 h 46 min** (08:56–10:42) | **3 h** |
+
+Both fit their boxes, with 0 interventions. Across the three full runs the time and the interventions fell together: run 1 (`modernize`) took about 6 h 54 min of C6 with 2 code fixes and 2 git recoveries; 11a (the Upgrade agent, GPT-6 models) at least 4 h 18 min of measurable stages with 1 `continue`; v3 about 1 h 46 min with none. The runs differ in tool, models and prompt, so the improvement can't be pinned on one change.
+
+Run 2: skipped (owner decision, 2026-10-02).
 
 ## Findings
+
+### The golden path
+
+**Owner decision (2026-10-02):** "What we tested and validated in the v3 rerun is what the hackathon will use, since it is the most reliable." Run 1, the VS Code comparison (11a), the rerun's v2 and the Copilot app comparison (11b) stay as evidence only. Pinned in [versions.md](../../../versions.md).
+
+| Part | Golden path |
+|---|---|
+| Host | VS Code on `vm-dev01` |
+| Extensions | GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) 1.1.612, installed by hand. GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) 1.24.0 stays installed (B04) but is **disabled for the workspace** |
+| Agent and scenario | **Upgrade**, scenario `dotnet-version-upgrade`, forced by the prompt (the default `azure-migrate` needs modernization) |
+| Harness | **Local** for the whole run. MCP model access allowed: `chat.mcp.serverSampling` has `"GitHub Copilot upgrade: Upgrade": { allowedDuringChat: true }` (**MCP: List Servers** > **Upgrade** > **Configure Model Access**) |
+| Models | **Claude Opus 5.5 at Medium** to assess and plan; **Claude Sonnet 5.5 at Medium** to execute each task |
+| Prompts | [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md), then [prompts/compare-upgrade-app-addendum.md](prompts/compare-upgrade-app-addendum.md), pasted as one message with the UTF-8 clipboard block (protocol R.2). Guided flow, current branch, Manual commits, Branch Sync Disabled |
+| Execution | One `start_task` per task, then the task's check, then a commit and push per task |
+| Local runs | `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` (finding 1); user secrets set again after task 01, because the upgraded project's `UserSecretsId` changes; `ASPNETCORE_ENVIRONMENT=Development`; `az login` to the workload subscription before task 03 |
+| Package | .NET SDK container publishing (`/t:PublishContainer`, base `mcr.microsoft.com/dotnet/aspnet:10.0`, repository `contoso-university`, port 8080, no Dockerfile) to the private registry over its private endpoint |
+
+The sequence, as B10's input:
+
+1. **Set up** (protocol v2 step 1 and R.1): device-code sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the workload subscription, the clone, then a pure legacy tree: `git clean -ndx -- app .github`, then `-fdx`. Disable modernization for the workspace and allow the Upgrade server's model access.
+2. **C3 assess and plan** (R.2): Local harness, new chat, agent **Upgrade**, Claude Opus 5.5 at Medium; paste the prompt and the addendum. Approve the assessment gate, then check the plan gate: the artifacts under `.github/upgrades/scenarios/dotnet-version-upgrade/` (including `assessment.json` and `dependencies-health.json`), exactly seven tasks in a strict chain, all 9 rule rows met, no `#skill:migrating-webapi-odata`, no application files changed. Commit and push.
+3. **C6 tasks 01–07** (R.3 with v3's changes): Local harness, Claude Sonnet 5.5 at Medium, `start_task` for one task at a time. After each, build, run and do its check from the [v3 results sheet](compare-upgrade-v2.md#v3-local-harness-full-run): the five pages and the JSON contract (01); Production refuses a SQL login (02); Blob upload, display, replace, delete and the rejections (03); Service Bus send and receive (04); Key Vault A, B and C (05); start without a connection string, then telemetry in Application Insights (06); `dotnet list package --vulnerable` (07). Commit and push per task.
+4. **Package** (protocol step 6, with the tag changed): SDK container publishing to `cruni<suffix>b06`, then `az acr repository show-tags`.
+
+Hot spots per step, and what removes them:
+
+| Step | Hot spot (finding) | Removed by |
+|---|---|---|
+| Set up | `DefaultAzureCredential` picks the VM's managed identity and gets 403 (1) | Guide: `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` |
+| Set up | Leftover plans, skills and build output steer the agents (47) | Guide and lifeline script: `git clean` after a dry run |
+| Set up | No git identity on a fresh VM user (2) | Guide: set it from `gh api user` |
+| Assess and plan | The default `azure-migrate` route needs modernization (47, 48) | The prompt forces `dotnet-version-upgrade` |
+| Assess and plan | `start_task` fails in the Copilot harness (51, 67) | Guide: Local for the whole run, with model access |
+| Assess and plan | The OData skill's gate stops task 01 (62) | The addendum (no Web API or OData; don't use the skill) |
+| Assess and plan | Curly quotes arrive mis-encoded on the clipboard (65) | ASCII-only prompts and the UTF-8 clipboard block |
+| Task 01 | The project's `UserSecretsId` changes, so the pages fall back or fail (63, 67) | Guide and lifeline: set the user secrets again after task 01 |
+| Tasks 02–06 | `--no-launch-profile` runs Production, which refuses the on-premises SQL login (67) | Guide: `ASPNETCORE_ENVIRONMENT=Development` |
+| Task 04 | A receive path that always threw passed the agent's validation in run 1 (36) | The prompt asks for proof of send **and** receive; didn't recur in 11a or v3 |
+| Task 06 | An invalid Application Insights connection string crashes startup (57) | Playbook: install the CLI extension first, check `InstrumentationKey=` |
+| Task 06 | Service Bus never shows as a dependency in Application Insights (67) | Playbook and B07: expected with the distro's defaults; prove messaging functionally |
+
+A skill isn't needed for the golden path: the prompt and the addendum carry the rules, and every remaining hot spot is a guide or playbook line. If B10 ships the prompt as a prompt file, test it in the Local harness, where prompt files load (finding 14).
+
+**Repeatability (in place of "how far run 2 matched run 1").** Three full runs reached a packaged image in the private registry: run 1 with `modernize` (2 code fixes, 2 git recoveries), 11a with the Upgrade agent (1 `continue`) and v3 with the Upgrade agent (none). 11a and v3 produced the same seven-task plan shape, the same Entra-only, Key Vault-mandatory and private-backend design, and the same verified no-op for the CVE task, with different models.
+
+**Models, per phase, dated.**
+
+- *2026-09-25, run 1:* the assessment with the extension's default model; planning with GPT-6 Sol at Medium (a finished plan couldn't be revised, finding 26); execution with GPT-6 Luna at maximum (delegation blocked 3 of 5 tasks; two bugs passed its validation).
+- *2026-09-28 to 2026-09-30, 11a:* GPT-6 Sol at Medium planned a compliant, revisable plan; GPT-6 Luna at maximum executed 7 of 7 tasks with one `continue`.
+- *2026-09-30 to 2026-10-01, 11b (Copilot app):* GPT-6 models in attempt 1 (stopped by the OData gate); Claude Opus 5.5 in attempt 2 (no tools; paused).
+- *2026-10-01 to 2026-10-02, v2 and v3:* Claude Opus 5.5 at Medium planned compliantly in both harnesses with 0 interventions; Claude Sonnet 5.5 at Medium executed 7 of 7 with 0 interventions in about 1 h 46 min, and added guards 11a didn't (blob name and course ownership). Tool version and prompt also changed between 11a and v3, so the model effect can't be isolated.
+
+**Copilot CLI:** the optional step 2 section wasn't tried.
+
+### All findings
 
 Step numbers in findings 1–46 refer to the protocol as it stood during run 1. [Protocol v2](protocol.md) was then rewritten as a clean sequence for run 2; its [Changes from v1](protocol.md#changes-from-v1) table maps each change back to these findings.
 
@@ -138,13 +211,17 @@ Run 1, steps 1 (set up) and 2 (assess):
 
 67. **The 11a rerun: Local harness end to end, 7 of 7 tasks with no intervention** (owner request, 2026-10-01 to 2026-10-02; details in [compare-upgrade-v2.md](compare-upgrade-v2.md)). v2 (`spike/b06-upgrade-compare-v2`) planned in the **Copilot** harness with model access allowed (`b49ce4b`), but `start_task` then failed there with internal LLM client unavailable (`859d4ed`), confirming finding 51 on Upgrade agent 1.1.612. v3 (`spike/b06-upgrade-compare-v3` at `54b5b45`) ran everything in **Local**: a tool-based assessment and compliant plan with Claude Opus 5.5 at Medium, then all seven tasks with Claude Sonnet 5.5 at Medium, `start_task` working first time on each, **0 interventions and 0 code fixes**, in about 1 h 46 min including the owner's checks, and the image tagged `compare-v3`. The models differ from 11a (GPT-6 Sol and Luna), so it isn't like for like. **Recommendation: with the Upgrade extension in VS Code, use the Local harness for the whole run**; the Learn documentation doesn't mention harnesses. Also found: the Azure Monitor distro records no Service Bus dependency in Application Insights, in v3 or 11a, although send and receive work (note for B07 and B11); and `--no-launch-profile` starts the app in Production, so local runs need `ASPNETCORE_ENVIRONMENT=Development`.
 
-Run 2: pending.
+68. **Run 2 skipped; the v3 stack is the golden path** (owner decisions, 2026-10-02). Run 2 with `modernize` would only have repeated a path the comparisons had already beaten, so the owner skipped it: the result is judged on run 1, 11a and v3. The hackathon uses what v3 tested and validated (see [The golden path](#the-golden-path)). Run 2's protocol (steps 1–7) and [prompts/run2-modernize-plan.md](prompts/run2-modernize-plan.md) stay as reference for B10. The executor's checks on `spike/b06-upgrade-compare-v3` at `54b5b45`: a clean-clone `dotnet build -c Release` on `vm-dev01` with SDK 10.0.401, 0 warnings and 0 errors; no vulnerable packages; no `System.Web`, `System.Messaging` or `MessageQueue` in `app/`; no Dockerfile; no secrets or IDs in the diff from `da4e5f6`; the `compare-v3` tag in the registry (coordinator-verified).
+
+Run 2: skipped (owner decision, 2026-10-02; finding 68).
 
 **False start and reset.** Findings 4–14 come from run 1's false start: the assessment and **Create Plan** in the Agent Host harness, then prompt files that Agent Host didn't load. The owner then reset run 1 (commit `run1: reset for a fresh start in the Local harness`, removing the plan folders and `assessment/run1`) and redid steps 2 and 3 in the Local harness. Run 1's step times count from that reset commit.
 
 Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clone before run 1, so it isn't in [assessment/](assessment/). Run 1 started from a fresh clone.
 
 ## Decisions
+
+- **Skip run 2 and adopt the v3 stack as the golden path (owner decisions, 2026-10-02).** The hackathon uses VS Code with GitHub Copilot upgrade (the Upgrade agent, `dotnet-version-upgrade`, Local harness, Claude Opus 5.5 and Sonnet 5.5 at Medium, the compare prompt and addendum), with GitHub Copilot modernization installed but disabled for the workspace. This changes [B06](../../backlog/B06-spike-ghcp.md) requirements 11 and 14, the Verify run-branch check and Done when (owner-approved deviation). It also changes B04's install list and the PRD §6 assumption that C3 and C6 use the app modernization extension; both are follow-ups for the owner, not changed here.
 
 - **Repeat the comparison in the GitHub Copilot app (owner-approved, 2026-09-29).** After the VS Code comparison and before run 2, the owner repeats it in the GitHub Copilot app with only the `upgrade-agent@upgrade-agent-plugins` plugin, on `spike/b06-upgrade-app` from `da4e5f6`, recorded in [compare-upgrade-app.md](compare-upgrade-app.md). Only the host changes. **Restarted (owner decision, 2026-09-30):** attempt 1 was abandoned; attempt 2 runs on `spike/b06-upgrade-app-v2` with Claude Opus 5.5 to plan, Claude Sonnet 5.5 to execute and the owner-decisions addendum, so it isn't like for like with the VS Code comparison (finding 64). **Paused (owner decision, 2026-10-01):** the Upgrade MCP server exposed no tools in the app after a clean reinstall, so the Copilot app isn't recommended for attendees at this point (finding 66). This adds requirement 11b to [B06](../../backlog/B06-spike-ghcp.md); the owner confirmed it through the coordinator (about $10). Order: the VS Code comparison, then the Copilot app comparison, then run 2. The report's recommendation covers both the extensions or plugins and the host; the owner decides.
 - **Target state for run 2 and the comparison (owner-approved, 2026-09-25).** Entra authentication only on Azure: SQL authentication survives only in Development against the unchanged on-premises source (`contosoapp` from user secrets), and outside Development the app refuses a `DefaultConnection` with a user name or password. Key Vault is mandatory outside Development: the app fails fast without `KeyVault:VaultUri`, the secret `ConnectionStrings--DefaultConnection` holds the Entra connection string to SQL Managed Instance, and App Service settings hold only `KeyVault:VaultUri` and the non-secret endpoints. Backends are private only (private endpoints or VNet-local; no `privatelink` host names, IPs or the Managed Instance public endpoint on 3342); the web front end may be public (PR #30 updates the PRD, B08 and B09), and Application Insights ingestion stays the documented public exception. OpenTelemetry becomes a seventh task, kept simple: `ILogger` instead of `Trace` and `Debug`, and the Azure Monitor distro through one `UseAzureMonitor()` call, registered only when a connection string is set, with `DefaultAzureCredential`; telemetry must show in Application Insights. SDK container publishing only, no Dockerfile. No changes to the on-premises legacy app or `vm-app01`. These rules are in [prompts/run2-modernize-plan.md](prompts/run2-modernize-plan.md) and [prompts/compare-upgrade-plan.md](prompts/compare-upgrade-plan.md); run 1 used the older six-task, seven-rule prompt. The spike adds Log Analytics and Application Insights with local authentication off, which changes [B06](../../backlog/B06-spike-ghcp.md) requirements 1 and 3 and the Cost row.
@@ -159,15 +236,22 @@ Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clon
 - [compare-upgrade.md](compare-upgrade.md): the end-to-end GitHub Copilot upgrade vs `modernize` comparison, stage by stage.
 - **Archived on `vm-dev01`, not in the repo:** `C:\src\b06-archive\run1-modernize` holds run 1's ignored `.github/modernize` folder, including the per-task `code-migration/<timestamp>/{plan,progress,summary}.md` reports and the assessment engine state. `C:\src\b06-archive\compare-attempt1-upgrades` holds the invalid comparison attempt's `.github/upgrades`. The owner moved both out of the clone before the comparison's `git clean`.
 - [pe-probe.md](pe-probe.md): the private-endpoint probe from `vm-dev01` and the deployed settings.
-- [run1.md](run1.md) and [run2.md](run2.md): the results sheets, filled in by the executor from the run branches.
+- [run1.md](run1.md): run 1's results sheet. [run2.md](run2.md) stays a blank template: run 2 was skipped.
+- [compare-upgrade-v2.md](compare-upgrade-v2.md#v3-local-harness-full-run): the golden path's run (v3), with its per-task checks.
+- Branches, pushed and not merged: `spike/b06-run1`, `spike/b06-upgrade-compare`, `spike/b06-upgrade-compare-v2`, `spike/b06-upgrade-compare-v3` (the golden path), `spike/b06-upgrade-app` and `spike/b06-upgrade-app-v2`. There's no `spike/b06-run2`.
 - `chats/` and `runN-versions.txt` on the run branches: the chat exports per step (checked for secrets) and the tool versions.
 
 ## Follow-ups
 
+The golden path is the v3 stack. Follow-ups that name `modernize` or the Copilot app come from the evidence runs; B10 needs them only if it also covers those tools.
+
 - **B10: a skill that wraps `create-modernization-plan` with the kit rules.** The planning prompt in protocol v2 step 3.2 is the candidate: it has to be the planning input, because a finished plan can't be corrected (finding 26). Check first that a workspace skill shows in the slash menu in the Copilot harness (finding 17).
 - **B10: playbook around the dashboard.** The golden path uses the dashboard buttons, so the playbook needs the pre-click model check, and the planning prompt with the kit rules and its self-check table (protocol v2 step 3). If B10 ships skills, note findings 16 and 17: workspace skills with `disable-model-invocation: true` didn't show in the Copilot harness's skill list, and skills can't pin a model. Prompt files don't load in the Copilot (Agent Host) harness.
-- **B04: the dev VM's modernization tools and host.** Pending the comparisons (`compare-upgrade.md` and `compare-upgrade-app.md`): whether to add `ms-dotnettools.upgrade-agent` next to `vscjava.migrate-java-to-azure`, and whether the dev VM should also offer the GitHub Copilot app with the `upgrade-agent` plugin (not at this point: the Copilot app comparison is paused, finding 66). The owner decides; B04 isn't changed until then (finding 19).
+- **B04: install the golden path's extension.** Add `ms-dotnettools.upgrade-agent` (1.1.612 validated) to `vm-dev01`, keep `vscjava.migrate-java-to-azure` installed, and decide whether B04 or the attendee guide disables modernization for the workspace and allows the Upgrade server's model access (`chat.mcp.serverSampling`). Don't offer the GitHub Copilot app yet (finding 66). The owner decides; B04 isn't changed in this item.
+- **B09: what the app needs from the archetype.** App settings: `Storage:BlobServiceUri`, `Storage:ContainerName` (`teaching-materials`), `ServiceBus:FullyQualifiedNamespace`, `ServiceBus:QueueName` (`notifications`), `KeyVault:VaultUri` and `APPLICATIONINSIGHTS_CONNECTION_STRING`; everything else, including `ConnectionStrings:DefaultConnection`, comes from Key Vault, whose secret `ConnectionStrings--DefaultConnection` holds the Entra-only Managed Instance string (`Authentication=Active Directory Default`, private host name). The web app's managed identity needs Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, Key Vault Secrets User, Monitoring Metrics Publisher on Application Insights, AcrPull on the registry, and a contained database user on the Managed Instance. Image: repository `contoso-university`, base `mcr.microsoft.com/dotnet/aspnet:10.0`, port 8080. Application Insights has local authentication off.
+- **B07: Service Bus telemetry.** The Azure Monitor distro records no Service Bus dependency (finding 67), so B07's observability checks shouldn't expect one; prove messaging with a send and receive.
 - **B10: a simpler execution routine.** The `modernize` execution routine wasn't reliable across tasks in run 1: sub-agent depth, stale trackers, the agent blocking on its own handoff record, and a lost scenario after reloads (findings 28, 32, 37, 38 and 39): delegation blocked 3 of 5 tasks. Weigh running each task from `tasks.json` with a direct "work directly, don't delegate" prompt to `modernize` (default Agent as the fallback), after runs 1 and 2: in run 1 that route worked first time for task 005 (finding 40).
+- **B11 attendee guides: the golden path.** Write the guides around [The golden path](#the-golden-path): its stack, sequence, per-task checks and hot-spot table.
 - **B11 attendee guides: the right harness per tool and step.** In VS Code, the Upgrade agent plans in either harness but runs tasks only in **Local** (with model access for the Upgrade MCP server), so use **Local** for the whole run; prompt files need **Local** too (findings 48, 51 and 67). Also cover `ASPNETCORE_ENVIRONMENT=Development` for local runs, and the missing Service Bus dependency in Application Insights (finding 67). The GitHub Copilot app has no such split: one session, switching only the model (finding 61).
 - **B10 and B11: start from a clean tree.** Before a fresh start or a lifeline checkout, `git clean -ndx -- app .github` then `-fdx`: leftover plans, skills and build output survive `git switch` and steer the agents (finding 47).
 - **B10 playbook: run the app after every task.** `dotnet run` locally and open a page before committing, because the agents' validations never start the app: the OpenTelemetry task passed its validation and then crashed at startup (finding 43), and the Service Bus receive path failed silently (finding 36).
@@ -180,5 +264,3 @@ Note: the owner's hand-run assessment from 2026-09-24 was lost with the old clon
 - **B10 lifelines: cut them at task boundaries that work end to end.** Between tasks 001 and 004 notifications are in memory only (finding 34).
 - **B10 and B11: the agent's per-task branches.** The playbook and guides must say to commit and push after every task and to bring `appmod/*` branches back to the working branch (finding 29).
 - **B11 attendee guides:** sign in on `vm-dev01` with device code flows (`az login --use-device-code`, `gh auth login --web` with the code at `github.com/login/device`), completed on the attendee's own device, and say that some tenants block device code flow with Conditional Access. After `az login`, the attendee picks their own workload subscription (the one that holds `rg-datacenter`) in the subscription picker and checks it with `az account show --query name -o tsv`; guides never hard-code a subscription. Right after `gh auth login`, set the git identity from the GitHub account with the no-reply email (`<id>+<login>@users.noreply.github.com`) and run `gh auth setup-git`, because a fresh VM user has no git identity and the first commit fails with `Author identity unknown`. Run C3 as a custom assessment targeting App Service for Linux (containers), with the options in protocol v2 step 2.2. Before each dashboard button that starts a chat, check the agent and model in the Chat panel pickers, because the button uses whatever is selected.
-
-The rest is pending the runs.

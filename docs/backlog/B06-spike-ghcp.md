@@ -60,7 +60,7 @@
 
 9. Push this item's working branch with the protocol, and put the commit SHA in the protocol for run 1. 🧑 HUMAN: the owner does run 1 following the protocol, fills in `run1.md` and pushes `spike/b06-run1`.
 10. Between runs, update the protocol on the working branch with a refined sequence and prompts that avoid run 1's problems. Mark what changed, push, and record the new commit SHA for run 2.
-11. 🧑 HUMAN: the owner does run 2 from a fresh branch off that commit, fills in `run2.md` and pushes `spike/b06-run2`.
+11. 🧑 HUMAN: the owner does run 2 from a fresh branch off that commit, fills in `run2.md` and pushes `spike/b06-run2`. *(Owner-approved deviation, 2026-10-02: run 2 is skipped. The golden path is the v3 rerun of requirement 11a (`spike/b06-upgrade-compare-v3`, GitHub Copilot upgrade in the Local harness), so `run2.md` stays a blank template and `spike/b06-run2` isn't created. Run 2's protocol and `prompts/run2-modernize-plan.md` stay as reference for B10.)*
 
 ### Compare the upgrade agents
 
@@ -86,7 +86,7 @@
     - model observations per phase, dated;
     - Copilot CLI differences, if tried;
     - recommendations for B09 (what the app needs from the archetype: settings, roles, queue and container names) and B10 (skills, instructions, lifeline points).
-14. Result: ✅ if run 2 reached a packaged image with every check passing and no step needing more than small manual fixes; ⚠️ if it got there with larger interventions that a skill can cover; ❌ if not.
+14. Result: ✅ if run 2 reached a packaged image with every check passing and no step needing more than small manual fixes; ⚠️ if it got there with larger interventions that a skill can cover; ❌ if not. *(Owner-approved deviation, 2026-10-02: with run 2 skipped, the result is judged on run 1, requirement 11a and its v3 rerun.)*
 
 ### Teardown
 
@@ -109,14 +109,14 @@ az group exists -n rg-spike-b06
 npm run check
 ```
 
-- Lint is clean. Both run branches exist. `az group exists` prints `false` after teardown.
+- Lint is clean. Both run branches exist. `az group exists` prints `false` after teardown. *(Owner-approved deviation, 2026-10-02: run 2 is skipped, so the run branches are `spike/b06-run1`, `spike/b06-upgrade-compare` and `spike/b06-upgrade-compare-v3`.)*
 
 ## Done when
 
-- [ ] Both runs are recorded, and every check in requirement 12 is recorded per run.
-- [ ] The report gives B10 a sequence, prompts and hot-spot list it can build on.
-- [ ] The end-to-end upgrade-agent comparison is recorded stage by stage in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
-- [ ] The Copilot app comparison is recorded stage by stage in `compare-upgrade-app.md`, with the three-way side-by-side, and the report's recommendation covers the extensions or plugins and the host (requirement 11b). *Paused 2026-10-01: met by recording the pause and its reason in `compare-upgrade-app.md` and the report.*
+- [x] Both runs are recorded, and every check in requirement 12 is recorded per run. *(Owner-approved deviation, 2026-10-02: run 2 skipped; run 1, 11a and the v3 rerun are recorded with every requirement 12 check.)*
+- [x] The report gives B10 a sequence, prompts and hot-spot list it can build on.
+- [x] The end-to-end upgrade-agent comparison is recorded stage by stage in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
+- [x] The Copilot app comparison is recorded stage by stage in `compare-upgrade-app.md`, with the three-way side-by-side, and the report's recommendation covers the extensions or plugins and the host (requirement 11b). *Paused 2026-10-01: met by recording the pause and its reason in `compare-upgrade-app.md` and the report.*
 - [ ] Spike resources are deleted, and the datacenter is still deployed.
 
 ## Commit message
