@@ -179,7 +179,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "vending-$([guid]:
         budgetStartDate = @{ value = $budgetStart }
         connectDatacenter = @{ value = $connectDatacenter }
     }
-} | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM
+} | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
 
 $deploymentArgs = @('--management-group-id', $tenantId, '--name', "vending-$MgPrefix-$MemberIndex", '--location', $Location,
     '--template-file', $template, '--parameters', "@$parametersFile")
@@ -194,7 +194,7 @@ try {
     $null = Invoke-AzureCli -Arguments (@('deployment', 'mg', 'create') + $deploymentArgs)
 }
 finally {
-    Remove-Item -Path $parametersFile -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path $parametersFile -Force -ErrorAction SilentlyContinue -WhatIf:$false
 }
 
 # Policy evaluation lags a subscription move: start a scan now rather than wait for the next cycle.

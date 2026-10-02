@@ -110,7 +110,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "alz-lite-$([guid]
         sharedSubscriptionId = @{ value = $SharedSubscriptionId }
         additionalAllowedLocations = @{ value = @($AdditionalAllowedLocation) }
     }
-} | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM
+} | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
 
 $deploymentArgs = @('--management-group-id', $tenantId, '--name', "alz-lite-$MgPrefix", '--location', $Location,
     '--template-file', $template, '--parameters', "@$parametersFile")
@@ -125,7 +125,7 @@ try {
     $deployment = Invoke-AzureCli -Arguments (@('deployment', 'mg', 'create') + $deploymentArgs)
 }
 finally {
-    Remove-Item -Path $parametersFile -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path $parametersFile -Force -ErrorAction SilentlyContinue -WhatIf:$false
 }
 
 $elapsed = (Get-Date) - $started
