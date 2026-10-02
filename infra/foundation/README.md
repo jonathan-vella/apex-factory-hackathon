@@ -113,7 +113,7 @@ What it deploys:
 |---|---|
 | Tenant | The workload subscription moved into `mg-factory-corp` |
 | `rg-spoke` | `vnet-spoke` `10.20.n.0/24` with DNS `afw-hub`; `snet-app` `10.20.n.0/26` (delegated to `Microsoft.Web/serverFarms`, `rt-app`); `snet-pe` `10.20.n.64/26` (`rt-pe`); `snet-sqlmi` `10.20.n.128/26` (delegated to `Microsoft.Sql/managedInstances`, `nsg-sqlmi`, `rt-sqlmi`); peering `peer-spoke-to-hub` |
-| `nsg-sqlmi` | MI link rules from the B07 report: inbound TCP 5022 and 11000–11999 from `10.10.n.4`; outbound TCP 5022 to `10.10.n.4`. MI adds its own rules; the kit's rules are child resources so they coexist. Diagnostics to `log-management` |
+| `nsg-sqlmi`, `rt-sqlmi` | Created once, empty: a PUT without the rules and routes that SQL MI's network intent policy adds would remove them (B08 validation), so re-runs leave both alone. The kit's rules and route are child resources. `nsg-sqlmi`: MI link rules from the B07 report, inbound TCP 5022 and 11000–11999 from `10.10.n.4`, outbound TCP 5022 to `10.10.n.4`; diagnostics to `log-management` |
 | `rg-datacenter` | Peering `peer-datacenter-to-hub`; `rt-servers` on `snet-servers`; `vnet-datacenter` DNS set to `afw-hub` (after the peering) |
 | `rg-hub` | Peerings `peer-hub-to-spoke-n` and `peer-hub-to-datacenter-n`; rule collection group `rcg-member-n` in `afwp-hub` |
 | Workload subscription | Owner for the member; budget `budget-factory-workload`; Defender for Cloud on Foundational CSPM only (unless `-SkipDefender`) |

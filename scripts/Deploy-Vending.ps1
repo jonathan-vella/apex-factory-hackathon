@@ -137,6 +137,10 @@ $firewallPolicyId = $firewall.properties.firewallPolicy.id
 
 $datacenterVnet = Get-OptionalResource -Arguments @('network', 'vnet', 'show', '--subscription', $WorkloadSubscriptionId, '-g', 'rg-datacenter', '-n', 'vnet-datacenter')
 $connectDatacenter = [bool] $datacenterVnet
+# Re-runs leave nsg-sqlmi and rt-sqlmi alone: a PUT would remove the rules and routes SQL MI adds.
+$miNsg = Get-OptionalResource -Arguments @('network', 'nsg', 'show', '--subscription', $WorkloadSubscriptionId, '-g', 'rg-spoke', '-n', 'nsg-sqlmi')
+$miRouteTable = Get-OptionalResource -Arguments @('network', 'route-table', 'show', '--subscription', $WorkloadSubscriptionId, '-g', 'rg-spoke', '-n', 'rt-sqlmi')
+$miNetworkExists = [bool] ($miNsg -and $miRouteTable)
 
 # A budget's start date can't change: keep the existing one on re-runs.
 $budgetUri = "https://management.azure.com/subscriptions/$WorkloadSubscriptionId/providers/Microsoft.Consumption/budgets/${budgetName}?api-version=2024-08-01"
@@ -183,6 +187,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "vending-$([guid]:
         budgetEmail = @{ value = $BudgetEmail }
         budgetStartDate = @{ value = $budgetStart }
         connectDatacenter = @{ value = $connectDatacenter }
+        miNetworkExists = @{ value = $miNetworkExists }
         setDefenderFoundationalOnly = @{ value = -not $SkipDefender.IsPresent }
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false

@@ -109,3 +109,49 @@ The exemptions expire on 2026-10-16. Extend them with this script and a new -Exp
 | Storage account with public network access, in `rg-spoke` | ⚠️ Not denied, environment-specific: the build tenant's `MCAPSGovDeployPolicies` Modify policy ("SFI - Disable public network access on Storage accounts") sets `publicNetworkAccess` to `Disabled` before Deny is evaluated, so the account is created private. `alzl-deny-pna-storage` (Deny, enforced) never sees a public request. In a tenant without that Modify policy, the deny applies |
 | Container registry (Premium) with public network access, in `rg-spoke` (supplementary deny check) | ✅ Denied by `alzl-deny-pna-acr` (`RequestDisallowedByPolicy`) |
 | NIC with a public IP, in `snet-pe` | ✅ Denied by `alzl-deny-nic-pip` (`RequestDisallowedByPolicy`) |
+| Private endpoint without a DNS zone group (`pe-stuniversity<suffix>n1-blob`, Blob, in `snet-pe`, created 16:40) | ✅ `alzl-dns-blob` added a zone group pointing at `privatelink.blob.core.windows.net` in `rg-hub` after about 12 minutes |
+
+## Probes (requirement 19)
+
+`Test-Connectivity.ps1` after vending and the VM restarts, with the negative test's private endpoint in `snet-pe` (2 minutes). No SQL MI yet, so the MI checks from `vm-app01` were skipped and said so. `vm-app01` isn't Arc-enabled here, so it ran through a VM run command.
+
+```text
+No SQL MI in snet-sqlmi yet (the archetype adds it): skipping the MI checks from vm-app01.
+
+Check                                                                      Status Detail
+azure: datacenter peered with the hub                                      PASS   Connected
+azure: spoke peered with the hub                                           PASS   Connected
+azure: vnet-datacenter DNS is the hub firewall                             PASS   1 DNS server(s)
+azure: vnet-spoke DNS is the hub firewall                                  PASS   1 DNS server(s)
+azure: snet-servers egress on the NAT gateway                              PASS   NAT gateway attached, default route none
+azure: snet-servers sends the spoke to the firewall                        PASS   1 route(s)
+azure: privatelink.blob.core.windows.net linked to vnet-hub                PASS   Completed
+azure: privatelink.servicebus.windows.net linked to vnet-hub               PASS   Completed
+azure: privatelink.azurecr.io linked to vnet-hub                           PASS   Completed
+azure: privatelink.vaultcore.azure.net linked to vnet-hub                  PASS   Completed
+vm-dev01: DNS server is the hub firewall                                   PASS   configured
+vm-dev01: hub DNS proxy answers for privatelink.blob.core.windows.net      PASS   SOA azureprivatedns.net from the firewall
+vm-dev01: hub DNS proxy answers for privatelink.servicebus.windows.net     PASS   SOA azureprivatedns.net from the firewall
+vm-dev01: hub DNS proxy answers for privatelink.azurecr.io                 PASS   SOA azureprivatedns.net from the firewall
+vm-dev01: hub DNS proxy answers for privatelink.vaultcore.azure.net        PASS   SOA azureprivatedns.net from the firewall
+vm-dev01: stuniversity<suffix>n1.blob.core.windows.net resolves into snet-pe PASS   1 address(es), 1 in snet-pe
+vm-dev01: stuniversity<suffix>n1.blob.core.windows.net answers on 443        PASS   connected
+vm-dev01: vm-app01 answers on 80                                           PASS   connected
+vm-dev01: vm-app01 answers on 1433                                         PASS   connected
+vm-dev01: internet egress (NAT gateway)                                    PASS   HTTPS 200
+vm-app01: DNS server is the hub firewall                                   PASS   configured
+vm-app01: hub DNS proxy answers for privatelink.blob.core.windows.net      PASS   SOA azureprivatedns.net from the firewall
+vm-app01: hub DNS proxy answers for privatelink.servicebus.windows.net     PASS   SOA azureprivatedns.net from the firewall
+vm-app01: hub DNS proxy answers for privatelink.azurecr.io                 PASS   SOA azureprivatedns.net from the firewall
+vm-app01: hub DNS proxy answers for privatelink.vaultcore.azure.net        PASS   SOA azureprivatedns.net from the firewall
+
+PASS: all 25 checks passed.
+```
+
+An earlier run, right after the VM restarts, failed only "vm-app01 answers on 1433" (SQL Server was still starting): 22 of 23.
+
+## Vending re-run (requirement 8)
+
+The first re-run what-if showed `rt-sqlmi` being PUT without its routes. A test with a throwaway route table in `rg-spoke` confirmed that a route table PUT without `routes` **removes** its existing routes, so a re-run after SQL MI exists would have removed the routes MI's network intent policy adds (B07's warning). Vending now creates `nsg-sqlmi` and `rt-sqlmi` only once, empty, and manages only its own child rules and route; it also pins `privateEndpointNetworkPolicies` on the spoke subnets.
+
+After the fix, the re-run what-if shows 10 modifies, all what-if noise (read-only defaults such as `ipv6Rule`, `peeringSyncLevel`, the budget's date format, and unevaluated references), 12 no change, nothing deleted. Applied for real (2 minutes, 17:01–17:04): `rt-sqlmi` still has its route, `nsg-sqlmi` its two rules, and `vnet-datacenter` its 2 subnets, its peering and the firewall as DNS server; `snet-servers` keeps its NAT gateway, NSG, `rt-servers` and `privateEndpointNetworkPolicies: Disabled`.

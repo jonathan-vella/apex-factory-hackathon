@@ -6,6 +6,9 @@ param hubVnetId string
 param firewallPrivateIp string
 param logAnalyticsWorkspaceId string
 
+@description('nsg-sqlmi and rt-sqlmi already exist: leave them, and their MI-added rules and routes, alone.')
+param miNetworkExists bool
+
 var vnetPrefix = '10.20.${memberIndex}.0/24'
 var appPrefix = '10.20.${memberIndex}.0/26'
 var pePrefix = '10.20.${memberIndex}.64/26'
@@ -13,11 +16,17 @@ var miPrefix = '10.20.${memberIndex}.128/26'
 var datacenterPrefix = '10.10.${memberIndex}.0/24'
 var sqlServerIp = '10.10.${memberIndex}.4'
 
-// SQL MI adds its own rules and routes (network intent policy), so nsg-sqlmi and rt-sqlmi list
-// none inline: the kit's rules and routes are child resources.
-resource miNsg 'Microsoft.Network/networkSecurityGroups@2025-09-01' = {
+// SQL MI adds its own rules and routes (network intent policy). A PUT of nsg-sqlmi or rt-sqlmi would
+// remove them, so they're created once, empty, and the kit's rules and routes are child resources.
+module miNetwork 'sqlmi-network.bicep' = if (!miNetworkExists) {
+  name: 'vending-sqlmi-network-${memberIndex}'
+  params: {
+    location: location
+  }
+}
+
+resource miNsg 'Microsoft.Network/networkSecurityGroups@2025-09-01' existing = {
   name: 'nsg-sqlmi'
-  location: location
 }
 
 // MI link, from the B07 report: 5022 and 11000-11999 in from vm-app01, 5022 out to it.
@@ -37,6 +46,9 @@ resource miLinkInbound 'Microsoft.Network/networkSecurityGroups/securityRules@20
       '11000-11999'
     ]
   }
+  dependsOn: [
+    miNetwork
+  ]
 }
 
 resource miLinkOutbound 'Microsoft.Network/networkSecurityGroups/securityRules@2025-09-01' = {
@@ -69,6 +81,9 @@ resource miNsgDiagnostics 'Microsoft.Insights/diagnosticSettings@2021-05-01-prev
       }
     ]
   }
+  dependsOn: [
+    miNetwork
+  ]
 }
 
 resource appRouteTable 'Microsoft.Network/routeTables@2025-09-01' = {
@@ -106,12 +121,8 @@ resource peRouteTable 'Microsoft.Network/routeTables@2025-09-01' = {
 }
 
 // Only the datacenter range goes to the firewall; MI keeps its own routes, including internet.
-resource miRouteTable 'Microsoft.Network/routeTables@2025-09-01' = {
+resource miRouteTable 'Microsoft.Network/routeTables@2025-09-01' existing = {
   name: 'rt-sqlmi'
-  location: location
-  properties: {
-    disableBgpRoutePropagation: false
-  }
 }
 
 resource miRouteToDatacenter 'Microsoft.Network/routeTables/routes@2025-09-01' = {
@@ -122,6 +133,9 @@ resource miRouteToDatacenter 'Microsoft.Network/routeTables/routes@2025-09-01' =
     nextHopType: 'VirtualAppliance'
     nextHopIpAddress: firewallPrivateIp
   }
+  dependsOn: [
+    miNetwork
+  ]
 }
 
 resource vnet 'Microsoft.Network/virtualNetworks@2025-09-01' = {
@@ -148,6 +162,7 @@ resource appSubnet 'Microsoft.Network/virtualNetworks/subnets@2025-09-01' = {
   properties: {
     addressPrefix: appPrefix
     defaultOutboundAccess: false
+    privateEndpointNetworkPolicies: 'Disabled'
     routeTable: {
       id: appRouteTable.id
     }
@@ -168,6 +183,7 @@ resource peSubnet 'Microsoft.Network/virtualNetworks/subnets@2025-09-01' = {
   properties: {
     addressPrefix: pePrefix
     defaultOutboundAccess: false
+    privateEndpointNetworkPolicies: 'Disabled'
     routeTable: {
       id: peRouteTable.id
     }
@@ -183,6 +199,7 @@ resource miSubnet 'Microsoft.Network/virtualNetworks/subnets@2025-09-01' = {
   properties: {
     addressPrefix: miPrefix
     defaultOutboundAccess: false
+    privateEndpointNetworkPolicies: 'Disabled'
     networkSecurityGroup: {
       id: miNsg.id
     }

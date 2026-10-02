@@ -59,6 +59,9 @@ param connectDatacenter bool = false
 @description('Microsoft Defender for Cloud on Foundational CSPM only: every paid plan off.')
 param setDefenderFoundationalOnly bool = true
 
+@description('nsg-sqlmi and rt-sqlmi already exist in rg-spoke (a re-run): leave them, and the rules and routes SQL MI adds, alone.')
+param miNetworkExists bool = false
+
 var hubVnetParts = split(hubVnetId, '/')
 var hubResourceGroup = hubVnetParts[4]
 var hubVnetName = hubVnetParts[8]
@@ -88,6 +91,7 @@ module workload 'modules/workload-subscription.bicep' = {
     budgetEmail: budgetEmail
     budgetStartDate: budgetStartDate
     setDefenderFoundationalOnly: setDefenderFoundationalOnly
+    miNetworkExists: miNetworkExists
   }
   dependsOn: [
     workloadPlacement

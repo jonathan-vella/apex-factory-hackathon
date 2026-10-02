@@ -12,6 +12,7 @@ param budgetAmount int
 param budgetEmail string
 param budgetStartDate string
 param setDefenderFoundationalOnly bool
+param miNetworkExists bool
 
 var ownerRole = '8e3af657-a8ff-443c-a75c-2fe8c4bcb635'
 
@@ -29,6 +30,7 @@ module spoke 'spoke.bicep' = {
     hubVnetId: hubVnetId
     firewallPrivateIp: firewallPrivateIp
     logAnalyticsWorkspaceId: logAnalyticsWorkspaceId
+    miNetworkExists: miNetworkExists
   }
 }
 

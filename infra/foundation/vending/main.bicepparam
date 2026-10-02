@@ -17,3 +17,4 @@ param budgetAmount = 500
 param budgetEmail = 'platform-lead@example.com'
 param connectDatacenter = false
 param setDefenderFoundationalOnly = true
+param miNetworkExists = false
