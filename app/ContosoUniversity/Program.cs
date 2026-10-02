@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Azure.Security.KeyVault.Secrets;
 using ContosoUniversity.Data;
 using ContosoUniversity.Services;
@@ -40,6 +41,21 @@ else if (!builder.Environment.IsDevelopment())
 {
     throw new InvalidOperationException(
         "KeyVault:VaultUri is not configured. Outside Development set it (for example via the KeyVault__VaultUri app setting).");
+}
+
+// Telemetry is opt-in: with no connection string the built-in console logging applies. Ingestion uses Entra auth (local auth is disabled).
+if (!string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"])
+    || !string.IsNullOrWhiteSpace(builder.Configuration["ApplicationInsights:ConnectionString"]))
+{
+    builder.Services.AddOpenTelemetry().UseAzureMonitor(o =>
+    {
+        var configured = builder.Configuration["ApplicationInsights:ConnectionString"];
+        if (!string.IsNullOrWhiteSpace(configured))
+        {
+            o.ConnectionString = configured;
+        }
+        o.Credential = new DefaultAzureCredential();
+    });
 }
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

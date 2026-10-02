@@ -1,5 +1,7 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Services;
 using ContosoUniversity.Models;
 using ContosoUniversity.Data;
@@ -32,7 +34,8 @@ namespace ContosoUniversity.Controllers
             catch (Exception ex)
             {
                 // Log the error but don't break the main operation
-                System.Diagnostics.Debug.WriteLine($"Failed to send notification: {ex.Message}");
+                HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(GetType())
+                    .LogError(ex, "Failed to send {EntityType} notification for {EntityId}", entityType, entityId);
             }
         }
     }
