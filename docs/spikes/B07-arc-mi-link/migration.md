@@ -60,8 +60,8 @@ The go/no-go check fails, so the cutover is called off and re-planned:
 ## 6. Cut over
 
 1. Wait for **Ready for cutover** and no lag. Stop writes to the source: stop the `ContosoUniversity` site in IIS on `vm-app01`.
-2. **Monitor and cutover** > select `ContosoUniversity` > **Cutover**. Choose the option that **removes the link**: SQL Server 2022 also offers to keep it for a reverse migration, but for a migration removing it is the recommended option.
-3. Check the MI database is read-write (`SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability')` returns `READ_WRITE`).
+2. **Monitor and cutover** > select `ContosoUniversity` > **Complete cutover**. Tick "I confirm that I have stopped all incoming traffic to the source database". Leave "I want to do a forced failover" **unticked**: a planned failover waits for the lag to reach 0 seconds, and a forced one can lose data. Select **Complete cutover**. The portal offers no choice to keep the link; it removes it.
+3. Check the MI database is read-write (`SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability')` returns `READ_WRITE`). The source stays read-write too, with no link: keep the app stopped on the source until it points at the MI.
 4. Before anything restarts the MI, check that it has taken its first full backup of the database (`msdb.dbo.backupset`, `type = 'D'`). Dropping the link before that backup can leave the database unavailable after a restart.
 5. Smoke test from `vm-dev01`: `db/perf-kit/Start-Workload.ps1 -Server <mi-host-name> -Authentication ActiveDirectoryDefault -DurationMinutes 5` against the MI.
 6. Once the link is removed and no failback is planned, remove the MI link startup trace flags `-T1800` and `-T9567` from the source (SQL Server Configuration Manager > SQL Server service > **Startup Parameters**, then restart SQL Server). They're why the assessment warns "Trace flags not supported in Azure SQL Managed Instance": source-side only, not needed on the MI, not a blocker.

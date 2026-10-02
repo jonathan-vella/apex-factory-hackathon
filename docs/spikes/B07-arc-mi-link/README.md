@@ -137,6 +137,11 @@ Times are UTC+2.
 | Link 1: seeding | Under 1 min: database Online on the MI at 13:15:29 | 200 MB data, compressed seeding (`-T9567`). `LinkSynchronizing`, `HEALTHY`, lag 0 at 13:17 |
 | Replica validation from `vm-dev01` | 13:18–13:20 | Identical (see [Replica check](#replica-check-requirement-21)) |
 | Abort: **Cancel migration** to link gone | About 13:26 to 13:26:23 | Owner: "super straightforward". The pane's labels, and the status and lag before cancelling, weren't captured |
+| Delete the leftover MI database (owner-approved) | 20 s (13:32:06–13:32:26) | |
+| Link 2: **Start data migration** to link visible | About 13:40 to 13:45:38, about 6 min | Same flow, no warnings |
+| Link 2: reseeding | Under 30 s: `LinkInitialSeeding` 13:45:38, `LinkSynchronizing` 13:46:03 | Replica re-validated, identical |
+| Cutover: **Complete cutover** to complete | About 2 min (13:56–13:58); link gone at 13:58:03 | "Forced failover" was ticked; lag 0 and no traffic, no data loss (finding 13) |
+| First full backup on the MI after failover | Finished 14:02:25, 4 min after cutover | Safe to restart or stop the MI from then on |
 
 ## Findings
 
@@ -151,6 +156,9 @@ Times are UTC+2.
 9. **The assessment's only warning is self-inflicted: "Trace flags not supported in Azure SQL Managed Instance"** (owner, 2026-10-02), for trace flags `1800` and `9567`. B04 sets them on the source for MI link ([Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation): `1800` for disks with different sector sizes, `9567` to compress automatic seeding). They're source-side only, aren't needed on the MI and don't block the migration. Remove them from the source after the link is removed ([migration.md](migration.md#6-cut-over), step 6). B11's C3 has attendees triage it.
 10. **Cancelling the migration leaves a read-write copy on the MI.** After **Cancel migration**, `ContosoUniversity` stays on the MI, `ONLINE` and `READ_WRITE`, and no longer receives changes. For the Day 2 curveball this means: the app must stay pointed at the source, nobody should write to the MI copy, and the copy has to be deleted (`az sql midb delete`) before the link is recreated.
 11. **Certificates are handled for you.** Before creating the link, the portal uploaded SQL Server's endpoint certificate to the MI as a server trust certificate, and the extension created the source's endpoint certificate `Cert_vm-app01_endpoint` (valid one year) and the mirroring endpoint on 5022. The only manual certificate step is importing the Azure root CAs on the source so it trusts the MI's certificate, which the kit's source prep does.
+12. **The portal's cutover has no "keep the link" choice.** **Monitor and cutover** (toolbar: **Complete cutover**, **Cancel migration**, **Delete migration**, **View logs**, **Refresh**) opens a **Complete cutover** pane that fails `ContosoUniversity` over to the MI "once the lag becomes 0 seconds". It has two checkboxes: "I confirm that I have stopped all incoming traffic to the source database" and "I want to do a forced failover" (with "If lag is more than 0, a forced failover may lead to data loss"). The SQL Server 2022 option to keep the link for a reverse migration, which the docs describe, isn't offered (owner's screenshot, 13:55).
+13. **The cutover ran as a forced failover, and nothing was lost.** The owner ticked "I want to do a forced failover". With lag 0 and no traffic, row counts, maximum identities and `CHECKSUM_AGG(BINARY_CHECKSUM(*))` matched on all 7 tables afterwards. The portal then removed the link: on the MI, `ContosoUniversity` is `ONLINE`, `READ_WRITE` and primary, with no availability group. Attendees should leave forced failover unticked and cut over only at lag 0.
+14. **After cutover the source stays writable.** On `vm-app01`, `ContosoUniversity` is still `ONLINE` and `READ_WRITE`, with no availability group: two writable copies. Until the app moves to the MI, writes to the source are lost to the migration, so the cutover runbook has to stop the app (and the source database, or set it read-only) first.
 
 ## Decisions
 
@@ -169,3 +177,4 @@ In progress.
 - **B11 (C7): the abort leaves a writable copy on the MI** (finding 10). The attendee page must say to delete the MI copy (or at least never use it) before retrying the link, and never to point the app at it.
 - **B11 (C3): the trace flag warning** (finding 9). Attendees triage "Trace flags not supported in Azure SQL Managed Instance" as expected and remove `-T1800` and `-T9567` from the source after cutover (owner added it to B11's C3).
 - **B11 (C0) and B12: the assessment's region** (finding 8). Tell attendees to set **Assessment settings** to their region before reading the cost estimate.
+- **B11 (C7): the cutover pane** (findings 12–14). Leave "I want to do a forced failover" unticked unless the portal requires it, and cut over only at lag 0. Stop the app and writes to the source first, because the source stays writable after cutover. There's no "keep the link" option in the portal.
