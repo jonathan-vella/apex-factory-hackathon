@@ -19,3 +19,13 @@ Deployed settings, checked with `az`:
 - Key Vault: RBAC authorization, public network access `Disabled`, soft delete on, purge protection off.
 - Private DNS zones: all four in `rg-spike-b06`, each with one link to `vnet-datacenter`. All four private endpoints are `Approved`.
 - Owner roles: Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, AcrPush, Key Vault Secrets Officer.
+
+## Telemetry redeploy (2026-09-28)
+
+Incremental `az deployment group create -g rg-spike-b06 -n spike-b06` from `94c2f69`, owner-approved, 08:58–09:00 (UTC+2), 1.8 minutes, `Succeeded`. Checked with read-only `az` afterwards:
+
+- Application Insights `appi-uni-<suffix>-b06`: `DisableLocalAuth` true; workspace-based (`IngestionMode` `LogAnalytics`) on `log-uni-<suffix>-b06`; public ingestion enabled, the kit's documented exception.
+- Log Analytics `log-uni-<suffix>-b06`: PerGB2018, 30-day retention.
+- The owner has Monitoring Metrics Publisher on Application Insights.
+- Unchanged: storage, Service Bus, the registry and Key Vault settings, the four private endpoints (all `Approved`) and the owner's other data roles.
+- `rg-spike-b06` also holds an Event Grid system topic for the storage account that Azure created by itself; the template doesn't manage it, and teardown removes it with the resource group.

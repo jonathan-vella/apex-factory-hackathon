@@ -7,7 +7,7 @@
 | Depends on | B04 |
 | Unblocks | B07, B09, B10 |
 | Effort | 2–3 days elapsed, including two owner-driven runs of about 3–4 hours each |
-| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.55/hour |
+| Cost | Spike resources about $1.05/hour (Service Bus Premium 1 MU about $0.93, ACR Premium about $0.07, 4 private endpoints about $0.04; Log Analytics and Application Insights bill per GB ingested, about $2.99/GB after the first 5 GB a month, so effectively $0 at spike volume; 🔎 VERIFY the Service Bus price on the [pricing page](https://azure.microsoft.com/pricing/details/service-bus/)), plus the datacenter at about $1.55/hour. Requirement 11b adds about 4 hours of both, about $2.60/hour, so about $10; its restart as attempt 2 adds about another 4 hours, about $10. The 11a rerun (owner request, 2026-10-01) keeps the spike resources running, about $1.05/hour, for its duration |
 | Teardown | Delete `rg-spike-b06` and `snet-pe-spike` at the end. **Keep** `rg-datacenter` for B07 |
 | PRD | §5 C3, C6; §6 App modernization; §8 GHCP risk |
 
@@ -35,9 +35,11 @@
    | Service Bus namespace | `sbns-uni-<suffix>-b06` | Premium, 1 messaging unit; queue `notifications`; public network access off; local (SAS) auth off; no zone setting (zone-redundant automatically, backlog conventions) |
    | Container registry | `cruni<suffix>b06` | Premium; public network access off; admin user off; no zone setting (zone-redundant automatically, backlog conventions) |
    | Key Vault | `kv-uni-<suffix>-b06` | RBAC authorization; public network access off; soft delete on, purge protection off (so teardown can purge) |
+   | Log Analytics workspace | `log-uni-<suffix>-b06` | PerGB2018; 30-day retention *(owner-approved addition, 2026-09-25)* |
+   | Application Insights | `appi-uni-<suffix>-b06` | Workspace-based on `log-uni-<suffix>-b06`; local authentication off (`DisableLocalAuth`), so ingestion needs Entra; ingestion stays public, the kit's documented exception *(owner-approved addition, 2026-09-25)* |
 
 2. Private endpoints for all four, in a new subnet `snet-pe-spike` (`10.10.n.128/27`) of `vnet-datacenter`, with the private DNS zones `privatelink.blob.core.windows.net`, `privatelink.servicebus.windows.net`, `privatelink.azurecr.io` and `privatelink.vaultcore.azure.net` in `rg-spike-b06`, linked to `vnet-datacenter`.
-3. The owner's account gets Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, AcrPush, and Key Vault Secrets Officer on the matching resources.
+3. The owner's account gets Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, AcrPush, Key Vault Secrets Officer, and Monitoring Metrics Publisher (on Application Insights, so local runs can send telemetry with Entra) on the matching resources.
 4. From `vm-dev01`, each service's hostname resolves to a private IP in `snet-pe-spike`, and TCP 443 connects (5671 too for Service Bus). Check this with a run command before handing over to the owner.
 
 ### Protocol for the owner
@@ -58,11 +60,13 @@
 
 9. Push this item's working branch with the protocol, and put the commit SHA in the protocol for run 1. 🧑 HUMAN: the owner does run 1 following the protocol, fills in `run1.md` and pushes `spike/b06-run1`.
 10. Between runs, update the protocol on the working branch with a refined sequence and prompts that avoid run 1's problems. Mark what changed, push, and record the new commit SHA for run 2.
-11. 🧑 HUMAN: the owner does run 2 from a fresh branch off that commit, fills in `run2.md` and pushes `spike/b06-run2`.
+11. 🧑 HUMAN: the owner does run 2 from a fresh branch off that commit, fills in `run2.md` and pushes `spike/b06-run2`. *(Owner-approved deviation, 2026-10-02: run 2 is skipped. The golden path is the v3 rerun of requirement 11a (`spike/b06-upgrade-compare-v3`, GitHub Copilot upgrade in the Local harness), so `run2.md` stays a blank template and `spike/b06-run2` isn't created. Run 2's protocol and `prompts/run2-modernize-plan.md` stay as reference for B10.)*
 
 ### Compare the upgrade agents
 
 11a. *(Owner-approved addition, 2026-09-25.)* After run 1 and before run 2, the owner does a full end-to-end run with GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, the Upgrade agent), installed by hand on `vm-dev01`, on the branch `spike/b06-upgrade-compare` from run 1's start commit: assess, plan, .NET 10 upgrade, SQL Managed Instance, Blob, Service Bus and Key Vault, with the same kit rules, configuration keys and live checks as run 1. GitHub Copilot modernization is disabled for this run by default. `compare-upgrade.md` records per stage whether the Upgrade agent covers it, time, prompts, interventions and results, compares it with run 1 stage by stage, and notes whether `modernize` behaves differently with the upgrade extension installed. The report recommends which extension or extensions the kit's dev VM should install; the owner decides, and B04's extension list isn't changed in this item.
+
+11b. *(Owner-approved addition, 2026-09-29.)* After the VS Code comparison and before run 2, the owner repeats the full comparison in the **GitHub Copilot app** on `vm-dev01`, on the branch `spike/b06-upgrade-app` from run 1's start commit. Only the host changes: the Copilot app and the `upgrade-agent@upgrade-agent-plugins` plugin from [microsoft/upgrade-agent-plugins](https://github.com/microsoft/upgrade-agent-plugins) (no modernization plugin) are installed by hand, and the run uses the same refined seven-task prompt (`prompts/compare-upgrade-plan.md`), models (GPT-6 Sol at Medium to plan, GPT-6 Luna at maximum to execute), kit rules, configuration keys and live checks. *(Owner decision, 2026-09-30.)* Attempt 1 on `spike/b06-upgrade-app` was abandoned during task 01 and is recorded as such. Attempt 2 restarts from run 1's start commit on `spike/b06-upgrade-app-v2`, with the refined prompt verbatim followed by the owner-decisions addendum `prompts/compare-upgrade-app-addendum.md`, and, as an owner-approved deviation, **Claude Opus 5.5** to assess and plan and **Claude Sonnet 5.5** to execute. The app-versus-VS Code comparison is therefore marked as not like for like on models. `compare-upgrade-app.md` records the results per stage and a three-way side-by-side (run 1 with `modernize` in VS Code, the Upgrade agent in VS Code, the Upgrade agent in the Copilot app). The report's recommendation covers which extensions or plugins and which host the dev VM should offer; the owner decides, and B04's install list isn't changed in this item. **Paused (owner decision, 2026-10-01: "drop the github copilot app for now").** The redo of attempt 2's stage 2 stopped because the Upgrade MCP server exposed no tools after the clean reinstall (`get_state` and `initialize_scenario` were still missing after the first turn; plugin 1.1.612). `spike/b06-upgrade-app-v2` stays at `37a22b6`. The Copilot app isn't recommended for attendees at this point.
 
 ### Check each run
 
@@ -82,7 +86,7 @@
     - model observations per phase, dated;
     - Copilot CLI differences, if tried;
     - recommendations for B09 (what the app needs from the archetype: settings, roles, queue and container names) and B10 (skills, instructions, lifeline points).
-14. Result: ✅ if run 2 reached a packaged image with every check passing and no step needing more than small manual fixes; ⚠️ if it got there with larger interventions that a skill can cover; ❌ if not.
+14. Result: ✅ if run 2 reached a packaged image with every check passing and no step needing more than small manual fixes; ⚠️ if it got there with larger interventions that a skill can cover; ❌ if not. *(Owner-approved deviation, 2026-10-02: with run 2 skipped, the result is judged on run 1, requirement 11a and its v3 rerun.)*
 
 ### Teardown
 
@@ -92,8 +96,9 @@
 
 - `docs/spikes/B06-ghcp-golden-path/README.md`, `protocol.md`, `run1.md`, `run2.md`, the saved assessment reports and `infra/main.bicep`.
 - `docs/spikes/B06-ghcp-golden-path/compare-upgrade.md` (requirement 11a).
-- Branches `spike/b06-run1`, `spike/b06-run2` and `spike/b06-upgrade-compare`, pushed and not merged.
-- `versions.md` rows for the VS Code app modernization extension, the .NET 10 SDK and Copilot CLI versions used.
+- `docs/spikes/B06-ghcp-golden-path/compare-upgrade-app.md` (requirement 11b).
+- Branches `spike/b06-run1`, `spike/b06-run2`, `spike/b06-upgrade-compare`, `spike/b06-upgrade-app` (requirement 11b attempt 1, abandoned) and `spike/b06-upgrade-app-v2` (attempt 2), pushed and not merged.
+- `versions.md` rows for the VS Code app modernization extension, the .NET 10 SDK and Copilot CLI versions used, and, from requirement 11b, the GitHub Copilot app and the `upgrade-agent` plugin.
 
 ## Verify
 
@@ -104,14 +109,15 @@ az group exists -n rg-spike-b06
 npm run check
 ```
 
-- Lint is clean. Both run branches exist. `az group exists` prints `false` after teardown.
+- Lint is clean. Both run branches exist. `az group exists` prints `false` after teardown. *(Owner-approved deviation, 2026-10-02: run 2 is skipped, so the run branches are `spike/b06-run1`, `spike/b06-upgrade-compare` and `spike/b06-upgrade-compare-v3`.)*
 
 ## Done when
 
-- [ ] Both runs are recorded, and every check in requirement 12 is recorded per run.
-- [ ] The report gives B10 a sequence, prompts and hot-spot list it can build on.
-- [ ] The end-to-end upgrade-agent comparison is recorded stage by stage in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
-- [ ] Spike resources are deleted, and the datacenter is still deployed.
+- [x] Both runs are recorded, and every check in requirement 12 is recorded per run. *(Owner-approved deviation, 2026-10-02: run 2 skipped; run 1, 11a and the v3 rerun are recorded with every requirement 12 check.)*
+- [x] The report gives B10 a sequence, prompts and hot-spot list it can build on.
+- [x] The end-to-end upgrade-agent comparison is recorded stage by stage in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
+- [x] The Copilot app comparison is recorded stage by stage in `compare-upgrade-app.md`, with the three-way side-by-side, and the report's recommendation covers the extensions or plugins and the host (requirement 11b). *Paused 2026-10-01: met by recording the pause and its reason in `compare-upgrade-app.md` and the report.*
+- [x] Spike resources are deleted, and the datacenter is still deployed.
 
 ## Commit message
 

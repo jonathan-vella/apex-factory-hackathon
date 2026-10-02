@@ -17,6 +17,12 @@ This manifest records the versions and source commit used by the kit. Tooling ve
 | SQL Server 2022 Developer | `16.0.4255.1` (from the `vm-app01` image) | `vm-app01` (B04) | 2026-09-24 |
 | VS Build Tools | `18.10.2`, current release, `Microsoft.VisualStudio.Workload.WebBuildTools` | `vm-dev01` (B04) | 2026-09-24 |
 | SSMS | `22.10.1` | `vm-dev01` (B04) | 2026-09-24 |
-| .NET 10 SDK | `10.0.401` | `vm-dev01` (B04) | 2026-09-24 |
+| .NET 10 SDK | `10.0.401` | `vm-dev01` (B04); B06 runs and clean-clone builds | 2026-09-24; 2026-10-02 (B06) |
 | Bicep | CLI `0.47.16` | Datacenter Bicep build, `vm-dev01` (B04) | 2026-09-24 |
 | SqlServer PowerShell module | `22.4.5.1`, latest from the PowerShell Gallery at run time (22.0 or later) | `db/perf-kit` workload and reset on `vm-dev01` (B05) | 2026-09-25 |
+| VS Code | `1.139.0` | `vm-dev01`, B06 golden path host | 2026-09-25 (recorded in B06 run 1) |
+| GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, Upgrade agent) | `1.1.612` | B06 golden path (v3 rerun), installed by hand on `vm-dev01`; B04's install list not changed yet. B06 requirement 11a used `1.1.596` (2026-09-28 to 2026-09-30) | 2026-10-02 |
+| GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | `1.24.0` | `vm-dev01` (B04); installed but disabled for the workspace in the B06 golden path. B06 run 1 used `1.24.26091501` (2026-09-25) | 2026-10-02 |
+| Golden-path models | Claude Opus 5.5 at Medium (assess and plan); Claude Sonnet 5.5 at Medium (execute) | B06 golden path, for B10 and B11 | 2026-10-02 |
+| GitHub Copilot app `upgrade-agent` plugin | `1.1.612` (marketplace `upgrade-agent-plugins`) | B06 requirement 11b, paused; not part of the golden path. The app's own version wasn't recorded | 2026-10-01 |
+| Copilot CLI | Not used | B06's optional Copilot CLI section wasn't tried | 2026-10-02 |
