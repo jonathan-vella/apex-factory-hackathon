@@ -206,8 +206,8 @@ Write-Information @"
 Done in $([int] ((Get-Date) - $started).TotalMinutes) minutes. Arc-enabled SQL Server: $($sql.name -join ', ') in $resourceGroup.
 Next steps:
   1. Check it in the portal: Azure Arc > SQL Server instances > $($sql[0].name). Edition Developer is free.
-  2. Run the Arc SQL migration assessment: open the instance > Migration > Assessment, and review the
-     result for ContosoUniversity. It can take a while to become available after onboarding.
+  2. Run the Arc SQL migration assessment: open the instance > Migration > Database migration > Assess source
+     instance > View report (Run assessment if there's no result yet), and review ContosoUniversity.
 Run commands and VM extensions don't work on $vmName any more. Use Bastion to reach it:
   ./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName $vmName
 "@

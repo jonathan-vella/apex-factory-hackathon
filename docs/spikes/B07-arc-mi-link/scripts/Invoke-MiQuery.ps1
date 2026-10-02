@@ -1,18 +1,24 @@
 <#
 .SYNOPSIS
-Runs T-SQL against the spike's SQL Managed Instance with an Entra access token, from vm-dev01.
+Runs T-SQL against the spike's SQL Managed Instance with an Entra access token, or against the source with SQL authentication, from vm-dev01.
 .DESCRIPTION
 Windows PowerShell 5.1, run as a VM run command on vm-dev01, which reaches the MI's private endpoint
 over the peering. The run command runs as SYSTEM, which has no Entra identity, so the caller passes
 its own token for https://database.windows.net/ as a protected parameter. The MI is Entra-only.
+Without a token it uses SQL authentication (-SqlUser and -SqlPassword), for the source on vm-app01,
+whose certificate is self-signed.
 
 The query is base64-encoded UTF-8 so it survives the run command's quoting. Batches are split on
 lines that hold only GO. Each result set is printed as JSON. Logs to
-C:\LabTools\logs\Invoke-MiQuery.log, without the token.
+C:\LabTools\logs\Invoke-MiQuery.log, without the token or password.
 .PARAMETER AccessToken
 An access token for https://database.windows.net/, passed as a protected parameter.
+.PARAMETER SqlUser
+A SQL login, used when there's no token.
+.PARAMETER SqlPassword
+The SQL login's password, passed as a protected parameter.
 .PARAMETER Server
-The MI's host name.
+The MI's host name, or the source's IP address.
 .PARAMETER Database
 The database to connect to.
 .PARAMETER QueryBase64
@@ -22,10 +28,15 @@ The T-SQL, base64-encoded UTF-8.
 #>
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'AccessToken',
     Justification = 'Run commands pass protected parameters as plain strings.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'SqlPassword',
+    Justification = 'Run commands pass protected parameters as plain strings.')]
+[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '',
+    Justification = 'Run commands pass protected parameters as plain strings.')]
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory)]
     [string] $AccessToken,
+    [string] $SqlUser,
+    [string] $SqlPassword,
     [Parameter(Mandatory)]
     [string] $Server,
     [string] $Database = 'master',
@@ -52,7 +63,19 @@ try {
     $query = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($QueryBase64))
     $batches = [regex]::Split($query, '(?im)^\s*GO\s*$') | Where-Object { $_.Trim() }
     $connection = New-Object System.Data.SqlClient.SqlConnection "Server=tcp:$Server,1433;Database=$Database;Encrypt=True;TrustServerCertificate=False;Connect Timeout=30;Application Name=LabTools"
-    $connection.AccessToken = $AccessToken
+    if ($AccessToken) {
+        $connection.AccessToken = $AccessToken
+    }
+    elseif ($SqlUser -and $SqlPassword) {
+        $builder = New-Object System.Data.SqlClient.SqlConnectionStringBuilder $connection.ConnectionString
+        $builder['User ID'] = $SqlUser
+        $builder['Password'] = $SqlPassword
+        $builder['TrustServerCertificate'] = $true
+        $connection.ConnectionString = $builder.ConnectionString
+    }
+    else {
+        throw 'Pass -AccessToken, or -SqlUser and -SqlPassword.'
+    }
     try {
         $connection.Open()
         Write-LabLog "Connected to $Server/$Database. Running $(@($batches).Count) batch(es)."
