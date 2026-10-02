@@ -24,19 +24,19 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | Hybrid Benefit | Azure Hybrid Benefit is on by default for every resource that supports it: Windows Server VMs, the Windows 11 dev VM (multitenant hosting rights) and SQL MI. It's documented wherever it's deployed, with how to turn it off after deployment |
 | Tenancy | 1 Entra tenant per team, with 1 shared services sub per team plus 1 workload sub per member, so team size + 1 subs |
 | Kit build | The kit is built and validated in two subscriptions (one shared services, one workload) in the owner's tenant, mirroring one team |
-| IaC | Bicep only |
+| IaC | Bicep only. Lab provisioning (datacenter, ALZ-lite, vending), policy deployment and teardowns use Bicep and the kit's scripts, never agents. Agents (GHCP, APEX) are for the CoE archetype, app modernization and DB modernization only |
 | Foundation | **ALZ-lite** Bicep only: a small management group hierarchy, the hub and central services in the shared services sub, and core policies at the Corp management group. "Vending" means placing each pre-created workload sub under Corp and applying spoke, peering, firewall rules, RBAC and budget. Full portal ALZ is a live coach demo, with no kit scripts |
 | Datacenter | Two VMs: one app server (IIS and SQL Server 2022 Developer) and one dev VM. Each member deploys it into their own workload sub by T-3. It connects to the hub via **VNet peering** (simulated ExpressRoute) |
 | Datacenter access | **Azure Bastion Standard** only, never Developer: several sessions at once, and it works across the hub peering. It needs `AzureBastionSubnet` and its own public IP, the datacenter's only other public IP besides the NAT gateway's, and it bills while deployed, even when the VMs are stopped |
 | Availability zones | Never pinned, never turned on. VMs, disks, the NAT gateway and the firewall have no zone; zone redundancy is off wherever it's optional (SQL MI, App Service), and storage is LRS. Services that are zone-redundant automatically at no extra cost and can't opt out (ACR, Service Bus, Standard public IPs) are accepted |
 | Dev environment | Windows 11 Enterprise dev VM per member, inside the datacenter. APEX runs in Codespaces or Docker |
-| App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, log4net). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a GHCP predefined task. WebForms/WCF later |
+| App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, log4net). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a task in the golden-path plan. WebForms/WCF later |
 | Messaging | MSMQ → Service Bus Premium (1 MU) with a private endpoint, deployed by the archetype |
 | Compute | App Service for Linux (containers) only. AKS is a future archetype that teams can argue for in a C4 ADR |
 | Archetype | Pre-built by the CoE with APEX (steps 1–5 done) and demoed by the event deliverer. Members only run APEX Deploy and As-Built, supplying tenant ID, subscription ID and a unique suffix |
 | Data migration | Arc portal migration with **MI link** (online, read-only replica, planned cutover). Rollback means aborting before cutover; a real failback is a bonus. Log Replay Service (LRS) is the fallback |
 | AI | AI-readiness review only. No AI services are deployed |
-| Copilot models | No model is pinned, because models and their behaviour change. Guidance by phase, dated: a balanced model (Sonnet- or Terra-class) for assessment, the most capable (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for execution |
+| Copilot models | Dated guidance from the B06 golden path, recorded in `versions.md`: Claude Opus 5.5 at Medium to assess and plan, Claude Sonnet 5.5 at Medium to execute each task. Re-validate when models change |
 | Scoring | Markdown rubric as the single source of truth (SSOT), with coach sign-off and light gamification. Team score = platform challenges + member workload points averaged across the team |
 | Home | This monorepo and its site (factory.apexops.pro), one folder per module. APEX microhack patterns are reused, not duplicated |
 | Repos | One public template repo, owner `jonathan-vella`, MIT (§7). Coach material is public, on the honor system |
