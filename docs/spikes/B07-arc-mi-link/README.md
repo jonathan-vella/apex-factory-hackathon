@@ -68,6 +68,17 @@ Result, saved in [evidence/arc-sql-assessment.json](evidence/arc-sql-assessment.
 
 The assessment's default settings price the targets in **West US**, with 3-year reserved instances and Azure Hybrid Benefit, not in the datacenter's region (finding 8).
 
+### Replica check (requirement 21)
+
+From `vm-dev01`, connected to the MI's private host name as the Entra admin (a VM run command with the owner's token), [scripts/fingerprint.sql](scripts/fingerprint.sql) returned the same row counts as the source for all 7 tables, compatibility level `110`, the three perf kit objects, and `READ_ONLY`. The link was `Secondary` on the MI, async, automatic seeding, single database, `LinkSynchronizing` and `HEALTHY`.
+
+### Abort path (requirement 22)
+
+**Cancel migration** removed the distributed availability group on both sides, without a failover. Afterwards:
+
+- **Source untouched:** a fresh fingerprint matched the baseline, `READ_WRITE`, no availability group left on SQL Server, and the app returned HTTP 200 for `/Students` from `vm-dev01`.
+- **The MI kept the database, now read-write:** `ContosoUniversity` stayed `ONLINE` on the MI and became `READ_WRITE`, a standalone copy that diverges from the source (finding 10). With owner approval, only that database was deleted (`az sql midb delete`, 13:32:06–13:32:26) before the link was recreated.
+
 ### Target MI
 
 Deployed with [infra/main.bicep](infra/main.bicep) into `rg-spike-b07`. A **paid** General Purpose MI, not the free offer (owner decision, 2026-10-02):
@@ -121,6 +132,11 @@ Times are UTC+2.
 | Kit script, attempt 2 | 7.3 min (12:42–12:49) | Staging 1 min; **Connected** after 3 min; Arc SQL Server instance after 7 min. No VM extension to remove on the fresh VM |
 | Source prep (Arc run command, Bicep) | 3 min (12:55–12:58) | Most of it is run command overhead; the script itself took 1 s |
 | Two-way network test | 3 min (12:58–13:01) | |
+| Arc migration assessment (**Run assessment**) | Under 3 min, uploaded 13:07:56 | 18 min after onboarding finished |
+| Link 1: **Start data migration** to link visible on the MI | 13:09 to 13:14:45, about 6 min | The portal uploaded the SQL Server's endpoint certificate to the MI (`serverTrustCertificates/write`, 13:14:07–13:14:24), then created the distributed availability group (13:14:25–13:15:13) |
+| Link 1: seeding | Under 1 min: database Online on the MI at 13:15:29 | 200 MB data, compressed seeding (`-T9567`). `LinkSynchronizing`, `HEALTHY`, lag 0 at 13:17 |
+| Replica validation from `vm-dev01` | 13:18–13:20 | Identical (see [Replica check](#replica-check-requirement-21)) |
+| Abort: **Cancel migration** to link gone | About 13:26 to 13:26:23 | Owner: "super straightforward". The pane's labels, and the status and lag before cancelling, weren't captured |
 
 ## Findings
 
@@ -133,6 +149,8 @@ Times are UTC+2.
 7. **Run commands on an Arc machine work as IaC.** `Microsoft.HybridCompute/machines/runCommands` (API `2025-01-13`) deploys from Bicep with `loadTextContent` and parameters, like a VM run command, so the MI link prep after onboarding needs no Bastion session. Each one takes 1–3 minutes of overhead.
 8. **The Arc migration assessment prices targets in West US by default.** Its settings (`targetLocation: West US`, 3-year RI, AHB on) aren't the member's region, so its monthly cost (MI compute about $490 list, $220 with 3-year RI) isn't the swedencentral price. Attendees change it under **Assessment settings**. ARM has no action to start an assessment (only `getMigrationReadinessReport`, which rejected an empty body), so **Run assessment** stays a portal click.
 9. **The assessment's only warning is self-inflicted: "Trace flags not supported in Azure SQL Managed Instance"** (owner, 2026-10-02), for trace flags `1800` and `9567`. B04 sets them on the source for MI link ([Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation): `1800` for disks with different sector sizes, `9567` to compress automatic seeding). They're source-side only, aren't needed on the MI and don't block the migration. Remove them from the source after the link is removed ([migration.md](migration.md#6-cut-over), step 6). B11's C3 has attendees triage it.
+10. **Cancelling the migration leaves a read-write copy on the MI.** After **Cancel migration**, `ContosoUniversity` stays on the MI, `ONLINE` and `READ_WRITE`, and no longer receives changes. For the Day 2 curveball this means: the app must stay pointed at the source, nobody should write to the MI copy, and the copy has to be deleted (`az sql midb delete`) before the link is recreated.
+11. **Certificates are handled for you.** Before creating the link, the portal uploaded SQL Server's endpoint certificate to the MI as a server trust certificate, and the extension created the source's endpoint certificate `Cert_vm-app01_endpoint` (valid one year) and the mirroring endpoint on 5022. The only manual certificate step is importing the Azure root CAs on the source so it trusts the MI's certificate, which the kit's source prep does.
 
 ## Decisions
 
@@ -148,3 +166,6 @@ In progress.
 - **B08 and B11: NSG rules added after the datacenter** (finding 1). Move `nsg-servers`' rules to child `securityRules` in B04, or add the MI link rules to B04, so a datacenter redeploy keeps them. B08 moves the MI link rules to the hub firewall anyway.
 - **B04 or B11: the policy-added identity and extensions** (finding 2). Declare a system-assigned identity on the datacenter VMs in B04, or document that a policy outside the kit may add it and the Guest Configuration and MDE extensions.
 - **B09: MI backup redundancy** (finding 3). Decide `requestedBackupStorageRedundancy` (the kit's storage convention is LRS; the default is Geo).
+- **B11 (C7): the abort leaves a writable copy on the MI** (finding 10). The attendee page must say to delete the MI copy (or at least never use it) before retrying the link, and never to point the app at it.
+- **B11 (C3): the trace flag warning** (finding 9). Attendees triage "Trace flags not supported in Azure SQL Managed Instance" as expected and remove `-T1800` and `-T9567` from the source after cutover (owner added it to B11's C3).
+- **B11 (C0) and B12: the assessment's region** (finding 8). Tell attendees to set **Assessment settings** to their region before reading the cost estimate.

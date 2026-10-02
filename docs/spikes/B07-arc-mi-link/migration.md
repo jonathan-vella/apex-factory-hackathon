@@ -52,9 +52,9 @@ The replica is read-only until cutover, so you can't create users for app identi
 
 The go/no-go check fails, so the cutover is called off and re-planned:
 
-1. **Monitor and cutover** > select `ContosoUniversity` > **Cancel migration**. This removes the link without a failover.
+1. **Monitor and cutover** > select `ContosoUniversity` > **Cancel migration**. This removes the link without a failover; the pane is short and simple.
 2. Check the source is untouched: `ContosoUniversity` on `vm-app01` is online and read-write, and the app at `http://10.10.n.4/` still works from `vm-dev01`.
-3. Check what's left on the MI (the database, read-only or gone). If a database is left, it has to go before a new link can seed it again.
+3. The MI keeps its copy of the database, now `ONLINE` and **read-write**, and it no longer receives changes. Keep the app on the source and don't write to the MI copy. Delete it before the new link: `az sql midb delete -g rg-spike-b07 --mi <mi-name> -n ContosoUniversity --yes`.
 4. Create the link again (step 3) and let it reseed. Note the times.
 
 ## 6. Cut over
