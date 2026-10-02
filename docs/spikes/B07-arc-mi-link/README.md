@@ -1,0 +1,68 @@
+# B07 spike: Arc onboarding and MI link migration
+
+| Field | Value |
+|---|---|
+| Date | 2026-10-02 to in progress |
+| Result | In progress |
+| Region | swedencentral |
+| Versions | To be recorded |
+
+## Question
+
+Can `vm-app01` be onboarded to Azure Arc in the portal and with an unattended kit script, and does `ContosoUniversity` migrate online to SQL Managed Instance through the Arc portal migration with MI link: link created, seeded, read-only replica validated, aborted and re-created, planned cutover, link removed?
+
+## What we did
+
+In progress.
+
+### Target MI
+
+Deployed with [infra/main.bicep](infra/main.bicep) into `rg-spike-b07`. A **paid** General Purpose MI, not the free offer (owner decision, 2026-10-02):
+
+| Setting | Value |
+|---|---|
+| Name | `sqlmi-university-<suffix>-b07` |
+| SKU | General Purpose, Standard-series (Gen5), 4 vCores, 64 GB storage |
+| Licence | `licenseType: 'BasePrice'`: Azure Hybrid Benefit on, which assumes eligible SQL Server licences with Software Assurance. Turn it off with `az sql mi update -g rg-spike-b07 -n <mi-name> --license-type LicenseIncluded` |
+| Update policy | SQL Server 2022 (`databaseFormat: 'SQLServer2022'`), which a failback to SQL Server 2022 needs |
+| Authentication | Entra-only, the owner as Entra admin |
+| Network | `snet-sqlmi` `10.20.n.128/26` in `vnet-spike-mi` `10.20.n.0/24`, delegated to `Microsoft.Sql/managedInstances`, with `nsg-sqlmi` and `rt-sqlmi`; peered both ways with `vnet-datacenter`. Public endpoint off |
+| Zones | No zone, zone redundancy off |
+| Time zone | `W. Europe Standard Time` |
+| Cost | About $0.68/hour (compute $0.67/hour with AHB, storage $0.14/GB-month, about $9/month for 64 GB), about $16/day. It bills from creation and **can't be stopped while the link is active**; stop it after cutover |
+
+### MI link network rules
+
+Only what MI link needs, from [Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation) (checked 2026-10-02). `n` is the member index.
+
+| Where | Direction | Protocol and ports | From | To |
+|---|---|---|---|---|
+| `nsg-sqlmi` | Inbound | TCP 5022, 11000–11999 | `10.10.n.4` (`vm-app01`) | `10.20.n.128/26` |
+| `nsg-sqlmi` | Outbound | TCP 5022 | `10.20.n.128/26` | `10.10.n.4` |
+| `nsg-servers` | Inbound | TCP 5022 | `10.20.n.128/26` | `10.10.n.4` |
+| `nsg-servers` | Outbound | TCP 5022, 11000–11999 | `10.10.n.4` | `10.20.n.128/26` |
+| Windows Firewall on `vm-app01` | Inbound | TCP 5022 | `10.20.n.128/26` | local |
+
+## What-if summaries
+
+In progress.
+
+## Timings
+
+In progress.
+
+## Findings
+
+In progress.
+
+## Decisions
+
+- **Paid MI, not the free offer** (owner, 2026-10-02). A regular General Purpose MI with Azure Hybrid Benefit replaces the SQL MI free offer in B07. Changes [B07](../../backlog/B07-spike-arc-mi-link.md) (Cost, Outcome, Before you start, requirements 13, 14, 24 and 25, Stop and ask if, Notes and traps); the PRD, roadmap, B09, B10 and the backlog README change in a separate PR.
+
+## Evidence
+
+In progress.
+
+## Follow-ups
+
+In progress.

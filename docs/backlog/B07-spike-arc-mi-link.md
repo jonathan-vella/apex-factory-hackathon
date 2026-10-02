@@ -7,21 +7,20 @@
 | Depends on | B05, B06 |
 | Unblocks | B08, B09, B11 |
 | Effort | 2–3 days elapsed, mostly waiting for MI provisioning and seeding |
-| Cost | SQL MI free offer: no compute or storage charge within the free limits (🔎 VERIFY on [SQL MI free offer](https://learn.microsoft.com/azure/azure-sql/managed-instance/free-offer)). Arc-enabled SQL Server Developer: free. Plus the datacenter at about $1.55/hour |
+| Cost | SQL MI General Purpose, 4 vCores, Standard-series, 64 GB, Azure Hybrid Benefit on: about $0.68/hour (compute $0.67/hour with AHB, storage about $9/month), about $16/day while running. It can't be stopped while the link is active, so stop it after cutover. Arc-enabled SQL Server Developer: free. Plus the datacenter at about $1.55/hour |
 | Teardown | Delete `rg-spike-b07` and **`rg-datacenter`** at the end. This item closes the datacenter chain started in B04 |
 | PRD | §5 C0, C3, C7; §6 Datacenter, Migration; §8 Arc and MI link risks |
 
 ## Outcome
 
 - `vm-app01` can be onboarded to Azure Arc in two ways: the portal way (documented path) and an unattended kit script (fallback). SQL Server shows up as an Arc-enabled SQL Server, and the Arc SQL migration assessment runs.
-- The `ContosoUniversity` database migrates online to a SQL MI free offer through the Arc portal migration with MI link: link created, seeded, read-only replica validated, planned cutover, link removed.
-- The report records the network and certificate requirements, timings, the abort path for the Day 2 curveball, the failback result and how `licenseType` behaves on the free offer. B08, B09 and B11 build on it.
+- The `ContosoUniversity` database migrates online to a General Purpose SQL MI (paid, Azure Hybrid Benefit on) through the Arc portal migration with MI link: link created, seeded, read-only replica validated, planned cutover, link removed.
+- The report records the network and certificate requirements, timings, the abort path for the Day 2 curveball, the failback result and the MI's running hours and cost. B08, B09 and B11 build on it.
 
 ## Before you start
 
 1. B05 and B06 are closed. `scripts/Test-Datacenter.ps1` passes, including the perf kit checks.
-2. The workload subscription has no SQL MI free offer in use: `az sql mi list --query "[].{name:name, pricingModel:pricingModel}"` shows none with the free offer. Only one is allowed per subscription.
-3. `.local/settings.json` has `subscriptionId`, `location`, `memberIndex` and `suffix`.
+2. `.local/settings.json` has `subscriptionId`, `location`, `memberIndex` and `suffix`.
 
 ## Requirements
 
@@ -54,8 +53,8 @@
 13. `docs/spikes/B07-arc-mi-link/infra/main.bicep` deploys into `rg-spike-b07`:
     - `vnet-spike-mi` `10.20.n.0/24` with `snet-sqlmi` `10.20.n.128/26`, delegated to `Microsoft.Sql/managedInstances`, with the NSG and route table MI requires;
     - peering both ways with `vnet-datacenter`;
-    - a General Purpose SQL MI on the **free offer**, named `sqlmi-university-<suffix>-b07`: 4 vCores, Standard-series hardware, 64 GB storage (🔎 VERIFY the free-offer property and limits); database format (update policy) **SQL Server 2022**; Entra-only authentication with the owner as admin; public endpoint off; zone redundancy off; time zone `W. Europe Standard Time`.
-14. Try `licenseType: 'BasePrice'` on the free offer. Record whether it's accepted and whether it changes billing. B09 uses the result.
+    - a regular (paid) General Purpose SQL MI named `sqlmi-university-<suffix>-b07`: 4 vCores, Standard-series (Gen5) hardware, 64 GB storage, `licenseType: 'BasePrice'` (Azure Hybrid Benefit on), no free-offer property; database format (update policy) **SQL Server 2022**; Entra-only authentication with the owner as admin; public endpoint off; zone redundancy off; time zone `W. Europe Standard Time`.
+14. Record that `licenseType: 'BasePrice'` is accepted and billed at the Azure Hybrid Benefit rate. B09 uses the result.
 15. Record the provisioning time.
 
 ### Network for MI link
@@ -71,8 +70,8 @@
 21. Validate the read-only replica: connect with the Entra admin from `vm-dev01` (SSMS or `sqlcmd`), check row counts against the source, and check the compatibility level is still `110` and the perf kit objects exist.
 22. **Abort path (Day 2 curveball):** before cutting over, delete the link without failing over, confirm the source is untouched and the app still works, then recreate the link and let it reseed. Record the steps and timings.
 23. **Cutover:** do a planned failover that removes the link. Confirm the MI database is read-write. Run `db/perf-kit/Start-Workload.ps1 -Authentication ActiveDirectoryDefault` against the MI for 5 minutes as a smoke test.
-24. **Failback (bonus):** try a failback to the source with a new link. Record whether it works on the free offer with the SQL Server 2022 update policy, and the steps. If it doesn't work, record why and move on.
-25. **LRS:** if MI link can't seed or cut over on the free offer after two attempts, stop and ask whether to test Log Replay Service instead (PRD §6, LRS fallback).
+24. **Failback (bonus):** try a failback to the source with a new link. Record whether it works on the General Purpose MI with the SQL Server 2022 update policy, and the steps. If it doesn't work, record why and move on.
+25. **LRS:** if MI link can't seed or cut over on the MI after two attempts, stop and ask whether to test Log Replay Service instead (PRD §6, LRS fallback).
 
 ### Report
 
@@ -100,7 +99,7 @@ npm run check
 ```
 
 - Static checks are clean. Both `az group exists` print `false` after teardown.
-- The PR body has the timings table, the `licenseType` result and the total cost of the datacenter chain B04–B07.
+- The PR body has the timings table, the `licenseType` result, the MI's running hours and cost, and the total cost of the datacenter chain B04–B07.
 
 ## Done when
 
@@ -119,16 +118,14 @@ docs: add the B07 Arc and MI link spike report
 ## Stop and ask if
 
 - Arc onboarding on the Azure VM fails with the Jumpstart pattern.
-- The subscription already has a free-offer MI.
 - The Arc portal doesn't offer MI link migration for this instance.
 - MI link fails twice (requirement 25).
 
 ## Notes and traps
 
 - **Order matters:** once the prep script runs, run commands and extensions stop working on `vm-app01`. Anything else that needs a run command must happen first.
-- **One free MI per subscription.** B09 deploys the archetype's MI in the same workload subscription, so this item's MI must be deleted first.
-- **Free-offer credits:** the free offer includes a monthly pool of vCore hours, and a 4-vCore MI uses them four times faster than wall-clock time. An MI with an active link can't be stopped. Record how many credits B07 used, so B09 and B10 can plan theirs.
-- **An MI with an active link can't be stopped,** so the free offer's stop schedule only applies after cutover.
+- **MI cost:** the MI bills about $0.68/hour from creation, and an MI with an active link can't be stopped. Stop the MI after cutover; record the running hours and cost.
+- **Paid MI, not the free offer** (owner decision, 2026-10-02): the MI is a regular General Purpose instance with Azure Hybrid Benefit. The free offer isn't used in B07.
 - **The replica is read-only** until cutover. Database users for app identities can only be created afterwards (PRD §6).
 - **Arc resource location:** put the Arc machine in `rg-datacenter`, so it's cleaned up with the datacenter and matches the attendee setup.
 - **Deleting the MI** releases the subnet only after its virtual cluster is removed, which can take an hour or more. Don't delete the VNet before that.
