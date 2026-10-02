@@ -1,95 +1,45 @@
-# Onboard vm-app01 to Azure Arc: the portal way
+# Onboard vm-app01 to Azure Arc
 
-The attendee steps for C0, written for B11 to turn into the challenge page. They connect `vm-app01` (Windows Server 2022 with SQL Server 2022 Developer) to Azure Arc, so its SQL Server becomes an Arc-enabled SQL Server, and start the first migration assessment. Times are from the owner's run; see the [report](README.md#timings).
+The attendee page for C0, written for B11 to turn into the challenge page. One script connects `vm-app01` (Windows Server 2022 with SQL Server 2022 Developer) to Azure Arc, so its SQL Server becomes an Arc-enabled SQL Server, ready for the migration assessment. Onboarding is automated: there are no manual portal steps (owner decision, 2026-10-02). The time it takes is in the [report](README.md#timings).
 
-> **Lab only.** Azure VMs aren't normally Arc-enabled: they already have everything Arc offers. The datacenter pretends to be on-premises, so these steps make `vm-app01` look like an on-premises server first ([Evaluate Arc-enabled servers on an Azure VM](https://learn.microsoft.com/azure/azure-arc/servers/plan-evaluate-on-azure-virtual-machine)). Never do this to a customer's Azure VM.
-
-The unattended alternative is `scripts/Connect-DatacenterArc.ps1` (see [the kit script](#the-kit-script-fallback)).
+> **Lab only.** Azure VMs aren't normally Arc-enabled: they already have everything Arc offers. The datacenter pretends to be on-premises, so the script first makes `vm-app01` look like an on-premises server ([Evaluate Arc-enabled servers on an Azure VM](https://learn.microsoft.com/azure/azure-arc/servers/plan-evaluate-on-azure-virtual-machine)). Never do this to a customer's Azure VM.
 
 ## Before you start
 
-- The datacenter is deployed and `scripts/Test-Datacenter.ps1` passes. **Run it now:** after step 2, run commands stop working on `vm-app01`, and the test's in-VM checks with them.
-- `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` exists on `vm-app01`. The datacenter deployment places it there.
-- Your account has Owner or Contributor on the workload subscription (Arc needs **Azure Connected Machine Resource Administrator** on `rg-datacenter` and **Virtual Machine Contributor** on `vm-app01`, which both cover).
+- The datacenter is deployed and `scripts/Test-Datacenter.ps1` passes. **Run it first:** after onboarding, run commands stop working on `vm-app01`, and the test's in-VM checks with them.
+- PowerShell 7.4 or later and the Azure CLI, signed in with `az login` to the member's tenant. Azure Cloud Shell has both. Run from the root of your copy of the kit repo.
+- Your account has Owner or Contributor on the workload subscription. Onboarding needs **Virtual Machine Contributor** on `vm-app01` and **Azure Connected Machine Resource Administrator** on `rg-datacenter`, and both roles cover them.
 
-## Steps
-
-| Step | What you do | Time |
-|---|---|---|
-| 1 | Remove the VM extensions | |
-| 2 | Run the prep script on `vm-app01` | |
-| 3 | Generate the onboarding script in the portal | |
-| 4 | Run it on `vm-app01` | |
-| 5 | Check the machine and the SQL Server instance | |
-
-### 1. Remove the VM extensions
-
-Arc's agent can't manage extensions that Azure already installed on the VM, so remove them first. In the Azure portal, open `rg-datacenter` > `vm-app01` > **Settings** > **Extensions + applications**. Select each extension (for example `MDE.Windows`, which Defender for Servers adds if it's on) and select **Uninstall**. Wait until the list is empty.
-
-From Cloud Shell instead:
-
-```powershell
-az vm extension list -g rg-datacenter --vm-name vm-app01 --query "[].name" -o tsv
-az vm extension delete -g rg-datacenter --vm-name vm-app01 -n <extension-name>
-```
-
-### 2. Run the prep script on vm-app01
-
-1. Connect to `vm-app01` through Bastion: `./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName vm-app01` from Windows, or the portal: `rg-datacenter` > `vm-app01` > **Connect** > **Bastion**. Sign in as `labadmin` with the lab password.
-2. Open **Windows PowerShell** as administrator and run:
-
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1
-   ```
-
-   It sets `MSFT_ARC_TEST`, turns off the Azure guest agent and blocks the Azure Instance Metadata Service (`169.254.169.254` and `169.254.169.253`) in Windows Firewall. If it warns about extension handlers, go back to step 1. It's safe to run again.
-
-From here on, run commands and VM extensions don't work on `vm-app01`, for good.
-
-### 3. Generate the onboarding script in the portal
-
-1. In the Azure portal, search for **Azure Arc**. Under **Infrastructure**, select **Machines**.
-2. Select **Onboard/Create** > **Onboard existing machines**.
-3. On **Basics**:
-   - **Subscription**: your workload subscription. **Resource group**: `rg-datacenter`.
-   - **Region**: the datacenter's region (`swedencentral` by default).
-   - **Operating system**: Windows.
-   - **Connectivity method**: Public endpoint. `vm-app01` reaches Azure through the datacenter's NAT gateway; no proxy.
-   - **Authentication**: **Authenticate machines manually** (interactive sign-in).
-4. Leave the tags as they are and select **Next**, then **Download**. You get `OnboardingScript.ps1`.
-
-### 4. Run it on vm-app01
-
-1. Copy the script's content to `vm-app01` through the Remote Desktop clipboard, and save it as `C:\LabTools\arc\OnboardingScript.ps1`.
-2. Open a **new** Windows PowerShell window as administrator (a new window sees `MSFT_ARC_TEST`) and run:
-
-   ```powershell
-   cd C:\LabTools\arc
-   powershell -ExecutionPolicy Bypass -File .\OnboardingScript.ps1
-   ```
-
-3. Sign in when it asks, with the account you use for the workload subscription. It installs the Azure Connected Machine agent and connects the machine.
-
-### 5. Check the machine and the SQL Server instance
-
-1. On `vm-app01`: `azcmagent show` prints `Agent Status : Connected`.
-2. In the portal: **Azure Arc** > **Machines** shows `vm-app01` as **Connected**.
-3. Arc connects SQL Server automatically: it installs the **Azure extension for SQL Server** (`WindowsAgent.SqlServer`) on the machine. After a few minutes, **Azure Arc** > **Data services** > **SQL Server instances** shows `vm-app01`, with edition **Developer**. Developer is free.
-
-Next: the migration assessment. Open the SQL Server instance > **Migration** > **Database migration** > **Assess source instance** > **View report**, and use **Run assessment** if there's no result yet.
-
-## The kit script (fallback)
-
-If the portal way doesn't work for you, run this from Azure Cloud Shell or your own computer instead of steps 1–4. It uses your own sign-in, removes the VM extensions, runs the same prep script and connects the agent, unattended:
+## Run it
 
 ```powershell
 ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId '<workload-subscription-id>' -MemberIndex <n> -Location <region>
 ```
 
-It refuses to run if `vm-app01` is already an Arc machine. If the machine doesn't connect within 20 minutes, it tells you where the log is: `C:\LabTools\logs\Connect-AppArc.log` on `vm-app01`, through Bastion.
+`-Location` is the datacenter's region (`swedencentral` by default). The script runs unattended and returns when the SQL Server instance shows in Azure, or after 20 minutes with a pointer to the log.
+
+## What the script does
+
+1. Refuses to run if `vm-app01` is already an Arc machine, or if its guest agent is already off.
+2. Removes the VM extensions from `vm-app01` (for example `MDE.Windows`, which Defender for Servers adds), because Arc's agent can't manage extensions that Azure installed.
+3. Sends one run command that stages the rest and returns. It passes your Azure Resource Manager access token as a protected parameter (no service principal) and registers a one-time task on `vm-app01` that starts a minute later. Turning off the guest agent ends any run command, so the task does the rest:
+   - runs `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1`, which the datacenter deployment placed there: it sets `MSFT_ARC_TEST`, turns off the Azure guest agent and blocks the Azure Instance Metadata Service (`169.254.169.254` and `169.254.169.253`) in Windows Firewall;
+   - installs the Azure Connected Machine agent and connects it to `rg-datacenter` with your token.
+4. Waits for the Arc machine to be **Connected**, then for Arc to connect SQL Server automatically: the **Azure extension for SQL Server** (`WindowsAgent.SqlServer`) installs and reports the instance.
+
+From then on, run commands and VM extensions don't work on `vm-app01`. Reach it through Bastion.
+
+## Check it
+
+1. **Azure Arc** > **Machines** shows `vm-app01` as **Connected**.
+2. **Azure Arc** > **SQL Server instances** shows `vm-app01`, edition **Developer**. Developer is free, whatever the licence type shows.
+3. On `vm-app01` (through Bastion), `azcmagent show` prints `Agent Status : Connected`.
+
+Next: the migration assessment. Open the SQL Server instance > **Migration** > **Database migration** > **Assess source instance** > **View report**, and use **Run assessment** if there's no result yet.
 
 ## Troubleshooting
 
-- **"This machine is an Azure VM"**: the prep script didn't run, or the onboarding script ran in a window opened before it. Run the prep script, then open a new window.
-- **Logs** on `vm-app01`: `C:\LabTools\logs\Prepare-ArcOnAzureVm.log`, and the agent's logs in `C:\ProgramData\AzureConnectedMachineAgent\Log`.
+- **The script refuses to run** because `vm-app01` is already an Arc machine: it's done. Check with `az resource show -g rg-datacenter -n vm-app01 --resource-type Microsoft.HybridCompute/machines --query properties.status`.
+- **The script refuses because the guest agent is off**: an earlier run got as far as the prep script. Run commands can't reach `vm-app01` any more. Read the log (next item); if the onboarding didn't finish, ask a coach to redeploy `vm-app01`.
+- **No connection after 20 minutes**: connect to `vm-app01` through Bastion (`./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName vm-app01`, or the portal: `rg-datacenter` > `vm-app01` > **Connect** > **Bastion**) and read `C:\LabTools\logs\Connect-AppArc.log` and `C:\LabTools\logs\Prepare-ArcOnAzureVm.log`. The agent's own logs are in `C:\ProgramData\AzureConnectedMachineAgent\Log`.
 - **No SQL Server instance after 20 minutes**: check the `WindowsAgent.SqlServer` extension under **Azure Arc** > **Machines** > `vm-app01` > **Extensions**.

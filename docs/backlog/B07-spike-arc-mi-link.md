@@ -13,7 +13,7 @@
 
 ## Outcome
 
-- `vm-app01` can be onboarded to Azure Arc in two ways: the portal way (documented path) and an unattended kit script (fallback). SQL Server shows up as an Arc-enabled SQL Server, and the Arc SQL migration assessment runs.
+- `vm-app01` is onboarded to Azure Arc by an unattended kit script, the only onboarding path (owner decision, 2026-10-02: lab provisioning is IaC and scripts only). SQL Server shows up as an Arc-enabled SQL Server, and the Arc SQL migration assessment runs.
 - The `ContosoUniversity` database migrates online to a General Purpose SQL MI (paid, Azure Hybrid Benefit on) through the Arc portal migration with MI link: link created, seeded, read-only replica validated, planned cutover, link removed.
 - The report records the network and certificate requirements, timings, the abort path for the Day 2 curveball, the failback result and the MI's running hours and cost. B08, B09 and B11 build on it.
 
@@ -28,12 +28,12 @@
 
 1. Azure VMs can't be Arc-enabled as they are. Use the Jumpstart pattern for Azure VMs, **before** the Connected Machine agent is installed: remove the VM extensions, set `MSFT_ARC_TEST`, turn off the Azure guest agent, and block both Azure IMDS addresses (`169.254.169.254` and `169.254.169.253`). 🔎 VERIFY the current steps and order on [Evaluate Arc-enabled servers on an Azure VM](https://learn.microsoft.com/azure/azure-arc/servers/plan-evaluate-on-azure-virtual-machine).
 2. The datacenter deployment places a prep script at `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` on `vm-app01`, but doesn't run it. Change B04's in-VM scripts for this. The script applies requirement 1, is idempotent and tells the user that run commands and VM extensions stop working after it.
-3. The datacenter running since B04 doesn't have the script yet. Re-run `scripts/Deploy-Datacenter.ps1 -ScriptsRef <this branch>` so it converges, and check the file exists on `vm-app01`, before either onboarding path. After the prep script runs, run commands stop working, so this must happen first.
+3. The datacenter running since B04 doesn't have the script yet. Re-run `scripts/Deploy-Datacenter.ps1 -ScriptsRef <this branch>` so it converges, and check the file exists on `vm-app01`, before onboarding. After the prep script runs, run commands stop working, so this must happen first.
 
-### Onboarding: portal way
+### Onboarding: attendee page
 
-4. `docs/spikes/B07-arc-mi-link/onboarding-portal.md`: the attendee steps. Connect to `vm-app01` through Bastion, run the prep script, generate the onboarding script in the portal (**Azure Arc → Machines → Add**, single server, interactive sign-in, resource group `rg-datacenter`, region `location`), run it, then confirm SQL Server appears under **Azure Arc → SQL Server instances**. These steps become C0 content in B11.
-5. 🧑 HUMAN: the owner follows the steps once and times them.
+4. `docs/spikes/B07-arc-mi-link/onboarding-portal.md`: the attendee page for the automated path: prerequisites, the one command (`scripts/Connect-DatacenterArc.ps1`), the checks (the machine **Connected** under **Azure Arc → Machines**, SQL Server under **Azure Arc → SQL Server instances**), troubleshooting, and a short explanation of what the script does. There are no manual portal onboarding steps (owner decision, 2026-10-02). This page becomes C0 content in B11.
+5. Removed (owner decision, 2026-10-02): no manual portal onboarding for the owner to time.
 
 ### Onboarding: kit script
 
@@ -41,7 +41,7 @@
 7. Turning off the guest agent ends any run command, so the script uses one run command only to stage the work and return: it copies the token (as a protected parameter) and registers a one-time scheduled task that starts a minute later. The task runs the prep script (requirement 1), then installs the Connected Machine agent and connects it with the token, and logs to `C:\LabTools\logs`.
 8. It waits until the Arc machine is **Connected** and the SQL Server extension has reported the instance, then prints the next steps (the migration assessment). If the machine doesn't connect within 20 minutes, it says where the log is and how to reach it through Bastion.
 9. It refuses to run if the machine is already Arc-connected, and says how to check.
-10. To test both ways, onboard with one, then redeploy the datacenter (Arc changes can't be undone reliably) and onboard with the other. Record both timings.
+10. Onboard with the kit script once and record its timing (owner decision, 2026-10-02: one way, instead of both ways with a redeploy between them). If an attempt fails after the prep script ran, redeploy `vm-app01` (Arc changes can't be undone reliably, and run commands no longer reach it) and run the script again.
 
 ### Arc SQL
 
@@ -75,7 +75,7 @@
 
 ### Report
 
-26. `docs/spikes/B07-arc-mi-link/README.md` follows the spike report format and covers: both onboarding ways with timings; the Arc SQL licence type and assessment; MI provisioning, seeding, abort, cutover and failback timings; the exact network rules; certificate handling (what the portal does for you); the `licenseType` result; the Day 2 schedule implications (when to start the link so seeding overlaps C6); and follow-ups for B08 (firewall rules through the hub), B09 (MI settings) and B11 (C0 and C7 content).
+26. `docs/spikes/B07-arc-mi-link/README.md` follows the spike report format and covers: the kit script onboarding with its timing; the Arc SQL licence type and assessment; MI provisioning, seeding, abort, cutover and failback timings; the exact network rules; certificate handling (what the portal does for you); the `licenseType` result; the Day 2 schedule implications (when to start the link so seeding overlaps C6); and follow-ups for B08 (firewall rules through the hub), B09 (MI settings) and B11 (C0 and C7 content).
 
 ### Teardown
 
@@ -103,7 +103,7 @@ npm run check
 
 ## Done when
 
-- [ ] Both onboarding ways work and are documented.
+- [ ] The kit script onboarding works and is documented.
 - [ ] The database migrated online with MI link, including the abort path and a planned cutover.
 - [ ] The failback and `licenseType` results are recorded.
 - [ ] The report gives B08, B09 and B11 what they need.

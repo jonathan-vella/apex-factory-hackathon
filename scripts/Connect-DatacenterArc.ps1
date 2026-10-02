@@ -4,7 +4,7 @@
 .SYNOPSIS
 Onboards vm-app01 to Azure Arc unattended, with your own sign-in. Lab only.
 .DESCRIPTION
-The fallback to the portal onboarding (C0). Arc on an Azure VM is a lab-only pattern, never a customer
+The member's Arc onboarding (C0), the only onboarding path. Arc on an Azure VM is a lab-only pattern, never a customer
 pattern. Run it from Azure Cloud Shell or your own computer, signed in with az login. It uses your
 Azure Resource Manager access token, not a service principal, so your account needs Virtual Machine
 Contributor on vm-app01 and Azure Connected Machine Resource Administrator (or Contributor) on
@@ -109,8 +109,8 @@ if ($vm.privateIps -ne $expectedIp) {
 $agentStatus = (Invoke-AzureCli -Arguments @('vm', 'get-instance-view', '--subscription', $SubscriptionId, '-g', $resourceGroup, '-n', $vmName)).instanceView.vmAgent.statuses[0].displayStatus
 if ($agentStatus -ne 'Ready') {
     throw @"
-The guest agent on $vmName is '$agentStatus', so run commands don't work: the prep script has probably run already.
-Onboard it the portal way instead (docs: Azure Arc onboarding, portal way), through Bastion.
+The guest agent on $vmName is '$agentStatus', so run commands don't work: an earlier run probably got as far as the prep script.
+Read C:\LabTools\logs\Connect-AppArc.log on $vmName through Bastion. If the onboarding didn't finish, redeploy $vmName and run this script again.
 "@
 }
 
