@@ -79,6 +79,22 @@ From `vm-dev01`, connected to the MI's private host name as the Entra admin (a V
 - **Source untouched:** a fresh fingerprint matched the baseline, `READ_WRITE`, no availability group left on SQL Server, and the app returned HTTP 200 for `/Students` from `vm-dev01`.
 - **The MI kept the database, now read-write:** `ContosoUniversity` stayed `ONLINE` on the MI and became `READ_WRITE`, a standalone copy that diverges from the source (finding 10). With owner approval, only that database was deleted (`az sql midb delete`, 13:32:06–13:32:26) before the link was recreated.
 
+### Cutover and smoke test (requirement 23)
+
+**Complete cutover** made the MI database `ONLINE`, `READ_WRITE` and primary, with identical data ([evidence](evidence/replica-and-cutover-checks.md#after-cutover-1400-1402)). The owner then ran `db/perf-kit/Start-Workload.ps1 -Server <mi-host-name> -Authentication ActiveDirectoryInteractive -DurationMinutes 5` on `vm-dev01`: 146 calls in 5.9 minutes, **0 errors**. Compared with B05's baseline on the source (from [coach/c9-db-optimization.md](../../../coach/c9-db-optimization.md), 15 minutes, same concurrency of 8):
+
+| Query | MI, avg / P95 ms | Source (B05), avg / P95 ms | MI vs source, avg |
+|---|---|---|---|
+| P2 `dbo.usp_SearchStudents` | 1,611 / 2,966 | 413 / 720 | 3.9× |
+| P3 `dbo.usp_GetStudentEnrollments` | 1,709 / 5,662 | 272 / 376 | 6.3× |
+| P4 `dbo.vw_EnrollmentStatistics` | 113,864 / 174,576 | 17,536 / 25,931 | 6.5× |
+| App: student search | 2,246 / 3,480 | 542 / 865 | 4.1× |
+| App: student details | 380 / 507 | 83 / 116 | 4.6× |
+| App: enrollment statistics | 371 / 538 | 77 / 108 | 4.8× |
+| App: instructor page | 718 / 1,309 | 186 / 303 | 3.9× |
+
+The planted issues survive the migration: P4 dominates, at about 114 seconds a call, and is C9's hot spot on the MI (finding 16).
+
 ### Target MI
 
 Deployed with [infra/main.bicep](infra/main.bicep) into `rg-spike-b07`. A **paid** General Purpose MI, not the free offer (owner decision, 2026-10-02):
@@ -161,6 +177,7 @@ Times are UTC+2.
 | Link 2: reseeding | Under 30 s: `LinkInitialSeeding` 13:45:38, `LinkSynchronizing` 13:46:03 | Replica re-validated, identical |
 | Cutover: **Complete cutover** to complete | About 2 min (13:56–13:58); link gone at 13:58:03 | "Forced failover" was ticked; lag 0 and no traffic, no data loss (finding 13) |
 | First full backup on the MI after failover | Finished 14:02:25, 4 min after cutover | Safe to restart or stop the MI from then on |
+| Smoke test on the MI (owner, from `vm-dev01`) | 5.9 min (14:20–14:25) for a 5-minute run | `ActiveDirectoryInteractive`, one browser prompt. It overran by 0.9 min because the last P4 calls take nearly 2 minutes |
 
 ## Findings
 
@@ -179,6 +196,7 @@ Times are UTC+2.
 13. **The cutover ran as a forced failover, and nothing was lost.** The owner ticked "I want to do a forced failover". With lag 0 and no traffic, row counts, maximum identities and `CHECKSUM_AGG(BINARY_CHECKSUM(*))` matched on all 7 tables afterwards. The portal then removed the link: on the MI, `ContosoUniversity` is `ONLINE`, `READ_WRITE` and primary, with no availability group. Attendees should leave forced failover unticked and cut over only at lag 0.
 14. **After cutover the source stays writable.** On `vm-app01`, `ContosoUniversity` is still `ONLINE` and `READ_WRITE`, with no availability group: two writable copies. Until the app moves to the MI, writes to the source are lost to the migration, so the cutover runbook has to stop the app (and the source database, or set it read-only) first.
 15. **On `vm-dev01`, "Active Directory Default" signs in as the VM, not the user.** The perf kit smoke test (`Start-Workload.ps1 -Authentication ActiveDirectoryDefault`) failed with "Login failed for user '<token-identified principal>'" although the owner was signed in with `az login` as the MI's Entra admin. `vm-dev01` has a system-assigned managed identity (finding 2), and `DefaultAzureCredential` tries `ManagedIdentityCredential` before `AzureCliCredential`. `AZURE_TOKEN_CREDENTIALS=dev` can't fix it here: the SqlServer module 22.4.5.1 bundles Azure.Identity 1.13.0 (with Microsoft.Data.SqlClient 5.1.6), and the variable needs 1.14 or later. Any Azure.Identity-based local run on `vm-dev01` can hit this, including the modernized app's `DefaultAzureCredential` from B06.
+16. **The workload runs 4–6.5 times slower on the MI than on the source.** The smoke test's averages are 3.9–6.5 times B05's baseline on `vm-app01`, and P4 (`vw_EnrollmentStatistics`, the scalar UDF) takes about 114 seconds a call. It isn't a like-for-like comparison: 4 vCores of General Purpose with remote storage against an 8-vCPU VM with local Premium SSD, a 5-minute run on a cache that was cold after failover against a 15-minute one. The planted issues still show, so C9 works on the MI, but each P4 call is close to 2 minutes, and a run overruns its duration by up to one P4 call.
 
 ## Decisions
 
@@ -205,4 +223,5 @@ Times are UTC+2.
 - **B11 (C0) and B12: the assessment's region** (finding 8). Tell attendees to set **Assessment settings** to their region before reading the cost estimate.
 - **B11 (C7): the cutover pane** (findings 12–14). Leave "I want to do a forced failover" unticked unless the portal requires it, and cut over only at lag 0. Stop the app and writes to the source first, because the source stays writable after cutover. There's no "keep the link" option in the portal.
 - **B05, B09, B10 and B11: Entra sign-in on `vm-dev01`** (finding 15). B05: let the perf kit sign in as the user, for example `-Authentication ActiveDirectoryInteractive`, or an access token from `az account get-access-token --resource https://database.windows.net/`. B09 and B10: on `vm-dev01`, the app's credential should exclude `ManagedIdentityCredential` (or use `AzureCliCredential` locally). B11: say why, wherever attendees run Entra-authenticated tools on `vm-dev01`. Or B04 declares no identity on the VMs and the policy exemption covers it (B08).
+- **B11 and B12 (C9 on the MI): time box** (finding 16). On a 4-vCore General Purpose MI, P4 takes about 2 minutes a call and the whole workload runs 4–6.5 times slower than on the source. Size C9's workload run and time box for that, or let B09 consider 8 vCores, and compare before and after on the same target.
 - **B11 (C0 and C7): content.** C0 is [onboarding-portal.md](onboarding-portal.md) (the one script, checks, troubleshooting); C7 is [migration.md](migration.md), with the kit's prep (source prep Bicep, two-way test) before the portal steps, and the Day 2 timings above for the time box.
