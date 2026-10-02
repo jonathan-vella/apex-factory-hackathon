@@ -26,3 +26,6 @@ This manifest records the versions and source commit used by the kit. Tooling ve
 | Golden-path models | Claude Opus 5.5 at Medium (assess and plan); Claude Sonnet 5.5 at Medium (execute) | B06 golden path, for B10 and B11 | 2026-10-02 |
 | GitHub Copilot app `upgrade-agent` plugin | `1.1.612` (marketplace `upgrade-agent-plugins`) | B06 requirement 11b, paused; not part of the golden path. The app's own version wasn't recorded | 2026-10-01 |
 | Copilot CLI | Not used | B06's optional Copilot CLI section wasn't tried | 2026-10-02 |
+| Azure Connected Machine agent | `1.68.03532.3282`, latest from `https://aka.ms/AzureConnectedMachineAgent` at run time | `vm-app01` Arc onboarding, `scripts/Connect-DatacenterArc.ps1` (B07), swedencentral | 2026-10-02 |
+| Azure extension for SQL Server (`WindowsAgent.SqlServer`) | `1.1.3547.472`, installed and upgraded automatically by Arc | Arc-enabled SQL Server and the MI link migration on `vm-app01` (B07) | 2026-10-02 |
+| SQL MI database format (update policy) | `SQLServer2022` | MI link target, `docs/spikes/B07-arc-mi-link/infra/main.bicep` (B07); for B09 | 2026-10-02 |
