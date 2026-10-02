@@ -114,7 +114,7 @@ flowchart LR
   - **Dev VM (`vm-dev01`):** the latest Windows 11 Enterprise image, with multitenant hosting rights. It also runs the DB workload generator (B05). It has:
     - VS Code, plus VS Build Tools with the web workload, which the legacy WAP project needs. VS 2026 is optional, licensed via partner benefits.
     - The .NET 10 SDK and the .NET Framework 4.8 developer pack.
-    - SSMS 22, Git, the GitHub CLI, PowerShell 7, Az CLI, Bicep and the GHCP extensions.
+    - SSMS 22, Git, the GitHub CLI, PowerShell 7, Az CLI, Bicep, and the GHCP extensions: GitHub Copilot, Copilot Chat and GitHub Copilot upgrade (the Upgrade agent).
 - **Foundation:**
   - ALZ-lite Bicep, run by the team's platform lead: management groups `mg-factory` → `mg-factory-platform` (shared services sub) and `mg-factory-corp` (workload subs); in the shared services sub, the hub VNet with Azure Firewall Standard (DNS proxy on), central private DNS zones and the central LAW; core policies at `mg-factory-corp` (allowed locations, no public IPs on NICs, no public network access on PaaS, private DNS registration, diagnostics to the LAW); Defender for Cloud on Foundational CSPM only (free; every paid plan off). DDoS off.
   - Vending Bicep, also run by the platform lead: workload sub placement under `mg-factory-corp`, the spoke and all its subnets, cross-sub peering (spoke and datacenter to the hub), UDRs, DNS, firewall rules, RBAC (Owner on the member's own workload sub) and budget.
@@ -142,9 +142,9 @@ flowchart LR
   - Storage (Blob) and Service Bus Premium (1 MU), both with private endpoints. The app identity gets Blob Data Contributor and Service Bus Data Sender/Receiver. The signed-in member gets the same data roles, for local runs from the dev VM.
   - Deploys are control-plane only, so Codespaces works. Data-plane checks run from the dev VM.
 - **App modernization (`app/`):** the legacy starting state, plus the modernization aids in `.github/`.
-  - Copilot instructions and a playbook that sequences the predefined tasks: SQL MI with managed identity, Blob, Service Bus and Key Vault. Custom skills cover the gaps: Global.asax and bundling → Program.cs, the `new NotificationService()` in BaseController → DI, and Trace → OpenTelemetry.
+  - Copilot instructions and a playbook built from the B06 golden path: the Upgrade agent in VS Code (Local harness) runs the `dotnet-version-upgrade` scenario with the kit's seven-task prompt (.NET 10 and ASP.NET Core MVC, SQL MI with managed identity, Blob, Service Bus, Key Vault, OpenTelemetry, CVE audit). Custom skills cover the gaps the golden path still shows.
   - Lifeline checkpoint branches (`lifeline/*`) after each major step, plus a known-good image as the last resort. They're public, on the honor system; a coach points a member to one on request.
-  - Images built without Docker, via .NET SDK container publishing from the dev VM. The playbook steers GHCP's containerize task to this path.
+  - Images built without Docker, via .NET SDK container publishing from the dev VM. The golden-path prompt requires this path, with no Dockerfile.
   - Config per environment: on the dev VM, SQL auth to the source DB; on App Service, managed identity to MI. Blob and Service Bus use Entra in both, via the member's identity locally and the app identity on App Service.
 - **Migration:**
   - Arc portal MI link, with hub firewall and NSG rules for 5022 and 11000–11999, plus certificates.
@@ -174,7 +174,7 @@ flowchart LR
 
 | Risk | Mitigation / spike |
 |---|---|
-| The GHCP upgrade is non-deterministic, even on the quickstart sample. Hot spots: the MSMQ → Service Bus receive path, uploads → Blob, Global.asax/bundling, Razor helpers | Golden-path spike in VS Code and Copilot CLI, including an end-to-end comparison of the two VS Code extensions: GitHub Copilot modernization and GitHub Copilot upgrade. The dev VM's extension set is decided from it. Tuned playbook/skills, lifelines, known-good image |
+| The GHCP upgrade is non-deterministic, even on the quickstart sample. Hot spots: the MSMQ → Service Bus receive path, uploads → Blob, Global.asax/bundling, Razor helpers | Golden-path spike in VS Code and Copilot CLI, including an end-to-end comparison of the two VS Code extensions: GitHub Copilot modernization and GitHub Copilot upgrade. Decided from it (B06): GitHub Copilot upgrade only, with the Upgrade agent in the Local harness. Tuned playbook/skills, lifelines, known-good image |
 | ALZ-lite in fresh CSP tenants: the platform lead needs rights at Tenant Root to create management groups and move subs; CSP RBAC gaps | T-14 preflight checks both. Start ALZ-lite first on Day 1 |
 | The pre-built archetype drifts from the tenant's ALZ policies or from new APEX releases | Pin the APEX release and ALZ options. Re-validate per release (`versions.md`). Plain deploy fallback |
 | ALZ policies hit the pre-existing datacenter (e.g. deployIfNotExists policies on VMs without a guest agent) | Effective-policy list from the spike. Exemption script right after the move |
