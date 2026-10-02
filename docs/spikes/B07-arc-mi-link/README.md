@@ -45,7 +45,12 @@ Only what MI link needs, from [Prepare your environment for a link](https://lear
 
 ## What-if summaries
 
-In progress.
+Every deployment ran `az deployment ... what-if` first and was checked: only B07-owned resources created or changed, nothing deleted, nothing in `rg-datacenter` changed except what the runbook prescribes, no zones or zone redundancy, no public endpoints.
+
+| Deployment | What-if result | Checked |
+|---|---|---|
+| `infra/main.bicep` into `rg-spike-b07` (2026-10-02) | 11 creates, nothing modified or deleted. `rg-spike-b07`: `nsg-sqlmi` with the two MI link rules, `rt-sqlmi`, `vnet-spike-mi` with `snet-sqlmi` and its peering, and the MI (GP_Gen5, 4 vCores, 64 GB, `BasePrice`, `SQLServer2022`, zone redundancy off, public endpoint off, Entra-only, no `zones`). `rg-datacenter`: the peering `peer-datacenter-to-spike-mi` and the two MI link rules in `nsg-servers` | ✅ |
+| `Deploy-Datacenter.ps1 -ScriptsRef <this branch>` (requirement 3, 2026-10-02) | 1 create (run command `app-07-arc-prep`); every run command modified (new script URL and run ID, which re-runs them); the rest no change or what-if noise: read-only and default properties, secure parameters. Two real side effects, owner-approved: `vm-dev01`'s system-assigned identity is removed (finding 2), and the MI link rules in `nsg-servers` are removed (finding 1). It also lists `vnet-datacenter`'s `virtualNetworkPeerings` as deleted; a test with two throwaway VNets in `rg-spike-b07` showed that a VNet redeploy without the property keeps the peering `Connected`, so that's noise | ✅ owner-approved |
 
 ## Timings
 
@@ -53,7 +58,9 @@ In progress.
 
 ## Findings
 
-In progress.
+1. **A datacenter redeploy wipes NSG rules that later items add.** `nsg-servers` lists its rules inline in B04's Bicep, so `Deploy-Datacenter.ps1` removes the MI link rules this spike adds as child `securityRules`. B07 re-applies them with [infra/main.bicep](infra/main.bicep) after every datacenter redeploy.
+2. **A policy above the kit changes the VMs, and each datacenter redeploy undoes part of it.** `vm-dev01` has a system-assigned managed identity and the Guest Configuration extension `AzurePolicyforWindows`, and `vm-app01` has `MDE.Windows` (Defender for Servers). None of them is in B04's template. A redeploy removes `vm-dev01`'s identity until the policy adds it back.
+3. **The MI provisioned in 7 minutes** (11:42–11:49): a new General Purpose instance in a new subnet, with `licenseType: 'BasePrice'` accepted. Backup storage redundancy is the default, Geo, because the template doesn't set it.
 
 ## Decisions
 
@@ -65,4 +72,6 @@ In progress.
 
 ## Follow-ups
 
-In progress.
+- **B08 and B11: NSG rules added after the datacenter** (finding 1). Move `nsg-servers`' rules to child `securityRules` in B04, or add the MI link rules to B04, so a datacenter redeploy keeps them. B08 moves the MI link rules to the hub firewall anyway.
+- **B04 or B11: the policy-added identity** (finding 2). Declare a system-assigned identity on the datacenter VMs in B04, or document that a redeploy removes it.
+- **B09: MI backup redundancy** (finding 3). Decide `requestedBackupStorageRedundancy` (the kit's storage convention is LRS; the default is Geo).
