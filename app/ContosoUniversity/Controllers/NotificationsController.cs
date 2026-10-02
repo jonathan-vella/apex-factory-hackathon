@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
@@ -9,32 +10,27 @@ namespace ContosoUniversity.Controllers
 {
     public class NotificationsController : BaseController
     {
-        public NotificationsController(SchoolContext db, NotificationService notificationService) : base(db, notificationService)
+        private readonly ILogger<NotificationsController> logger;
+
+        public NotificationsController(SchoolContext db, NotificationService notificationService, ILogger<NotificationsController> logger) : base(db, notificationService)
         {
+            this.logger = logger;
         }
 
         // GET: Notifications/GetNotifications - Get pending notifications for admin
         [HttpGet]
         public IActionResult GetNotifications()
         {
-            var notifications = new List<Notification>();
-            
+            IList<Notification> notifications;
+
             try
             {
-                // Read all available notifications from the queue
-                Notification notification;
-                while ((notification = notificationService.ReceiveNotification()) != null)
-                {
-                    notifications.Add(notification);
-                    
-                    // Limit to prevent overwhelming the UI
-                    if (notifications.Count >= 10)
-                        break;
-                }
+                // Up to 10 per poll to avoid overwhelming the UI
+                notifications = notificationService.ReceiveNotifications();
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Error retrieving notifications: {ex.Message}");
+                logger.LogError(ex, "Error retrieving notifications");
                 return Json(new { success = false, message = "Error retrieving notifications" });
             }
 
