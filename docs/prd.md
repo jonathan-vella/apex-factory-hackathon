@@ -60,7 +60,7 @@ flowchart LR
     end
     subgraph W["Workload sub per member - under mg-factory-corp"]
       DC["rg-datacenter (pre-work): app VM (IIS + legacy Contoso University + MSMQ, SQL Server 2022 Developer, Arc), Windows 11 dev VM, NAT GW, Bastion Standard"]
-      SPOKE["Spoke (vended) + CoE archetype: App Service Linux, ACR Premium, SQL MI free offer, Storage (Blob), Service Bus Premium, Key Vault, App Insights"]
+      SPOKE["Spoke (vended) + CoE archetype: App Service Linux, ACR Premium, SQL MI General Purpose, Storage (Blob), Service Bus Premium, Key Vault, App Insights"]
     end
   end
   DC <-- peering --> CONN
@@ -133,10 +133,11 @@ flowchart LR
     - diagnostics go to the central LAW;
     - managed identity;
     - Entra-only SQL.
-  - SQL MI free offer:
+  - SQL MI, General Purpose (not the free offer, owner decision 2026-10-02):
+    - Standard-series (Gen5) hardware, 4 vCores, 64 GB storage, no zone redundancy. About $0.68/hour while running.
     - The update policy is pinned to SQL Server 2022, which failback needs.
-    - The time zone and schedule are set for the event, and the public endpoint is off.
-    - AHB is on (`licenseType: 'BasePrice'`), subject to how it interacts with the free offer.
+    - The time zone and a stop and start schedule are set for the event, and the public endpoint is off.
+    - AHB is on (`licenseType: 'BasePrice'`).
     - An MI with an active link can't be stopped, so the schedule only applies once cutover removes the link.
   - App Service pulls from the private ACR with its managed identity (AcrPull) and VNet image pull.
   - Storage (Blob) and Service Bus Premium (1 MU), both with private endpoints. The app identity gets Blob Data Contributor and Service Bus Data Sender/Receiver. The signed-in member gets the same data roles, for local runs from the dev VM.
@@ -151,7 +152,7 @@ flowchart LR
   - Validate the read-only replica with the admin login. The replica stays read-only until cutover, so the DB user for the App Service identity is created only after cutover removes the link. Then switch the app over.
   - Rollback means aborting before cutover (the app stays on the source). Bonus: a real failback, which keeps the link and fails back, then cuts over again before C9.
   - SQL Agent jobs and logins move separately (a teaching point).
-  - LRS is the fallback. It's promoted to the golden path if the free-offer spike fails.
+  - LRS is the fallback. It's promoted to the golden path if the MI link spike fails.
 - **DB optimization:** planted issues live in DB objects and the workload, so they survive the app upgrade. The schema has real targets: TPH `Person`, many-to-many course assignments, a `LIKE '%x%'` student search, multi-Include instructor queries and enrollment statistics. A workload generator runs the load, and Query Store provides the before/after evidence.
 - **CI/CD:** the golden path deploys from the dev VM. A pipeline with a self-hosted runner on the dev VM is a bonus, because GitHub-hosted runners can't reach private endpoints.
 
@@ -179,7 +180,7 @@ flowchart LR
 | The pre-built archetype drifts from the tenant's ALZ policies or from new APEX releases | Pin the APEX release and ALZ options. Re-validate per release (`versions.md`). Plain deploy fallback |
 | ALZ policies hit the pre-existing datacenter (e.g. deployIfNotExists policies on VMs without a guest agent) | Effective-policy list from the spike. Exemption script right after the move |
 | Arc on Azure VMs needs a workaround. Arc features vary by edition and licence | Reuse the Jumpstart pattern. Compare Developer with Standard PAYG |
-| MI link on a free-offer MI: support, no stop while linked, update policy for failback, provisioning time | End-to-end spike first. Pin the SQL Server 2022 update policy. Deploy the MI on Day 1. Promote LRS if the spike fails |
+| MI link to a General Purpose MI: no stop while linked (cost runs), update policy for failback, provisioning time | End-to-end spike first. Pin the SQL Server 2022 update policy. Deploy the MI on Day 1. Promote LRS if the spike fails |
 | Private-only networking: spoke-to-spoke via firewall (UDRs), MI subnet routes, ACR push/pull, DNS | Vending owns the network contract. Probe script. Spike through the hub |
 | New CSP subs have low vCPU or MI quota | No automated quota checks. VM size and region are parameters, with germanywestcentral as the fallback region. Pre-work tells members to deploy early and request quota if a deployment fails |
 | Bring-your-own Copilot: org policies (agent mode, MCP, CLI), premium requests. Codespaces isn't included in Copilot licensing | Preflight, model guidance, local dev container as the alternative |

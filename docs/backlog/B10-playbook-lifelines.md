@@ -117,6 +117,6 @@ feat: add the modernization playbook, skills and lifelines
 
 - **These files load into attendee sessions on purpose.** Keep instructions short and specific to the modernization, so they help Copilot rather than drown it.
 - **Lifelines are public,** on the honor system (PRD §2). Creating a repo from a template doesn't reliably copy non-default branches, which is why members fetch lifelines from the upstream repo.
-- **Free-offer MI credits:** B07 recorded how many vCore hours a migration uses. Check enough are left this month before deploying the archetype's MI.
+- **MI cost:** B07 recorded how long a migration keeps the MI linked (it can't be stopped while linked). The MI bills about $0.68/hour while running, so stop it after cutover.
 - **Contained users** for the web app's identity can only be created once the database is writable, which after MI link means after cutover (PRD §6).
 - **Rebuilding lifelines:** if an earlier lifeline changes, later ones must be rebuilt on top of it. Record the base commit of each in `coach/lifelines.md`.
