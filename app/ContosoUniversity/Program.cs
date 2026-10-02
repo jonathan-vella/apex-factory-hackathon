@@ -40,12 +40,16 @@ builder.Services.Configure<FormOptions>(o => o.MultipartBodyLengthLimit = MaxReq
 
 builder.Services.AddDbContext<SchoolContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddSingleton<NotificationService>();
+builder.Services.AddSingleton<TeachingMaterialStore>();
 
 // MVC 5 serialized JSON with property names as declared; keep that for the notifications poll.
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(o => o.JsonSerializerOptions.PropertyNamingPolicy = null);
 
 var app = builder.Build();
+
+// Fail fast when Storage settings are missing.
+_ = app.Services.GetRequiredService<TeachingMaterialStore>();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -62,15 +66,6 @@ else
 }
 
 app.UseStaticFiles();
-
-// Teaching-material uploads stay on local disk until the Blob Storage task.
-var uploadsRoot = Path.Combine(app.Environment.ContentRootPath, "Uploads");
-Directory.CreateDirectory(Path.Combine(uploadsRoot, "TeachingMaterials"));
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(uploadsRoot),
-    RequestPath = "/Uploads"
-});
 
 app.UseRouting();
 app.UseAuthorization();

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Extensions.Logging;
 using ContosoUniversity.Data;
 using ContosoUniversity.Models;
 using ContosoUniversity.Services;
@@ -14,28 +15,47 @@ namespace ContosoUniversity.Controllers
 {
     public class CoursesController : BaseController
     {
-        private readonly string _uploadsRoot;
+        private readonly TeachingMaterialStore _store;
+        private readonly ILogger<CoursesController> _logger;
 
-        public CoursesController(SchoolContext db, NotificationService notificationService, IWebHostEnvironment environment) : base(db, notificationService)
+        public CoursesController(SchoolContext db, NotificationService notificationService, TeachingMaterialStore store, ILogger<CoursesController> logger) : base(db, notificationService)
         {
-            _uploadsRoot = Path.Combine(environment.ContentRootPath, "Uploads", "TeachingMaterials");
+            _store = store;
+            _logger = logger;
         }
 
-        // Maps a stored "~/Uploads/TeachingMaterials/{file}" value to a file under the uploads folder only.
-        private string ResolveUploadPath(string storedPath)
+        private static string ContentTypeFor(string extension)
         {
-            if (string.IsNullOrEmpty(storedPath))
+            switch (extension)
             {
-                return null;
+                case ".jpg":
+                case ".jpeg": return "image/jpeg";
+                case ".png": return "image/png";
+                case ".gif": return "image/gif";
+                case ".bmp": return "image/bmp";
+                default: return "application/octet-stream";
             }
+        }
 
-            var fileName = Path.GetFileName(storedPath.Replace('\\', '/'));
-            if (string.IsNullOrEmpty(fileName))
+        // GET: Courses/TeachingMaterial/5 (streams the blob; browsers never see the storage URL)
+        public IActionResult TeachingMaterial(int? id)
+        {
+            if (id == null)
             {
-                return null;
+                return BadRequest();
             }
-
-            return Path.Combine(_uploadsRoot, fileName);
+            var course = db.Courses.AsNoTracking().SingleOrDefault(c => c.CourseID == id);
+            var blobName = TeachingMaterialStore.ResolveBlobName(course?.TeachingMaterialImagePath);
+            if (blobName == null)
+            {
+                return NotFound();
+            }
+            var blob = _store.Open(blobName);
+            if (blob == null)
+            {
+                return NotFound();
+            }
+            return File(blob.Value.Content, ContentTypeFor(Path.GetExtension(blobName).ToLowerInvariant()));
         }
 
         // GET: Courses
@@ -98,19 +118,15 @@ namespace ContosoUniversity.Controllers
 
                     try
                     {
-                        // Create uploads directory if it doesn't exist
-                        Directory.CreateDirectory(_uploadsRoot);
-
                         // Generate unique filename
                         var fileName = $"course_{course.CourseID}_{Guid.NewGuid()}{fileExtension}";
-                        var filePath = Path.Combine(_uploadsRoot, fileName);
 
                         // Save file
-                        using (var stream = System.IO.File.Create(filePath))
+                        using (var stream = teachingMaterialImage.OpenReadStream())
                         {
-                            teachingMaterialImage.CopyTo(stream);
+                            _store.Upload(fileName, stream, ContentTypeFor(fileExtension));
                         }
-                        course.TeachingMaterialImagePath = $"~/Uploads/TeachingMaterials/{fileName}";
+                        course.TeachingMaterialImagePath = TeachingMaterialStore.ToStoredPath(fileName);
                     }
                     catch (Exception ex)
                     {
@@ -180,26 +196,22 @@ namespace ContosoUniversity.Controllers
 
                     try
                     {
-                        // Create uploads directory if it doesn't exist
-                        Directory.CreateDirectory(_uploadsRoot);
-
                         // Generate unique filename
                         var fileName = $"course_{course.CourseID}_{Guid.NewGuid()}{fileExtension}";
-                        var filePath = Path.Combine(_uploadsRoot, fileName);
 
-                        // Delete old file if exists
-                        var oldFilePath = ResolveUploadPath(course.TeachingMaterialImagePath);
-                        if (oldFilePath != null && System.IO.File.Exists(oldFilePath))
+                        // Delete old file if exists (only app-managed names for this course)
+                        var oldBlobName = TeachingMaterialStore.ResolveBlobName(course.TeachingMaterialImagePath);
+                        if (oldBlobName != null && oldBlobName.StartsWith($"course_{course.CourseID}_", StringComparison.OrdinalIgnoreCase))
                         {
-                            System.IO.File.Delete(oldFilePath);
+                            _store.Delete(oldBlobName);
                         }
 
                         // Save new file
-                        using (var stream = System.IO.File.Create(filePath))
+                        using (var stream = teachingMaterialImage.OpenReadStream())
                         {
-                            teachingMaterialImage.CopyTo(stream);
+                            _store.Upload(fileName, stream, ContentTypeFor(fileExtension));
                         }
-                        course.TeachingMaterialImagePath = $"~/Uploads/TeachingMaterials/{fileName}";
+                        course.TeachingMaterialImagePath = TeachingMaterialStore.ToStoredPath(fileName);
                     }
                     catch (Exception ex)
                     {
@@ -245,17 +257,17 @@ namespace ContosoUniversity.Controllers
             var courseTitle = course.Title;
             
             // Delete associated image file if it exists
-            var filePath = ResolveUploadPath(course.TeachingMaterialImagePath);
-            if (filePath != null && System.IO.File.Exists(filePath))
+            var blobName = TeachingMaterialStore.ResolveBlobName(course.TeachingMaterialImagePath);
+            if (blobName != null)
             {
                 try
                 {
-                    System.IO.File.Delete(filePath);
+                    _store.Delete(blobName);
                 }
                 catch (Exception ex)
                 {
                     // Log the error but don't prevent deletion of the course
-                    System.Diagnostics.Debug.WriteLine($"Error deleting file: {ex.Message}");
+                    _logger.LogError(ex, "Error deleting teaching material blob for course {CourseId}", id);
                 }
             }
             
