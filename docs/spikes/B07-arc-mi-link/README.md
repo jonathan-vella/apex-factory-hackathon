@@ -2,8 +2,8 @@
 
 | Field | Value |
 |---|---|
-| Date | 2026-10-02 to in progress |
-| Result | In progress |
+| Date | 2026-10-02 |
+| Result | ⚠️ Pass with changes. `vm-app01` was onboarded to Arc unattended by the kit script, and `ContosoUniversity` migrated online to SQL MI through the Arc portal with MI link: seeded, replica validated, aborted and reseeded, then a planned cutover that removed the link, with no data loss and a passing smoke test. Owner-approved changes: a paid MI instead of the free offer, the kit script as the only onboarding path, failback not attempted, and `ActiveDirectoryInteractive` added to the perf kit (see [Decisions](#decisions)) |
 | Region | swedencentral |
 | Versions | Azure Connected Machine agent `1.68.03532.3282`, Azure extension for SQL Server (`WindowsAgent.SqlServer`) `1.1.3547.472`, SQL Server 2022 Developer `16.0.4255.1`, MI update policy SQL Server 2022 (`databaseFormat: 'SQLServer2022'`). In [versions.md](../../../versions.md) |
 
@@ -19,6 +19,23 @@ Can `vm-app01` be onboarded to Azure Arc unattended with a kit script, and does 
 4. Prepared the source with [infra/arc-source-prep.bicep](infra/arc-source-prep.bicep), an Arc run command running [scripts/Prepare-MiLinkSource.ps1](scripts/Prepare-MiLinkSource.ps1): Windows Firewall rule, database master key, Azure root CAs, full recovery model, full backup with checksum.
 5. Tested the network both ways before creating the link: SQL Server to MI with [scripts/Test-MiLinkNetwork.ps1](scripts/Test-MiLinkNetwork.ps1) (Arc run command), MI to SQL Server with the page's `NetHelper` SQL Agent job on the MI, run from `vm-dev01` with [scripts/Invoke-MiQuery.ps1](scripts/Invoke-MiQuery.ps1).
 6. Took the source fingerprint with [scripts/fingerprint.sql](scripts/fingerprint.sql) for the replica check.
+7. The owner ran the assessment, the link, the abort, the second link and the cutover in the Arc portal ([migration.md](migration.md)); the executor validated each step from `vm-dev01`, and the owner ran the smoke test.
+8. Tore everything down with [scripts/Remove-SpikeB07.ps1](scripts/Remove-SpikeB07.ps1) (owner-approved): the MI and its virtual cluster, `rg-spike-b07`, the Arc machine `vm-app01` with its Arc SQL Server resources, and `rg-datacenter`, which ends the datacenter chain from B04. Afterwards (15:27): `az group exists` is `false` for both groups; the subscription has no Arc machine named `vm-app01`, no Arc SQL Server instance named `vm-app01*` (the two left, in `rg-arcbox-swc01`, are unrelated), no SQL MI and no virtual cluster; no role assignment was created on 2026-10-02 (B07 created none).
+
+### Cost
+
+At list price, from the activity log's start and deallocate events (times UTC+2):
+
+| What | Hours | Rate | Cost |
+|---|---|---|---|
+| SQL MI (11:42 to its deletion at 15:10) | 3.5 | $0.68/hour | About $2.40 |
+| Datacenter during B07 (11:24 to 15:27) | 4.1 | $1.55/hour | About $6.30 |
+| **B07 total** | | | **About $8.70** |
+| Datacenter chain B04–B07, running (2026-09-24 13:33 to 2026-10-02 15:15) | 132 | $1.55/hour | About $205 |
+| Datacenter chain B04–B07, deallocated (two stops: 1 h on 09-24, 61 h from 09-25 to 09-28) | 62 | $0.78/hour | About $48 |
+| **Datacenter chain B04–B07 total** | 194 | | **About $253**, an upper bound: Bastion was the free Developer SKU until #35 |
+
+B06's spike services (about $179) are separate and in the [B06 report](../B06-ghcp-golden-path/README.md).
 
 ### Arc-enabled SQL Server
 
@@ -178,6 +195,8 @@ Times are UTC+2.
 | Cutover: **Complete cutover** to complete | About 2 min (13:56–13:58); link gone at 13:58:03 | "Forced failover" was ticked; lag 0 and no traffic, no data loss (finding 13) |
 | First full backup on the MI after failover | Finished 14:02:25, 4 min after cutover | Safe to restart or stop the MI from then on |
 | Smoke test on the MI (owner, from `vm-dev01`) | 5.9 min (14:20–14:25) for a 5-minute run | `ActiveDirectoryInteractive`, one browser prompt. It overran by 0.9 min because the last P4 calls take nearly 2 minutes |
+| Teardown: MI and virtual cluster | 20 min (14:49–15:09) | `snet-sqlmi` free when the virtual cluster was gone |
+| Teardown: `rg-spike-b07`, Arc machine, `rg-datacenter` | 18 min (15:09–15:27) | |
 
 ## Findings
 
