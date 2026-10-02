@@ -70,8 +70,13 @@ After cutover the MI can be stopped, which an active link prevents.
 
 ## 7. Failback (bonus)
 
-Reverse migration isn't in the Arc portal. With the SQL Server 2022 update policy, a new link from the MI back to SQL Server 2022 is possible in SSMS ([Reverse a migration](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-migrate#reverse-a-migration)). The report records whether it worked.
+Reverse migration isn't in the Arc portal, and the portal's cutover doesn't offer to keep the link. With the SQL Server 2022 update policy, a new link from the MI back to SQL Server 2022 is possible in SSMS or with T-SQL ([Reverse a migration](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-migrate#reverse-a-migration)), after deleting the source database so the link can seed it. B07 didn't attempt it (owner decision); the kit's rollback is the abort before cutover (step 5).
 
 ## Where the portal differed from this page
 
-Recorded during the owner's run (requirement 19); see the [report](README.md#findings).
+Recorded during the owner's run on 2026-10-02 and folded into the steps above:
+
+- **Run assessment** finished in under 3 minutes.
+- The link resource on the MI is named `DAG_ContosoUniversity`, from the database name, whatever link name you type in the wizard. Creating the link took about 6 minutes from **Start data migration**; seeding 200 MB took under a minute.
+- **Cancel migration** was simple, but it leaves the database on the MI, read-write (step 5).
+- **Complete cutover** has two checkboxes (traffic stopped, forced failover) and no choice to keep the link. It removes the link and leaves the source read-write (step 6).

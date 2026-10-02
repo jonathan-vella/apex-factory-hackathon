@@ -107,6 +107,25 @@ Only what MI link needs, from [Prepare your environment for a link](https://lear
 | `nsg-servers` | Outbound | TCP 5022, 11000–11999 | `10.10.n.4` | `10.20.n.128/26` |
 | Windows Firewall on `vm-app01` | Inbound | TCP 5022 | `10.20.n.128/26` | local |
 
+Windows Firewall allows outbound traffic by default, so only the inbound rule is needed on `vm-app01`. The test also needs DNS resolution of the MI's private host name from `vm-app01`, which Azure DNS gave over the peering; through the hub, B08's DNS has to resolve it.
+
+### `licenseType` on the MI (requirement 14)
+
+`licenseType: 'BasePrice'` (Azure Hybrid Benefit) was accepted on the paid General Purpose MI at creation, and the live MI reports `BasePrice`. At list price that's $0.67/hour compute instead of the licence-included rate. Cost Management posts usage a day later, so the billed rate is checked in B09 (follow-up).
+
+### Day 2 schedule
+
+For a database of this size (200 MB), the link isn't the long pole:
+
+| Step | Time in B07 |
+|---|---|
+| Create the link (portal, to `LinkSynchronizing`) | About 6–7 min |
+| Seeding | Under 1 min |
+| Abort (cancel), delete the MI copy, recreate and reseed | About 20 min, mostly the 6 minutes of link creation |
+| Cutover to complete | About 2 min, then 4 min until the MI's first full backup |
+
+So the link doesn't have to start early on Day 2 to overlap C6: starting it at the beginning of C7 leaves room for the curveball's abort and reseed inside C7. Start it earlier only if the dry run's database is much bigger. The MI itself takes minutes to provision here, but deploy it on Day 1 as planned (PRD §5), because provisioning time varies by region and capacity.
+
 ## What-if summaries
 
 Every deployment ran `az deployment ... what-if` first and was checked: only B07-owned resources created or changed, nothing deleted, nothing in `rg-datacenter` changed except what the runbook prescribes, no zones or zone redundancy, no public endpoints.
@@ -164,13 +183,18 @@ Times are UTC+2.
 
 - **Paid MI, not the free offer** (owner, 2026-10-02). A regular General Purpose MI with Azure Hybrid Benefit replaces the SQL MI free offer in B07. Changes [B07](../../backlog/B07-spike-arc-mi-link.md) (Cost, Outcome, Before you start, requirements 13, 14, 24 and 25, Stop and ask if, Notes and traps); the PRD, roadmap, B09, B10 and the backlog README change in a separate PR.
 - **Arc onboarding is automated only** (owner, 2026-10-02): lab provisioning, policy deployment and teardowns use IaC and the kit's scripts, never manual steps or agents. `scripts/Connect-DatacenterArc.ps1` is the only onboarding path, and [onboarding-portal.md](onboarding-portal.md) is its attendee page. Changes B07's Outcome, requirements 4, 5, 10 and 26, and Done when. The DB migration (assessment, MI link) stays the Arc portal path the runbook prescribes.
+- **Failback not attempted** (owner, 2026-10-02, requirement 24, a bonus). The Arc portal has no reverse migration. A failback needs a new link from the MI to SQL Server 2022, set up in SSMS or with T-SQL and `az sql mi link`, and deleting the source database first, so it can seed. The kit's rollback is the abort before cutover, which worked (requirement 22). The MI's SQL Server 2022 update policy is what a failback would need.
 
 ## Evidence
 
-In progress.
+- [evidence/arc-sql-assessment.json](evidence/arc-sql-assessment.json): the Arc SQL migration assessment, from the Arc SQL Server instance's `migration.assessment` property (no IDs).
+- [evidence/replica-and-cutover-checks.md](evidence/replica-and-cutover-checks.md): the source baseline, the replica checks, the state after the abort and the post-cutover comparison.
+- The run command outputs quoted in this report, with host names and IPs replaced by placeholders. The owner's screenshot of the cutover pane isn't committed, because it shows IDs.
 
 ## Follow-ups
 
+- **B08: MI link through the hub.** Move the rules in [MI link network rules](#mi-link-network-rules) to the hub firewall: from `10.10.n.4` to the MI subnet `10.20.n.128/26` on TCP 5022 and 11000–11999, and from the MI subnet to `10.10.n.4` on TCP 5022. Keep the NSG rules, and the Windows Firewall rule on `vm-app01`. Make sure `vm-app01` resolves the MI's private host name through the hub's DNS. Re-run the two-way test ([scripts/Test-MiLinkNetwork.ps1](scripts/Test-MiLinkNetwork.ps1) and the `NetHelper` job), because a one-way test can pass while the link fails.
+- **B09: MI settings validated here.** General Purpose, Gen5, 4 vCores, 64 GB; `licenseType: 'BasePrice'` accepted (check the billed rate in Cost Management); `databaseFormat: 'SQLServer2022'`; Entra-only with the deployer as admin; public endpoint off; zone redundancy off; time zone `W. Europe Standard Time`; API `Microsoft.Sql/managedInstances@2025-01-01`. Provisioning took 7 minutes. Leave the MI's NSG and route table rules and routes out of the Bicep: the MI's network intent policy adds them, and a re-deploy that lists them inline fights it. App identities' database users can only be created after cutover (the replica is read-only).
 - **B08 and B11: NSG rules added after the datacenter** (finding 1). Move `nsg-servers`' rules to child `securityRules` in B04, or add the MI link rules to B04, so a datacenter redeploy keeps them. B08 moves the MI link rules to the hub firewall anyway.
 - **B04 or B11: the policy-added identity and extensions** (finding 2). Declare a system-assigned identity on the datacenter VMs in B04, or document that a policy outside the kit may add it and the Guest Configuration and MDE extensions.
 - **B09: MI backup redundancy** (finding 3). Decide `requestedBackupStorageRedundancy` (the kit's storage convention is LRS; the default is Geo).
@@ -178,3 +202,4 @@ In progress.
 - **B11 (C3): the trace flag warning** (finding 9). Attendees triage "Trace flags not supported in Azure SQL Managed Instance" as expected and remove `-T1800` and `-T9567` from the source after cutover (owner added it to B11's C3).
 - **B11 (C0) and B12: the assessment's region** (finding 8). Tell attendees to set **Assessment settings** to their region before reading the cost estimate.
 - **B11 (C7): the cutover pane** (findings 12–14). Leave "I want to do a forced failover" unticked unless the portal requires it, and cut over only at lag 0. Stop the app and writes to the source first, because the source stays writable after cutover. There's no "keep the link" option in the portal.
+- **B11 (C0 and C7): content.** C0 is [onboarding-portal.md](onboarding-portal.md) (the one script, checks, troubleshooting); C7 is [migration.md](migration.md), with the kit's prep (source prep Bicep, two-way test) before the portal steps, and the Day 2 timings above for the time box.
