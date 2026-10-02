@@ -110,10 +110,12 @@ function Invoke-Connect {
     Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
     Write-LabLog 'Read and deleted the staged settings, and removed the task.'
 
-    & $prepScript | ForEach-Object { Write-LabLog "  prep: $_" }
+    # A separate process gives a reliable exit code; a script called with & leaves $LASTEXITCODE unset on success.
+    & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $prepScript | ForEach-Object { Write-LabLog "  prep: $_" }
     if ($LASTEXITCODE -ne 0) {
         throw "The prep script failed (exit $LASTEXITCODE). See C:\LabTools\logs\Prepare-ArcOnAzureVm.log."
     }
+    $env:MSFT_ARC_TEST = 'true'
 
     if (-not (Test-Path $agentExe)) {
         $msi = Join-Path $arcDir 'AzureConnectedMachineAgent.msi'

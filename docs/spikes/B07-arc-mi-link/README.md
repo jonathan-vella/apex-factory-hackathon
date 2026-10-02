@@ -59,7 +59,7 @@ In progress.
 ## Findings
 
 1. **A datacenter redeploy wipes NSG rules that later items add.** `nsg-servers` lists its rules inline in B04's Bicep, so `Deploy-Datacenter.ps1` removes the MI link rules this spike adds as child `securityRules`. B07 re-applies them with [infra/main.bicep](infra/main.bicep) after every datacenter redeploy.
-2. **A policy above the kit changes the VMs, and each datacenter redeploy undoes part of it.** `vm-dev01` has a system-assigned managed identity and the Guest Configuration extension `AzurePolicyforWindows`, and `vm-app01` has `MDE.Windows` (Defender for Servers). None of them is in B04's template. A redeploy removes `vm-dev01`'s identity until the policy adds it back.
+2. **A policy above the kit changes the VMs.** `vm-dev01` has a system-assigned managed identity and the Guest Configuration extension `AzurePolicyforWindows`, and `vm-app01` has `MDE.Windows` (Defender for Servers). None of them is in B04's template. The what-if for a datacenter redeploy lists `vm-dev01`'s identity as deleted, but after the re-run it was still `SystemAssigned`, so that's what-if noise (or the policy re-added it at once).
 3. **The MI provisioned in 7 minutes** (11:42–11:49): a new General Purpose instance in a new subnet, with `licenseType: 'BasePrice'` accepted. Backup storage redundancy is the default, Geo, because the template doesn't set it.
 
 ## Decisions
@@ -73,5 +73,5 @@ In progress.
 ## Follow-ups
 
 - **B08 and B11: NSG rules added after the datacenter** (finding 1). Move `nsg-servers`' rules to child `securityRules` in B04, or add the MI link rules to B04, so a datacenter redeploy keeps them. B08 moves the MI link rules to the hub firewall anyway.
-- **B04 or B11: the policy-added identity** (finding 2). Declare a system-assigned identity on the datacenter VMs in B04, or document that a redeploy removes it.
+- **B04 or B11: the policy-added identity and extensions** (finding 2). Declare a system-assigned identity on the datacenter VMs in B04, or document that a policy outside the kit may add it and the Guest Configuration and MDE extensions.
 - **B09: MI backup redundancy** (finding 3). Decide `requestedBackupStorageRedundancy` (the kit's storage convention is LRS; the default is Geo).

@@ -168,7 +168,7 @@ finally {
 $deadline = (Get-Date).AddMinutes(10)
 do {
     Start-Sleep -Seconds 15
-    $view = (Invoke-AzureCli -Arguments @('vm', 'run-command', 'show', '--subscription', $SubscriptionId, '-g', $resourceGroup, '--vm-name', $vmName, '-n', $runCommandName, '--instance-view')).instanceView
+    $view = (Invoke-AzureCli -Arguments @('vm', 'run-command', 'show', '--subscription', $SubscriptionId, '-g', $resourceGroup, '--vm-name', $vmName, '--name', $runCommandName, '--instance-view')).instanceView
 } while ($view.executionState -notin 'Succeeded', 'Failed', 'TimedOut', 'Canceled' -and (Get-Date) -lt $deadline)
 if ($view.executionState -ne 'Succeeded' -or $view.exitCode -ne 0) {
     throw "The staging run command ended '$($view.executionState)' (exit $($view.exitCode)): $($view.output) $($view.error)"
