@@ -154,7 +154,7 @@ Every resource that supports Azure Hybrid Benefit (AHB) or a bring-your-own-lice
 | Windows 11 VM (`vm-dev01`) | `licenseType: 'Windows_Client'` | Multitenant hosting rights, needed to run Windows 11 on Azure |
 | SQL Server Developer on the VM | None | Developer edition is free |
 | Arc-enabled SQL Server Developer | None | Developer edition is free |
-| SQL Managed Instance | `licenseType: 'BasePrice'` | B09 checks how it interacts with the free offer |
+| SQL Managed Instance | General Purpose, Standard-series (Gen5), 4 vCores, 64 GB, `licenseType: 'BasePrice'` | Never the free offer (owner decision 2026-10-02) |
 | App Service for Linux, Azure Firewall, other PaaS | None | AHB doesn't apply |
 
 Every script or page that deploys one of these says that AHB is on, what it assumes (the partner holds eligible licences) and how to turn it off after deployment, for example `az vm update -g rg-datacenter -n vm-app01 --license-type None`.

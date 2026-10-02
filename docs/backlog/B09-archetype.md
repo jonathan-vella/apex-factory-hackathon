@@ -7,7 +7,7 @@
 | Depends on | B06, B07, B08 |
 | Unblocks | B10, B11 |
 | Effort | 3–4 days elapsed, including the owner's APEX session |
-| Cost | About $3.95/hour while deployed: Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints about $0.05, ALZ-lite about $1.25 and the datacenter about $1.55. The SQL MI free offer is free within its limits |
+| Cost | About $4.63/hour while deployed: SQL MI General Purpose 4 vCores with AHB about $0.68, Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints about $0.05, ALZ-lite about $1.25 and the datacenter about $1.55 |
 | Teardown | Delete everything this item created: the archetype resources, `rg-spoke` and `rg-datacenter` in the workload subscription, `rg-hub` and `rg-management` in the shared services subscription, the policy assignments and budget, and the kit's management groups after moving both subscriptions back to their original place |
 | PRD | §2 Archetype, Compute, Messaging, Hybrid Benefit; §5 C5; §6 CoE archetype |
 
@@ -15,12 +15,12 @@
 
 - `archetype/` holds the CoE archetype: an APEX project with steps 1–5 complete (artifacts, challenger reviews and workflow state) and the Bicep it produced, pinned to an APEX release.
 - A member deploys it with APEX Deploy and As-Built, supplying only tenant ID, subscription ID and suffix. A plain `az deployment` script is the no-agent fallback.
-- It deploys into a vended spoke, with private-only backends, policy-compliant under ALZ-lite: App Service for Linux (the web front end, public inbound), ACR Premium, SQL MI free offer, Blob storage, Service Bus Premium, Key Vault and Application Insights, with the identities and roles the modernized app needs.
+- It deploys into a vended spoke, with private-only backends, policy-compliant under ALZ-lite: App Service for Linux (the web front end, public inbound), ACR Premium, SQL MI General Purpose, Blob storage, Service Bus Premium, Key Vault and Application Insights, with the identities and roles the modernized app needs.
 
 ## Before you start
 
 1. B06, B07 and B08 are closed. Read the B06 and B07 reports' recommendations for B09.
-2. The workload subscription has no free-offer SQL MI (only one is allowed per subscription).
+2. The workload subscription has SQL MI vCore quota for a 4-vCore General Purpose instance in the region.
 3. `.local/settings.json` has `tenantId`, `subscriptionId`, `location`, `memberIndex` and `suffix`.
 
 ## Requirements
@@ -34,7 +34,7 @@
    |---|---|
    | App Service plan and web app | Linux, container, SKU P0v3, one instance, zone redundancy off (🔎 VERIFY P0v3 supports VNet integration); VNet integration in `snet-app` with all traffic routed through the VNet and image pull over the VNet; **public inbound on** (the web front end is the only public endpoint), no private endpoint; HTTPS only; TLS 1.2 minimum |
    | Container registry | Premium; private endpoint; public network access off; admin user off; no zone setting (zone-redundant automatically, backlog conventions); **trusted Azure services allowed**, so `az acr import` of the known-good image works (B10). Document this as a deliberate exception |
-   | SQL Managed Instance | General Purpose, **free offer**, 4 vCores, Standard-series hardware, 64 GB storage, zone redundancy off; in `snet-sqlmi`; reached on its VNet-local endpoint (no private endpoint); database format SQL Server 2022; Entra-only authentication with the deploying user as admin; public endpoint off; a stop and start schedule for the event hours, noting it only applies after cutover; `licenseType` as the B07 report found (AHB `BasePrice` if the free offer accepts it) |
+   | SQL Managed Instance | General Purpose (paid, never the free offer), 4 vCores, Standard-series (Gen5) hardware, 64 GB storage, zone redundancy off; in `snet-sqlmi`; reached on its VNet-local endpoint (no private endpoint); database format SQL Server 2022; Entra-only authentication with the deploying user as admin; public endpoint off; a stop and start schedule for the event hours, noting it only applies after cutover; `licenseType: 'BasePrice'` (AHB) |
    | Storage account | Standard general-purpose v2, LRS; Blob container `teaching-materials`; private endpoint; public network access off; shared key access off |
    | Service Bus | Premium, 1 messaging unit; queue `notifications`; private endpoint; public network access off; local auth off; no zone setting (zone-redundant automatically, backlog conventions) |
    | Key Vault | RBAC authorization; private endpoint; public network access off; soft delete on, purge protection off |
@@ -106,12 +106,12 @@ feat: add the CoE archetype built with APEX
 
 - APEX's output differs from the brief in a way that changes cost, security or the app's contract.
 - A deny policy blocks the archetype.
-- The free-offer MI fails to provision, or the subscription already has one.
+- The MI fails to provision, or the subscription's SQL MI vCore quota is too small.
 
 ## Notes and traps
 
 - **Markdown:** `archetype/` is excluded from the repo's Markdown lint (B01), because it's APEX output.
 - **Role propagation:** role assignments can take minutes to apply. The first image pull can fail if the web app starts before AcrPull is effective; that's why the brief asks for a user-assigned identity.
-- **MI and the schedule:** the free offer's stop schedule can't stop an MI with an active link. The schedule matters only after cutover.
+- **MI and the schedule:** the stop schedule can't stop an MI with an active link, so it bills while linked. The schedule matters only after cutover.
 - **Placeholder image:** the web app's outbound traffic goes through the hub firewall, which allows Microsoft Container Registry only. Don't use a placeholder from another public registry.
 - **Codespaces** can run APEX Deploy because deployments are control-plane only. Data-plane checks (pushing images, browsing the app) must run from `vm-dev01`.
