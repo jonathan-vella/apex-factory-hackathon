@@ -1,0 +1,7 @@
+# 06-opentelemetry-azure-monitor: Migrate logging and tracing to OpenTelemetry with Azure Monitor
+
+**Depends on**: 05-key-vault-config
+
+Replace all `System.Diagnostics.Trace`/`Debug` calls with `ILogger<T>`: `Debug.WriteLine` in BaseController (send failure), CoursesController (file-delete error), NotificationsController (2 places), NotificationService (send/receive — superseded by Task 04 code, verify none remain), and `Trace.TraceError` in StudentsController create/edit/delete (these currently include student names and stack traces — log the exception object and IDs, not PII). Add `Azure.Monitor.OpenTelemetry.AspNetCore` with a single `UseAzureMonitor()` call — no individual instrumentation packages or custom exporters — registered only when `APPLICATIONINSIGHTS_CONNECTION_STRING` or `ApplicationInsights:ConnectionString` has a value, with the credential set to DefaultAzureCredential (local auth disabled). With no connection string nothing extra is registered and built-in console logging is used.
+
+**Done when**: `dotnet build` succeeds; no `System.Diagnostics.Trace`/`Debug` usage remains; app starts and serves home, Students, Courses, Instructors, Departments with no connection string; with a connection string, requests, SQL and HTTP dependencies, and logs from a local run appear in Application Insights within a few minutes. Database-backed steps are **BLOCKED** until the user secret is supplied.
