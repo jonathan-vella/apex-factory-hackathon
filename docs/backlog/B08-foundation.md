@@ -68,7 +68,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
 
    🔎 VERIFY each built-in definition ID with `az policy definition list`. Record the IDs in `infra/foundation/README.md`.
 5. Microsoft Defender for Cloud stays on **Foundational CSPM** (free) on both subscriptions: every paid plan off, set with `Microsoft.Security/pricings`.
-6. `scripts/Deploy-AlzLite.ps1` (attendee script conventions) deploys requirements 1–5 for a team. Parameters: `SharedSubscriptionId`, `Location`, `MgPrefix`. It checks the management group permissions first and explains how to get them if missing (Owner at Tenant Root, or a Global Admin elevating access). It prints the cost per hour and how long it took. A re-run converges.
+6. `scripts/Deploy-AlzLite.ps1` (attendee script conventions) deploys requirements 1–5 for a team. Parameters: `SharedSubscriptionId`, `Location`, `MgPrefix`, and the switch `SkipDefender`, which leaves the subscription's Defender for Cloud plans as they are (owner decision 2026-10-02, for subscriptions that host other workloads; off by default). It checks the management group permissions first and explains how to get them if missing (Owner at Tenant Root, or a Global Admin elevating access). It prints the cost per hour and how long it took. A re-run converges.
 
 ### Vending: workload subscription
 
@@ -81,12 +81,12 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    - a rule collection group for member `n` in `afwp-hub`, allowing only: dev VM to `snet-pe` and `snet-app` on 443 (and 5671 for Service Bus); dev VM to `snet-sqlmi` on 1433 and 11000–11999; MI link between `10.10.n.4` and `snet-sqlmi` (the rules from the B07 report); App Service outbound to Entra ID, to Microsoft Container Registry (`mcr.microsoft.com` and its data endpoints, for the archetype's placeholder image) and to the Azure Monitor ingestion endpoints (the documented private-only exception; 🔎 VERIFY the endpoints on [Azure Monitor network access](https://learn.microsoft.com/azure/azure-monitor/fundamentals/azure-monitor-network-access));
    - Owner on the workload subscription for the member (a parameter; skipped when empty);
    - a monthly budget on the workload subscription (parameter, default 500 in the billing currency) with an alert at 80% to an email parameter.
-8. `scripts/Deploy-Vending.ps1` deploys it. Parameters: `WorkloadSubscriptionId`, `SharedSubscriptionId`, `MemberIndex`, `Location`, `MgPrefix`, `MemberPrincipalId` (optional), `BudgetAmount`, `BudgetEmail`. It discovers the hub's IDs in the shared subscription by the ALZ-lite names and prints them. Run it after the datacenter exists, so the datacenter is peered too; a re-run after deploying the datacenter adds its peering.
+8. `scripts/Deploy-Vending.ps1` deploys it. Parameters: `WorkloadSubscriptionId`, `SharedSubscriptionId`, `MemberIndex`, `Location`, `MgPrefix`, `MemberPrincipalId` (optional), `BudgetAmount`, `BudgetEmail`, `SkipDefender` (as in requirement 6). It discovers the hub's IDs in the shared subscription by the ALZ-lite names and prints them. Run it after the datacenter exists, so the datacenter is peered too; a re-run after deploying the datacenter adds its peering.
 9. The platform lead runs vending for every member, because it writes to the shared subscription (peering and firewall rules). Members need no role on the shared subscription.
 
 ### Exemptions
 
-10. `scripts/New-DatacenterExemptions.ps1` finds the policy assignments that `rg-datacenter` violates and creates one exemption per assignment, scoped to `rg-datacenter`: category Waiver, an expiry date parameter (default 14 days from today), and a description with the owner's name, the reason ("pre-existing on-premises simulation, migrating in C7") and the target date. It prints a table that members paste into their deferred-work register.
+10. `scripts/New-DatacenterExemptions.ps1` finds the policy assignments that `rg-datacenter` violates and creates one exemption per assignment, scoped to `rg-datacenter`. By default it exempts only the kit's ALZ-lite assignments; `-IncludeAssignment <name[]>` opts in named other assignments, such as the Microsoft cloud security benchmark that Defender for Cloud assigns, and it lists the rest without exempting them (owner decision 2026-10-02). Each exemption has category Waiver, an expiry date parameter (default 14 days from today), and a description with the owner's name, the reason ("pre-existing on-premises simulation, migrating in C7") and the target date. It prints a table that members paste into their deferred-work register.
 11. It only exempts `rg-datacenter`. It never exempts the spoke or the workload resources.
 
 ### Probes
@@ -103,9 +103,9 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
 
 ### Validate for real
 
-16. Deploy ALZ-lite with the shared subscription.
+16. Deploy ALZ-lite with the shared subscription. The build subscriptions host other workloads, so deploy ALZ-lite and vending there with `-SkipDefender`, and check requirement 5 with a what-if without it (owner decision 2026-10-02).
 17. Deploy the datacenter into the workload subscription with `scripts/Deploy-Datacenter.ps1`, then vending with member index `1`.
-18. Run the exemptions script and check that `rg-datacenter` shows as exempt for the assignments it violated.
+18. Run the exemptions script and check that `rg-datacenter` shows as exempt for the assignments it violated. In the build tenant, run it with `-WhatIf` only, by default and with `-IncludeAssignment` for the tenant's security benchmark assignment: never waive the build tenant's own policies (owner decision 2026-10-02).
 19. Run `scripts/Test-Connectivity.ps1`: every applicable check passes.
 20. Negative tests in the workload subscription, recorded in the PR: creating a storage account with public network access is denied; creating a NIC with a public IP is denied; a private endpoint created without a DNS zone group gets one from the DeployIfNotExists policy within 30 minutes.
 21. Tear down (Teardown row). Only delete what this item created: both subscriptions hold other resource groups that must not be touched. Query each kind of artifact and confirm nothing from this item is left, and that both subscriptions are back where requirement 5 of **Before you start** recorded them.
