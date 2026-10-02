@@ -1,0 +1,9 @@
+# 03-blob-storage-files: Migrate mutable file handling to Azure Blob Storage
+
+**Depends on**: 02-sql-managed-instance
+
+Move teaching-material image handling in CoursesController (Create, Edit, DeleteConfirmed) from the local `Uploads/TeachingMaterials` folder to Azure Blob Storage using `Azure.Storage.Blobs` with DefaultAzureCredential and configuration `Storage:BlobServiceUri` / `Storage:ContainerName` — no Azure Files, mounts, shared keys, SAS or connection strings. Preserve current behavior exactly: allowed extensions `.jpg .jpeg .png .gif .bmp` (case-insensitive), 5 MB file limit (and the 10 MB request cap), naming `course_{CourseID}_{Guid}{ext}`, replacement deletes the previous file on Edit, Delete removes the file and logs (not fails) on error, field/validation messages and views unchanged.
+
+Images must be served through the app (e.g. a controller action streaming the blob with the right content type); browsers never receive blob URLs and the container has no public access. Courses Index/Details/Edit views currently render `Url.Content(TeachingMaterialImagePath)`; decide how existing stored values (`~/Uploads/TeachingMaterials/{file}`, max 255 chars) map to blob names so old and new rows both work. The Edit form posts `TeachingMaterialImagePath` from a hidden field and the current code deletes whatever path it names — constrain deletes to app-managed blob names. Ordinary CSS/JS/images stay in the app.
+
+**Done when**: `dotnet build` succeeds; no local filesystem writes remain for uploads; local `dotnet run` against the real storage account (via private endpoint) proves upload on Create, replace on Edit (old blob removed), retrieval of the image through the app URL in Index/Details/Edit, and blob deletion on course Delete; invalid type and >5 MB uploads are rejected with the existing messages; home, Students, Courses, Instructors, Departments load. Database-backed steps are **BLOCKED** until the user secret is supplied.

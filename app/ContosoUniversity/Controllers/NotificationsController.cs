@@ -1,16 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.Web.Mvc;
-using ContosoUniversity.Services;
+using Microsoft.AspNetCore.Mvc;
+using ContosoUniversity.Data;
 using ContosoUniversity.Models;
+using ContosoUniversity.Services;
 
 namespace ContosoUniversity.Controllers
 {
     public class NotificationsController : BaseController
     {
-        // GET: api/notifications - Get pending notifications for admin
+        public NotificationsController(SchoolContext db, NotificationService notificationService) : base(db, notificationService)
+        {
+        }
+
+        // GET: Notifications/GetNotifications - Get pending notifications for admin
         [HttpGet]
-        public JsonResult GetNotifications()
+        public IActionResult GetNotifications()
         {
             var notifications = new List<Notification>();
             
@@ -30,19 +35,19 @@ namespace ContosoUniversity.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Error retrieving notifications: {ex.Message}");
-                return Json(new { success = false, message = "Error retrieving notifications" }, JsonRequestBehavior.AllowGet);
+                return Json(new { success = false, message = "Error retrieving notifications" });
             }
 
             return Json(new { 
                 success = true, 
                 notifications = notifications,
                 count = notifications.Count 
-            }, JsonRequestBehavior.AllowGet);
+            });
         }
 
-        // POST: api/notifications/mark-read
+        // POST: Notifications/MarkAsRead
         [HttpPost]
-        public JsonResult MarkAsRead(int id)
+        public IActionResult MarkAsRead(int id)
         {
             try
             {
@@ -57,7 +62,7 @@ namespace ContosoUniversity.Controllers
         }
 
         // GET: Notifications/Index - Admin notification dashboard
-        public ActionResult Index()
+        public IActionResult Index()
         {
             return View();
         }
