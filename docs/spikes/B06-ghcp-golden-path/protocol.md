@@ -348,6 +348,7 @@ After the last stage, re-enable GitHub Copilot modernization if you disabled it,
 - Use `spike/b06-upgrade-compare-v3` wherever R.1–R.3 say `spike/b06-upgrade-compare-v2`.
 - Set the harness (**Session Target**) to **Local** for stage 2 **and** every task, instead of Copilot. The fallback in R.3 step 2 doesn't apply.
 - Name the chat exports `chats\compare-v3-stage2.txt` and `chats\compare-v3-task0N.txt`.
+- Execute with **Claude Sonnet 5.5** at **Medium** instead of GPT-6 Luna at maximum (owner decision, 2026-10-02; not like for like with 11a on models).
 
 > [!NOTE]
 > **Run this after issue #28** (Bastion Standard with the native RDP client). That redeploy drops your Bastion session, so don't start the rerun before it's done. The spike resources keep running for the rerun, at about $1.05/hour.

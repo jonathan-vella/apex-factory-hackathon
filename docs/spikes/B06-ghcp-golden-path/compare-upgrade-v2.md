@@ -13,7 +13,7 @@ The executor fills this in from the run branches, their commits and the chat exp
 | Start commit | `da4e5f606983332001c94ce69b48634f9c1864b3` |
 | GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) | **1.1.612** (11a: 1.1.596) |
 | GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) | 1.24.0, Disabled (Workspace) |
-| Models | **Claude Opus 5.5 at Medium** to assess and plan (owner decision, 2026-10-01; 11a used GPT-6 Sol at Medium, so stage 2 isn't like for like on the model), GPT-6 Luna at maximum to execute |
+| Models | **Claude Opus 5.5 at Medium** to assess and plan (owner decision, 2026-10-01; 11a used GPT-6 Sol at Medium, so stage 2 isn't like for like on the model), GPT-6 Luna at maximum to execute in v2 (not run); v3 executes with Claude Sonnet 5.5 at Medium |
 | Prompt | `prompts/compare-upgrade-plan.md`, then `prompts/compare-upgrade-app-addendum.md` (11a used the prompt without the addendum) |
 | Model access | Already set before stage 2: `chat.mcp.serverSampling` still had `"GitHub Copilot upgrade: Upgrade": { allowedDuringChat: true }` from 11a, so no change was needed |
 
@@ -34,19 +34,20 @@ Branch `spike/b06-upgrade-compare-v2`, head `859d4ed`. Kept as evidence; no task
 |---|---|
 | Branch | `spike/b06-upgrade-compare-v3` |
 | Harness | **Local** for every stage |
-| Head | `2bbe048` (stage 1) |
+| Head | `d08dc9d` (stage 2) |
+| Execution model | **Claude Sonnet 5.5 at Medium** (owner decision, 2026-10-02), not GPT-6 Luna at maximum, so v3 isn't like for like with 11a on models |
 
 | Stage | Commit | Time | Model | Prompts | Interventions | Build / run | Live check |
 |---|---|---|---|---|---|---|---|
 | 1 Set up | `2bbe048` | | — | — | | — | — |
-| 2 Assess and plan (7 tasks, 9 rules) | | | Claude Opus 5.5, Medium | Prompt plus addendum | | — | Rules table; `assessment.json` and `dependencies-health.json`: |
-| 3.1 .NET 10 upgrade | | | GPT-6 Luna, maximum | | | | Pages against `10.10.n.4`: |
-| 3.2 SQL Managed Instance | | | GPT-6 Luna, maximum | | | | Development pages; Production with a SQL login refuses to start: |
-| 3.3 Blob | | | GPT-6 Luna, maximum | | | | Upload lands in `teaching-materials` and shows through the app: |
-| 3.4 Service Bus | | | GPT-6 Luna, maximum | | | | Send and receive: |
-| 3.5 Key Vault | | | GPT-6 Luna, maximum | | | | Key Vault read and both refusals to start: |
-| 3.6 OpenTelemetry | | | GPT-6 Luna, maximum | | | | Starts without a connection string; telemetry in Application Insights: |
-| 3.7 CVE fixes | | | GPT-6 Luna, maximum | | | | `dotnet list package --vulnerable`: |
+| 2 Assess and plan (7 tasks, 9 rules) | `d08dc9d` | | Claude Opus 5.5, Medium | Prompt plus addendum | 0 | — | ✅ Tool-based assessment (`assessment.json`, `dependencies-health.json`, `assessment.csv`); compliant seven-task plan; Branch Sync Disabled; only `.github/upgrades/` changed, no secrets |
+| 3.1 .NET 10 upgrade | | | Claude Sonnet 5.5, Medium | | | | Pages against `10.10.n.4`: |
+| 3.2 SQL Managed Instance | | | Claude Sonnet 5.5, Medium | | | | Development pages; Production with a SQL login refuses to start: |
+| 3.3 Blob | | | Claude Sonnet 5.5, Medium | | | | Upload lands in `teaching-materials` and shows through the app: |
+| 3.4 Service Bus | | | Claude Sonnet 5.5, Medium | | | | Send and receive: |
+| 3.5 Key Vault | | | Claude Sonnet 5.5, Medium | | | | Key Vault read and both refusals to start: |
+| 3.6 OpenTelemetry | | | Claude Sonnet 5.5, Medium | | | | Starts without a connection string; telemetry in Application Insights: |
+| 3.7 CVE fixes | | | Claude Sonnet 5.5, Medium | | | | `dotnet list package --vulnerable`: |
 | **Total** | | | | | | | |
 
 ## Harness result
@@ -54,7 +55,7 @@ Branch `spike/b06-upgrade-compare-v2`, head `859d4ed`. Kept as evidence; no task
 | Question | Result |
 |---|---|
 | Does planning run in the Copilot harness with model access allowed? | Yes (v2, `b49ce4b`) |
-| Does planning run in the Local harness? | (v3) |
+| Does planning run in the Local harness? | Yes (v3, `d08dc9d`) |
 | Does `start_task` run in the Copilot harness? | **No** (v2, `859d4ed`): couldn't parse `plan.md`, internal LLM client unavailable, also after a reload |
 | Does `start_task` run in the Local harness? | (v3) |
 | Finding 51 confirmed, or revised? | **Confirmed** on 1.1.612 |
@@ -65,7 +66,8 @@ Branch `spike/b06-upgrade-compare-v2`, head `859d4ed`. Kept as evidence; no task
 |---|---|---|---|
 | Harness for planning | Copilot | Copilot | Local |
 | Harness for tasks | Local only, after `start_task` failed in Copilot | `start_task` failed in Copilot (`859d4ed`) | Local |
-| Assessment | Tool-based | Tool-based, with `assessment.json` and `dependencies-health.json` | |
-| Interventions | 1 `continue`, 0 code fixes | 0 (stage 2) | |
+| Assessment | Tool-based | Tool-based, with `assessment.json` and `dependencies-health.json` | Tool-based, with `assessment.json` and `dependencies-health.json` |
+| Interventions | 1 `continue`, 0 code fixes | 0 (stage 2) | 0 (stage 2) |
 | Upgrade agent version | 1.1.596 | 1.1.612 | 1.1.612 |
 | Planning model | GPT-6 Sol, Medium | Claude Opus 5.5, Medium | Claude Opus 5.5, Medium |
+| Execution model | GPT-6 Luna, maximum | Not run | Claude Sonnet 5.5, Medium |
