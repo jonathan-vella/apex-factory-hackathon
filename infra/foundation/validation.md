@@ -155,3 +155,25 @@ An earlier run, right after the VM restarts, failed only "vm-app01 answers on 14
 The first re-run what-if showed `rt-sqlmi` being PUT without its routes. A test with a throwaway route table in `rg-spoke` confirmed that a route table PUT without `routes` **removes** its existing routes, so a re-run after SQL MI exists would have removed the routes MI's network intent policy adds (B07's warning). Vending now creates `nsg-sqlmi` and `rt-sqlmi` only once, empty, and manages only its own child rules and route; it also pins `privateEndpointNetworkPolicies` on the spoke subnets.
 
 After the fix, the re-run what-if shows 10 modifies, all what-if noise (read-only defaults such as `ipv6Rule`, `peeringSyncLevel`, the budget's date format, and unevaluated references), 12 no change, nothing deleted. Applied for real (2 minutes, 17:01–17:04): `rt-sqlmi` still has its route, `nsg-sqlmi` its two rules, and `vnet-datacenter` its 2 subnets, its peering and the firewall as DNS server; `snet-servers` keeps its NAT gateway, NSG, `rt-servers` and `privateEndpointNetworkPolicies: Disabled`.
+
+## Teardown (requirement 21, owner-approved)
+
+17:07–17:22. `log-management` force-deleted; `rg-spoke`, `rg-datacenter`, `rg-hub` and `rg-management` deleted; the 12 role assignments of the policy identities and the 18 `alzl-*` assignments deleted at `mg-factory-corp`; the member's Owner role assignment and `budget-factory-workload` deleted; both subscriptions moved back under Tenant Root; `mg-factory-corp`, `mg-factory-platform` and `mg-factory` deleted; the deployment records `alz-lite-mg-factory` and `vending-mg-factory-1` deleted at Tenant Root. Nothing else was touched.
+
+| Query | Result |
+|---|---|
+| `az group exists` for `rg-spoke`, `rg-datacenter` (workload), `rg-hub`, `rg-management` (shared) | ✅ `false` for all four |
+| `az account management-group list --query "[?starts_with(name, 'mg-factory')].name"` | ✅ `[]` |
+| Parent of each subscription (`az account management-group entities list`) | ✅ Tenant Root, both (as recorded before the item) |
+| `alzl-*` assignments visible in either subscription | ✅ 0 |
+| Policy exemptions in either subscription | ✅ 0 |
+| `budget-factory-workload` | ✅ gone |
+| Direct Owner for the member on the workload subscription | ✅ 0; the owner's inherited Owner remains |
+| Role assignments for deleted principals at either subscription's scope | ✅ 0 |
+| Deployment records `alz-lite-mg-factory`, `vending-mg-factory-1` at Tenant Root | ✅ 0 |
+| Soft-deleted `log-management` | ✅ none |
+| Untouched: `NetworkWatcherRG` (both), Defender plans (`VirtualMachines` still `Standard` on both) | ✅ |
+
+## Cost
+
+About $3.60 at list price: `afw-hub` with its public IP about 1.5 hours × $1.30 (15:53–17:20), and the datacenter about 1.1 hours × $1.55 (16:14–17:20). The private endpoint, the two test storage accounts, the DNS zones and Log Analytics ingestion add cents.
