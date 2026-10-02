@@ -182,6 +182,7 @@ Other services that are zone-redundant automatically are accepted the same way. 
 
 ### Scripts
 
+- **IaC only for lab infrastructure, no agents (owner decision 2026-10-02).** Lab provisioning (the datacenter, ALZ-lite, vending), policy deployment and every teardown run as Bicep plus the kit's scripts, deterministically. Copilot and APEX agents are used only for the CoE work (the archetype with APEX), app modernization and DB modernization.
 - Scripts the attendee runs (in `scripts/`) are PowerShell 7 and must also work in Azure Cloud Shell, which runs on Linux. Use `Join-Path` and don't use Windows-only cmdlets. Each one starts with `#Requires -Version 7.4`, uses `[CmdletBinding()]` with typed parameters, sets `$ErrorActionPreference = 'Stop'`, and has comment-based help with at least one example.
 - Scripts that run inside the VMs (run commands and anything under `infra/**/scripts/`) are Windows PowerShell 5.1. Start them with `$ErrorActionPreference = 'Stop'`, `$ProgressPreference = 'SilentlyContinue'` and `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`. Use `Invoke-WebRequest -UseBasicParsing`. Make them idempotent, and log to `C:\LabTools\logs\<script-name>.log`.
 - Every script is clean under PSScriptAnalyzer with its default rules.

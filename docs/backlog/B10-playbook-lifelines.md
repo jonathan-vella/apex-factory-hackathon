@@ -28,7 +28,7 @@
 ### Instructions, playbook and skills
 
 1. `.github/copilot-instructions.md`: short repo instructions for Copilot in an attendee's copy: what the repo is, that `app/ContosoUniversity` is the legacy app being modernized to .NET 10 on App Service for Linux, the target services and how they authenticate (managed identity on App Service, the member's identity with `DefaultAzureCredential` on the dev VM, SQL authentication only to the source database), and a pointer to the playbook. Nothing about the kit's own tooling.
-2. `.github/modernization/playbook.md`: the golden path from B06 run 2, as a sequence an attendee follows: assess (C3), upgrade, predefined tasks in the B06 order, the gap skills, packaging, and the App Service configuration. For each step: the goal, the prompt to use, what to check before moving on, the known hot spots and the lifeline to fall back to.
+2. `.github/modernization/playbook.md`: the B06 golden path (the v3 rerun, see `docs/spikes/B06-ghcp-golden-path/README.md`), as a sequence an attendee follows: assess and plan (C3), the seven tasks in the B06 order, the gap skills, packaging, and the App Service configuration. For each step: the goal, the prompt to use, what to check before moving on, the known hot spots and the lifeline to fall back to.
 3. The playbook's model guidance, dated and not pinned: a balanced model (Sonnet- or Terra-class) for the assessment, the most capable (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for execution. It says models change and to check the playbook date.
 4. Skills in `.github/skills/<name>/SKILL.md`, one per gap, each with when to use it, the steps, the checks and a short before/after example:
 
@@ -109,7 +109,7 @@ feat: add the modernization playbook, skills and lifelines
 
 ## Stop and ask if
 
-- The B06 result was ❌, or run 2 didn't reach a packaged image.
+- The B06 result was ❌, or the golden path didn't reach a packaged image.
 - The skill set needs to change substantially from requirement 4.
 - The MI path with managed identity fails from App Service.
 
