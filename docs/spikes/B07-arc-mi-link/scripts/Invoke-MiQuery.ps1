@@ -26,8 +26,6 @@ The T-SQL, base64-encoded UTF-8.
 .EXAMPLE
 .\Invoke-MiQuery.ps1 -AccessToken '<token>' -Server '<mi-host-name>' -QueryBase64 'U0VMRUNUIDE='
 #>
-[Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'AccessToken',
-    Justification = 'Run commands pass protected parameters as plain strings.')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingPlainTextForPassword', 'SqlPassword',
     Justification = 'Run commands pass protected parameters as plain strings.')]
 [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingUsernameAndPasswordParams', '',
