@@ -1,14 +1,45 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Azure.Identity;
+using Azure.Messaging.ServiceBus;
 using ContosoUniversity.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace ContosoUniversity.Services
 {
-    // Interim in-process queue; replaced by Azure Service Bus in the messaging task.
-    public class NotificationService
+    public class NotificationService : IAsyncDisposable
     {
-        private readonly ConcurrentQueue<string> _queue = new ConcurrentQueue<string>();
+        private const int MaxReceiveCount = 10;
+        private static readonly TimeSpan MaxWait = TimeSpan.FromSeconds(1);
+
+        private readonly ServiceBusClient _client;
+        private readonly ServiceBusSender _sender;
+        private readonly ServiceBusReceiver _receiver;
+        private readonly ILogger<NotificationService> _logger;
+
+        public NotificationService(IConfiguration configuration, ILogger<NotificationService> logger)
+        {
+            _logger = logger;
+
+            var fullyQualifiedNamespace = configuration["ServiceBus:FullyQualifiedNamespace"];
+            var queueName = configuration["ServiceBus:QueueName"];
+            if (string.IsNullOrWhiteSpace(fullyQualifiedNamespace) || string.IsNullOrWhiteSpace(queueName))
+            {
+                throw new InvalidOperationException(
+                    "ServiceBus:FullyQualifiedNamespace and ServiceBus:QueueName must be configured (user secrets in Development, environment variables or app settings elsewhere).");
+            }
+
+            _client = new ServiceBusClient(fullyQualifiedNamespace, new DefaultAzureCredential());
+            _sender = _client.CreateSender(queueName);
+            // ReceiveAndDelete mirrors the destructive MSMQ receive.
+            _receiver = _client.CreateReceiver(queueName, new ServiceBusReceiverOptions
+            {
+                ReceiveMode = ServiceBusReceiveMode.ReceiveAndDelete
+            });
+        }
 
         public void SendNotification(string entityType, string entityId, EntityOperation operation, string userName = null)
         {
@@ -30,34 +61,48 @@ namespace ContosoUniversity.Services
                     IsRead = false
                 };
 
-                _queue.Enqueue(JsonSerializer.Serialize(notification));
+                var message = new ServiceBusMessage(JsonSerializer.Serialize(notification))
+                {
+                    ContentType = "application/json"
+                };
+                _sender.SendMessageAsync(message).GetAwaiter().GetResult();
             }
             catch (Exception ex)
             {
-                // Log error but don't break the main operation
-                System.Diagnostics.Debug.WriteLine($"Failed to send notification: {ex.Message}");
+                // Never break the main operation.
+                _logger.LogError(ex, "Failed to send notification for {EntityType} {EntityId}", entityType, entityId);
             }
         }
 
-        public Notification ReceiveNotification()
+        public IList<Notification> ReceiveNotifications()
         {
-            try
+            var result = new List<Notification>();
+            var messages = _receiver.ReceiveMessagesAsync(MaxReceiveCount, MaxWait).GetAwaiter().GetResult();
+            foreach (var message in messages)
             {
-                return _queue.TryDequeue(out var jsonContent)
-                    ? JsonSerializer.Deserialize<Notification>(jsonContent)
-                    : null;
+                try
+                {
+                    result.Add(JsonSerializer.Deserialize<Notification>(message.Body.ToString()));
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Skipping a notification message that is not valid JSON");
+                }
             }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Failed to receive notification: {ex.Message}");
-                return null;
-            }
+
+            return result;
         }
 
         public void MarkAsRead(int notificationId)
         {
-            // In a real implementation, you might want to store notifications in database as well
-            // for persistence and tracking read status
+            // Notifications are removed on receive; nothing to persist.
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await _sender.DisposeAsync();
+            await _receiver.DisposeAsync();
+            await _client.DisposeAsync();
         }
 
         private string GenerateMessage(string entityType, string entityId, string entityDisplayName, EntityOperation operation)

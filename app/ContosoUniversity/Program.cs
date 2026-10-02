@@ -48,8 +48,9 @@ builder.Services.AddControllersWithViews()
 
 var app = builder.Build();
 
-// Fail fast when Storage settings are missing.
+// Fail fast when Storage or Service Bus settings are missing.
 _ = app.Services.GetRequiredService<TeachingMaterialStore>();
+_ = app.Services.GetRequiredService<NotificationService>();
 
 using (var scope = app.Services.CreateScope())
 {
