@@ -117,7 +117,7 @@ npm run check
 - [x] The report gives B10 a sequence, prompts and hot-spot list it can build on.
 - [x] The end-to-end upgrade-agent comparison is recorded stage by stage in `compare-upgrade.md`, and the report recommends the dev VM's modernization extensions (requirement 11a).
 - [x] The Copilot app comparison is recorded stage by stage in `compare-upgrade-app.md`, with the three-way side-by-side, and the report's recommendation covers the extensions or plugins and the host (requirement 11b). *Paused 2026-10-01: met by recording the pause and its reason in `compare-upgrade-app.md` and the report.*
-- [ ] Spike resources are deleted, and the datacenter is still deployed.
+- [x] Spike resources are deleted, and the datacenter is still deployed.
 
 ## Commit message
 
