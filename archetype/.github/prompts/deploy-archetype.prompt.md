@@ -1,6 +1,6 @@
 ---
-mode: agent
-description: Deploy the CoE archetype (Contoso University platform) with APEX Deploy and As-Built.
+description: "Deploy the CoE archetype (Contoso University platform) project with APEX Deploy and As-Built."
+agent: "01-Orchestrator"
 ---
 
 # Deploy the CoE archetype
