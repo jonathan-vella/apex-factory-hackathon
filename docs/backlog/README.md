@@ -15,7 +15,7 @@ The work items that build v1 of the kit. Scope is in the [PRD](../prd.md) and ph
 4. Answer the 🧑 HUMAN steps and approval questions as they come up.
 5. Review the draft PR, mark it ready and squash-merge it. The merge closes the item's issue.
 
-Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR exists.
+Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR exists. Items from B14 on have their issue number in their field table.
 
 ## Items
 
@@ -35,6 +35,7 @@ Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR 
 | [B11](B11-challenge-content.md) | Write the challenges, module contracts and templates | P4 | Agent | B07, B08, B09, B10 | Ready |
 | [B12](B12-facilitator-kit.md) | Build the facilitator kit | P4 | Both | B11 | Ready |
 | [B13](B13-dry-run-v1.md) | Dry run, tune and release v1.0 | P5 | Both | B12 | Ready |
+| [B14](B14-archetype-adopt.md) | Build the archetype adoption agent (not needed for v1) | P3 | Both | B09 | Ready |
 
 **Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps.
 
@@ -49,6 +50,7 @@ flowchart LR
   B06 --> B09
   B07 --> B09
   B08 --> B09 --> B10
+  B09 --> B14
   B06 --> B10
   B07 --> B11
   B08 --> B11

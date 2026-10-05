@@ -22,7 +22,7 @@ Runbooks are specs. They say what to build, the decisions that are already made 
    - Git and the GitHub CLI: `gh auth status` shows `jonathan-vella` with the `repo` and `workflow` scopes.
    - From B01 on: Node 24 (`node --version`) and `npm ci` run at the repo root.
    - Items that touch Azure: Azure CLI 2.70 or later, signed in to the build tenant (`az account show` matches `tenantId` in `.local/settings.json`). Bicep 0.30 or later (`az bicep version`).
-3. Check that every item in **Depends on** is closed. Issue number N is item BNN, so for B03 run `gh issue view 3 --json state -q .state`. Each one must print `CLOSED`. If one doesn't, stop and ask. B00 has no issue: it's done once the repo exists.
+3. Check that every item in **Depends on** is closed. Issue number N is item BNN, so for B03 run `gh issue view 3 --json state -q .state`. From B14 on, use the **Issue** row of the item's field table instead. Each one must print `CLOSED`. If one doesn't, stop and ask. B00 has no issue: it's done once the repo exists.
 4. Work on a branch created from an up-to-date `origin/main`. A Copilot app session already has its own branch. Otherwise, run `git switch -c bNN-<slug> origin/main`, using the slug from the runbook file name.
 5. Run the runbook's **Before you start** checks. If one fails, stop and report it.
 
