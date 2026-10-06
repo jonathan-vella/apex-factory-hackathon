@@ -61,6 +61,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    | Policy | Effect | Notes |
    |---|---|---|
    | Allowed locations | Audit | `location` and `global`; parameterized, so the fallback region can be added. Audit, not Deny (owner decision 2026-10-06): other regions are flagged, not blocked |
+   | Resource location matches the resource group's location | Audit | Owner decision 2026-10-06 |
    | Network interfaces shouldn't have public IPs | Deny | |
    | Public network access disabled for Storage, Key Vault, Service Bus and ACR, and the public data endpoint disabled for SQL MI | Deny | One assignment per service, or an initiative. Not App Service: the web front end is public by design |
    | Private endpoints register in the central private DNS zones | DeployIfNotExists | For Storage (Blob), Service Bus, ACR and Key Vault, pointing at the zones in the shared subscription's `rg-hub`. The assignment's managed identity gets the roles it needs on that resource group. Not for SQL MI |

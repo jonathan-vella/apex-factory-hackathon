@@ -14,7 +14,7 @@ var networkContributor = '4d97b98b-1d4f-4787-a291-c67834d212e7'
 var logAnalyticsContributor = '92aaf0da-9dab-42b6-94a3-d43ce8d16293'
 var monitoringContributor = '749f88d5-cbae-40b8-bcfc-e573ddc772fa'
 
-var denyPolicies = [
+var corePolicies = [
   {
     name: 'alzl-allowed-locations'
     displayName: 'ALZ-lite: Allowed locations'
@@ -24,6 +24,16 @@ var denyPolicies = [
         value: allowedLocations
       }
       // Audit, not Deny (owner decision 2026-10-06): flags other regions without blocking them.
+      effect: {
+        value: 'Audit'
+      }
+    }
+  }
+  {
+    name: 'alzl-location-match-rg'
+    displayName: 'ALZ-lite: Audit resource location matches resource group location'
+    definitionId: '0a914e76-4921-4c19-b460-a2d36003525a'
+    parameters: {
       effect: {
         value: 'Audit'
       }
@@ -161,8 +171,8 @@ var diagnosticsPolicies = [
   }
 ]
 
-resource denyAssignments 'Microsoft.Authorization/policyAssignments@2025-03-01' = [
-  for policy in denyPolicies: {
+resource coreAssignments 'Microsoft.Authorization/policyAssignments@2025-03-01' = [
+  for policy in corePolicies: {
     name: policy.name
     properties: {
       displayName: policy.displayName
