@@ -23,8 +23,9 @@ var denyPolicies = [
       listOfAllowedLocations: {
         value: allowedLocations
       }
+      // Audit, not Deny (owner decision 2026-10-06): flags other regions without blocking them.
       effect: {
-        value: 'Deny'
+        value: 'Audit'
       }
     }
   }

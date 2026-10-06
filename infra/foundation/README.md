@@ -66,7 +66,7 @@ Built-in definitions only, display names prefixed `ALZ-lite:`. The definition ID
 
 | Assignment | Definition | ID | Effect |
 |---|---|---|---|
-| `alzl-allowed-locations` | Allowed locations | `e56962a6-4747-49cd-b67b-bf8b01975c4c` | Deny. `location` and `global`, plus `-AdditionalAllowedLocation` (for example the fallback region) |
+| `alzl-allowed-locations` | Allowed locations | `e56962a6-4747-49cd-b67b-bf8b01975c4c` | Audit (owner decision 2026-10-06): other regions show as non-compliant but aren't blocked. `location` and `global`, plus `-AdditionalAllowedLocation` (for example the fallback region) |
 | `alzl-deny-nic-pip` | Network interfaces should not have public IPs | `83a86a26-fd1f-447c-b59d-e51f44264114` | Deny (fixed in the definition) |
 | `alzl-deny-pna-storage` | Storage accounts should disable public network access | `b2982f36-99f2-4db5-8eff-283140c09693` | Deny |
 | `alzl-deny-pna-keyvault` | Azure Key Vault should disable public network access | `405c5871-3e91-4644-8a63-58e19d68ff5b` | Deny |
