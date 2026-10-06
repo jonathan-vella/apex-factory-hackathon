@@ -28,7 +28,7 @@
 ### Scope (owner decisions 2026-10-06)
 
 1. **Audience:** Microsoft partners, mostly infra architects and engineers, with app and DB work Copilot-assisted. Nothing on the page depends on the partner's qualification track. Where a designation gate counts certified people, plan for **two per gate**, which covers every track.
-2. **Hands-on first:** exams come after the event and finish within 6 months (T+180 days). Before the event, Stage 0 is learning only, with no exam gates.
+2. **Hands-on first:** exams come after the event and finish within 9 months (T+270 days). Before the event, Stage 0 is learning only, with no exam gates.
 3. **Infra core is mandatory:** everyone in an infra role (platform lead, workload engineer, security) must hold **all three** core certifications: AZ-104, GH-300 and DP-300.
 4. **Applied Skills** are recommended stepping stones, never gates.
 5. **Coaches:** GH-300 plus DP-300 or AZ-104 is recommended, not required.
@@ -43,9 +43,9 @@
    |---|---|---|
    | 0 Ready | T-30 to T-3 | AZ-104 networking, identity and governance modules; GitHub Copilot Fundamentals Part 1; the Arc SQL migration assessment docs; GH-900 path (optional); Applied Skill "Accelerate AI-assisted development by using GitHub Copilot" (recommended) |
    | 1 Hack | T-0 | The factory, C0–C10 |
-   | 2 Certify core | T+0 to T+60 days | AZ-104, GH-300 and DP-300: all three for every infra role; data and developer roles take their core exams from the role tracks |
-   | 3 Specialize | T+60 to T+180 days | AZ-305, AZ-400 (DevOps Engineer Expert), SC-500, AZ-700; AI-200 for the developer track; the AKS (AZ-1001) and Azure Container Apps (AZ-2003) learning paths |
-   | 4 Next (optional) | Within the 6 months | DP-800, GH-600, AI-103 |
+   | 2 Certify core | T+0 to T+180 days | AZ-104, GH-300 and DP-300: all three for every infra role; data and developer roles take their core exams from the role tracks |
+   | 3 Specialize | T+180 to T+270 days | AZ-305, AZ-400 (DevOps Engineer Expert), SC-500, AZ-700; AI-200 for the developer track; the AKS (AZ-1001) and Azure Container Apps (AZ-2003) learning paths |
+   | 4 Next (optional) | Within the 9 months | DP-800, GH-600, AI-103 |
 
 9. **Role tracks:** a table that gives each role its core exams, its specialize exams, its optional "next" exams and the challenges it owns:
 
