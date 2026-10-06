@@ -96,8 +96,9 @@ Deploying ALZ-lite to ${Location}:
   rg-hub             vnet-hub 10.100.0.0/16, afw-hub (Azure Firewall Standard, no zones) with pip-afw-hub,
                      afwp-hub (DNS proxy on), privatelink zones for Blob, Service Bus, ACR and Key Vault
   Defender for Cloud $(if ($SkipDefender) { 'left as it is (-SkipDefender)' } else { 'Foundational CSPM only: every paid plan off on the shared services subscription' })
-  Policies           at $MgPrefix-corp: allowed locations ($(@($Location, 'global') + $AdditionalAllowedLocation -join ', ')),
-                     no public IPs on NICs, public network access off (Storage, Key Vault, Service Bus, ACR,
+  Policies           at $MgPrefix-corp: allowed locations, audit ($(@($Location, 'global') + $AdditionalAllowedLocation -join ', ')),
+                     resource location matches its resource group (audit), no public IPs on NICs,
+                     public network access off (Storage, Key Vault, Service Bus, ACR,
                      SQL MI), private DNS registration and diagnostics to log-management
 Cost: about `$1.30/hour while it exists: Azure Firewall Standard about `$1.25/hour plus its public IP,
   and Log Analytics at low volume. The firewall bills until rg-hub is deleted.
