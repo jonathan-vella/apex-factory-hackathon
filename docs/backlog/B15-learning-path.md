@@ -29,35 +29,37 @@
 
 1. **Audience:** Microsoft partners, mostly infra architects and engineers, with app and DB work Copilot-assisted. Nothing on the page depends on the partner's qualification track. Where a designation gate counts certified people, plan for **two per gate**, which covers every track.
 2. **Hands-on first:** exams come after the event and finish within 6 months (T+180 days). Before the event, Stage 0 is learning only, with no exam gates.
-3. **Applied Skills** are recommended stepping stones, never gates.
-4. **Coaches:** GH-300 plus DP-300 or AZ-104 is recommended, not required.
-5. **No exam offers, vouchers or prices.** English only. Link only public pages on `learn.microsoft.com`, `docs.github.com` and `partner.microsoft.com`. No Microsoft-internal content (PRD §9).
+3. **Infra core is mandatory:** everyone in an infra role (platform lead, workload engineer, security) must hold **all three** core certifications: AZ-104, GH-300 and DP-300.
+4. **Applied Skills** are recommended stepping stones, never gates.
+5. **Coaches:** GH-300 plus DP-300 or AZ-104 is recommended, not required.
+6. **No exam offers, vouchers or prices.** English only. Link only public pages on `learn.microsoft.com`, `docs.github.com` and `partner.microsoft.com`. No Microsoft-internal content (PRD §9).
 
 ### Page
 
-6. Create `site/src/content/docs/guides/learning-path.md`, titled **Partner learning path**, with these sections in order: **Who it's for**, **Stages**, **Role tracks**, **Challenge map**, **Partner Center outcomes**, **Next: enable AI tomorrow**, **Last validated**.
-7. **Stages:** a table with when, goal, content and exit evidence for each stage:
+7. Create `site/src/content/docs/guides/learning-path.md`, titled **Partner learning path**, with these sections in order: **Who it's for**, **Stages**, **Role tracks**, **Challenge map**, **Partner Center outcomes**, **Next: enable AI tomorrow**, **Last validated**.
+8. **Stages:** a table with when, goal, content and exit evidence for each stage:
 
    | Stage | When | Content |
    |---|---|---|
    | 0 Ready | T-30 to T-3 | AZ-104 networking, identity and governance modules; GitHub Copilot Fundamentals Part 1; the Arc SQL migration assessment docs; GH-900 path (optional); Applied Skill "Accelerate AI-assisted development by using GitHub Copilot" (recommended) |
    | 1 Hack | T-0 | The factory, C0–C10 |
-   | 2 Certify core | T+0 to T+60 days | AZ-104, GH-300, DP-300, by role |
+   | 2 Certify core | T+0 to T+60 days | AZ-104, GH-300 and DP-300: all three for every infra role; data and developer roles take their core exams from the role tracks |
    | 3 Specialize | T+60 to T+180 days | AZ-305, AZ-400 (DevOps Engineer Expert), SC-500, AZ-700; AI-200 for the developer track; the AKS (AZ-1001) and Azure Container Apps (AZ-2003) learning paths |
    | 4 Next (optional) | Within the 6 months | DP-800, GH-600, AI-103 |
 
-8. **Role tracks:** a table that gives each role its core exam, its specialize exams, its optional "next" exam and the challenges it owns:
+9. **Role tracks:** a table that gives each role its core exams, its specialize exams, its optional "next" exams and the challenges it owns:
 
    | Role | Core | Specialize | Next | Challenges |
    |---|---|---|---|---|
-   | Platform lead | AZ-104 | AZ-700, AZ-305, SC-500 | — | C2, C5, C8 |
-   | Workload engineer | AZ-104, GH-300 | AZ-400; AKS and Container Apps paths | GH-600 | C3, C5, C6, C8 |
+   | Platform lead (infra) | AZ-104, GH-300, DP-300 | AZ-700, AZ-305, SC-500 | — | C2, C5, C8 |
+   | Workload engineer (infra) | AZ-104, GH-300, DP-300 | AZ-400; AKS and Container Apps paths | GH-600 | C3, C5, C6, C7, C8, C9 |
+   | Security engineer (infra) | AZ-104, GH-300, DP-300 | SC-500 | — | C2, C8 |
    | Data/DB specialist | DP-300 | SC-500 or AZ-104 | DP-800 | C3, C4, C7, C9 |
    | App modernization developer | GH-300 | AI-200, AZ-400; AKS and Container Apps paths | GH-600, AI-103 | C6, C8 |
    | Coach / CoE lead | Recommended: GH-300 plus DP-300 or AZ-104 | AZ-305 | GH-600 | All, as coach |
    | Practice lead | No exam needed | AZ-305 (optional) | — | Runs the event |
 
-9. **Challenge map:** one row for each challenge C0–C10. Each row links to that challenge's page and lists the skills it exercises, one to three Learn links and the credential that validates it. Add a final **Beyond v1: AKS and Container Apps** row: the same container on AKS or Container Apps, validated by AI-200, SC-500 and AZ-104. Credentials per challenge:
+10. **Challenge map:** one row for each challenge C0–C10. Each row links to that challenge's page and lists the skills it exercises, one to three Learn links and the credential that validates it. Add a final **Beyond v1: AKS and Container Apps** row: the same container on AKS or Container Apps, validated by AI-200, SC-500 and AZ-104. Credentials per challenge:
 
    | Challenge | Credential |
    |---|---|
@@ -73,25 +75,25 @@
    | C9 | DP-300, DP-800 |
    | C10 | AZ-305, GH-600 |
 
-10. Map each PRD §5 badge to the exam domain that validates it, for example "trust but verify" to GH-300 "Use GitHub Copilot responsibly".
-11. **Partner Center outcomes:**
+11. Map each PRD §5 badge to the exam domain that validates it, for example "trust but verify" to GH-300 "Use GitHub Copilot responsibly".
+12. **Partner Center outcomes:**
     - The skilling groups for both specializations. Each specialization also needs an active Solutions Partner designation.
     - A sample plan for five people that covers both specializations:
-      - platform lead: AZ-104, AZ-305, AZ-700;
-      - DevOps: AZ-104, AZ-400, GH-300;
+      - platform lead: AZ-104, GH-300, DP-300, AZ-305, AZ-700;
+      - DevOps: AZ-104, GH-300, DP-300, AZ-400;
       - data: DP-300, DP-800;
-      - security: AZ-104, SC-500;
+      - security: AZ-104, GH-300, DP-300, SC-500;
       - developer: AI-200.
     - A line saying to plan for two AZ-104 and two AZ-305 holders, for the designation gates.
     - A sentence saying requirements change and Partner Center is the source of truth.
-12. **Retired exams:** don't recommend AZ-204, AZ-500, AZ-800, AZ-801 or AI-102. Name each replacement once (AI-200, SC-500, AI-103; AZ-700 for Infrastructure points), and note that certifications earned before retirement still count for one year.
-13. 🔎 VERIFY the status and skills-outline date of every exam on the page. Use its study guide (`https://learn.microsoft.com/credentials/certifications/resources/study-guides/<exam>`) and [Exam and assessment lab retirement](https://learn.microsoft.com/credentials/support/retired-certification-exams).
-14. 🔎 VERIFY the specialization skilling against [Infra and Database Migration](https://partner.microsoft.com/en-us/partnership/specialization/infra-and-database-migration) and [App Modernization](https://partner.microsoft.com/en-us/partnership/specialization/app-modernization-on-microsoft-azure). Also verify the designation gates against [Solutions Partner for Data & AI, Infrastructure, and Digital & App Innovation](https://learn.microsoft.com/partner-center/membership/solutions-partner-azure).
-15. **Last validated:** the date you ran requirements 13 and 14.
+13. **Retired exams:** don't recommend AZ-204, AZ-500, AZ-800, AZ-801 or AI-102. Name each replacement once (AI-200, SC-500, AI-103; AZ-700 for Infrastructure points), and note that certifications earned before retirement still count for one year.
+14. 🔎 VERIFY the status and skills-outline date of every exam on the page. Use its study guide (`https://learn.microsoft.com/credentials/certifications/resources/study-guides/<exam>`) and [Exam and assessment lab retirement](https://learn.microsoft.com/credentials/support/retired-certification-exams).
+15. 🔎 VERIFY the specialization skilling against [Infra and Database Migration](https://partner.microsoft.com/en-us/partnership/specialization/infra-and-database-migration) and [App Modernization](https://partner.microsoft.com/en-us/partnership/specialization/app-modernization-on-microsoft-azure). Also verify the designation gates against [Solutions Partner for Data & AI, Infrastructure, and Digital & App Innovation](https://learn.microsoft.com/partner-center/membership/solutions-partner-azure).
+16. **Last validated:** the date you ran requirements 14 and 15.
 
 ### Links into the page
 
-16. Link the page from `site/src/content/docs/guides/index.md` and from `site/src/content/docs/getting-started/index.md`. In getting started, the link is a "learning before the event" pointer to Stage 0.
+17. Link the page from `site/src/content/docs/guides/index.md` and from `site/src/content/docs/getting-started/index.md`. In getting started, the link is a "learning before the event" pointer to Stage 0.
 
 ## Deliverables
 
@@ -120,7 +122,7 @@ docs: add the partner learning path page
 ## Stop and ask if
 
 - A 🔎 VERIFY shows an exam in this runbook retired, renamed or replaced.
-- A specialization's skilling groups differ from requirement 11.
+- A specialization's skilling groups differ from requirement 12.
 - It's still unclear whether DP-800 is a fifth required group for Infra and Database Migration or an alternative to DP-300. The partner page lists it after the database administrator group without "OR".
 
 ## Notes and traps
