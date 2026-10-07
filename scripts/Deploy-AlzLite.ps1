@@ -7,7 +7,8 @@ Deploys ALZ-lite, the team's landing zone, with the shared services subscription
 Deploys infra/foundation/alz-lite/main.bicep at the Tenant Root management group:
 - management groups <MgPrefix> (under Tenant Root), <MgPrefix>-platform and <MgPrefix>-corp;
 - the shared services subscription moved into <MgPrefix>-platform;
-- in it: rg-management with log-management (30-day retention), and rg-hub with vnet-hub 10.100.0.0/16,
+- in it: rg-management with log-management (30-day retention) and id-sqlmi-directory (the identity that
+  members' SQL Managed Instances use to look up Entra principals), and rg-hub with vnet-hub 10.100.0.0/16,
   afw-hub (Azure Firewall Standard, no zones) with pip-afw-hub and afwp-hub (DNS proxy on), and the
   privatelink zones for Blob, Service Bus, ACR and Key Vault linked to vnet-hub;
 - Microsoft Defender for Cloud on Foundational CSPM only (every paid plan off, unless -SkipDefender);
@@ -92,7 +93,7 @@ Write-Information @"
 
 Deploying ALZ-lite to ${Location}:
   Management groups  $MgPrefix > $MgPrefix-platform (shared services subscription), $MgPrefix-corp (workload subscriptions)
-  rg-management      log-management (30-day retention)
+  rg-management      log-management (30-day retention), id-sqlmi-directory (SQL MI's directory identity)
   rg-hub             vnet-hub 10.100.0.0/16, afw-hub (Azure Firewall Standard, no zones) with pip-afw-hub,
                      afwp-hub (DNS proxy on), privatelink zones for Blob, Service Bus, ACR and Key Vault
   Defender for Cloud $(if ($SkipDefender) { 'left as it is (-SkipDefender)' } else { 'Foundational CSPM only: every paid plan off on the shared services subscription' })
@@ -143,7 +144,10 @@ ALZ-lite is deployed ($([int] $elapsed.TotalMinutes) minutes).
   Management groups  $($outputs.rootManagementGroup.value), $($outputs.platformManagementGroup.value), $($outputs.corpManagementGroup.value)
   Hub firewall       afw-hub, private IP $($outputs.firewallPrivateIp.value): the DNS server and next hop for spokes and datacenters
   Workspace          log-management in rg-management
+  SQL MI identity    id-sqlmi-directory in rg-management
 Policies can take up to 30 minutes to take effect.
+Once per team, a Privileged Role Administrator grants id-sqlmi-directory its Microsoft Graph read permissions:
+  ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <shared-services-subscription-id>
 Next, for every member (after their datacenter exists):
   ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId <workload-subscription-id> -SharedSubscriptionId <shared-services-subscription-id> -MemberIndex <n> -BudgetEmail <email>
 "@

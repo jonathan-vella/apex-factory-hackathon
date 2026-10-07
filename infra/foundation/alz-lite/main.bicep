@@ -121,3 +121,4 @@ output firewallPrivateIp string = shared.outputs.firewallPrivateIp
 output firewallPolicyId string = shared.outputs.firewallPolicyId
 output dnsZoneResourceGroupId string = shared.outputs.dnsZoneResourceGroupId
 output logAnalyticsWorkspaceId string = shared.outputs.logAnalyticsWorkspaceId
+output sqlMiIdentityId string = shared.outputs.sqlMiIdentityId

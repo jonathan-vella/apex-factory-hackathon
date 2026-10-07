@@ -15,10 +15,11 @@ log-management) and prints what it found. Then it:
   firewall, snet-sqlmi sends the datacenter range, snet-servers sends the spoke range and keeps internet
   egress on the NAT gateway;
 - adds rule collection group rcg-member-n to afwp-hub;
-- gives the member Owner on the workload subscription (if -MemberPrincipalId is set), adds a monthly
+- gives the member Owner on the workload subscription and Managed Identity Operator on id-sqlmi-directory
+  (if -MemberPrincipalId is set), adds a monthly
   budget with an alert at 80%, and sets Defender for Cloud to Foundational CSPM only (unless -SkipDefender).
 The platform lead runs it for every member, because it writes to the shared services subscription;
-members need no role there. It needs Owner at the Tenant Root management group. Run it after the
+members need no other role there. It needs Owner at the Tenant Root management group. Run it after the
 datacenter exists, and again after any datacenter redeploy, which resets the datacenter's DNS servers
 and route table. A re-run converges. Use -WhatIf to see the changes without deploying.
 .PARAMETER WorkloadSubscriptionId
@@ -32,7 +33,8 @@ The Azure region. Fallback: germanywestcentral.
 .PARAMETER MgPrefix
 Prefix of the kit's management groups, as passed to Deploy-AlzLite.ps1.
 .PARAMETER MemberPrincipalId
-Object ID of the member (user or group), who gets Owner on the workload subscription. Optional.
+Object ID of the member (user or group), who gets Owner on the workload subscription and Managed Identity
+Operator on id-sqlmi-directory, so the archetype can attach it to their SQL Managed Instance. Optional.
 .PARAMETER BudgetAmount
 Monthly budget on the workload subscription, in the billing currency.
 .PARAMETER BudgetEmail
@@ -128,8 +130,9 @@ $firewall = Get-OptionalResource -Arguments @('resource', 'show', '--subscriptio
     '--resource-type', 'Microsoft.Network/azureFirewalls')
 $workspace = Get-OptionalResource -Arguments @('resource', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-management', '-n', 'log-management',
     '--resource-type', 'Microsoft.OperationalInsights/workspaces')
-if (-not ($hubVnet -and $firewall -and $workspace)) {
-    throw 'The hub is incomplete in the shared services subscription (vnet-hub, afw-hub or log-management missing). Run scripts/Deploy-AlzLite.ps1 first.'
+$sqlMiIdentity = Get-OptionalResource -Arguments @('identity', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-management', '-n', 'id-sqlmi-directory')
+if (-not ($hubVnet -and $firewall -and $workspace -and $sqlMiIdentity)) {
+    throw 'The hub is incomplete in the shared services subscription (vnet-hub, afw-hub, log-management or id-sqlmi-directory missing). Run scripts/Deploy-AlzLite.ps1 first.'
 }
 $hubRgId = (Invoke-AzureCli -Arguments @('group', 'show', '--subscription', $SharedSubscriptionId, '-n', 'rg-hub')).id
 $firewallIp = $firewall.properties.ipConfigurations[0].properties.privateIPAddress
