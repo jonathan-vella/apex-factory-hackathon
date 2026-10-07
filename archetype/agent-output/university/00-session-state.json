@@ -4,8 +4,8 @@
   "iac_tool": "",
   "region": "swedencentral",
   "branch": "main",
-  "updated": "2026-10-07T08:19:28Z",
-  "current_step": 4,
+  "updated": "2026-10-07T13:41:59Z",
+  "current_step": 5,
   "decisions": {
     "region": "swedencentral",
     "compliance": "none (training/demo; ALZ-lite deny policies binding)",
@@ -52,7 +52,7 @@
     "pe_diagnostics_api": "2016-09-01 (fallback 2021-05-01-preview pre-approved)",
     "zone_redundancy": "resolved: az_posture single-zone-mvp; ASP 1 instance zoneRedundant=false; SQL MI zoneRedundant=false; ACR/Service Bus platform zone redundancy forced by AVM and accepted",
     "public_edge_auth_rule": "resolved: App Service public HTTPS, public_edge_auth=none, client_cert_required=false, no Easy Auth, no IP restrictions",
-    "accepted_risks": "{\"finding_id\":\"57f85f8d\",\"override_rationale\":\"Vending grants each member Owner on a dedicated short-lived workload subscription; archetype assigns only a fixed role set at resource scope; preflight checks roleAssignments/write only\",\"step\":\"step-4\"}",
+    "accepted_risks": "{\"finding_id\":\"569fbf8e\",\"override_rationale\":\"id-sqlmi-directory holds only Microsoft Graph read (User.Read.All, GroupMember.Read.All, Application.Read.All); members are tenant users with default directory read, so attaching it elsewhere adds no meaningful exposure; members already hold Owner on dedicated, short-lived lab subscriptions. Owner decision 2026-10-07.\",\"step\":\"step-4\",\"requires_step\":\"step-4\"}",
     "plan_status": "APPROVED"
   },
   "open_findings": [
@@ -96,7 +96,9 @@
     "should_fix|reject|57f85f8d|Deployer role-assignment rights are not constrained to the approved role set|accepted risk: member Owner on dedicated lab subscription (B08); fixed role set at resource scope",
     "should_fix|accept|b9e56ee6|Partial single-deployment failures have no recovery behavior|Edit: failure contract + leftover virtual-cluster preflight + MI cost note",
     "should_fix|accept|eaecc85f|Entra telemetry authentication and delivery are not verified|Edit: option (b) telemetry readiness pending app image (B06/B10); 7 settings unchanged",
-    "Step 5 bicep-validate-subagent: NEEDS_REVISION, 1 HIGH: contract lists Key Vault tenantId input but pinned AVM key-vault 0.14.2 exposes none (sets subscription().tenantId). Plan-rooted; no handoff emitted pending owner decision (accept variance or Return to Step 4). Also open: cosmetic plan-heading warnings st-container, sbns-queue, sqlmi-schedule need an edit to frozen plan/contract."
+    "Step 5 bicep-validate-subagent: NEEDS_REVISION, 1 HIGH: contract lists Key Vault tenantId input but pinned AVM key-vault 0.14.2 exposes none (sets subscription().tenantId). Plan-rooted; no handoff emitted pending owner decision (accept variance or Return to Step 4). Also open: cosmetic plan-heading warnings st-container, sbns-queue, sqlmi-schedule need an edit to frozen plan/contract.",
+    "must_fix 569fbf8e (plan pass7): shared Graph-enabled id-sqlmi-directory can be attached to any resource type by member deployers (Managed Identity Operator + workload Owner); needs B08 attachment boundary or owner decision",
+    "must_fix|accept|2c0780f6|DINE preflight query omits inherited management-group assignments|"
   ],
   "decision_log": [
     {
@@ -296,6 +298,24 @@
       "timestamp": "2026-10-07T08:10:21Z",
       "rationale": "Owner answer to Step 5 questions; avoids editing the frozen plan hash",
       "step": "5"
+    },
+    {
+      "decision": "ACR azureADAuthenticationAsArmPolicyStatus set to enabled; post-deploy check via az acr config authentication-as-arm show",
+      "timestamp": "2026-10-07T11:05:41Z",
+      "rationale": "Owner-approved revision 2026-10-07: Learn requires ARM audience tokens for MI pull; live ACRTokenRetrievalFailure until enabled; 42781ec6 is non-Deny (Audit expected)",
+      "step": "4"
+    },
+    {
+      "decision": "Defer 92079f7c: id-sqlmi-directory lifecycle is a B08 dependency (ALZ-lite creates it, only teardown removes it; recovery = re-run ALZ-lite, the grant script and vending); recorded in 00-handoff.md, no plan change",
+      "timestamp": "2026-10-07T12:24:05Z",
+      "rationale": "Owner decision 2026-10-07",
+      "step": "4"
+    },
+    {
+      "decision": "Select Plan replacement review for completion",
+      "rationale": "Confirmation review after ACR, SQL MI identity and atScope revisions; reviewer supports pass 1-3 only; review=challenge-findings-plan-pass3.json; pass=3; sha256=a4bf264eff8c07072bf8c8fff5fac11d00084830c5a7e2535b308de226a3a2ea",
+      "step": "4",
+      "timestamp": "2026-10-07T13:20:43Z"
     }
   ],
   "review_audit": {
@@ -398,8 +418,8 @@
       "agent": "",
       "status": "complete",
       "sub_step": null,
-      "started": "2026-10-06T13:44:02Z",
-      "completed": "2026-10-07T07:05:27Z",
+      "started": "2026-10-07T11:00:34Z",
+      "completed": "2026-10-07T13:20:43Z",
       "artifacts": [],
       "context_files_used": []
     },
@@ -408,8 +428,8 @@
       "agent": "",
       "status": "complete",
       "sub_step": null,
-      "started": null,
-      "completed": "2026-10-07T08:19:28Z",
+      "started": "2026-10-07T13:24:20Z",
+      "completed": "2026-10-07T13:41:59Z",
       "artifacts": [],
       "context_files_used": []
     },
@@ -446,12 +466,12 @@
     },
     "4": {
       "schema_version": "review-selection-v1",
-      "path": "agent-output/university/challenge-findings-plan-pass5.json",
-      "sha256": "e223eb09d8687b4ccda066cb2385c1361908e304ffce49abd7ec42d683e196ca",
-      "pass_number": 5,
+      "path": "agent-output/university/challenge-findings-plan-pass3.json",
+      "sha256": "a4bf264eff8c07072bf8c8fff5fac11d00084830c5a7e2535b308de226a3a2ea",
+      "pass_number": 3,
       "review_focus": "comprehensive",
       "input_coverage": "primary-and-review-guidance",
-      "selected_at": "2026-10-07T07:05:27Z"
+      "selected_at": "2026-10-07T13:20:43Z"
     }
   },
   "review_attempts": [
@@ -554,6 +574,86 @@
       "outcome": "completed",
       "retry_of": null,
       "recorded_at": "2026-10-07T07:03:06Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-arm-audience-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "c602ca6c88629b02818899575a57a56943ce6e5a3c23f33d900c72d7e18efb30",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T11:14:47Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-arm-audience-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "c602ca6c88629b02818899575a57a56943ce6e5a3c23f33d900c72d7e18efb30",
+      "outcome": "failed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T11:14:47Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-arm-audience-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "c602ca6c88629b02818899575a57a56943ce6e5a3c23f33d900c72d7e18efb30",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T11:14:47Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-arm-audience-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "c602ca6c88629b02818899575a57a56943ce6e5a3c23f33d900c72d7e18efb30",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T11:14:48Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-sqlmi-identity-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "eb12590fb6ae4b1b9935fb08f01de74dc67c596b10c2001786f2d79461b6f7ef",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T12:03:31Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-sqlmi-identity-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "eb12590fb6ae4b1b9935fb08f01de74dc67c596b10c2001786f2d79461b6f7ef",
+      "outcome": "failed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T12:10:05Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-sqlmi-identity-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "eb12590fb6ae4b1b9935fb08f01de74dc67c596b10c2001786f2d79461b6f7ef",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T12:10:05Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-sqlmi-identity-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "eb12590fb6ae4b1b9935fb08f01de74dc67c596b10c2001786f2d79461b6f7ef",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T12:16:27Z"
     }
   ]
 }

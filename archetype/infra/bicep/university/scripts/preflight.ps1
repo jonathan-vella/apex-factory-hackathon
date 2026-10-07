@@ -7,8 +7,8 @@
     Runs PowerShell 7 and the Azure CLI only (Windows, Linux, macOS, Cloud Shell). It never prompts and never creates,
     changes or deletes an Azure resource. It fails closed with a message naming the missing item, so nothing is deployed
     unless every check passes. Checks, in order: inputs and generated names, spoke, hub and region, central workspace,
-    vended budget, hub firewall egress rules, deployer permissions, name availability, and the ALZ-lite DeployIfNotExists
-    assignments. On success it returns one object with the values the template needs and sets the matching process
+    vended budget, hub firewall egress rules, deployer permissions, name availability, the ALZ-lite DeployIfNotExists
+    assignments, and the SQL MI directory identity. On success it returns one object with the values the template needs and sets the matching process
     environment variables.
 
 .PARAMETER TenantId
@@ -24,7 +24,7 @@
     ./preflight.ps1 -TenantId $env:AZURE_TENANT_ID -SubscriptionId $env:AZURE_SUBSCRIPTION_ID -Suffix ab12cd
 
 .OUTPUTS
-    PSCustomObject with Location, LogAnalyticsWorkspaceId, DeployerObjectId and DeployerUpn.
+    PSCustomObject with Location, LogAnalyticsWorkspaceId, SqlMiDirectoryIdentityId, DeployerObjectId and DeployerUpn.
 #>
 [CmdletBinding()]
 param(
@@ -50,6 +50,7 @@ $BudgetName = 'budget-factory-workload'
 $FirewallPolicyName = 'afwp-hub'
 $WorkspaceResourceGroup = 'rg-management'
 $WorkspaceName = 'log-management'
+$DirectoryIdentityName = 'id-sqlmi-directory'
 
 function Stop-Preflight {
     [CmdletBinding()]
@@ -113,13 +114,14 @@ function Assert-Permission {
     param(
         [Parameter(Mandatory)][string]$Scope,
         [Parameter(Mandatory)][string]$ScopeLabel,
-        [Parameter(Mandatory)][string[]]$Actions
+        [Parameter(Mandatory)][string[]]$Actions,
+        [string]$Remedy = 'Ask the facilitator to correct the vended access (B08).'
     )
     $response = Invoke-AzJson -Arguments @('rest', '--method', 'get', '--url', "$Scope/providers/Microsoft.Authorization/permissions?api-version=2022-04-01")
     $permissions = @($response.value)
     foreach ($action in $Actions) {
         if (-not (Test-ActionAllowed -Permissions $permissions -Action $action)) {
-            Stop-Preflight "the signed-in user lacks '$action' on $ScopeLabel. Ask the facilitator to correct the vended access (B08)."
+            Stop-Preflight "the signed-in user lacks '$action' on $ScopeLabel. $Remedy"
         }
     }
 }
@@ -325,15 +327,25 @@ function Invoke-UniversityPreflight {
     }
     Write-Check 'ALZ-lite private DNS and diagnostics assignments are present and enforced'
 
-    # 10. Outputs
+    # 10. SQL MI directory identity (B08-owned; holds the Microsoft Graph read grant the MI needs to create Entra users)
+    $directoryIdentity = Invoke-AzJson -Arguments @('identity', 'show', '--subscription', $hubSubscriptionId, '--resource-group', $WorkspaceResourceGroup, '--name', $DirectoryIdentityName) -AllowFailure
+    if (-not $directoryIdentity) {
+        Stop-Preflight "managed identity '$DirectoryIdentityName' was not found in $WorkspaceResourceGroup of the shared services subscription, or cannot be read. Re-run ALZ-lite and vending (B08)."
+    }
+    Assert-Permission -Scope $directoryIdentity.id -ScopeLabel "identity $DirectoryIdentityName" -Actions @('Microsoft.ManagedIdentity/userAssignedIdentities/*/assign/action') -Remedy 'Re-run ALZ-lite and vending (B08).'
+    Write-Check "SQL MI directory identity '$DirectoryIdentityName' exists and can be assigned by the signed-in user"
+
+    # 11. Outputs
     $result = [PSCustomObject]@{
         Location                = $location
         LogAnalyticsWorkspaceId = $workspace.id
+        SqlMiDirectoryIdentityId = $directoryIdentity.id
         DeployerObjectId        = $deployerObjectId
         DeployerUpn             = $deployerUpn
     }
     $env:AZURE_LOCATION = $result.Location
     $env:LOG_ANALYTICS_WORKSPACE_ID = $result.LogAnalyticsWorkspaceId
+    $env:SQLMI_DIRECTORY_IDENTITY_ID = $result.SqlMiDirectoryIdentityId
     $env:DEPLOYER_OBJECT_ID = $result.DeployerObjectId
     $env:DEPLOYER_UPN = $result.DeployerUpn
     Write-Host 'Preflight passed.'

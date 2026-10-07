@@ -111,12 +111,21 @@ $location = $hubVnet.location
 $workspace = Invoke-AzureCli -Arguments @('resource', 'show', '--subscription', $hubSubscriptionId, '-g', 'rg-management', '-n', 'log-management',
     '--resource-type', 'Microsoft.OperationalInsights/workspaces')
 
+# The shared SQL MI directory identity (PR #46), discovered by name in the shared services subscription.
+# The signed-in user needs Managed Identity Operator on it (granted to all members by vending); this
+# script never creates it.
+$directoryIdentity = Get-OptionalResource -Arguments @('identity', 'show', '--subscription', $hubSubscriptionId, '-g', 'rg-management', '-n', 'id-sqlmi-directory')
+if (-not $directoryIdentity) {
+    throw "rg-management/id-sqlmi-directory not found in the shared services subscription. Run scripts/Deploy-AlzLite.ps1 (PR #46) first; this script never creates it."
+}
+
 Write-Information @"
 
 Archetype inputs for member suffix '$Suffix':
   Region                    $location (from the hub)
   Spoke                     $($spokeVnet.id)
   Log Analytics workspace   $($workspace.id)
+  SQL MI directory identity $($directoryIdentity.id)
   SQL MI Entra admin        $($deployer.userPrincipalName)
 Cost while deployed: about `$4.63/hour (SQL MI GP 4 vCores ~`$0.68, Service Bus Premium ~`$0.93, App Service
 P0v3 ~`$0.10, ACR Premium ~`$0.07, private endpoints ~`$0.05). The SQL MI provisions in the background after
@@ -135,6 +144,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "archetype-univers
         tenantId = @{ value = $TenantId }
         location = @{ value = $location }
         logAnalyticsWorkspaceId = @{ value = $workspace.id }
+        sqlMiDirectoryIdentityId = @{ value = $directoryIdentity.id }
         deployerObjectId = @{ value = $deployer.id }
         deployerPrincipalName = @{ value = $deployer.userPrincipalName }
     }

@@ -95,6 +95,50 @@
       "action": "accept",
       "note": "Edit (owner 2026-10-07): capability 18 preflight (Task 12 step 6) also checks afwp-hub rcg-member-1 application rule app-to-azure-monitor and network rule app-to-entra-id, each with source snet-app and port 443, and fails closed with \"rerun vending (B08)\". Live evidence read 2026-10-07 recorded in the plan Overview (both rules present, source 10.20.1.0/26). Contract adds capability cap-18-telemetry-egress (owner B08 vending, afwp-hub) as an entra-telemetry dependency; the web app contract block lists the three firewall rules. Telemetry readiness stays pending the app image (B06/B10); local auth stays off. Applied as Task 12 step 6, Task 13 step 7 note, Overview live-validation row and the Code-Generation Contract.",
       "decided_at": "2026-10-07T06:54:25Z"
+    },
+    {
+      "issue_id": "3fd577cf",
+      "source_file": "challenge-findings-plan-pass6.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "The governance note asserts an Audit outcome not proven by the saved discovery",
+      "action": "defer",
+      "note": "Owner 2026-10-07: expected result is that built-in 42781ec6 (ARM audience token authentication disabled) reports non-compliant, Audit or Disabled, never Deny; accepted trade-off for the managed identity pull. Plan wording unchanged.",
+      "decided_at": "2026-10-07T11:20:00Z"
+    },
+    {
+      "issue_id": "569fbf8e",
+      "source_file": "challenge-findings-plan-pass7.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "must_fix",
+      "title": "Shared Graph-enabled UAMI is not restricted to SQL MI consumers.",
+      "action": "reject",
+      "note": "Owner OVERRIDE, accepted risk (2026-10-07): id-sqlmi-directory holds only Graph read (User.Read.All, GroupMember.Read.All, Application.Read.All); members are tenant users with default directory read and already hold Owner on dedicated, short-lived lab subscriptions. Recorded in recall accepted_risks and Task 12 step 10.",
+      "decided_at": "2026-10-07T12:30:00Z"
+    },
+    {
+      "issue_id": "92079f7c",
+      "source_file": "challenge-findings-plan-pass7.json",
+      "pass_number": 1,
+      "issue_index": 1,
+      "severity": "should_fix",
+      "title": "No lifecycle protection is defined for the shared SQL MI identity.",
+      "action": "defer",
+      "note": "Owner 2026-10-07: B08 dependency recorded in 00-handoff.md. ALZ-lite creates the identity and only teardown removes it; recovery is to re-run ALZ-lite, the grant script and vending. No plan change.",
+      "decided_at": "2026-10-07T12:30:00Z"
+    },
+    {
+      "issue_id": "2c0780f6",
+      "source_file": "challenge-findings-plan-pass3.json",
+      "pass_number": 3,
+      "issue_index": 0,
+      "severity": "must_fix",
+      "title": "DINE preflight query omits inherited management-group assignments",
+      "action": "accept",
+      "note": "",
+      "decided_at": "2026-10-07T13:00:00Z"
     }
   ]
 }

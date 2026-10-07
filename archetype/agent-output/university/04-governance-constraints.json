@@ -48,7 +48,7 @@
     "discovery_status": "PARTIAL",
     "discovered_at": "2026-10-06T10:16:59Z",
     "scope": {
-      "subscription_id": "REDACTED-SUBSCRIPTION-ID",
+      "subscription_id": "unknown",
       "management_groups": [
         "REDACTED-TENANT-ROOT-MG-ID",
         "mg-factory-corp"

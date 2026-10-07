@@ -218,6 +218,15 @@ function Invoke-UniversityPostDeploy {
     # 5. Private pull through the user-assigned identity, kept on the registry copy
     $importPassed = @($script:Results | Where-Object { $_.Name -eq 'ACR import' -and $_.Status -eq 'Passed' }).Count -eq 1
     if ($importPassed) {
+        # UAMI pull needs ARM audience tokens; fail before the image switch and never enable it from here.
+        $armAuth = Invoke-AzJson -Arguments @('acr', 'config', 'authentication-as-arm', 'show', '--registry', $AcrName) -AllowFailure
+        if (-not $armAuth -or $armAuth.status -ne 'enabled') {
+            Add-Result -Name 'ACR ARM audience tokens' -Status Failed -Detail 'authentication-as-arm is not enabled on the registry, so the managed-identity pull cannot work; fix the registry setting and re-run'
+            $importPassed = $false
+        }
+        else { Add-Result -Name 'ACR ARM audience tokens' -Status Passed -Detail 'authentication-as-arm is enabled on the registry' }
+    }
+    if ($importPassed) {
         & az resource update --ids "$siteId/config/web" --api-version 2025-03-01 --set "properties.linuxFxVersion=DOCKER|$containerImage" 'properties.acrUseManagedIdentityCreds=true' "properties.acrUserManagedIdentityID=$UamiClientId" --only-show-errors --output none
         $switched = $LASTEXITCODE -eq 0
         if ($switched) { & az webapp restart --resource-group $ResourceGroupName --name $WebAppName --only-show-errors --output none; $switched = $LASTEXITCODE -eq 0 }
@@ -226,7 +235,7 @@ function Invoke-UniversityPostDeploy {
         else { Add-Result -Name 'ACR private pull' -Status Failed -Detail 'no HTTP 200 from the registry copy; check AcrPull, the pe-acr DNS result and imagePullTraffic' }
     }
     else {
-        Add-Result -Name 'ACR private pull' -Status Failed -Detail 'skipped because the ACR import did not pass'
+        Add-Result -Name 'ACR private pull' -Status Failed -Detail 'skipped because the ACR import or the ARM audience token check did not pass'
     }
 
     # 6. Diagnostics readiness

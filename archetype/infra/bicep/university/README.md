@@ -16,7 +16,8 @@ Three values are yours; everything else is derived read-only by the preflight ho
 | `AZURE_SUBSCRIPTION_ID` | The workload subscription                                        |
 | `SUFFIX`                | 4-6 lowercase letters or digits; the only uniqueness in names    |
 
-The preflight hook sets `AZURE_LOCATION` (the hub VNet region), `LOG_ANALYTICS_WORKSPACE_ID`, `DEPLOYER_OBJECT_ID` and
+The preflight hook sets `AZURE_LOCATION` (the hub VNet region), `LOG_ANALYTICS_WORKSPACE_ID`,
+`SQLMI_DIRECTORY_IDENTITY_ID` (the shared `id-sqlmi-directory`, B08-owned), `DEPLOYER_OBJECT_ID` and
 `DEPLOYER_UPN`. `CONTAINER_IMAGE` is optional; the postprovision hook sets it to the registry copy.
 
 ```bash

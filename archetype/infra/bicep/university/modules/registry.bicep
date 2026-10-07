@@ -43,6 +43,8 @@ module containerRegistry 'br/public:avm/res/container-registry/registry:0.13.1' 
     networkRuleSetDefaultAction: 'Deny'
     roleAssignmentMode: 'LegacyRegistryPermissions'
     retentionPolicyStatus: 'disabled'
+    // The web app pulls with its UAMI, which needs ARM audience tokens; the module default is 'disabled'.
+    azureADAuthenticationAsArmPolicyStatus: 'enabled'
     roleAssignments: [
       {
         roleDefinitionIdOrName: acrPullRoleId

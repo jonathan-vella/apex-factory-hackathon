@@ -44,6 +44,7 @@ with Diagram(
         fw = Firewall("afwp-hub\napp-to-mcr rule")
         dns = DNSPrivateZones("Central private DNS\n(DINE registration)")
         law = LogAnalyticsWorkspaces("log-management")
+        dirid = ManagedIdentities("id-sqlmi-directory\n(Graph read, B08)")
 
     with Cluster("Workload spoke (vended)"):
         with Cluster("snet-app"):
@@ -75,5 +76,6 @@ with Diagram(
     appi >> Edge(label="workspace-based", color="darkgreen") >> law
     dc >> Edge(label="MI link 5022, 11000-11999\n(owner-stated)", color="darkorange") >> fw
     fw >> Edge(label="to snet-sqlmi", color="darkorange") >> mi
+    mi >> Edge(label="Entra principal lookup\n(C7 CREATE USER)", color="#7a4fb5") >> dirid
 
 embed_svg_images(base.with_suffix(".svg"))

@@ -42,7 +42,7 @@ table, private DNS zone or zone group.
 **Inputs stay at three**: tenant ID, workload subscription ID and `suffix` (4–6 lowercase letters or digits). The
 PowerShell 7 `preprovision` hook derives everything else read-only and writes it to the azd environment:
 region (hub VNet location, approved regions only), the `log-management` workspace resource ID (shared services
-subscription found through the spoke peering), the
+subscription found through the spoke peering), the `id-sqlmi-directory` resource ID (same subscription and RG), the
 deployer's object ID and UPN (signed-in user, SQL MI Entra admin). Schedule time zone and times are template
 defaults the facilitator may change; they are not member inputs.
 
@@ -63,6 +63,7 @@ brief's settings; SQL MI (`databaseFormat` missing in AVM 0.5.1) and its start/s
 | `afwp-hub` (Standard, `swedencentral`): `rcg-member-1` rule `app-to-mcr` from 10.20.1.0/26 to `mcr.microsoft.com`, `*.data.mcr.microsoft.com`, HTTPS 443 | ✅ capability 18 |
 | `afwp-hub` (read 2026-10-07, ecc6642f): `rcg-member-1` application rule `app-to-azure-monitor` from 10.20.1.0/26 to `*.in.applicationinsights.azure.com`, `dc.applicationinsights.azure.com`, `dc.applicationinsights.microsoft.com`, `dc.services.visualstudio.com`, `live.applicationinsights.azure.com`, `rt.applicationinsights.microsoft.com`, `rt.services.visualstudio.com`, `*.livediagnostics.monitor.azure.com`, HTTPS 443; network rule `app-to-entra-id` from 10.20.1.0/26 to service tag `AzureActiveDirectory`, TCP 443 | ✅ capability 18 (telemetry egress path present; B08-owned) |
 | Budget `budget-factory-workload` present with an `actual80` notification | ✅ capability 17 (see note) |
+| `id-sqlmi-directory` in `rg-management` (shared services), read 2026-10-07 after the ALZ-lite redeploy | ✅ exists (`swedencentral`); deployer holds `userAssignedIdentities/*/assign/action`, no `notActions` (Task 12 step 10) |
 | Resource providers Sql, Web, ContainerRegistry, ServiceBus, KeyVault, Insights, ManagedIdentity, Storage, Network, OperationalInsights | ✅ Registered |
 | Spoke DNS servers | 10.100.0.4 (hub); private resolution is tested post-deploy |
 
@@ -82,6 +83,8 @@ brief's settings; SQL MI (`databaseFormat` missing in AVM 0.5.1) and its start/s
 | 3ea4e2b0 (ADR-0004 quotation) | Verified 2026-10-06 against the current Learn page (updated 2026-08-27): "To import to or from a network-restricted Azure container registry, the restricted registry must allow access by trusted services to bypass the network." The ADR quotation is verbatim. Step 4 cannot edit the ADR; the evidence is recorded here and in recall. |
 | Step 1 tag convention | No tag policy discovered. The 9 APEX fallback tags (values below) are set explicitly on the archetype RG and every taggable resource the deployment creates; vended resources are never retagged. |
 | Requirement 11 names | App settings use `__` instead of `:` (Learn: App Service names allow letters, digits, `.` and `_`; Linux replaces `:` with `__`). .NET maps them back to the same keys. Owner-approved 2026-10-06. |
+| ACR ARM audience tokens (owner revision 2026-10-07) | The web app pulls from ACR with its UAMI. Learn, "Configure a custom container" (updated 2026-09-14): "Your Azure Container Registry must allow ARM audience tokens for authentication in order to use managed identity to pull images." Live testing returned `ACRTokenRetrievalFailure` until it was enabled. AVM container-registry 0.13.1 defaults `azureADAuthenticationAsArmPolicyStatus` to `disabled`, so the plan sets `enabled` explicitly (Task 4) and verifies it post-deploy (Task 13 step 5). Governance: built-in `42781ec6-6127-4c30-bdfa-fb423a0047d3` ("Container registries should have ARM audience token authentication disabled", Audit/Deny/Disabled) is in `member_policy_index` but not among the 19 Deny entries, so expect an Audit non-compliance result on `cr`, not a deployment block. If a later discovery shows it as Deny, it becomes unsatisfiable for this pull model and returns to 04g-Governance. |
+| SQL MI directory identity (owner revision 2026-10-07) | C7 creates Entra users in the MI, so the instance identity must read Microsoft Graph. Learn, "Managed identities in Microsoft Entra for Azure SQL": the instance identity needs `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All` (or Directory Readers), granted only by a Privileged Role Administrator. The team's shared `id-sqlmi-directory` (B08-owned, `rg-management` in the shared services subscription) holds that grant; the MI uses `SystemAssigned,UserAssigned` with it as `primaryUserAssignedIdentityId`. The archetype creates no identity and grants no Graph or directory role. Discovered the same way as `log-management`; no new member input. |
 
 Tags (constants in `main.bicep`, not inputs): `environment=dev`, `owner=lab-admin`, `costcenter=apex-factory`,
 `application=university`, `workload=university`, `sla=best-effort`, `backup-policy=platform-default`,
@@ -203,7 +206,7 @@ infra/bicep/university/
 │   └── web.bicep                 # ASP + web app + ASP metrics setting
 └── scripts/
     ├── preflight.ps1             # capabilities 14-18, region gate, derivation (standalone)
-    ├── postdeploy-tests.ps1      # MCR, routing, DNS, ACR import, ACR pull, diagnostics (standalone)
+    ├── postdeploy-tests.ps1      # MCR, routing, DNS, ACR import, ACR ARM audience + pull, diagnostics (standalone)
     └── hooks/
         ├── preprovision.ps1      # azd wrapper: runs preflight.ps1, sets azd env values
         └── postprovision.ps1     # azd wrapper: runs postdeploy-tests.ps1
@@ -252,7 +255,7 @@ IDs are built with `resourceId()`, so no other `existing` reference is needed.
 | key-vault/vault | `sku: premium`, `enablePurgeProtection: true`, `publicNetworkAccess: ''` | `standard`, `false`, `Disabled` |
 | service-bus/namespace | `skuObject.capacity: 2`, `authorizationRules: [RootManageSharedAccessKey]`, `publicNetworkAccess` Enabled without PE input | `1`, `[]`, `Disabled` |
 | insights/component | `disableLocalAuth: false`, `kind: ''` | `true`, `web` |
-| container-registry/registry | `retentionPolicyStatus: enabled` | `disabled` |
+| container-registry/registry | `retentionPolicyStatus: enabled`, `azureADAuthenticationAsArmPolicyStatus: disabled` | `disabled`, `enabled` |
 
 **AVM values forced and accepted** (az_posture decision): container-registry/registry 0.13.1 always sends
 `zoneRedundancy: 'Enabled'` for Premium (parameter not nullable); service-bus/namespace 0.17.1 always sends
@@ -274,6 +277,8 @@ Service Bus modules expose key/connection-string outputs as `securestring`; Code
 - `location` (string, `@allowed(['swedencentral','germanywestcentral'])`; derived = hub region)
 - `logAnalyticsWorkspaceId` (string; derived: `rg-management/log-management` in the shared services subscription
   found through the spoke peering)
+- `sqlMiDirectoryIdentityId` (string; derived: `rg-management/id-sqlmi-directory` in the same shared services
+  subscription)
 - `deployerObjectId`, `deployerPrincipalName` (string; derived, signed-in user only)
 - `containerImage` (string, default `mcr.microsoft.com/dotnet/samples:aspnetapp-10.0`)
 - `sqlMiScheduleTimeZoneId` (default `W. Europe Standard Time`), `sqlMiScheduleStartTime` (`07:30`),
@@ -341,6 +346,7 @@ networkRuleBypassOptions: 'AzureServices'   // ADR-0004, owner-accepted exceptio
 networkRuleSetDefaultAction: 'Deny'
 roleAssignmentMode: 'LegacyRegistryPermissions'
 retentionPolicyStatus: 'disabled'
+azureADAuthenticationAsArmPolicyStatus: 'enabled'   // UAMI image pull needs ARM audience tokens (module default 'disabled')
 // zoneRedundancy: forced 'Enabled' by the module (recorded, accepted)
 ```
 
@@ -440,9 +446,13 @@ resource mi 'Microsoft.Sql/managedInstances@2025-01-01' = {
   name: 'sqlmi-university-${suffix}'
   location: location
   tags: tags
-  identity: { type: 'SystemAssigned' }
+  identity: {
+    type: 'SystemAssigned,UserAssigned'   // API literal, no space
+    userAssignedIdentities: { '${sqlMiDirectoryIdentityId}': {} }
+  }
   sku: { name: 'GP_Gen5', tier: 'GeneralPurpose', family: 'Gen5', capacity: 4 }
   properties: {
+    primaryUserAssignedIdentityId: sqlMiDirectoryIdentityId
     subnetId: spokeSubnetId('snet-sqlmi')
     vCores: 4
     storageSizeInGB: 64
@@ -476,7 +486,8 @@ resource schedule 'Microsoft.Sql/managedInstances/startStopSchedules@2025-01-01'
 }
 ```
 
-No Directory Readers or Graph grant; no NSG or route table on `snet-sqlmi`. The schedule takes effect only
+The Graph read permissions belong to `id-sqlmi-directory` (B08); the archetype declares no Graph, Directory Readers
+or role grant for it. No NSG or route table on `snet-sqlmi`. The schedule takes effect only
 after C7 removes the MI link. **Outputs**: `name`, `fullyQualifiedDomainName` (VNet-local host name).
 
 ### Task 10: modules/web.bicep
@@ -528,7 +539,8 @@ avm:
 ### Task 11: main.bicepparam + azure.yaml
 
 `main.bicepparam` reads `SUFFIX`, `AZURE_TENANT_ID`, `AZURE_LOCATION`, `LOG_ANALYTICS_WORKSPACE_ID`,
-`DEPLOYER_OBJECT_ID`, `DEPLOYER_UPN` and `CONTAINER_IMAGE` (optional) with `readEnvironmentVariable()`.
+`SQLMI_DIRECTORY_IDENTITY_ID`, `DEPLOYER_OBJECT_ID`, `DEPLOYER_UPN` and `CONTAINER_IMAGE` (optional) with
+`readEnvironmentVariable()`.
 `azure.yaml`: `name: university`, `infra: { provider: bicep, path: . }`, hooks `preprovision` and `postprovision`
 with `shell: pwsh`, `run: ./scripts/hooks/<hook>.ps1`, `continueOnError: false`. Environment name `university-dev`.
 
@@ -568,7 +580,8 @@ message naming the missing item; nothing is created before all checks pass.
    `workspaces/read` and `workspaces/sharedKeys/action` (linked-scope check for diagnostic settings).
    **Accepted risk (57f85f8d, owner 2026-10-06)**: preflight checks generic `roleAssignments/write` only. By
    landing-zone design vending (B08) grants each member Owner on their own dedicated, short-lived workload
-   subscription and no role on the shared services subscription; the archetype assigns only the fixed role set in
+   subscription and, on the shared services subscription, only Managed Identity Operator on `id-sqlmi-directory`
+   (step 10); the archetype assigns only the fixed role set in
    this plan, at resource scope, and no role definition ID is a Bicep parameter. A constrained-delegation role is a
    possible future vending change, not an archetype requirement.
 8. **Name collisions** (e6c5e56c): name-availability checks for the ACR, Storage account, Service Bus namespace,
@@ -578,8 +591,10 @@ message naming the missing item; nothing is created before all checks pass.
    re-runs converge. If the vault name is held by a soft-deleted vault in this subscription (redeploy after
    teardown), stop and print the `az keyvault purge` command (purge protection is off; never purge automatically).
    Any other collision fails before anything is created and tells the user to choose a different suffix.
-9. **DINE assignments** (23c33d49, read-only on the workload subscription): `az policy assignment list
-   --disable-scope-strict-match` must show the 4 ALZ-lite private DNS assignments (Container registries, blob
+9. **DINE assignments** (23c33d49, 2c0780f6; read-only on the workload subscription): an `az rest` GET of
+   `/subscriptions/{id}/providers/Microsoft.Authorization/policyAssignments?api-version=2023-04-01&$filter=atScope()`
+   (not `az policy assignment list`, which omitted the inherited management-group assignments in this tenant)
+   must show the 4 ALZ-lite private DNS assignments (Container registries, blob
    groupID, Service Bus namespaces, Key Vaults) and the 7 ALZ-lite diagnostics assignments (Application Insights,
    Service Bus, Blob Services, Container registries, App Service, Key vaults, SQL managed instances), each with
    `enforcementMode: Default`. Their `privateDnsZoneId` parameters must name the expected zones in `rg-hub`
@@ -587,7 +602,19 @@ message naming the missing item; nothing is created before all checks pass.
    `privatelink.vaultcore.azure.net`) and their workspace parameter must name `log-management`. Assignment
    identities' role assignments are not checked (B08's responsibility; the post-deploy checks confirm the outcome).
    Anything missing or wrong fails with "Re-run ALZ-lite (B08)".
-10. **Outputs**: `azd env set` `AZURE_LOCATION`, `LOG_ANALYTICS_WORKSPACE_ID`, `DEPLOYER_OBJECT_ID`, `DEPLOYER_UPN`.
+10. **SQL MI directory identity** (owner revision 2026-10-07): `az identity show` of `rg-management/id-sqlmi-directory`
+    in the shared services subscription from step 3 must succeed; then an effective-permissions read
+    (`Microsoft.Authorization/permissions`, stable API) on that identity must allow
+    `Microsoft.ManagedIdentity/userAssignedIdentities/*/assign/action` (Managed Identity Operator, granted by vending)
+    and not exclude it in `notActions`. Either failure stops with "re-run ALZ-lite and vending (B08)". Graph
+    permissions on the identity are B08's responsibility and are not read here.
+    **Accepted risk (569fbf8e, owner 2026-10-07)**: Managed Identity Operator does not limit which resource type the
+    identity is attached to, so a member could attach it outside the SQL MI. The identity holds only Graph read
+    (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`); members are tenant users who already have
+    default directory read, and already hold Owner on dedicated, short-lived lab subscriptions. No attachment
+    boundary is required.
+11. **Outputs**: `azd env set` `AZURE_LOCATION`, `LOG_ANALYTICS_WORKSPACE_ID`, `SQLMI_DIRECTORY_IDENTITY_ID`,
+    `DEPLOYER_OBJECT_ID`, `DEPLOYER_UPN`.
 
 ### Task 13: scripts/postdeploy-tests.ps1 + hooks/postprovision.ps1
 
@@ -600,7 +627,9 @@ widen access or fall back to another image source.
    Key Vault FQDNs resolve to private IPs from the `snet-app` path (Kudu command API with an Entra token; hub DNS
    10.100.0.4). Failure blocks the readiness claim.
 4. **ACR import** (cap. 4): `az acr import` of `mcr.microsoft.com/dotnet/samples:aspnetapp-10.0` into the registry.
-5. **Private pull**: `azd env set CONTAINER_IMAGE <loginServer>/dotnet/samples:aspnetapp-10.0`; set
+5. **Private pull**: first, `az acr config authentication-as-arm show -r <acrName>` must return `status: enabled`
+   (ARM audience tokens; otherwise fail before the image switch and never enable it from the script). Then
+   `azd env set CONTAINER_IMAGE <loginServer>/dotnet/samples:aspnetapp-10.0`; set
    `linuxFxVersion`, `acrUseManagedIdentityCreds=true` and `acrUserManagedIdentityID`; restart; expect HTTP 200.
    The env value keeps later `azd provision` runs on the ACR copy (no drift); C6 then changes only image and tag.
 6. **Diagnostics readiness** (44e9df0f): a diagnostic setting targeting `log-management` exists on the web app,
@@ -656,9 +685,10 @@ Secrets Officer `b86a8fe4-44ce-4948-aee5-eccb2c155cd7`, Monitoring Metrics Publi
 
 ### Microsoft.ContainerRegistry/registries:cr
 
-- **Required parameters**: `suffix`; `deployerObjectId` — string — deployer data-plane roles
+- **Required parameters**: `suffix`; `deployerObjectId` — string — deployer data-plane roles; constant
+  `azureADAuthenticationAsArmPolicyStatus: 'enabled'` (not a parameter)
 - **Secrets**: _None._ (admin user off)
-- **Managed identity bindings**: AcrPull → `id-web.principalId`; AcrPush + Data Importer → `deployerObjectId` (`User`)
+- **Managed identity bindings**: AcrPull → `id-web.principalId` (UAMI pull needs ARM audience tokens enabled); AcrPush + Data Importer → `deployerObjectId` (`User`)
 - **External dependencies**: `pe-cr` (consumer)
 
 ### Microsoft.Storage/storageAccounts:st
@@ -684,10 +714,13 @@ Secrets Officer `b86a8fe4-44ce-4948-aee5-eccb2c155cd7`, Monitoring Metrics Publi
 
 ### Microsoft.Sql/managedInstances:sqlmi
 
-- **Required parameters**: `tenantId`, `deployerObjectId`, `deployerPrincipalName`; subnet `snet-sqlmi` via `resourceId()`
+- **Required parameters**: `tenantId`, `deployerObjectId`, `deployerPrincipalName`, `sqlMiDirectoryIdentityId` —
+  string — derived by preflight; subnet `snet-sqlmi` via `resourceId()`
 - **Secrets**: _None._ (Entra-only; no `administratorLogin` / password)
-- **Managed identity bindings**: Type `system-assigned` (platform default); no Directory Readers or Graph grant
-- **External dependencies**: `rg-spoke/vnet-spoke/snet-sqlmi` (vended NSG + route table, never declared)
+- **Managed identity bindings**: Type `SystemAssigned,UserAssigned`; `primaryUserAssignedIdentityId` =
+  `sqlMiDirectoryIdentityId` (existing, B08-owned, holds the Graph read grant); no grant declared by the archetype
+- **External dependencies**: `rg-spoke/vnet-spoke/snet-sqlmi` (vended NSG + route table, never declared);
+  `rg-management/id-sqlmi-directory` in the shared services subscription (read-only; preflight step 10)
 
 ### Microsoft.Web/serverfarms:asp
 
@@ -864,7 +897,7 @@ resources by dependency inside that deployment; there is no `phase` parameter an
 
 | Order | Module | Resources | Validation |
 | ----- | ------ | --------- | ---------- |
-| 0 | hooks/preprovision.ps1 | none (read-only) | Inputs, names, capabilities 14–18, region gate and DINE assignments pass; derived azd env values set |
+| 0 | hooks/preprovision.ps1 | none (read-only) | Inputs, names, capabilities 14–18, region gate, DINE assignments and SQL MI directory identity pass; derived azd env values set |
 | 1 | main.bicep (AVM RG) | `rg-university-<suffix>` | RG in hub region with 9 tags |
 | 2 | identity.bicep | UAMI | `principalId` output |
 
@@ -875,7 +908,7 @@ resources by dependency inside that deployment; there is no `phase` parameter an
 | Order | Module | Resources | Validation |
 | ----- | ------ | --------- | ---------- |
 | 3 | monitoring, registry, storage, messaging, keyvault | App Insights, ACR, Storage + container, Service Bus + queue, Key Vault, 12 role assignments, storage metrics setting | `publicNetworkAccess` Disabled on all four data services; local auth off |
-| 3 | sql-mi.bicep | SQL MI + schedule (longest-running branch) | Entra-only, public endpoint off, `SQLServer2022` |
+| 3 | sql-mi.bicep | SQL MI + schedule (longest-running branch) | Entra-only, public endpoint off, `SQLServer2022`, primary identity `id-sqlmi-directory` |
 | 4 | private-endpoints.bicep | 4 PEs + 4 metrics settings | PEs `Succeeded`, no zone group declared |
 
 **Approval Gate**: none inside the deployment; ARM fails the whole deployment on any Deny.
@@ -970,11 +1003,11 @@ in names. Lengths below use the maximum 6-char suffix; example suffix `ab12cd`.
 | Web app | `httpsOnly`, `minTlsVersion`, `scmMinTlsVersion`, `ftpsState`, `http20Enabled` | `true`, `1.2`, `1.2`, `Disabled`, `true` |
 | Web app | Basic publishing credentials (FTP, SCM); remote debugging; client certs; App Service Authentication; IP restrictions | off; off; off; none (`public_edge_auth=none`); none |
 | Web app | Identity; public network access; outbound routing | UAMI only; Enabled (exception 1); `allTraffic` + `imagePullTraffic` |
-| ACR | Public access; bypass; admin; anonymous pull; data endpoint; export | Disabled; `AzureServices` (ADR-0004); off; off; off; disabled (module default) |
+| ACR | Public access; bypass; admin; anonymous pull; data endpoint; export; ARM audience tokens | Disabled; `AzureServices` (ADR-0004); off; off; off; disabled (module default); enabled (UAMI pull) |
 | Storage | Public access; blob public access; shared key; OAuth default; TLS; HTTPS-only; network ACL | Disabled; false; false; true; `TLS1_2`; true; Deny/None |
 | Service Bus | Public access (namespace + network rule set); local auth; TLS; SAS rules | Disabled; off; `1.2`; none declared |
 | Key Vault | Public access; RBAC; soft delete; purge protection; network ACL | Disabled; on; 90 days; off (teardown, Step 1); Deny/None |
-| SQL MI | Public data endpoint; auth; TLS; identity | off; Entra-only, admin = deployer; `1.2`; system-assigned |
+| SQL MI | Public data endpoint; auth; TLS; identity | off; Entra-only, admin = deployer; `1.2`; system-assigned + `id-sqlmi-directory` (primary, B08-owned Graph read) |
 | App Insights | Local auth; ingestion; query | disabled; public, Entra-authenticated (exception 2); public, Entra-authenticated |
 | Private endpoints | Zone groups; public IPs | DINE-owned (not declared); none |
 | All | Secrets in app settings; keys; service principals | none; none consumed; none |
@@ -1029,6 +1062,8 @@ in names. Lengths below use the maximum 6-char suffix; example suffix `ab12cd`.
 | Resource Abbreviations | [Abbreviations](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/azure-best-practices/resource-abbreviations) |
 | App settings names on Linux | [Configure app settings](https://learn.microsoft.com/azure/app-service/configure-common) |
 | ACR import, trusted services | [Import container images](https://learn.microsoft.com/azure/container-registry/container-registry-import-images) |
+| Managed identity pull, ARM audience tokens | [Configure a custom container](https://learn.microsoft.com/azure/app-service/configure-custom-container) |
+| SQL MI instance identity, Graph permissions | [Managed identities in Microsoft Entra for Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/authentication-azure-ad-user-assigned-managed-identity) |
 | Diagnostic settings | [Diagnostic settings in Azure Monitor](https://learn.microsoft.com/azure/azure-monitor/platform/diagnostic-settings) |
 | VNet integration routing | [Configure routing](https://learn.microsoft.com/azure/app-service/configure-vnet-integration-routing) |
 | SQL MI stop and start | [Stop and start an instance](https://learn.microsoft.com/azure/azure-sql/managed-instance/instance-stop-start-how-to) |

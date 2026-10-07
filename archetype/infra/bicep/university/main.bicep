@@ -20,6 +20,9 @@ param location string
 @description('Resource ID of rg-management/log-management, derived by preflight. Used by Application Insights and the metrics settings.')
 param logAnalyticsWorkspaceId string
 
+@description('Resource ID of rg-management/id-sqlmi-directory in the shared services subscription, derived by preflight. SQL MI primary user-assigned identity.')
+param sqlMiDirectoryIdentityId string
+
 @description('Object ID of the signed-in deployer. SQL MI Entra admin SID and deployer data-plane roles.')
 param deployerObjectId string
 
@@ -194,6 +197,7 @@ module sqlMi 'modules/sql-mi.bicep' = {
     tenantId: tenantId
     adminLogin: deployerPrincipalName
     adminObjectId: deployerObjectId
+    directoryIdentityId: sqlMiDirectoryIdentityId
     scheduleTimeZoneId: sqlMiScheduleTimeZoneId
     scheduleStartTime: sqlMiScheduleStartTime
     scheduleStopTime: sqlMiScheduleStopTime

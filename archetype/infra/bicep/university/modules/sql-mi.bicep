@@ -19,6 +19,9 @@ param adminLogin string
 @description('Entra administrator object ID (deployer).')
 param adminObjectId string
 
+@description('Resource ID of the existing B08-owned id-sqlmi-directory identity (holds the Graph read grant). Derived by preflight.')
+param directoryIdentityId string
+
 @description('Windows time zone ID of the start/stop schedule.')
 param scheduleTimeZoneId string
 
@@ -40,7 +43,10 @@ resource sqlManagedInstance 'Microsoft.Sql/managedInstances@2025-01-01' = {
   location: location
   tags: tags
   identity: {
-    type: 'SystemAssigned'
+    type: 'SystemAssigned,UserAssigned'
+    userAssignedIdentities: {
+      '${directoryIdentityId}': {}
+    }
   }
   sku: {
     name: 'GP_Gen5'
@@ -49,6 +55,7 @@ resource sqlManagedInstance 'Microsoft.Sql/managedInstances@2025-01-01' = {
     capacity: 4
   }
   properties: {
+    primaryUserAssignedIdentityId: directoryIdentityId
     subnetId: subnetId
     vCores: 4
     storageSizeInGB: 64

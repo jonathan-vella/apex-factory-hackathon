@@ -5,7 +5,7 @@
 
 .DESCRIPTION
     Wraps scripts/preflight.ps1. Nothing is created before every check passes. On success it sets AZURE_LOCATION,
-    LOG_ANALYTICS_WORKSPACE_ID, DEPLOYER_OBJECT_ID and DEPLOYER_UPN in the azd environment, then prints the diagnosis
+    LOG_ANALYTICS_WORKSPACE_ID, SQLMI_DIRECTORY_IDENTITY_ID, DEPLOYER_OBJECT_ID and DEPLOYER_UPN in the azd environment, then prints the diagnosis
     command and cost note for a failed provisioning run (azd has no on-failure hook).
 
 .EXAMPLE
@@ -29,6 +29,7 @@ $derived = & (Join-Path $PSScriptRoot '..' 'preflight.ps1')
 $values = [ordered]@{
     AZURE_LOCATION            = $derived.Location
     LOG_ANALYTICS_WORKSPACE_ID = $derived.LogAnalyticsWorkspaceId
+    SQLMI_DIRECTORY_IDENTITY_ID = $derived.SqlMiDirectoryIdentityId
     DEPLOYER_OBJECT_ID        = $derived.DeployerObjectId
     DEPLOYER_UPN              = $derived.DeployerUpn
 }

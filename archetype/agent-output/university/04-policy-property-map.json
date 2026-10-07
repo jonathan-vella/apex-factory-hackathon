@@ -6,7 +6,7 @@
   "governance_depth": "full",
   "constraints_ref": {
     "path": "04-governance-constraints.json",
-    "sha256": "55f92f61a6e1ff93b800c5f3c289fbd4a2e3492cc467317757609e599d0ffa8b"
+    "sha256": "d60da5a54b5bcff2d98d91a097431bde0c41ee7aad25cdcb8bd0f016c3f45981"
   },
   "policies": [
     {

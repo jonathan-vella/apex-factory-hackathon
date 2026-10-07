@@ -42,6 +42,7 @@ with Diagram(
     with Cluster("Existing, read only (never declared)"):
         subnets = Subnets("rg-spoke / vnet-spoke\nsnet-app, snet-pe, snet-sqlmi")
         law = LogAnalyticsWorkspaces("log-management\n(shared services)")
+        dirid = ManagedIdentities("id-sqlmi-directory\n(shared services, B08)")
 
     with Cluster("Task 1 main.bicep (targetScope = subscription)"):
         rg = Resourcegroups("rg-university-<suffix>\nAVM resource-group 0.4.4")
@@ -57,7 +58,7 @@ with Diagram(
             mi = SQLManagedInstances("Task 9 sql-mi (raw)\nMI + startStopSchedules")
             web = AppServices("Task 10 web\nasp + app (UAMI)")
 
-    pre >> Edge(label="AZURE_LOCATION, shared sub,\ndeployer UPN/objectId", color="#555555") >> rg
+    pre >> Edge(label="AZURE_LOCATION, shared sub,\ndeployer UPN/objectId,\ndirectory identity ID", color="#555555") >> rg
     rg >> uami
     rg >> mi
     uami >> Edge(label="principalId", color="#2f6fed") >> appi
@@ -77,6 +78,7 @@ with Diagram(
     pe >> Edge(label="dependsOn", style="dashed") >> web
     subnets >> Edge(label="resourceId() only:\nsnet IDs to PE, MI, web", style="dashed", color="#666666") >> rg
     law >> Edge(label="resourceId() only:\nworkspace ID to appi, diag", style="dashed", color="#666666") >> rg
+    dirid >> Edge(label="resource ID only:\nprimary identity of MI", style="dashed", color="#666666") >> mi
     web >> Edge(label="after provision", color="#555555") >> post
 
 embed_svg_images(base.with_suffix(".svg"))

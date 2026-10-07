@@ -62,17 +62,18 @@ No `deploy.ps1` is generated, as the plan states; the kit's `archetype/deploy.ps
 | Check                                            | Result                  | Details                                                                                          |
 | ------------------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------ |
 | `bicep build` / `bicep lint`                     | ✅                      | 0 errors, 0 warnings on `main.bicep`                                                             |
-| `az deployment sub validate` (`workload`)        | ✅ exit 0, `Succeeded`  | Output sha256 `a0ac6da23d177869faf292f7afebf1cfd4c4a51da437406701d34cf8dbd7afd8`                 |
-| `az deployment sub what-if` (`workload`)         | ✅ exit 0, `Succeeded`  | Output sha256 `9435396e1c67e268e698a522f972ec0e3d18d440638cd99c6079142dc8e4507c`; 34 Create, 6 Unsupported role-definition lookups, no Modify or Delete |
+| `az deployment sub validate` (`workload`)        | ✅ exit 0, `Succeeded`  | Output sha256 `8b4bebd36c83f5cab2c8abd01c1c2af0c3eed1a6f790a2f3dfdf2f28e58d3c95` (plan `5a4b96e4`) |
+| `az deployment sub what-if` (`workload`)         | ✅ exit 0, `Succeeded`  | Output sha256 `894516e13cc76529aad0abd198c70ea57ab21ea786331f0937b31a11bbb954b4`; against the member's existing deployment: 15 NoChange, 19 Modify, 5 Ignore, 6 Unsupported role-definition lookups, no resource Delete; no ACR or SQL MI identity delta |
 | Zone and GRS scan of the what-if                 | ✅                      | Only recorded settings (see notes); Storage is `Standard_LRS`                                    |
 | Private endpoint diagnostics `2016-09-01`        | ✅ accepted             | Validate and what-if accepted it on all four PEs; the `2021-05-01-preview` fallback was not used |
 | `validate:iac-security-baseline`                 | ✅ with scoped flag     | Passes with `--public-web-app infra/bicep/university/modules/web-app.bicep`                      |
 | `validate:sku-iac-coverage`                      | ✅                      | Symbols match the SKU manifest logical names                                                     |
 | Contract validators (contract, policy map, consistency) | ✅ with 3 warnings | Warnings: `st-container`, `sbns-queue`, `sqlmi-schedule` headings (see notes)                    |
-| `bicep-validate-subagent`                        | ✅ APPROVED             | First run NEEDS_REVISION (one HIGH: Key Vault `tenantId`); rerun APPROVED after the owner accepted the variance. L2 attestation 20 of 20 satisfied |
-| Preflight script against the live subscription   | ✅                      | All nine check groups pass (read-only, no IDs recorded)                                          |
+| `bicep-validate-subagent`                        | ✅ APPROVED             | Rerun after the plan `5a4b96e4` changes: APPROVED, lint 0 errors, L2 attestation 20 of 20 satisfied. Earlier NEEDS_REVISION (Key Vault `tenantId`) closed by the owner-accepted variance |
+| Preflight script against the live subscription   | ✅                      | All ten check groups pass, including the new SQL MI directory identity check (read-only, no IDs recorded) |
 
-Validation ran with a throwaway suffix and the signed-in deployer. The what-if resolves every module, but a successful
+Preflight, validate and what-if used the suffix of the member's existing deployment, because `snet-sqlmi` already hosts
+that managed instance and the preflight stops on any other suffix. The what-if resolves every module, but a successful
 validate or what-if does not prove apply, SQL MI capacity or private DNS outcomes.
 
 ## 🏗️ Resources Created
@@ -150,6 +151,9 @@ parameter file reads.
 | What-if zone and GRS settings are exactly the recorded ones          | Reliability posture         | ASP `zoneRedundant` false; SQL MI `zoneRedundant` false, backup `Local`; ACR `zoneRedundancy` Enabled and Service Bus `zoneRedundant` true (forced by AVM, accepted); Storage `Standard_LRS`; web app `redundancyMode` `None` (module default, not zone or geo) |
 | Private endpoint diagnostics use `2016-09-01`                        | Metrics to `log-management` | `modules/private-endpoints.bicep`; fallback unused |
 | Preflight step 9 reads inherited assignments with the ARM `atScope()` filter | Landing-zone DINE check | `scripts/preflight.ps1`; `az policy assignment list` omitted the management-group ALZ-lite assignments in this tenant |
+| ACR `azureADAuthenticationAsArmPolicyStatus: 'enabled'` | UAMI image pull | `modules/registry.bicep` (module default is `disabled`); `postdeploy-tests.ps1` fails before the image switch unless `az acr config authentication-as-arm show` returns `enabled`; Audit result from policy 42781ec6 is expected, not a block |
+| SQL MI `SystemAssigned,UserAssigned`, primary identity `id-sqlmi-directory` | C7 creates Entra users | `modules/sql-mi.bicep`; `sqlMiDirectoryIdentityId` derived by preflight step 10 (exists and the deployer holds `userAssignedIdentities/*/assign/action`); Graph grant is B08-owned and not read here |
+| A provision run without `CONTAINER_IMAGE` previews the web app back on the MCR placeholder | Image drift | The postprovision hook persists the registry copy; provision from an azd environment that has it |
 | Web app isolated in `web-app.bicep`                                  | Scanner scope               | Needed for `--public-web-app`; plan listed it inside `web.bicep` |
 | Key Vault `tenantId` not wired                                       | Contract wording variance   | Owner-approved 2026-10-07. Pinned AVM 0.14.2 sets the vault tenant to `subscription().tenantId`; `tenantId` still feeds the SQL MI admin and the preflight tenant check |
 | Plan-heading warnings (`st-container`, `sbns-queue`, `sqlmi-schedule`) | Cosmetic traceability     | Not changed: resolving them edits the frozen plan or contract (plan-lock). Owner chose to leave them as cosmetic warnings (2026-10-07) |
