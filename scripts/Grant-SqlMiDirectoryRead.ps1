@@ -59,8 +59,8 @@ $identity = Invoke-AzureCli -Arguments @('identity', 'show', '--subscription', $
 $principalId = $identity.principalId
 Write-Information "Identity: $IdentityName in $ResourceGroup (shared services subscription)."
 
-$graph = Invoke-AzureCli -Arguments @('rest', '--method', 'GET', '--url',
-    "https://graph.microsoft.com/v1.0/servicePrincipals(appId='$graphAppId')?`$select=id,appRoles")
+$graph = (Invoke-AzureCli -Arguments @('rest', '--method', 'GET', '--url', 'https://graph.microsoft.com/v1.0/servicePrincipals',
+        '--uri-parameters', "`$filter=appId eq '$graphAppId'", '$select=id,appRoles')).value | Select-Object -First 1
 $granted = @((Invoke-AzureCli -Arguments @('rest', '--method', 'GET', '--url',
             "https://graph.microsoft.com/v1.0/servicePrincipals/$principalId/appRoleAssignments")).value |
     Where-Object { $_.resourceId -eq $graph.id } | ForEach-Object { $_.appRoleId })
@@ -98,8 +98,10 @@ $($_.Exception.Message)
     Write-Information "  $permission granted."
 }
 
-Write-Information @"
+if (-not $WhatIfPreference) {
+    Write-Information @"
 
 $IdentityName can read Microsoft Entra users, groups and service principals. Every member's SQL Managed
 Instance uses it as its primary identity, so C7 can create the web app's contained database user.
 "@
+}
