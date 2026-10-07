@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/03-des-adr-0005-azure-hybrid-benefit-default-on.md",
+  "artifact_type": "design-adr",
+  "artifact": "03-des-adr-0005-azure-hybrid-benefit-default-on.md",
+  "pass": 1,
+  "source": "challenge-findings-design-adr-0005.json",
+  "recorded_at": "2026-10-06T12:21:24Z",
+  "decisions": [
+    {
+      "issue_id": "d4860c7c",
+      "source_file": "challenge-findings-design-adr-0005.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "suggestion",
+      "title": "The license-included fallback cost delta is not quantified",
+      "action": "accept",
+      "note": "Edit: alternatives table now carries $488.92 vs $780.82 (+$291.90) at 730 h and the scheduled figures. The Context quote was also corrected: the earlier text was not verbatim.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    }
+  ]
+}

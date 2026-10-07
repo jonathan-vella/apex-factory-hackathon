@@ -26,14 +26,42 @@ Ask the user for three inputs, in order, if not already supplied in this convers
   in interactively (not a service principal), because the SQL Managed Instance's Entra
   admin is the deploying user.
 
+## Refresh governance before deploying
+
+The packaged `agent-output/university/04-governance-constraints.json` and
+`04-policy-property-map.json` carry the CoE build tenant's discovery, with
+`discovery_status: "PARTIAL"` and `subscription_id: "unknown"` — deliberately stale, so
+APEX's own L0-envelope staleness gate forces a refresh here, in the member's own
+tenant, before anything deploys:
+
+1. Hand off to **04g-Governance** to re-run live discovery against the supplied tenant
+   ID and subscription ID. This overwrites `04-governance-constraints.{md,json}` with
+   the member's real policy set.
+2. Follow whatever APEX's own drift routing (`governance-drift-routing.md`) returns for
+   the refreshed envelope:
+   - If it only requires re-stamping `04-policy-property-map.json` (Step 4) and
+     re-emitting `05-iac-handoff.json` (Step 5 / `06b-Bicep CodeGen`), let those steps
+     run and continue.
+   - If it demands a real change to `04-implementation-plan.md` or the Bicep in
+     `infra/bicep/university/` — the member's policies genuinely differ from what this
+     archetype assumes — **stop and tell the user**, same as any other Stop-and-ask.
+     Don't continue to Deploy on a plan or Bicep that no longer matches what passed
+     review.
+3. Never hand-edit a hash or signature field (`l1m_ref.sha256`, `tree_hash`,
+   `supporting_inputs`/`cache_inputs.artifact_sha` in any `challenge-findings-*.json`)
+   to force a check to pass. Only the owning agent step may refresh those.
+
+This refresh is part of this prompt, not a separate step the member runs: the contract
+stays three inputs (tenant ID, subscription ID, suffix).
+
 ## Deploy
 
-Once the prerequisites pass, hand off to **APEX Deploy** (agent `07b-Bicep Deploy`,
-workflow step 6) against `infra/bicep/university/` with `tenantId`, `subscriptionId`
-and `suffix` as inputs — let it run its own preflight and what-if checks and ask for
-approval before it applies anything, same as any other APEX deployment. After Deploy
-finishes, hand off to **As-Built** (agent `08-As-Built`, workflow step 7) to generate
-`agent-output/university/07-as-built.md`.
+Once governance is refreshed and the prerequisites pass, hand off to **APEX Deploy**
+(agent `07b-Bicep Deploy`, workflow step 6) against `infra/bicep/university/` with
+`tenantId`, `subscriptionId` and `suffix` as inputs — let it run its own preflight and
+what-if checks and ask for approval before it applies anything, same as any other APEX
+deployment. After Deploy finishes, hand off to **As-Built** (agent `08-As-Built`,
+workflow step 7) to generate `agent-output/university/07-as-built.md`.
 
 Tell the user: this deploys the CoE archetype platform only (App Service, ACR, SQL MI,
 Storage, Service Bus, Key Vault, Application Insights) into the existing spoke. It does

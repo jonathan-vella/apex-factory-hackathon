@@ -4,9 +4,10 @@
 .SYNOPSIS
 Deploys the CoE archetype (the Contoso University platform) into an already-vended spoke, without APEX.
 .DESCRIPTION
-The no-agent fallback for B09 requirement 14: a plain `az deployment group create` of this folder's
-infra/bicep/university/main.bicep, using the same three inputs as APEX Deploy. Everything else is
-discovered, not asked for:
+The no-agent fallback for B09 requirement 14: a plain `az deployment sub create` of this folder's
+infra/bicep/university/main.bicep (subscription-scope; the template creates its own resource group,
+rg-university-<suffix>), using the same three inputs as APEX Deploy. Everything else is discovered,
+not asked for:
 - the region, from the hub's vnet-hub in the shared services subscription (found via vnet-spoke's peering);
 - the spoke and its subnets (rg-spoke, vnet-spoke, snet-app, snet-pe, snet-sqlmi), by the backlog naming
   convention -- this script never creates them; run scripts/Deploy-Vending.ps1 (B08) first if they're missing;
@@ -123,33 +124,33 @@ the rest of the platform is ready; expect it to still be "Updating" for several 
 returns.
 "@
 
+# main.bicep is a subscription-scope deployment: it creates rg-university-<suffix> itself and derives the
+# vended spoke's subnet IDs from the signed-in subscription, so the spoke is never passed in by ID.
 $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "archetype-university-$([guid]::NewGuid()).parameters.json"
 @{
     '$schema' = 'https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#'
     contentVersion = '1.0.0.0'
     parameters = @{
-        location = @{ value = $location }
         suffix = @{ value = $Suffix }
-        spokeVnetId = @{ value = $spokeVnet.id }
+        tenantId = @{ value = $TenantId }
+        location = @{ value = $location }
         logAnalyticsWorkspaceId = @{ value = $workspace.id }
-        sqlMiEntraAdminObjectId = @{ value = $deployer.id }
-        sqlMiEntraAdminLogin = @{ value = $deployer.userPrincipalName }
+        deployerObjectId = @{ value = $deployer.id }
+        deployerPrincipalName = @{ value = $deployer.userPrincipalName }
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
-# NOTE (B09 packaging): reconcile this parameter list against infra/bicep/university/main.bicep's actual
-# parameter names once APEX's generated Bicep is copied in -- APEX may name some of these differently.
 
-$deploymentArgs = @('--name', $deploymentName, '--resource-group', 'rg-spoke', '--template-file', $template,
+$deploymentArgs = @('--name', $deploymentName, '--location', $location, '--template-file', $template,
     '--parameters', "@$parametersFile")
 try {
-    if (-not $PSCmdlet.ShouldProcess("rg-spoke in subscription $SubscriptionId", 'Deploy the CoE archetype')) {
+    if (-not $PSCmdlet.ShouldProcess("subscription $SubscriptionId", 'Deploy the CoE archetype')) {
         $PSNativeCommandUseErrorActionPreference = $false
-        & az deployment group what-if @deploymentArgs --only-show-errors
+        & az deployment sub what-if @deploymentArgs --only-show-errors
         return
     }
     $started = Get-Date
     Write-Information "Deployment started at $($started.ToString('HH:mm'))."
-    $null = Invoke-AzureCli -Arguments (@('deployment', 'group', 'create') + $deploymentArgs)
+    $null = Invoke-AzureCli -Arguments (@('deployment', 'sub', 'create') + $deploymentArgs)
     $elapsed = (Get-Date) - $started
     Write-Information "Archetype deployed in $([int] $elapsed.TotalMinutes) minutes (excluding the SQL MI, which keeps provisioning in the background)."
 }

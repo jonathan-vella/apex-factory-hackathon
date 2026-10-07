@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-governance-constraints.md",
+  "artifact_type": "governance-constraints",
+  "review_focus": "governance-reconciliation",
+  "pass_number": 2,
+  "challenge_summary": "Both pass-1 fixes are verified: the Deny policies are reconciled against the approved Step 2 design, and subscription IDs are absent from the Markdown. A new should-fix remains because DeployIfNotExists assignments are represented as already auto-deployed without evidence for assignment identity permissions or remediation behavior.",
+  "compact_for_parent": "Pass 2 (governance-reconciliation) | MEDIUM | 0 must_fix, 1 should_fix | Key: DINE assignments are marked as deployed without remediation evidence",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 1,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "44e9df0f",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "DINE assignments are marked as deployed without remediation evidence",
+      "evidence": "The Azure Policy Compliance table labels DeployIfNotExists policies as 'Auto-applied by Azure Policy', and the Auto-Applied Resources table says they are 'Auto-deployed by Azure Policy'. The supporting governance JSON records assignment scope, effect, and parameters but contains no evidence of the assignment identity's permissions or remediation status. The approved Step 2 architecture explicitly leaves DINE runtime status unverified and requires checking scope, parameters, identity permissions, and post-deployment registration before readiness is claimed.",
+      "impact": "If a DINE assignment lacks the required identity permissions or has not remediated an existing target, private DNS registration or policy-owned diagnostics may be absent. The workload can then fail private endpoint name resolution or lack expected diagnostics despite this artifact marking the policy rows compliant.",
+      "artifact_section": "Azure Policy Compliance; Plan Adaptations Based on Policies > Auto-Applied Resources",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [112, 249],
+        "proposed_edit": "Describe these rows as discovered DeployIfNotExists assignments, not completed deployments. Mark runtime remediation unverified until assignment identity permissions and remediation behavior are checked, and retain the Step 2 post-deployment DNS/readiness gate."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Azure Policy Compliance table: every DeployIfNotExists implementation currently says 'Auto-applied by Azure Policy'",
+        "Plan Adaptations Based on Policies > Auto-Applied Resources: all rows currently say 'Auto-deployed by Azure Policy'",
+        "Supporting baseline: agent-output/university/02-architecture-assessment.md > Required Capability Dependencies > Private DNS for 4 endpoints (runtime status unverified)"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "33b008fa88aa068b22c1b00801d7e9b8e69deb88be00953b6a47466a0f4ca214",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "a6a766df1227ed8856de90aaf9cc37e4618c635aaadad325f28cf4b2ea27c250"
+  }
+}

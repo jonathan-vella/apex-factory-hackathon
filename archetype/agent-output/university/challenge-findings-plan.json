@@ -1,0 +1,132 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The plan maps all discovered Deny policies and preserves approved provider, AVM, SKU, identity, and naming constraints. Remaining risks are unverified DINE remediation prerequisites, an acknowledged but unpriced Defender for SQL MI charge, missing global-name availability checks, and omission of the required Azure Hybrid Benefit README deliverable.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 3 should_fix | Key: DINE remediation unverified; Defender SQL MI cost omitted; Global name collisions unchecked",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 3,
+  "suggestion_count": 1,
+  "findings": [
+    {
+      "id": "23c33d49",
+      "severity": "should_fix",
+      "category": "hidden_dependency",
+      "claim": "DINE remediation prerequisites remain unverified before deployment",
+      "evidence": "Capability 15 requires Step 3.5 to verify DINE assignment scope, parameters, and identity permissions. The plan explicitly says remediation is unverified at plan time. Task 12's listed preflight checks do not check capability 15, while Task 13 only tests for resulting DNS zone groups, private resolution, and diagnostic settings. This leaves the plan without evidence that the policy identities can deploy the resources the plan relies on.",
+      "impact": "If a DINE assignment does not cover the target scope, has incompatible parameters, or its identity lacks deployment permissions, the ARM deployment can succeed while private DNS registration or required diagnostics remain absent. The app then cannot use its private PaaS dependencies and readiness remains blocked pending external remediation.",
+      "artifact_section": "Governance Compliance Matrix — DeployIfNotExists assignments on planned types",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Add an explicit pre-deployment readiness prerequisite that records DINE assignment scope, parameters, identity permissions, and remediation behavior for private DNS and resource-log policies; fail the readiness gate or name an authorized remediation/escalation path when evidence is absent. Keep post-deployment outcome checks as confirmation, not as the only verification."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Overview → Carried items → 44e9df0f (DINE wording)",
+        "Governance Compliance Matrix → DeployIfNotExists assignments on planned types → Private DNS",
+        "Governance Compliance Matrix → DeployIfNotExists assignments on planned types → Resource logs",
+        "Task 12 → preflight checks (capabilities 14–18 list, including the omission of capability 15)",
+        "Task 13 → DINE DNS and Diagnostics readiness checks"
+      ]
+    },
+    {
+      "id": "e48d6d77",
+      "severity": "should_fix",
+      "category": "waf_blind_spot",
+      "claim": "Defender for SQL MI adds an unpriced post-deployment charge",
+      "evidence": "The plan states that the Defender for SQL managed instances assignment enables a protection plan after deployment and explicitly notes that its cost is not in the Step 2 estimate. No price, cost bound, or owner disposition for this additional charge is included in the plan.",
+      "impact": "The deployed run rate can exceed the reviewed estimate without the approval gate exposing the incremental Defender charge, weakening the cost-feasibility decision and potentially accelerating the already-noted inherited budget alert.",
+      "artifact_section": "Overview — Carried items — 6dec76b5 (Defender evidence)",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Reconcile the Defender for SQL MI protection-plan charge with the Step 2 estimate and record the pricing assumption, or document explicit owner acceptance if a reliable estimate is unavailable. Keep the estimate aligned with the Defender assignment that will affect the deployed MI."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Overview → Carried items → 6dec76b5 (Defender evidence)",
+        "Overview → live validation budget warning",
+        "Approval Gate → current plan-readiness evidence"
+      ]
+    },
+    {
+      "id": "e6c5e56c",
+      "severity": "should_fix",
+      "category": "missing_failure_mode",
+      "claim": "Preflight does not check availability of globally unique resource names",
+      "evidence": "The naming table uses caller-selected suffixes for globally unique ACR, Storage, Service Bus, Key Vault, and App Service names. Task 12 checks only for a soft-deleted Key Vault name; it does not check whether these names are already allocated. A 4–6 character suffix is not itself evidence of global availability.",
+      "impact": "A name collision can make one or more creates fail after this single subscription deployment has created parallel foundation or data resources. The run then needs cleanup or a new suffix, despite preflight having passed.",
+      "artifact_section": "Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1 — Name collisions",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Extend preflight to use each provider's name-availability check for the generated ACR, Storage account, Service Bus namespace, Key Vault, and web app names before deployment, retaining the separate Key Vault soft-delete check. Fail before resource creation and identify the conflicting name."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Task 12 → Name collisions",
+        "Naming Conventions → Container registry",
+        "Naming Conventions → Storage account",
+        "Naming Conventions → Service Bus",
+        "Naming Conventions → Key Vault",
+        "Naming Conventions → Web app"
+      ]
+    },
+    {
+      "id": "5d241bcc",
+      "severity": "suggestion",
+      "category": "scope_risk",
+      "claim": "Planned CodeGen outputs omit the required Azure Hybrid Benefit README guidance",
+      "evidence": "Requirement 13 calls for a generated README explaining the SQL MI Azure Hybrid Benefit assumption and how to switch to LicenseIncluded. The Module Structure, Implementation Tasks, and Code-Generation Contract enumerate Bicep modules and scripts but no README deliverable or content requirement.",
+      "impact": "The generated archetype may be deployed by a member who cannot find the licensing assumption or the documented fallback, leaving an owner-confirmed operational instruction outside the generated deliverables.",
+      "artifact_section": "Code-Generation Contract",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Add the generated archetype README to the CodeGen deliverables and require it to state the AHB eligibility assumption and the LicenseIncluded switch command, or explicitly route this requirement to its owning documentation step."
+      },
+      "traces_to": [],
+      "requires_step": "step-5",
+      "verification_anchors": [
+        "01-requirements.md → Core Capabilities → capability 13",
+        "Module Structure → generated files",
+        "Implementation Tasks → task/output list",
+        "Code-Generation Contract → deliverables"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "d0e12b65a06a8d278153bb1b5a516c6ccc62bcaad62f7ff5437345713716f597",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "e2651acd23c78eceb537570df4461b296f2b219370e33e4562bc814818e47ab1"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/04-iac-contract.json",
+      "sha256": "fdaaf050d69017508f9781d4164336b861a8062e4278ba5fecbf75fa27afe273"
+    },
+    {
+      "path": "agent-output/university/04-policy-property-map.json",
+      "sha256": "7735a31195aacb0b77c9605298631b5698d0efed5e04b4f5635bf9739637cef2"
+    },
+    {
+      "path": "agent-output/university/04-environment-manifest.json",
+      "sha256": "f02cac2a63740b018b1b38b975c9ed9705542fab7118df1ed1535c86d562db42"
+    },
+    {
+      "path": "agent-output/university/sku-manifest.json",
+      "sha256": "f4a2512daedfd016ea31b072e544ca0cfa3284e3522c00a2fd829b6c52a353ec"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    }
+  ]
+}

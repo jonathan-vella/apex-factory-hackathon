@@ -1,0 +1,277 @@
+{
+  "$schema": "../../tools/schemas/policy-property-map.schema.json",
+  "schema_version": "policy-property-map-v1",
+  "project": "university",
+  "generated_at": "2026-10-06T14:50:00Z",
+  "governance_depth": "full",
+  "constraints_ref": {
+    "path": "04-governance-constraints.json",
+    "sha256": "55f92f61a6e1ff93b800c5f3c289fbd4a2e3492cc467317757609e599d0ffa8b"
+  },
+  "policies": [
+    {
+      "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/b2982f36-99f2-4db5-8eff-283140c09693",
+      "display_name": "Storage accounts should disable public network access (ALZ-lite, mg-factory-corp)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.Storage/storageAccounts",
+        "property_path": "properties.publicNetworkAccess",
+        "expected_value": "Disabled"
+      },
+      "evidence_required": "storage.bicep: AVM storage-account 0.33.1 param publicNetworkAccess: 'Disabled' (module default is null).",
+      "rationale": "WAF Security: blob reachable only through pe-blob; requirement 6 and baseline private PaaS."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/0fdf0491-d080-4575-b627-ad0e843cba0f",
+      "display_name": "Public network access should be disabled for Container registries (ALZ-lite, mg-factory-corp)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.ContainerRegistry/registries",
+        "property_path": "properties.publicNetworkAccess",
+        "expected_value": "Disabled"
+      },
+      "evidence_required": "registry.bicep: AVM container-registry 0.13.1 param publicNetworkAccess: 'Disabled'; networkRuleBypassOptions: 'AzureServices' is the ADR-0004 network-rule exception, not public access.",
+      "rationale": "WAF Security: registry reachable only through pe-acr; trusted-services bypass limited to az acr import."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/405c5871-3e91-4644-8a63-58e19d68ff5b",
+      "display_name": "Azure Key Vault should disable public network access (ALZ-lite, mg-factory-corp)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.KeyVault/vaults",
+        "property_path": "properties.publicNetworkAccess",
+        "expected_value": "Disabled"
+      },
+      "evidence_required": "keyvault.bicep: AVM key-vault 0.14.2 param publicNetworkAccess: 'Disabled' (module default is '').",
+      "rationale": "WAF Security: vault reachable only through pe-kv."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/cbd11fd3-3002-4907-b6c8-579f0e700e13",
+      "display_name": "Service Bus Namespaces should disable public network access (ALZ-lite, mg-factory-corp)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.ServiceBus/namespaces",
+        "property_path": "properties.publicNetworkAccess",
+        "expected_value": "Disabled"
+      },
+      "evidence_required": "messaging.bicep: AVM service-bus 0.17.1 param publicNetworkAccess: 'Disabled' (module falls back to Enabled without PE input) AND networkRuleSets: { publicNetworkAccess: 'Disabled', defaultAction: 'Deny', trustedServiceAccessEnabled: false } (Microsoft.ServiceBus/namespaces/networkRuleSets is evaluated by the same definition).",
+      "rationale": "WAF Security: namespace and its rule set reachable only through pe-sbns."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/9dfea752-dd46-4766-aed1-c355fa93fb91",
+      "display_name": "Azure SQL Managed Instances should disable public network access (ALZ-lite, mg-factory-corp)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.Sql/managedInstances",
+        "property_path": "properties.publicDataEndpointEnabled",
+        "expected_value": false
+      },
+      "evidence_required": "sql-mi.bicep (raw @2025-01-01): publicDataEndpointEnabled: false.",
+      "rationale": "WAF Security: MI reachable only on its VNet-local host name."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/AzureSQLMI_WithoutAzureADOnlyAuthentication_Deny",
+      "display_name": "SFI-ID4.2.4 SQL Managed Instance - Safe Secrets Standard (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.Sql/managedInstances",
+        "property_path": "properties.administrators.azureADOnlyAuthentication",
+        "expected_value": true
+      },
+      "evidence_required": "sql-mi.bicep: administrators { administratorType ActiveDirectory, principalType User, login/sid = deployer, azureADOnlyAuthentication: true }; no administratorLogin/password.",
+      "rationale": "WAF Security: Entra-only authentication, no SQL logins."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/83a86a26-fd1f-447c-b59d-e51f44264114",
+      "display_name": "Network interfaces should not have public IPs (ALZ-lite, mg-factory-corp)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.Network/networkInterfaces",
+        "property_path": "properties.ipConfigurations[*].properties.publicIPAddress.id",
+        "expected_value": "absent"
+      },
+      "evidence_required": "No public IP declared anywhere; PE NICs are platform-created without public IPs.",
+      "rationale": "WAF Security: no public IP on any workload NIC."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/7509877f-d414-4d79-8d1f-d600ea78d087",
+      "display_name": "Resources should not be created in West Europe (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.Resources/resourceGroups",
+        "property_path": "location",
+        "expected_value": "not westeurope"
+      },
+      "evidence_required": "main.bicep: param location @allowed(['swedencentral','germanywestcentral']); every resource uses location; preflight stops on any other hub region.",
+      "rationale": "WAF Reliability/Compliance: region pinned to approved EU regions."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/AzureSQL_WithoutAzureADOnlyAuthentication_Deny",
+      "display_name": "SFI-ID4.2.2 SQL DB - Safe Secrets Standard (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.Sql/servers",
+        "property_path": "properties.administrators.azureADOnlyAuthentication",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "No Microsoft.Sql/servers in the plan.",
+      "rationale": "Not applicable: the archetype uses SQL Managed Instance only."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/6c112d4e-5bc7-47ae-a041-ea2d9dccd749",
+      "display_name": "Not allowed resource types (Tenant Root Group; classic types only)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.ClassicCompute/virtualMachines",
+        "property_path": "type",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "The listed types are all Microsoft.Classic*; the plan declares none.",
+      "rationale": "Not applicable: no classic resource types."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/a15944e7-86a5-4adf-a36c-d851916c9001",
+      "display_name": "Block Azure RM Resource Creation (Tenant Root Group; classic types)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.ClassicStorage/storageAccounts",
+        "property_path": "type",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "No Microsoft.Classic* or Microsoft.MarketplaceApps/classicDevServices types in the plan.",
+      "rationale": "Not applicable: no classic resource types."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/VirtualMachine_SKU_Deny",
+      "display_name": "Block VM SKU Sizes - references BlockVMSKUs_H, BlockVMSKUs_M, BlockVMSKUs_N (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.Compute/virtualMachines",
+        "property_path": "properties.hardwareProfile.vmSize",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "No virtual machines in the plan.",
+      "rationale": "Not applicable."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/AKS_LimitNodeCount_Deny",
+      "display_name": "Deny AKS deployment with agent pool count greater than 10 (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.ContainerService/managedClusters",
+        "property_path": "properties.agentPoolProfiles[*].count",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "No AKS in the plan (ADR-0001).",
+      "rationale": "Not applicable."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/VMSS_LimitNodesCount_Deny",
+      "display_name": "Deny VMSS deployment with instance count greater than 10 (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.Compute/virtualMachineScaleSets",
+        "property_path": "sku.capacity",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "No VM scale sets in the plan.",
+      "rationale": "Not applicable."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/AzureOpenAI_ProvisionedCapacity_Deny",
+      "display_name": "Block Azure OpenAI Provisioned Capacity (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.CognitiveServices/accounts/deployments",
+        "property_path": "sku.name",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "No Cognitive Services in the plan.",
+      "rationale": "Not applicable."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/Sentinel_Commitment_Deny",
+      "display_name": "Block Azure Sentinel Commitment over 100 (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.OperationalInsights/workspaces",
+        "property_path": "properties.sku.capacityReservationLevel",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "No workspace declared; log-management is referenced by resourceId() only.",
+      "rationale": "Not applicable."
+    },
+    {
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/KeyVaultManagedHSM_PurgeProtectionEnabled_Deny",
+      "display_name": "Deny Azure Key Vault Managed HSM with Purge Protection Enabled (Tenant Root Group)",
+      "effect": "Deny",
+      "target_property": {
+        "resource_type": "Microsoft.KeyVault/managedHSMs",
+        "property_path": "properties.enablePurgeProtection",
+        "expected_value": "type not deployed"
+      },
+      "evidence_required": "No Managed HSM in the plan (Key Vault standard only).",
+      "rationale": "Not applicable."
+    },
+    {
+      "policy_id": "StorageAccount_BlobAnonymousAccess_Modify",
+      "display_name": "Ensure secure access to storage account containers",
+      "effect": "Modify",
+      "target_property": {
+        "resource_type": "Microsoft.Storage/storageAccounts",
+        "property_path": "properties.allowBlobPublicAccess",
+        "expected_value": false
+      },
+      "evidence_required": "storage.bicep sets allowBlobPublicAccess: false (same outcome as Modify; no drift).",
+      "rationale": "WAF Security: no anonymous blob access."
+    },
+    {
+      "policy_id": "StorageAccount_DisableLocalAuth_Modify",
+      "display_name": "SFI-ID4.2.1 Storage Accounts - Safe Secrets Standard",
+      "effect": "Modify",
+      "target_property": {
+        "resource_type": "Microsoft.Storage/storageAccounts",
+        "property_path": "properties.allowSharedKeyAccess",
+        "expected_value": false
+      },
+      "evidence_required": "storage.bicep sets allowSharedKeyAccess: false (AVM default true overridden).",
+      "rationale": "WAF Security: Entra-only data access."
+    },
+    {
+      "policy_id": "StorageAccount_PublicNetwork_Modify",
+      "display_name": "SFI - Disable public network access on Storage accounts (excluding NSP configured resources)",
+      "effect": "Modify",
+      "target_property": {
+        "resource_type": "Microsoft.Storage/storageAccounts",
+        "property_path": "properties.publicNetworkAccess",
+        "expected_value": "Disabled"
+      },
+      "evidence_required": "Same value as the Deny row.",
+      "rationale": "WAF Security."
+    },
+    {
+      "policy_id": "ServiceBus_DisableLocalAuth_Modify",
+      "display_name": "SFI-ID4.3.3 Service Bus - Safe Secrets Standard",
+      "effect": "Modify",
+      "target_property": {
+        "resource_type": "Microsoft.ServiceBus/namespaces",
+        "property_path": "properties.disableLocalAuth",
+        "expected_value": true
+      },
+      "evidence_required": "messaging.bicep sets disableLocalAuth: true.",
+      "rationale": "WAF Security: no SAS authentication."
+    },
+    {
+      "policy_id": "KeyVault_PublicNetwork_Modify",
+      "display_name": "SFI - Disable public network access on Key Vaults (excluding NSP configured resources)",
+      "effect": "Modify",
+      "target_property": {
+        "resource_type": "Microsoft.KeyVault/vaults",
+        "property_path": "properties.publicNetworkAccess",
+        "expected_value": "Disabled"
+      },
+      "evidence_required": "Same value as the Deny row.",
+      "rationale": "WAF Security."
+    }
+  ]
+}

@@ -42,10 +42,10 @@
    | Managed identity | One user-assigned identity for the web app, so roles exist before the first image pull |
 
 3. Roles: the web app's identity gets AcrPull, Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, and Key Vault Secrets User. The deploying member gets AcrPush, Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, and Key Vault Secrets Officer, for local runs from the dev VM.
-4. App settings the modernized app reads, named as the B06 report recommends: the Blob endpoint, the Service Bus namespace and queue, the Key Vault URI, the SQL MI host and database for managed identity, the identity's client ID and the Application Insights connection string. No secrets in app settings.
+4. App settings the modernized app reads, named as the B06 report recommends: the Blob endpoint, the Service Bus namespace and queue, the Key Vault URI, the identity's client ID and the Application Insights connection string. No secrets in app settings. The SQL MI connection (host and database, for managed identity) is not an app setting: per the B06 report, it lives in the Key Vault secret `ConnectionStrings--DefaultConnection`, which C7 (after cutover) writes with the Entra-only MI connection string and a contained user.
 5. **Inputs:** only tenant ID, subscription ID and suffix. Everything else is derived or discovered: the hub (in the team's shared services subscription) from `vnet-spoke`'s peering, the region from the hub, the spoke and subnets by the backlog naming conventions, the Log Analytics workspace by its ALZ-lite name in the shared services subscription, and the MI Entra admin from the signed-in user. Resource names follow the conventions: CAF abbreviation + `university` + suffix.
 6. **Private DNS:** the archetype doesn't create DNS zones or zone groups. The landing zone's DeployIfNotExists policy registers private endpoints in the central zones (ALZ-lite, B08), which live in the shared services subscription. SQL MI has no private endpoint: the app uses its VNet-local host name, which resolves to its private IP.
-7. **Constraints** (APEX security baseline): no public endpoints apart from the three documented exceptions (the web app's front end, Application Insights ingestion, and ACR trusted services for import), diagnostics to the central workspace, managed identity everywhere, Entra-only SQL, no availability zones pinned and no zone redundancy turned on (backlog conventions), and every deny policy in ALZ-lite passes.
+7. **Constraints** (APEX security baseline): no public endpoints apart from the two documented exceptions (the web app's front end and Application Insights ingestion -- the container registry's trusted-Azure-services bypass is a network-rule exception, not a public endpoint: `publicNetworkAccess` stays off), diagnostics to the central workspace, managed identity everywhere, Entra-only SQL, no availability zones pinned and no zone redundancy turned on (backlog conventions), and every deny policy in ALZ-lite passes.
 8. **Initial image:** the web app starts with a placeholder image from Microsoft Container Registry, which vending's firewall rules allow (B08), until the member pushes the real image in C6.
 
 ### APEX session
@@ -65,8 +65,8 @@
 
 16. Deploy ALZ-lite (shared services subscription), then the datacenter and vending (member 1, workload subscription) with the kit scripts.
 17. Deploy the archetype with `archetype/deploy.ps1`. Record the time until everything except the MI is ready, and the MI provisioning time.
-18. 🧑 HUMAN: the owner copies `archetype/` into a fresh APEX repo and runs the `deploy-archetype` prompt against a clean spoke (delete the archetype resources first), then As-Built. Record the time and any gaps.
-19. Check: no public endpoints beyond the three documented exceptions (every backend resource's public network access is off; no public IPs outside the hub and the datacenter's NAT gateway and Bastion); zero non-compliant resources for the ALZ-lite policies in the archetype's resource group after evaluation; private endpoints registered in the central zones; the MI host name resolves to its private IP from `vm-dev01`; `scripts/Test-Connectivity.ps1` passes, including the private endpoint checks; from `vm-dev01`, push a test image to the registry and restart the web app with it; the web app pulls it with its identity and answers on its public HTTPS endpoint; the web app's telemetry reaches Application Insights.
+18. 🧑 HUMAN: the owner copies `archetype/` into a fresh APEX repo and runs the `deploy-archetype` prompt against a clean spoke (delete the archetype resources first), then As-Built. This proves the member path end to end: the governance refresh (04g), whatever Step 4/5 re-emission APEX's drift routing sends it to, then Deploy (07b) and As-Built (08). Record the time for each agent step, the total, and any gaps, against C5's 1-hour box (PRD §6). If drift routing demands a real change to the plan or the Bicep (not just re-emitted maps or hashes), or the chain can't finish, stop and report: the archetype's plan and Bicep no longer match what passed review in the member's tenant. `archetype/deploy.ps1` stays the dependable fallback either way.
+19. Check: no public endpoints beyond the two documented exceptions (every backend resource's public network access is off; no public IPs outside the hub and the datacenter's NAT gateway and Bastion); zero non-compliant resources for the ALZ-lite policies in the archetype's resource group after evaluation (`alzl-allowed-locations` and `alzl-location-match-rg` are Audit, not Deny -- check zero non-compliant there too, not a blocking gate); private endpoints registered in the central zones; the MI host name resolves to its private IP from `vm-dev01`; `scripts/Test-Connectivity.ps1` passes, including the private endpoint checks; from `vm-dev01`, push a test image to the registry and restart the web app with it; the web app pulls it with its identity and answers on its public HTTPS endpoint; the web app's telemetry reaches Application Insights.
 20. Tear everything down (Teardown row), including the subscription-level artifacts listed in the backlog conventions, and query each to confirm.
 
 ### Records
@@ -84,9 +84,17 @@
 Get-ChildItem archetype -Recurse -Filter *.bicep | ForEach-Object { az bicep lint --file $_.FullName }
 Invoke-ScriptAnalyzer -Path archetype/deploy.ps1
 npm run check
+
+# ID scan: expect 0 hits (built-in policy/role definition GUIDs are fine)
+$s = Get-Content .local/settings.json | ConvertFrom-Json
+$deployerObjectId = (az ad signed-in-user show --query id -o tsv)
+foreach ($id in @($s.tenantId, $s.subscriptionId, $s.sharedSubscriptionId, $deployerObjectId)) {
+    Get-ChildItem archetype -Recurse -File | Select-String -Pattern $id
+}
 ```
 
 - Lint and PSScriptAnalyzer are clean.
+- The ID scan finds zero hits.
 - The PR body has the gap table, both deployment times, the checks from requirement 19 and the cost.
 
 ## Done when

@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-governance-constraints.md",
+  "artifact_type": "governance-constraints",
+  "review_focus": "governance-reconciliation",
+  "pass_number": 4,
+  "challenge_summary": "The Deny inventory reconciles with the approved design and the prior structural fixes hold. Two status conclusions exceed what refreshed discovery independently establishes: Audit effects are owner-confirmed rather than itemized, and the effects of the filtered Defender assignments are unavailable.",
+  "compact_for_parent": "Pass 4 (governance-reconciliation) | MEDIUM | 0 must_fix, 2 should_fix | Key: none",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 2,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "1d29a697",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "Audit location effects are presented as live discovery despite owner-only confirmation",
+      "evidence": "The refreshed JSON assignment_inventory records ALZ-lite: Allowed locations and ALZ-lite: Audit resource location matches resource group location, but those records expose assignment names, type, scope, and definition IDs rather than effects. The JSON does not itemize Audit-effect policies, leaves allowed_locations empty, and stores the location interpretation in governance_gate_status.resolved_confirmations. The Markdown says Allowed locations is now an Audit policy and calls the location-match rule a live Audit assignment; the later owner-confirmed qualifier does not clearly attribute those effect labels. Preserve the no-allow-list claim, but identify the Audit effects as owner-confirmed rather than independently established by discovery.",
+      "impact": "A Step 4 reader may treat the approved germanywestcentral alternate and same-region requirement as verified effective policy rather than an owner-reported disposition. If the live effect differs, a later deployment could violate policy or be denied.",
+      "artifact_section": "Discovery Source; Network Policies > location disposition",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [517, 517],
+        "proposed_edit": "In the Discovery Source summary and Network Policies note, label the ALZ-lite effects as owner-confirmed. State that refreshed discovery exposes the assignment names but does not itemize Audit effects or allowed locations; retain the no-allow-list claim and distinguish the tenant-root West Europe Deny."
+      },
+      "traces_to": ["37a54ccd"],
+      "requires_step": "step-3_5",
+      "verification_anchors": [
+        "Discovery Source summary: ALZ-lite: Allowed locations is stated to be Audit",
+        "Network Policies location paragraph: ALZ-lite: Audit resource location matches resource group location is called a live Audit assignment",
+        "JSON assignment_inventory contains both location assignment names but does not expose their effects",
+        "JSON discovery_summary.audit_count and top-level allowed_locations=[]",
+        "JSON governance_gate_status.resolved_confirmations contains owner decisions for allowed_locations and rg_resource_same_region"
+      ]
+    },
+    {
+      "id": "6dec76b5",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "Filtered Defender assignments are called non-blocking without effect-level evidence",
+      "evidence": "The Markdown reports three Defender for Cloud automatic assignments filtered by default and says they are not workload blockers. The refreshed JSON confirms include_defender_auto=false and defender_auto_filtered=3, but the filtered assignments are absent from assignment_inventory and their individual policy effects are not supplied. The no-workload-blocker conclusion is not qualified as owner-provided or unverified. The governance-reconciliation checklist treats Defender auto-assignments as in-scope because they can affect the plan, so disclosure of the filter count alone does not substantiate their impact.",
+      "impact": "A filtered assignment may impose configuration, protection-plan, or cost obligations on an in-scope service; readers could skip evaluating those obligations while treating governance reconciliation as complete.",
+      "artifact_section": "Discovery Source > Assignment totals",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [37, 37],
+        "proposed_edit": "Keep the refreshed totals, Defender automatic-assignment description, and intentional default exclusion. Attribute the non-blocking conclusion to the owner if retained, and state that per-assignment applicability/effects were not returned by discovery and remain unverified; do not imply the filtered assignments were reviewed against the workload."
+      },
+      "traces_to": ["cdc3bcbd"],
+      "requires_step": "step-3_5",
+      "verification_anchors": [
+        "Markdown Discovery Source > Assignment totals states 28 total, 25 retained, 3 filtered, and not workload blockers",
+        "JSON discovery_options.include_defender_auto=false",
+        "JSON discovery_summary.defender_auto_filtered=3 and assignment_kept=25",
+        "JSON assignment_inventory has no entries for the three filtered assignments",
+        "Adversarial checklist Lens: governance-reconciliation > Defender / built-in auto-assignments"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "5d1a1ac0b9eaeb127ad2e7556888dfc4b1f90ef66faab8bef812473a83dd678f"
+  }
+}
