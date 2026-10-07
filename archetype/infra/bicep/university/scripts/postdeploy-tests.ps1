@@ -203,7 +203,10 @@ function Invoke-UniversityPostDeploy {
         if (-not $zoneGroup) { Add-Result -Name "DNS $endpointName" -Status Failed -Detail 'no private DNS zone group appeared; the ALZ-lite DeployIfNotExists remediation did not run'; continue }
         $endpoint = Invoke-AzJson -Arguments @('network', 'private-endpoint', 'show', '--resource-group', $ResourceGroupName, '--name', $endpointName)
         $nic = Invoke-AzJson -Arguments @('network', 'nic', 'show', '--ids', $endpoint.networkInterfaces[0].id)
-        $expected = $nic.ipConfigurations[0].privateIPAddress
+        # ACR private endpoints carry two ipConfigurations (registry + regional data endpoint); match the one
+        # whose fqdns include the target name instead of assuming index 0 is the registry endpoint.
+        $matchedIpConfig = $nic.ipConfigurations | Where-Object { $_.privateLinkConnectionProperties.fqdns -contains $target.Fqdn } | Select-Object -First 1
+        $expected = if ($matchedIpConfig) { $matchedIpConfig.privateIPAddress } else { $nic.ipConfigurations[0].privateIPAddress }
         $resolved = Resolve-InKudu -ScmHost $scmHost -Token $token -Fqdn $target.Fqdn
         if ($resolved -contains $expected) { Add-Result -Name "DNS $endpointName" -Status Passed -Detail "$($target.Fqdn) resolves to the private endpoint address from the snet-app path" }
         else { Add-Result -Name "DNS $endpointName" -Status Failed -Detail "$($target.Fqdn) did not resolve to the private endpoint address from the snet-app path (hub DNS or zone link)" }
@@ -227,8 +230,17 @@ function Invoke-UniversityPostDeploy {
         else { Add-Result -Name 'ACR ARM audience tokens' -Status Passed -Detail 'authentication-as-arm is enabled on the registry' }
     }
     if ($importPassed) {
-        & az resource update --ids "$siteId/config/web" --api-version 2025-03-01 --set "properties.linuxFxVersion=DOCKER|$containerImage" 'properties.acrUseManagedIdentityCreds=true' "properties.acrUserManagedIdentityID=$UamiClientId" --only-show-errors --output none
-        $switched = $LASTEXITCODE -eq 0
+        # `linuxFxVersion` must contain a literal '|' (DOCKER|image). On Windows, az.cmd runs through cmd.exe, which
+        # treats an unescaped '|' in a CLI argument as a shell pipe, so this PATCHes the ARM REST API directly instead.
+        $switched = $false
+        try {
+            $webConfigBody = @{ properties = @{ linuxFxVersion = "DOCKER|$containerImage"; acrUseManagedIdentityCreds = $true; acrUserManagedIdentityID = $UamiClientId } } | ConvertTo-Json -Compress
+            Invoke-RestMethod -Uri "https://management.azure.com$siteId/config/web?api-version=2025-03-01" -Headers @{ Authorization = "Bearer $token" } -Method Patch -Body $webConfigBody -ContentType 'application/json' | Out-Null
+            $switched = $true
+        }
+        catch {
+            Write-Host "  web app config PATCH failed: $($_.Exception.Message)"
+        }
         if ($switched) { & az webapp restart --resource-group $ResourceGroupName --name $WebAppName --only-show-errors --output none; $switched = $LASTEXITCODE -eq 0 }
         $pullUp = $switched -and (Wait-Until -TimeoutSeconds 600 -Probe { Test-HttpOk -Uri "https://$appHost/" })
         if ($pullUp) { Add-Result -Name 'ACR private pull' -Status Passed -Detail 'the web app runs the registry copy pulled over the private path with AcrPull' }

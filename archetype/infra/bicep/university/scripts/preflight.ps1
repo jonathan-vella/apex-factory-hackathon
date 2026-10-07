@@ -288,7 +288,17 @@ function Invoke-UniversityPreflight {
 
     # 9. DeployIfNotExists assignments the landing zone must provide
     # `az policy assignment list` omits management-group assignments inherited by the subscription; the ARM atScope() filter returns them.
-    $assignmentResponse = Invoke-AzJson -Arguments @('rest', '--method', 'get', '--url', ('/subscriptions/{0}/providers/Microsoft.Authorization/policyAssignments?api-version=2023-04-01&$filter=atScope()' -f $SubscriptionId))
+    # This one goes through Invoke-RestMethod, not az rest: on Windows, PowerShell's argument passing to the az.cmd
+    # wrapper hands the command line to cmd.exe, which treats the filter's unescaped '()' as grouping metacharacters
+    # it cannot be made to pass through literally, breaking the call every time (reproduced via azd's hook runner).
+    $armToken = Invoke-AzJson -Arguments @('account', 'get-access-token', '--resource', 'https://management.azure.com')
+    $assignmentsUrl = 'https://management.azure.com/subscriptions/{0}/providers/Microsoft.Authorization/policyAssignments?api-version=2023-04-01&$filter=atScope()' -f $SubscriptionId
+    try {
+        $assignmentResponse = Invoke-RestMethod -Uri $assignmentsUrl -Headers @{ Authorization = "Bearer $($armToken.accessToken)" } -Method Get
+    }
+    catch {
+        Stop-Preflight "GET policyAssignments (atScope filter) failed: $($_.Exception.Message)"
+    }
     $assignments = @($assignmentResponse.value) | ForEach-Object {
         [PSCustomObject]@{
             displayName     = $_.properties.PSObject.Properties['displayName']?.Value
