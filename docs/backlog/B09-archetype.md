@@ -7,7 +7,7 @@
 | Depends on | B06, B07, B08 |
 | Unblocks | B10, B11 |
 | Effort | 3–4 days elapsed, including the owner's APEX session |
-| Cost | About $4.63/hour while deployed: SQL MI General Purpose 4 vCores with AHB about $0.68, Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints about $0.05, ALZ-lite about $1.25 and the datacenter about $1.55 |
+| Cost | The archetype adds about $1.83/hour while deployed: SQL MI General Purpose 4 vCores with AHB about $0.68, Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints about $0.05. The foundation it runs on (ALZ-lite about $1.30, the datacenter about $1.55) is about $2.85/hour on its own, so the kit total with both deployed is about $4.63–$4.66/hour |
 | Teardown | Delete everything this item created: the archetype resources, `rg-spoke` and `rg-datacenter` in the workload subscription, `rg-hub` and `rg-management` in the shared services subscription, the policy assignments and budget, and the kit's management groups after moving both subscriptions back to their original place |
 | PRD | §2 Archetype, Compute, Messaging, Hybrid Benefit; §5 C5; §6 CoE archetype |
 
@@ -57,7 +57,7 @@
 
 11. Copy the APEX project for the archetype (its artifacts, challenger sidecars, workflow state and Bicep) from the owner's repo at that commit into `archetype/`, keeping APEX's folder layout so it works when a member copies it into their own APEX repo. Don't copy anything unrelated to this project.
 12. `archetype/README.md`: what the archetype is, which APEX release it's pinned to, how a member copies it into their APEX repo and deploys it (owner decision, 2026-10-07: **`azd` is the primary deploy path** — `azd provision` from `archetype/infra/bicep/university/`; APEX Deploy, agent `07b`, workflow step 6, stays an optional advanced path; `archetype/deploy.ps1` stays the no-azd fallback), the inputs, the cost per hour, the two private-only exceptions, and an **Azure Hybrid Benefit** section for SQL MI (what's on, how to turn it off). 🔎 VERIFY the agent IDs and step numbers against the pinned APEX release, and use that release's IDs everywhere.
-13. A prompt file, placed where APEX loads prompts, named `deploy-archetype`: an **adapt** prompt — it asks for tenant ID, subscription ID and suffix, checks the prerequisites (vended spoke exists, signed in to the right subscription), imports and adapts the archetype into the member's repo, and ends at `azd provision --preview` (owner decision, 2026-10-07), handing the actual deployment to `azd` rather than APEX Deploy.
+13. A prompt file, placed where APEX loads prompts, named `adapt-archetype` (owner decision, 2026-10-07 — renamed from `deploy-archetype` per the PRD): an **adapt** prompt — it asks for tenant ID, subscription ID and suffix, checks the prerequisites (vended spoke exists, signed in to the right subscription), refreshes governance, imports and adapts the archetype into the member's repo, sets the three inputs as an `azd` environment, and ends at `azd provision --preview`, handing the actual deployment to `azd` rather than APEX Deploy. It never runs `azd provision` itself.
 14. `archetype/deploy.ps1` (attendee script conventions): the no-agent fallback. It takes the same three inputs, discovers the rest the same way, and runs a plain `az deployment` of the archetype's Bicep. It prints the cost and that the MI provisions in the background.
 15. `archetype/` must work in a member's APEX repo: 🔎 VERIFY with APEX's `apex-recall` (or its current equivalent) that the workflow state shows steps 1–5 complete and the Deploy step (agent `07b`) next.
 
@@ -65,7 +65,7 @@
 
 16. Deploy ALZ-lite (shared services subscription), then the datacenter and vending (member 1, workload subscription) with the kit scripts.
 17. Deploy the archetype with `archetype/deploy.ps1`. Record the time until everything except the MI is ready, and the MI provisioning time.
-18. 🧑 HUMAN: the owner copies `archetype/` into a fresh APEX repo and runs the `deploy-archetype` **adapt** prompt against a clean spoke (delete the archetype resources first), then `azd provision`, then As-Built (agent `08`) (owner decision, 2026-10-07: azd replaces APEX Deploy/07b as the deployment step; As-Built still runs after). This proves the member path end to end: the governance refresh (04g), whatever Step 4/5 re-emission APEX's drift routing sends it to, then the adapt prompt, `azd provision`, and As-Built. Record the time for each step, the total, and any gaps, against C5's 1-hour box (PRD §6). If drift routing demands a real change to the plan or the Bicep (not just re-emitted maps or hashes), or the chain can't finish, stop and report: the archetype's plan and Bicep no longer match what passed review in the member's tenant. `archetype/deploy.ps1` stays the dependable fallback either way.
+18. 🧑 HUMAN: the owner copies `archetype/` into a fresh APEX repo and runs the `adapt-archetype` **adapt** prompt against a clean spoke (delete the archetype resources first), then `azd provision`, then As-Built (agent `08`) (owner decision, 2026-10-07: azd replaces APEX Deploy/07b as the deployment step; As-Built still runs after). This proves the member path end to end: the governance refresh (04g), whatever Step 4/5 re-emission APEX's drift routing sends it to, then the adapt prompt, `azd provision`, and As-Built. Record the time for each step, the total, and any gaps, against C5's 1-hour box (PRD §6). If drift routing demands a real change to the plan or the Bicep (not just re-emitted maps or hashes), or the chain can't finish, stop and report: the archetype's plan and Bicep no longer match what passed review in the member's tenant. `archetype/deploy.ps1` stays the dependable fallback either way.
 19. Check: no public endpoints beyond the two documented exceptions (every backend resource's public network access is off; no public IPs outside the hub and the datacenter's NAT gateway and Bastion); zero non-compliant resources for the ALZ-lite policies in the archetype's resource group after evaluation (`alzl-allowed-locations` and `alzl-location-match-rg` are Audit, not Deny -- check zero non-compliant there too, not a blocking gate); private endpoints registered in the central zones; the MI host name resolves to its private IP from `vm-dev01`; `scripts/Test-Connectivity.ps1` passes, including the private endpoint checks; from `vm-dev01`, push a test image to the registry and restart the web app with it; the web app pulls it with its identity and answers on its public HTTPS endpoint; the web app's telemetry reaches Application Insights.
 20. Tear everything down (Teardown row), including the subscription-level artifacts listed in the backlog conventions, and query each to confirm.
 
@@ -75,7 +75,7 @@
 
 ## Deliverables
 
-- `archetype/BRIEF.md`, `archetype/README.md`, `archetype/deploy.ps1`, the `deploy-archetype` prompt, and the APEX project output (artifacts, sidecars, workflow state, Bicep).
+- `archetype/BRIEF.md`, `archetype/README.md`, `archetype/deploy.ps1`, the `adapt-archetype` prompt, and the APEX project output (artifacts, sidecars, workflow state, Bicep).
 - `versions.md` updated.
 
 ## Verify
@@ -100,7 +100,7 @@ foreach ($id in @($s.tenantId, $s.subscriptionId, $s.sharedSubscriptionId, $depl
 ## Done when
 
 - [x] `archetype/` holds a complete APEX project, pinned and documented.
-- [ ] The archetype deploys from only tenant ID, subscription ID and suffix, both through APEX and through the fallback. **Pending (requirement 18):** `deploy.ps1` and `azd provision` both validated end to end from `.local/settings.json` inputs only; the owner's interactive `deploy-archetype` adapt-prompt run is scheduled next.
+- [ ] The archetype deploys from only tenant ID, subscription ID and suffix, both through APEX and through the fallback. **Pending (requirement 18):** `deploy.ps1` and `azd provision` both validated end to end from `.local/settings.json` inputs only; the owner's interactive `adapt-archetype` adapt-prompt run is scheduled next.
 - [x] Every check in requirement 19 passes (two documented non-blocking gaps: the `alzl-diag-appinsights` DINE compliance-reporting gap, and the SQL MI port-11000 structural false negative — both recorded in the PR).
 - [ ] Everything is torn down. **Pending (requirement 20):** the archetype resource group is deleted and the Key Vault purged; the foundation (ALZ-lite, datacenter, vending, `id-sqlmi-directory`) is kept running overnight by owner decision for the requirement 18 run.
 

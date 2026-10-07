@@ -31,7 +31,7 @@ archetype/
   README.md                          this file
   deploy.ps1                         no-agent fallback deploy (requirement 14)
   .github/prompts/
-    deploy-archetype.prompt.md       prompt that drives APEX Deploy + As-Built (requirement 13)
+    adapt-archetype.prompt.md        adapt prompt; ends at `azd provision --preview` (requirement 13)
   agent-output/university/           APEX's artifacts (92 files), copied in with 04-governance-
                                       constraints.json and 04-policy-property-map.json redacted
   infra/bicep/university/            APEX's generated Bicep, copied in as-is (main.bicep,
@@ -44,19 +44,32 @@ repo and continue from there.
 
 ## Deploy it
 
-### With APEX (recommended)
+### With APEX + azd (primary, owner decision 2026-10-07)
 
 1. Create a repo from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator)
    template, at the commit this project is pinned to (above).
 2. Copy this folder's `agent-output/university/`, `infra/bicep/university/` and
-   `.github/prompts/deploy-archetype.prompt.md` into the matching paths of that repo.
-3. Run the `deploy-archetype` prompt. It asks for tenant ID, subscription ID and suffix, checks
-   that a spoke is already vended, then hands off to **APEX Deploy** (agent `07b-Bicep Deploy`,
-   workflow step 6) and **As-Built** (agent `08-As-Built`, workflow step 7).
-4. Verify with APEX's `apex-recall` (or its current equivalent) that workflow state shows steps 1-7
+   `.github/prompts/adapt-archetype.prompt.md` into the matching paths of that repo.
+3. Run the `adapt-archetype` prompt. It asks for tenant ID, subscription ID and suffix, checks
+   that a spoke is already vended, refreshes governance (04g), follows APEX's own drift routing
+   for Steps 4/5, sets the three inputs as an `azd` environment, and stops at
+   `azd provision --preview`. It never runs `azd provision` -- that's the member's own decision.
+4. Review the preview, then run `azd provision` yourself (from `infra/bicep/university/`) to
+   deploy. The `preprovision`/`postprovision` hooks run `preflight.ps1` and
+   `postdeploy-tests.ps1` automatically.
+5. Run **As-Built** (agent `08-As-Built`, workflow step 7) to generate
+   `agent-output/university/07-as-built.md`.
+6. Verify with APEX's `apex-recall` (or its current equivalent) that workflow state shows steps 1-8
    complete.
 
-### Fallback (no agent)
+### With APEX Deploy (optional advanced path)
+
+A member who prefers APEX to drive the deployment itself, instead of azd, can hand off to
+**APEX Deploy** (agent `07b-Bicep Deploy`, workflow step 6) against `infra/bicep/university/`
+after the governance refresh, the same way the `adapt-archetype` prompt used to. This still works,
+but isn't the path the prompt or this README walks through by default.
+
+### Fallback (no agent, no azd)
 
 ```powershell
 $s = Get-Content .local/settings.json | ConvertFrom-Json
@@ -78,10 +91,12 @@ path and the fallback script, by the backlog's naming conventions.
 
 ## Cost
 
-About **$4.63/hour** while deployed: SQL MI General Purpose 4 vCores with AHB about $0.68, Service
-Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about $0.07, private endpoints
-about $0.05 (plus the foundation it runs on: ALZ-lite about $1.25 and the datacenter about $1.55).
-The SQL MI can't be stopped while an MI link is active (B07).
+The archetype adds about **$1.83/hour** while deployed: SQL MI General Purpose 4 vCores with AHB
+about $0.68, Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about
+$0.07, private endpoints about $0.05. The foundation it runs on (ALZ-lite about $1.30 plus the
+datacenter about $1.55) is about **$2.85/hour** on its own, so the kit total while both the
+foundation and the archetype are deployed is about **$4.63-$4.66/hour**. The SQL MI can't be
+stopped while an MI link is active (B07).
 
 ## Public-endpoint exceptions
 
@@ -115,7 +130,7 @@ This redaction, verified against this package with the real validators:
 - `validate-policy-property-map.mjs`: **passes** (22 policies, `constraints_ref` recomputed).
 - `validate-governance-refs.mjs`: **passes**, unaffected.
 - `validate-governance-trace.mjs --through L3`: the L0 gate **fails on `discovery_status: PARTIAL`
-  by design** -- this is exactly the mechanism that forces `deploy-archetype` to re-run live
+  by design** -- this is exactly the mechanism that forces `adapt-archetype` to re-run live
   discovery in the member's tenant before Deploy. The L1 matrix (20 rows) still passes: redaction
   doesn't corrupt the policy-compliance content, only the subscription/tenant identifiers.
 - `validate-iac-handoff.mjs` (no `--skip-tree-hash`): **one error**,
@@ -133,7 +148,7 @@ This redaction, verified against this package with the real validators:
 There is no sanctioned way to refresh `l1m_ref` or the sidecar hashes without re-running the owning
 APEX step (Step 6 re-emits `05-iac-handoff.json`; a fresh Step 3.5 Challenger pass refreshes a
 sidecar), and this kit never hand-edits a hash to force a check to pass. They document the CoE
-build tenant's own review history; a member's `deploy-archetype` run re-discovers governance and
+build tenant's own review history; a member's `adapt-archetype` run re-discovers governance and
 re-emits its own `05-iac-handoff.json` before Deploy, which is what actually matters for their
 deployment. See the PR for the exact command output.
 

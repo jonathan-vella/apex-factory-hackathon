@@ -127,8 +127,10 @@ Archetype inputs for member suffix '$Suffix':
   Log Analytics workspace   $($workspace.id)
   SQL MI directory identity $($directoryIdentity.id)
   SQL MI Entra admin        $($deployer.userPrincipalName)
-Cost while deployed: about `$4.63/hour (SQL MI GP 4 vCores ~`$0.68, Service Bus Premium ~`$0.93, App Service
-P0v3 ~`$0.10, ACR Premium ~`$0.07, private endpoints ~`$0.05). The SQL MI provisions in the background after
+Cost while deployed: about `$1.83/hour for this archetype alone (SQL MI GP 4 vCores ~`$0.68, Service Bus
+Premium ~`$0.93, App Service P0v3 ~`$0.10, ACR Premium ~`$0.07, private endpoints ~`$0.05), on top of the
+foundation it runs on (ALZ-lite ~`$1.30 + datacenter ~`$1.55, about `$2.85/hour), for about `$4.63-`$4.66/hour
+total. The SQL MI provisions in the background after
 the rest of the platform is ready; expect it to still be "Updating" for several minutes after this script
 returns.
 "@
