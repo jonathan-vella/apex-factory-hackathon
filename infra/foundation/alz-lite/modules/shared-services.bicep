@@ -1,5 +1,5 @@
-// The shared services subscription: rg-management with log-management, rg-hub with the hub, and
-// Defender for Cloud on Foundational CSPM only.
+// The shared services subscription: rg-management with log-management and id-sqlmi-directory, rg-hub
+// with the hub, and Defender for Cloud on Foundational CSPM only.
 targetScope = 'subscription'
 
 param location string
@@ -32,6 +32,14 @@ module hub 'hub.bicep' = {
   }
 }
 
+module sqlMiIdentity 'sqlmi-identity.bicep' = {
+  scope: managementRg
+  name: 'alz-lite-sqlmi-identity'
+  params: {
+    location: location
+  }
+}
+
 module defender '../../modules/defender-foundational.bicep' = if (setDefenderFoundationalOnly) {
   name: 'alz-lite-defender'
 }
@@ -42,3 +50,5 @@ output firewallPolicyId string = hub.outputs.firewallPolicyId
 output dnsZoneIds object = hub.outputs.dnsZoneIds
 output dnsZoneResourceGroupId string = hubRg.id
 output logAnalyticsWorkspaceId string = workspace.outputs.workspaceId
+output sqlMiIdentityId string = sqlMiIdentity.outputs.identityId
+output sqlMiIdentityPrincipalId string = sqlMiIdentity.outputs.principalId

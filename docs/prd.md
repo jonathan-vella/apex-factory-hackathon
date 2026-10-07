@@ -2,7 +2,7 @@
 
 > **Modernize today. Enable AI tomorrow.** A repeatable framework that helps partners build, validate and scale Azure modernization practices, using existing skills, reusable assets and AI-assisted assessments.
 
-**Status:** draft (pre-v1) · **Owner:** [@jonathan-vella](https://github.com/jonathan-vella) · **Last updated:** 2026-09-25 · **Delivery:** [roadmap](roadmap.md) and [backlog](https://github.com/jonathan-vella/apex-factory-hackathon/issues)
+**Status:** draft (pre-v1) · **Owner:** [@jonathan-vella](https://github.com/jonathan-vella) · **Last updated:** 2026-10-06 · **Delivery:** [roadmap](roadmap.md) and [backlog](https://github.com/jonathan-vella/apex-factory-hackathon/issues)
 
 ## 1. Problem and approach
 
@@ -37,6 +37,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | Data migration | Arc portal migration with **MI link** (online, read-only replica, planned cutover). Rollback means aborting before cutover; a real failback is a bonus. Log Replay Service (LRS) is the fallback |
 | AI | AI-readiness review only. No AI services are deployed |
 | Copilot models | Dated guidance from the B06 golden path, recorded in `versions.md`: Claude Opus 5.5 at Medium to assess and plan, Claude Sonnet 5.5 at Medium to execute each task. Re-validate when models change |
+| Learning path | A site page maps each challenge to Microsoft Learn content and credentials, for Microsoft partners on any qualification track. Hands-on first: exams follow the event and finish within 9 months. Core: AZ-104, GH-300 and DP-300, all three mandatory for everyone in an infra role, within 6 months. Then AZ-305, AZ-400, SC-500, AZ-700, AI-200, plus AKS and Container Apps learning. Optional "next" stage: DP-800, GH-600, AI-103. It targets the Infra and Database Migration and App Modernization specializations. Applied Skills are stepping stones, not gates. Coach certifications are recommended, not required. No exam offers (owner decision 2026-10-06) |
 | Scoring | Markdown rubric as the single source of truth (SSOT), with coach sign-off and light gamification. Team score = platform challenges + member workload points averaged across the team |
 | Home | This monorepo and its site (factory.apexops.pro), one folder per module. APEX microhack patterns are reused, not duplicated |
 | Repos | One public template repo, owner `jonathan-vella`, MIT (§7). Coach material is public, on the honor system |
@@ -116,7 +117,7 @@ flowchart LR
     - The .NET 10 SDK and the .NET Framework 4.8 developer pack.
     - SSMS 22, Git, the GitHub CLI, PowerShell 7, Az CLI, Bicep, and the GHCP extensions: GitHub Copilot, Copilot Chat and GitHub Copilot upgrade (the Upgrade agent).
 - **Foundation:**
-  - ALZ-lite Bicep, run by the team's platform lead: management groups `mg-factory` → `mg-factory-platform` (shared services sub) and `mg-factory-corp` (workload subs); in the shared services sub, the hub VNet with Azure Firewall Standard (DNS proxy on), central private DNS zones and the central LAW; core policies at `mg-factory-corp` (allowed locations and resource location matching its resource group, both audit; no public IPs on NICs, no public network access on PaaS, private DNS registration, diagnostics to the LAW); Defender for Cloud on Foundational CSPM only (free; every paid plan off). DDoS off.
+  - ALZ-lite Bicep, run by the team's platform lead: management groups `mg-factory` → `mg-factory-platform` (shared services sub) and `mg-factory-corp` (workload subs); in the shared services sub, the hub VNet with Azure Firewall Standard (DNS proxy on), central private DNS zones, the central LAW and `id-sqlmi-directory` (the identity every member's SQL MI uses to look up Entra principals; a Privileged Role Administrator grants it Microsoft Graph read permissions once per team as event prep); core policies at `mg-factory-corp` (allowed locations and resource location matching its resource group, both audit; no public IPs on NICs, no public network access on PaaS, private DNS registration, diagnostics to the LAW); Defender for Cloud on Foundational CSPM only (free; every paid plan off). DDoS off.
   - Vending Bicep, also run by the platform lead: workload sub placement under `mg-factory-corp`, the spoke and all its subnets, cross-sub peering (spoke and datacenter to the hub), UDRs, DNS, firewall rules, RBAC (Owner on the member's own workload sub) and budget.
   - Full portal ALZ is shown in a live demo by a coach, in the coach's own tenant. The kit has no scripts for it.
 - **CoE archetype (`archetype/`):** an APEX project, pinned to an APEX release, with steps 1–5 pre-completed (artifacts, challenger reviews and workflow state).
@@ -170,6 +171,7 @@ flowchart LR
 3. **Scripts:** preflight (go/no-go), probes, exemptions and cleanup. Cleanup covers the re-run traps: Key Vault purge and MI subnet release.
 4. **Attendee templates:** opportunity canvas, ADRs, deferred-work register, cutover/rollback runbook, acceptance/handover, AI-readiness gap register and factory-kit checklist.
 5. **Compatibility manifest (`versions.md`):** the versions of APEX, GHCP tooling, .NET, ALZ, AVM, the Arc extension, SSMS, Az CLI, Bicep and the VM images, with the date and region each was last validated. Components the kit controls (commits, releases, modules) are pinned; marketplace images and vendor installers use the latest version at deploy time, so their rows record what was validated, and drift is accepted.
+6. **Partner learning path:** a site page under Guides with stages, role tracks, a challenge-to-credential map and the specialization skilling it supports, with a last-validated date.
 
 ## 8. Risks and validation spikes
 

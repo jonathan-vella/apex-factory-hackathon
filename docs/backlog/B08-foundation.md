@@ -48,6 +48,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    | Resource group | Resource | Name | Settings |
    |---|---|---|---|
    | `rg-management` | Log Analytics workspace | `log-management` | 30-day retention |
+   | `rg-management` | User-assigned managed identity | `id-sqlmi-directory` | Every member's SQL Managed Instance uses it as its primary identity, so it can add Microsoft Entra users (C7). `scripts/Grant-SqlMiDirectoryRead.ps1` gives it Microsoft Graph `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All`, once per team, as event prep by a Privileged Role Administrator (owner decision 2026-10-07; [Managed identities in Microsoft Entra for Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/authentication-azure-ad-user-assigned-managed-identity)) |
    | `rg-hub` | VNet | `vnet-hub` | `10.100.0.0/16`, with `AzureFirewallSubnet` `10.100.0.0/26` |
    | `rg-hub` | Azure Firewall | `afw-hub` | Standard, no zones, public IP `pip-afw-hub` (Standard, no `zones` set: zone-redundant automatically), firewall policy `afwp-hub` with **DNS proxy on**, diagnostics to `log-management` |
    | `rg-hub` | Private DNS zones | The `privatelink` zones for Blob, Service Bus, ACR and Key Vault | Linked to `vnet-hub` |
@@ -80,10 +81,10 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    - DNS servers on `vnet-spoke` and `vnet-datacenter` set to the firewall's private IP;
    - UDRs: `snet-app` and `snet-pe` send `0.0.0.0/0` to the firewall; `snet-sqlmi` sends only the datacenter range to the firewall, keeping MI's own routes; `snet-servers` sends the spoke range to the firewall and keeps internet egress on the NAT gateway;
    - a rule collection group for member `n` in `afwp-hub`, allowing only: dev VM to `snet-pe` and `snet-app` on 443 (and 5671 for Service Bus); dev VM to `snet-sqlmi` on 1433 and 11000–11999; MI link between `10.10.n.4` and `snet-sqlmi` (the rules from the B07 report); App Service outbound to Entra ID, to Microsoft Container Registry (`mcr.microsoft.com` and its data endpoints, for the archetype's placeholder image) and to the Azure Monitor ingestion endpoints (the documented private-only exception; 🔎 VERIFY the endpoints on [Azure Monitor network access](https://learn.microsoft.com/azure/azure-monitor/fundamentals/azure-monitor-network-access));
-   - Owner on the workload subscription for the member (a parameter; skipped when empty);
+   - Owner on the workload subscription for the member, and Managed Identity Operator on `id-sqlmi-directory` so the archetype can attach it (a parameter; skipped when empty);
    - a monthly budget on the workload subscription (parameter, default 500 in the billing currency) with an alert at 80% to an email parameter.
 8. `scripts/Deploy-Vending.ps1` deploys it. Parameters: `WorkloadSubscriptionId`, `SharedSubscriptionId`, `MemberIndex`, `Location`, `MgPrefix`, `MemberPrincipalId` (optional), `BudgetAmount`, `BudgetEmail`, `SkipDefender` (as in requirement 6). It discovers the hub's IDs in the shared subscription by the ALZ-lite names and prints them. Run it after the datacenter exists, so the datacenter is peered too; a re-run after deploying the datacenter adds its peering.
-9. The platform lead runs vending for every member, because it writes to the shared subscription (peering and firewall rules). Members need no role on the shared subscription.
+9. The platform lead runs vending for every member, because it writes to the shared subscription (peering and firewall rules). Members need no other role on the shared subscription.
 
 ### Exemptions
 

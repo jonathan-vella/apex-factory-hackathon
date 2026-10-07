@@ -36,6 +36,7 @@ Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR 
 | [B12](B12-facilitator-kit.md) | Build the facilitator kit | P4 | Both | B11 | Ready |
 | [B13](B13-dry-run-v1.md) | Dry run, tune and release v1.0 | P5 | Both | B12 | Ready |
 | [B14](B14-archetype-adopt.md) | Build the archetype adoption agent (not needed for v1) | P3 | Both | B09 | Ready |
+| [B15](B15-learning-path.md) | Publish the partner learning path | P4 | Agent | B11 | Ready |
 
 **Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps.
 
@@ -51,6 +52,7 @@ flowchart LR
   B07 --> B09
   B08 --> B09 --> B10
   B09 --> B14
+  B11 --> B15
   B06 --> B10
   B07 --> B11
   B08 --> B11
