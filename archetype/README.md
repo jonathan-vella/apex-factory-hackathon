@@ -50,10 +50,13 @@ repo and continue from there.
    template, at the commit this project is pinned to (above).
 2. Copy this folder's `agent-output/university/`, `infra/bicep/university/` and
    `.github/prompts/adapt-archetype.prompt.md` into the matching paths of that repo.
-3. Run the `adapt-archetype` prompt. It asks for tenant ID, subscription ID and suffix, checks
-   that a spoke is already vended, refreshes governance (04g), follows APEX's own drift routing
-   for Steps 4/5, sets the three inputs as an `azd` environment, and stops at
-   `azd provision --preview`. It never runs `azd provision` -- that's the member's own decision.
+3. Run the `adapt-archetype` prompt in VS Code's **built-in agent mode** (not `01-Orchestrator`,
+   which would route on to APEX Deploy). It's self-contained: it asks for tenant ID, subscription
+   ID and suffix, checks that a spoke is already vended, refreshes governance by invoking
+   `04g-Governance`'s discovery directly and following APEX's own drift routing for Steps 4/5,
+   sets the three inputs as an `azd` environment, and stops at `azd provision --preview`. It never
+   runs `azd provision`, `azd down`, `07b-Bicep Deploy`, or anything else that writes to Azure --
+   running the deployment is the member's own decision.
 4. Review the preview, then run `azd provision` yourself (from `infra/bicep/university/`) to
    deploy. The `preprovision`/`postprovision` hooks run `preflight.ps1` and
    `postdeploy-tests.ps1` automatically.

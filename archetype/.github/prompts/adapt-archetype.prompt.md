@@ -1,9 +1,14 @@
 ---
 description: "Adapt the CoE archetype (Contoso University platform) project into the member's APEX repo and hand off to azd for deployment."
-agent: "01-Orchestrator"
+agent: agent
 ---
 
 # Adapt the CoE archetype
+
+This prompt runs in VS Code's built-in agent mode (not `01-Orchestrator`, which would
+route on to `07b-Bicep Deploy`). It is self-contained: it asks for the three inputs,
+refreshes governance directly, and sets up and previews the azd deployment, all within
+this one prompt.
 
 Ask the user for three inputs, in order, if not already supplied in this conversation:
 
@@ -63,11 +68,13 @@ Once governance is refreshed and the prerequisites pass:
    is derived or discovered by the Bicep, same as `deploy.ps1`.
 3. Run `azd provision --preview` and show the user the full output.
 
-**This prompt stops here.** It never runs `azd provision`. Deployment is the member's
-own decision: explain the preview to the user (what it will create, the cost while
-deployed — see `README.md`), and tell them to run `azd provision` themselves when ready.
-APEX Deploy (agent `07b-Bicep Deploy`) stays available as an optional advanced path if
-the member prefers it over azd.
+**This prompt stops here.** It never runs `azd provision`, `azd down`, or agent
+`07b-Bicep Deploy`, and never runs anything else that writes to Azure beyond the
+`azd provision --preview` above. Deployment is the member's own decision: explain the
+preview to the user (what it will create, the cost while deployed — see `README.md`),
+and tell them to run `azd provision` themselves when ready. APEX Deploy (`07b`) stays
+available as a separate, optional advanced path the member can choose to run instead —
+this prompt does not hand off to it.
 
 Tell the user: this adapts the CoE archetype platform only (App Service, ACR, SQL MI,
 Storage, Service Bus, Key Vault, Application Insights) into the existing spoke. It does
