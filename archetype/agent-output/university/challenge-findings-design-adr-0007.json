@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/03-des-adr-0007-no-zone-redundancy-region-derived-from-hub.md",
+  "artifact_type": "design-adr",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The ADR misstates the workload as production-oriented, overgeneralizes the no-zone decision, and describes recovery as platform/governance-based despite best-effort IaC redeployment. Its cost-envelope wording also implies a fixed approval that the requirements do not define. The quoted source passage is not verbatim.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 4 should_fix | Key: Lab described as production; zone-redundancy scope; recovery claim",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 4,
+  "suggestion_count": 1,
+  "findings": [
+    {
+      "id": "f4061e8d",
+      "severity": "should_fix",
+      "category": "scope_risk",
+      "claim": "ADR describes the lab as a production footprint",
+      "evidence": "The requirements identify this as a training/demo platform, state that no production data is stored, and accept best-effort SLA/RTO/RPO. The architecture likewise calls this a lab with best-effort reliability. The ADR Context instead says it is optimized for a \"modest production footprint\" (line 27), which the supporting artifacts do not establish.",
+      "impact": "A future reader may treat this lab-only single-instance design as production-validated and reuse it for a workload with real availability expectations.",
+      "artifact_section": "Context",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0007-no-zone-redundancy-region-derived-from-hub.md",
+        "line_range": [27, 27],
+        "proposed_edit": "The workload is a training/demo platform with no production data and best-effort availability and recovery expectations; this decision is specific to that lab scope."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "ADR Context (line 27)",
+        "01-requirements.md: Project Overview and NFRs (training/demo scope, no production data, best-effort SLA/RTO/RPO)",
+        "02-architecture-assessment.md: Executive Summary and Reliability Assessment (lab scope, best-effort reliability)"
+      ]
+    },
+    {
+      "id": "4604f13c",
+      "severity": "should_fix",
+      "category": "architectural_weakness",
+      "claim": "The no-zone decision does not preserve automatic redundancy exceptions",
+      "evidence": "The requirements explicitly say that Premium ACR and Service Bus are automatically zone-redundant and that this is accepted. The architecture confirms both gain automatic zone redundancy in the primary region. The ADR title, decision, consequences, WAF reliability text, and implementation note describe the workload or current design as having no zone redundancy without consistently limiting that decision to the web app and SQL MI.",
+      "impact": "A downstream planner could interpret the ADR as prohibiting or omitting the already-approved automatic zone redundancy of ACR and Service Bus, creating drift from the requirements and architecture.",
+      "artifact_section": "Decision",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0007-no-zone-redundancy-region-derived-from-hub.md",
+        "line_range": [31, 31],
+        "proposed_edit": "Do not enable zone redundancy for the web app or SQL MI; retain the automatic zone redundancy of Premium ACR and Service Bus."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "ADR title (line 1)",
+        "ADR Context quote and summary (lines 25, 27)",
+        "ADR Decision (line 31)",
+        "ADR Alternatives table, single-instance row (line 37)",
+        "ADR Consequences, zone/region outage statement (line 50)",
+        "ADR WAF Pillar Analysis, Reliability row (line 62)",
+        "ADR Compliance Considerations, future zone trade-off (line 71)",
+        "ADR Implementation Notes, zone pattern instruction (line 76)",
+        "01-requirements.md: NFR zone-redundancy constraint (line 162)",
+        "02-architecture-assessment.md: Reliability Assessment, automatic ACR and Service Bus zone redundancy"
+      ]
+    },
+    {
+      "id": "80cfeb31",
+      "severity": "should_fix",
+      "category": "missing_failure_mode",
+      "claim": "Recovery is attributed to platform governance instead of IaC redeployment",
+      "evidence": "The requirements set RTO to best-effort and explicitly define recovery as redeployment from IaC; the project decision record agrees. The requirements also state that no failover region or DR replication is designed. The ADR instead says recovery relies on the platform and governance model (line 51), which is unsupported by the approved recovery approach.",
+      "impact": "After a zone or regional outage, readers may expect automatic platform recovery or failover even though the accepted design provides only best-effort, owner-initiated redeployment from IaC.",
+      "artifact_section": "Consequences",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0007-no-zone-redundancy-region-derived-from-hub.md",
+        "line_range": [51, 51],
+        "proposed_edit": "Recovery is best-effort and requires an owner-initiated redeployment from IaC; no automatic regional failover or DR replication is designed."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "ADR Consequences, recovery statement (line 51)",
+        "01-requirements.md: NFRs and Regional Preferences (best-effort RTO, redeploy from IaC, no failover region)",
+        "02-architecture-assessment.md: Executive Summary and Reliability Assessment (recovery by redeployment from IaC)"
+      ]
+    },
+    {
+      "id": "5eb14199",
+      "severity": "should_fix",
+      "category": "untested_assumption",
+      "claim": "The ADR claims an approved cost envelope without a fixed cap",
+      "evidence": "The requirements say there is no fixed monthly cap: the workload has a brief run-rate estimate and is governed by the subscription's soft budget policy. Step 2 provides a verified estimate relative to that brief, but neither source defines an approved fixed cost envelope. The ADR states that the design stays within an \"approved cost envelope\" (line 45).",
+      "impact": "Readers may mistake a planning estimate and soft budget alert for a formally approved spending limit, weakening cost decisions if actual usage exceeds the estimate.",
+      "artifact_section": "Consequences",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0007-no-zone-redundancy-region-derived-from-hub.md",
+        "line_range": [45, 45],
+        "proposed_edit": "Maintains the platform baseline; the Step 2 estimate (~$1.81/hour) is near the brief's ~$1.83/hour run-rate reference, and no fixed monthly cap is specified."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "ADR Consequences, Positive (line 45)",
+        "01-requirements.md: Budget (no fixed monthly cap; soft subscription budget)",
+        "02-architecture-assessment.md: Cost Assessment (verified estimate and comparison with brief run rate)"
+      ]
+    },
+    {
+      "id": "6dd34fce",
+      "severity": "suggestion",
+      "category": "untested_assumption",
+      "claim": "The Context block presents a stitched paraphrase as a verbatim quote",
+      "evidence": "The quoted sentence in the ADR (line 25) combines the architecture's reliability statement and separate region rationale. The source says SQL MI is a single instance \"with no zone redundancy\"; the ADR quote omits that clause and adds \"Region derived from the hub\", which is a paraphrase of the requirements rather than text appearing as quoted in either declared source artifact.",
+      "impact": "Readers cannot distinguish exact source wording from the ADR author's synthesis, reducing traceability of the decision rationale.",
+      "artifact_section": "Context",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0007-no-zone-redundancy-region-derived-from-hub.md",
+        "line_range": [25, 25],
+        "proposed_edit": "Replace the quotation with an unquoted paraphrase and cite both sources: The assessment records the web app and SQL MI as single-instance components without zone redundancy; the deployment region is derived from the hub."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "ADR Context quote (line 25)",
+        "02-architecture-assessment.md: Reliability Assessment and Architecture Decision Summary (single instances and hub region)",
+        "01-requirements.md: Regional Preferences (hub-derived primary region)"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "75fc8e2d915c47899b14c1ca119599fed121dcf31609623f8acefa25b32672d8",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "09e06c0f902fc6500e48c6e5b2a8ee1f61917a28893bb7193f915618e7d4667d"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/01-requirements.md",
+      "sha256": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    }
+  ]
+}

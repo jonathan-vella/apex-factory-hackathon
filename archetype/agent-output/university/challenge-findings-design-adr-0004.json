@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/03-des-adr-0004-acr-trusted-services-bypass-for-import.md",
+  "artifact_type": "design-adr",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The ADR overstates the scope and duration of the registry-level trusted-services bypass. Its WAF performance ratings are unsupported by the architecture evidence, and the opening quotation is a paraphrase rather than verbatim source text. Public network access remains disabled and no governance-policy conflict was found.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 1 should_fix | Key: Trusted-services bypass scope is overstated",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 1,
+  "suggestion_count": 2,
+  "findings": [
+    {
+      "id": "b5afd1a6",
+      "severity": "should_fix",
+      "category": "untested_assumption",
+      "claim": "The bypass is described as import-only and time-scoped",
+      "evidence": "Requirements and the approved architecture specify networkRuleBypassOptions: AzureServices on the registry and require a post-deployment import test; neither specifies disabling the bypass after that test. AzureServices is a registry-level trusted-services network-rule exception, not an exception scoped to one az acr import operation. The ADR calls the bypass limited to the import path and time-scoped, says it is not permanent, and rates its Security impact neutral. Those statements imply narrower and shorter-lived access than the configured property provides. The registry can still keep publicNetworkAccess disabled; this is an overstatement of bypass scope, not a discovered policy conflict.",
+      "impact": "A reviewer or operator could assume trusted-service network access ends when the import test passes, while the configured registry property remains enabled unless something explicitly changes it. The security trade-off and ongoing exception would then be understated.",
+      "artifact_section": "Decision; Consequences (Negative and Neutral); WAF Pillar Analysis; Compliance Considerations; Implementation Notes",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0004-acr-trusted-services-bypass-for-import.md",
+        "proposed_edit": "Replace claims that the bypass is limited to the import operation or time-scoped with an explicit statement that networkRuleBypassOptions: AzureServices is a registry-level trusted-services exception and remains configured after the test unless an implemented step disables it. State that the post-deployment import test gates readiness but does not narrow or remove the bypass. Keep publicNetworkAccess: Disabled explicit, and describe the accepted security trade-off rather than rating it neutral without qualification."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Decision: test-gated and time-scoped wording",
+        "Consequences: Negative and Neutral bullets",
+        "WAF Pillar Analysis: Security row",
+        "Compliance Considerations: limited-to-import wording",
+        "Implementation Notes: trusted-services bypass use",
+        "01-requirements.md: Network Security, named network-rule exception",
+        "02-architecture-assessment.md: Required Capability Dependencies, private ACR and import; Security Assessment gaps; Resources to Provision, ACR configuration"
+      ]
+    },
+    {
+      "id": "612e2977",
+      "severity": "suggestion",
+      "category": "waf_blind_spot",
+      "claim": "The WAF table implies an unverified performance gain",
+      "evidence": "The Alternatives Considered table assigns Performance up to the trusted-services-bypass option and Performance down to the no-import option. The architecture assessment states that performance targets and load tests are absent; the import test verifies image readiness and HTTP 200, not workload latency or throughput. Importing an image does not by itself establish an end-user performance change.",
+      "impact": "Readers may treat an unmeasured deployment-image workflow as a performance benefit when weighing the security exception, although the supplied architecture does not demonstrate that benefit.",
+      "artifact_section": "Alternatives Considered; WAF Pillar Analysis",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0004-acr-trusted-services-bypass-for-import.md",
+        "proposed_edit": "Change the Performance ratings to neutral or not assessed unless a concrete image-startup or application-performance rationale is supplied. Keep the import/readiness benefit under Reliability or Operations and distinguish it from measured application performance."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Alternatives Considered: all three option rows, Performance column",
+        "WAF Pillar Analysis: Performance row",
+        "02-architecture-assessment.md: Performance Assessment, gaps and required post-deployment image tests"
+      ]
+    },
+    {
+      "id": "35f0935e",
+      "severity": "suggestion",
+      "category": "scope_risk",
+      "claim": "The opening quotation is a paraphrase, not verbatim source text",
+      "evidence": "The ADR places “Private ACR + az acr import (cap. 4) … import from a restricted registry needs trusted services” in quotation marks. The capability label appears in the architecture assessment, while the requirements document quotes Microsoft Learn as: “To import to or from a network-restricted Azure container registry, the restricted registry must allow access by trusted services.” The ADR's combined wording is a paraphrase, not a verbatim excerpt, and it has no direct Learn link.",
+      "impact": "The quotation marks make the compressed paraphrase look like source wording, making the basis for this security exception harder to verify and potentially overstating what the cited source says.",
+      "artifact_section": "Context, opening blockquote",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0004-acr-trusted-services-bypass-for-import.md",
+        "proposed_edit": "Use the exact Microsoft Learn wording already quoted in 01-requirements.md and add the direct Learn URL, or remove quotation marks and label the sentence as a paraphrase. Keep the architecture capability reference separate from the external quotation."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Context: opening blockquote",
+        "01-requirements.md: Network Security, named network-rule exception",
+        "02-architecture-assessment.md: Required Capability Dependencies, private ACR and import"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "be20311b063dae8f0d8021ff8e2e0a05ffc2b5cddea6f4da5cc5a5feaaef9934",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "3768f2ea2ff108e2c651aba76a2b007cb5be96044948fc07c12b577c95e077bd"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/01-requirements.md",
+      "sha256": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    }
+  ]
+}

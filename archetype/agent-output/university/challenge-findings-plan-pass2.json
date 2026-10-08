@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 2,
+  "challenge_summary": "Pass-1 closure: 23c33d49 CLOSED against the accepted reduced mitigation: Task 12 step 9 checks the four private-DNS and seven diagnostics assignments, enforcement mode and expected zone/workspace parameters; assignment-identity permissions remain B08-owned by explicit decision, and Task 13 gates readiness on observed DNS/diagnostics outcomes. e48d6d77 CLOSED: the plan records the Defender charge as build-tenant-only, states member subscriptions are CSPM-only, and keeps the approved estimate unchanged. e6c5e56c CLOSED: Task 12 checks name availability for ACR, Storage, Service Bus, Key Vault and web app, with suffix/length validation and the accepted own-RG/soft-delete behavior. 5d241bcc DEFERRED to Step 5 per owner disposition. Comprehensive confirmation found two new plan gaps: deployer role-assignment rights are not constrained to the approved role set, and no recovery behavior is defined for resources retained after a partial single-deployment failure. Governance mapping covers all 19 discovered Deny policies; the COMPLETE cost estimate reconciles at $1,320.95/month; supplied plan validators and cache snapshot are consistent.",
+  "compact_for_parent": "Pass 2 (comprehensive) | MEDIUM | 0 must_fix, 2 should_fix | Key: Deployer role-assignment rights unconstrained; Partial deployment recovery undefined",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 2,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "57f85f8d",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "Deployer role-assignment rights are not constrained to the approved role set",
+      "evidence": "The requirements' control-plane user type limits role-assignment rights to the listed roles, and the architecture recommends a condition where supported. Task 12 checks only for generic `roleAssignments/write`; neither the preflight nor the Code-Generation Contract specifies a constrained grant, allowed role-definition set, or a gate for an unrestricted grant. Enumerating the 6 deployer role assignments the template creates does not constrain what the caller is authorized to assign.",
+      "impact": "A member with broader pre-existing `roleAssignments/write` passes preflight. An overprivileged or compromised deployment identity could assign higher-privilege access within the workload scope, contrary to the stated least-privilege requirement.",
+      "artifact_section": "Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1 — Deployer; Code-Generation Contract — deployer role assignments",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Specify a deployer grant scoped to this workload and restricted to the roleDefinitionIds required by this plan, using a supported RBAC condition or custom role. Require preflight evidence of that restriction instead of accepting any `roleAssignments/write`; stop for an explicit human evidence gate when the restriction cannot be verified."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Task 12 → step 7 Deployer effective-permissions check",
+        "Code-Generation Contract → ra-dep-acrpush",
+        "Code-Generation Contract → ra-dep-acr-importer",
+        "Code-Generation Contract → ra-dep-blob",
+        "Code-Generation Contract → ra-dep-sb-sender",
+        "Code-Generation Contract → ra-dep-sb-receiver",
+        "Code-Generation Contract → ra-dep-kv-secrets-officer",
+        "01-requirements.md → User Types → Deploying member (control plane)",
+        "02-architecture-assessment.md → Security Assessment → Recommendation 2"
+      ]
+    },
+    {
+      "id": "b9e56ee6",
+      "severity": "should_fix",
+      "category": "missing_failure_mode",
+      "claim": "Partial single-deployment failures have no recovery behavior",
+      "evidence": "The plan requires one `azd provision` subscription deployment and says ARM parallelizes independent branches; Task 1 identifies SQL MI as independent of the other resource modules. The deployment phases say ARM fails the deployment on Deny but do not describe rollback, retained resources, safe retry, or cleanup after an ARM or post-deployment test failure.",
+      "impact": "If a sibling module fails after another branch has succeeded, those resources can remain in the workload resource group despite the failed deployment status. In particular, a created SQL MI may continue accruing cost while readiness is blocked, and an undocumented retry or cleanup can leave drift or remove resources unexpectedly.",
+      "artifact_section": "Implementation Tasks — Task 1: main.bicep; Deployment Phases — single deployment and Phase 2",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Add a failure contract that distinguishes ARM deployment failure from rollback, identifies how to inspect failed operations, defines when rerunning the single deployment is safe, and provides a human-approved cleanup or hold procedure for retained resources (including SQL MI) when provisioning or readiness checks fail."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Overview → one subscription-scope deployment",
+        "Implementation Tasks → Task 1 module dependency order (SQL MI independent branch)",
+        "Deployment Phases → single deployment statement",
+        "Deployment Phases → Phase 2 approval gate",
+        "Task 13 → readiness failure behavior"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "c023829966c7b0ee56b600ac5acc94d3e756393739d9efbf81a8804febbe32c3",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "018a158be8b2453264dd53ee8dd670657d6532901bb822183add7a59472ff1c2"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/04-iac-contract.json",
+      "sha256": "d5539699269d8e14c7d0dffd3343755c577852e4ddf0e0010d16bbf039ecbdc7"
+    },
+    {
+      "path": "agent-output/university/04-policy-property-map.json",
+      "sha256": "7735a31195aacb0b77c9605298631b5698d0efed5e04b4f5635bf9739637cef2"
+    },
+    {
+      "path": "agent-output/university/04-environment-manifest.json",
+      "sha256": "f02cac2a63740b018b1b38b975c9ed9705542fab7118df1ed1535c86d562db42"
+    },
+    {
+      "path": "agent-output/university/sku-manifest.json",
+      "sha256": "f4a2512daedfd016ea31b072e544ca0cfa3284e3522c00a2fd829b6c52a353ec"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    }
+  ]
+}

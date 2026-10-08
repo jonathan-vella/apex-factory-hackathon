@@ -1,0 +1,85 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/03-des-adr-0003-service-bus-and-acr-premium-private-endpoints.md",
+  "artifact_type": "design-adr",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The Premium tier choices, private endpoint posture, Step 2 approval, and quoted 51% Service Bus cost share are supported. The ADR under-describes the ACR trusted-services bypass and its import test gate, and its Reliability rationale characterizes this training/demo workload as production-oriented.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 2 should_fix | Key: ACR trusted-services bypass risk/test gate omitted; Reliability rationale misstates demo workload as production",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 2,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "fb748405",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "ACR trusted-services bypass trade-off and verification gate are understated",
+      "evidence": "Implementation Notes requires the AzureServices trusted-services bypass for ACR import, but the Consequences section says data-plane traffic stays inside the network boundary and private DNS path without qualifying that exception. Requirements specify that the bypass is a named network-rule exception, with publicNetworkAccess still disabled, and that import is unverified until its post-deployment test passes. The architecture explicitly says the bypass widens ACR's network-rule set, is owner-accepted, and is test-gated. The ADR mentions neither the widened rule set nor the test gate; its private-endpoint claim is therefore too broad for the import path.",
+      "impact": "Readers may infer that all ACR operations use only the private-endpoint path and overlook the accepted trusted-services exception. If import fails, the ADR does not direct readers to keep the failure gated rather than widening access, risking an unverified readiness claim or an unnecessarily broader registry rule.",
+      "artifact_section": "Consequences; Compliance Considerations; Implementation Notes",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0003-service-bus-and-acr-premium-private-endpoints.md",
+        "proposed_edit": "Qualify the positive consequence: normal application traffic uses the private endpoint and private DNS path, while the required az acr import path relies on the AzureServices trusted-services bypass with publicNetworkAccess disabled. State that this bypass widens ACR network rules, is owner-accepted, and remains unverified until the post-deployment import test succeeds; do not widen access if the test fails."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Consequences → Positive: data-plane traffic inside the network boundary and private DNS path",
+        "Implementation Notes → ACR trusted-services bypass",
+        "Compliance Considerations → public network access and identity-based access",
+        "Requirements capability 4 and Network Security → named ACR network-rule exception and post-deployment test",
+        "Architecture Security Assessment → ACR trusted-services bypass gap and owner-accepted test gate"
+      ]
+    },
+    {
+      "id": "0f634f1f",
+      "severity": "should_fix",
+      "category": "waf_blind_spot",
+      "claim": "Reliability rationale overstates the training/demo workload as production-oriented",
+      "evidence": "The ADR's Reliability row refers to an expected production messaging and registry pattern. The requirements define this as a training/demo platform with no production data, best-effort SLA/RTO/RPO, and no availability target. The architecture likewise accepts best-effort reliability and states that Premium tiers are required by private endpoints, not throughput; it separately notes that ACR Premium and Service Bus Premium gain automatic zone redundancy. That zone behavior can support a relative Reliability benefit, but the supplied requirements do not establish a production pattern or target.",
+      "impact": "The ADR can overstate the workload's reliability requirement and obscure that the Premium decision is driven by private connectivity. Later reviewers may carry an unsupported production-resilience assumption into WAF scoring or downstream design decisions.",
+      "artifact_section": "WAF Pillar Analysis → Reliability",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0003-service-bus-and-acr-premium-private-endpoints.md",
+        "proposed_edit": "Replace the production-pattern rationale with: Premium SKUs provide their automatic zone-redundant service behavior, which is a relative reliability benefit; this remains a training/demo platform with best-effort reliability and no availability target, and Premium selection is driven by the private-endpoint requirement rather than production demand."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "WAF Pillar Analysis → Reliability row",
+        "Requirements → Project Overview, Non-Functional Requirements, and Additional constraints",
+        "Architecture → Executive Summary, Reliability Assessment, and Resource SKU Recommendations"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "03b72b472483e84a0729db6c36345f9b170f4d3756a54dfb01df862e89f2a3cd",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "f69b72e16e844eed4e623e8ebccd3a44e752dfd87f6fd47d7b867f3ffd8ff27d"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/01-requirements.md",
+      "sha256": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    },
+    {
+      "path": "agent-output/university/README.md",
+      "sha256": "31804560b3dc2acdd90df0b0117a6210f077bf94c297164280e1e71eaa1c4e26"
+    }
+  ]
+}

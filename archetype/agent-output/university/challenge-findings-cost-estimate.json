@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/03-des-cost-estimate.md",
+  "artifact_type": "cost-estimate",
+  "review_focus": "cost-feasibility",
+  "pass_number": 1,
+  "challenge_summary": "The COMPLETE workload worker total matches the sum of all line items and derived monthly, annual, and hourly figures. SQL MI AHB and licence-included comparisons, the separate post-cutover schedule saving, shared-services charges, and stated variable usage assumptions reconcile to the supplied COMPLETE evidence and owner decisions. No material cost-feasibility findings.",
+  "compact_for_parent": "Pass 1 (cost-feasibility) | LOW | 0 must_fix, 0 should_fix | Key: none",
+  "risk_level": "low",
+  "must_fix_count": 0,
+  "should_fix_count": 0,
+  "suggestion_count": 0,
+  "findings": [],
+  "cache_inputs": {
+    "artifact_sha": "0971f805999e717f4b2ad2f84a4879cd31321ae8336b83bad155dfcfbf9078e7",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "73a7d9ea0681d25878736d4a82ae9f7d1b5ae80108cf428a2064672f394a00d7"
+  }
+}

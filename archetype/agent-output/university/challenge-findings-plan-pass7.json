@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The Bicep identity shape, plan-contract wiring, diagrams, and fail-closed NotFound preflight are consistent. However, the shared Graph-enabled UAMI can be attached by member deployers to resources beyond SQL MI, and no lifecycle protection is defined for that shared dependency. The prior ACR finding was not re-raised.",
+  "compact_for_parent": "Pass 1 (comprehensive) | HIGH | 1 must_fix, 1 should_fix | Key: Shared Graph-enabled UAMI is not restricted to SQL MI consumers",
+  "risk_level": "high",
+  "must_fix_count": 1,
+  "should_fix_count": 1,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "569fbf8e",
+      "severity": "must_fix",
+      "category": "governance_gap",
+      "claim": "Shared Graph-enabled UAMI is not restricted to SQL MI consumers.",
+      "evidence": "Task 12 step 7 gives each member deployer Owner on its workload subscription and Managed Identity Operator on the shared id-sqlmi-directory; step 10 checks Microsoft.ManagedIdentity/userAssignedIdentities/*/assign/action at the identity scope. That permission authorizes assigning the UAMI to resources the principal can write; it does not restrict the target resource type to Microsoft.Sql/managedInstances. The Overview and SQL MI contract establish that this shared identity has User.Read.All, GroupMember.Read.All, and Application.Read.All. The discovered policy set and property map contain no guardrail restricting this identity to SQL MI.",
+      "impact": "A member deployer, or a compromised deployer account, can create another UAMI-capable resource in its owned workload subscription and attach id-sqlmi-directory. That resource can then request tokens for the identity and use its tenant-wide Graph read grants outside the intended SQL MI C7 CREATE USER path, exposing directory information and expanding the blast radius across members sharing this identity.",
+      "artifact_section": "Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1 — Deployer accepted risk / SQL MI directory identity",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [580, 609],
+        "proposed_edit": "Add a required B08-owned attachment boundary before deployment: prevent id-sqlmi-directory from being attached to any resource type other than Microsoft.Sql/managedInstances across member workload subscriptions, and make preflight verify that the boundary is effective. The Managed Identity Operator grant alone cannot enforce this target-type limit. If B08 cannot enforce the boundary, stop and obtain owner approval to replace the shared identity with an appropriately isolated identity before deployment."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Overview → Carried items → SQL MI directory identity: shared B08-owned identity and Graph application permissions",
+        "Task 9 → modules/sql-mi.bicep: userAssignedIdentities and primaryUserAssignedIdentityId bindings",
+        "Task 12 → step 7 accepted risk: each member's workload Owner rights and Managed Identity Operator on the shared identity",
+        "Task 12 → step 10: assign/action effective-permissions check at id-sqlmi-directory",
+        "Code-Generation Contract → Microsoft.Sql/managedInstances:sqlmi: external identity dependency and primary binding",
+        "04-iac-contract.json → capability_checks[id=sqlmi-directory-identity]",
+        "04-dependency-diagram.py → external shared identity edge to SQL MI",
+        "04-runtime-diagram.py → SQL MI Graph lookup edge to the shared identity",
+        "04-governance-constraints.json and 04-policy-property-map.json → no identity-attachment target-type restriction"
+      ]
+    },
+    {
+      "id": "92079f7c",
+      "severity": "should_fix",
+      "category": "missing_failure_mode",
+      "claim": "No lifecycle protection is defined for the shared SQL MI identity.",
+      "evidence": "The plan makes id-sqlmi-directory a B08-owned shared dependency and states that Graph permissions live on that identity, but the plan only checks its existence and deployer attach permission during preflight. It does not require B08 to preserve the identity while SQL MI consumers exist or define recovery for deletion/recreation. The cited Microsoft Learn evidence states that deleting the identity breaks Entra functions.",
+      "impact": "If B08 deletes or recreates the shared UAMI, every attached SQL MI can lose its Graph-backed Entra principal lookup, so C7 CREATE USER operations fail across consumers. A future deployment is blocked by preflight, but that does not restore the identity reference or Graph grants for already deployed instances.",
+      "artifact_section": "Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1 — SQL MI directory identity",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [603, 609],
+        "proposed_edit": "Record as a B08 lifecycle dependency that id-sqlmi-directory must remain stable while any SQL MI consumes it. Before an approved replacement, B08 must rebind every consumer and restore the required Graph app-role grants; document the coordinated recovery path and owner in the dependency contract."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Overview → Carried items → SQL MI directory identity: shared B08 ownership and Graph grants",
+        "Task 12 → step 10: existence-only preflight for the shared identity",
+        "Code-Generation Contract → Microsoft.Sql/managedInstances:sqlmi: external B08-owned identity dependency",
+        "04-iac-contract.json → capability_checks[id=sqlmi-directory-identity]"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "4a7beb4ed7a22f37cd947cbd975e232721a0ba16a85e62dbeddb9d51a98a291e",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "467cf14b9c364e9a753c35ce9f961bb5b518f71a10cb5616a1d4f7da41aeb1a1"
+  }
+}

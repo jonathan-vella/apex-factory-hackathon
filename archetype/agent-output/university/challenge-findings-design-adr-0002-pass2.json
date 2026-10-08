@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/03-des-adr-0002-sql-mi-general-purpose-vs-azure-sql-database.md",
+  "artifact_type": "design-adr",
+  "review_focus": "comprehensive",
+  "pass_number": 2,
+  "challenge_summary": "Verified prior concerns closed: c8b14550 is explicitly owner-stated and absent from the Step 1-3.5 evidence; 4d410452 is addressed by marking SQL Database comparisons unassessed; 9f126c79 now calls the schedule an owner cost/operations choice, not compliance; 81c020c3 is closed with Performance marked Not assessed. 06e6a398 is excluded under the owner's explicit exception for the full governance JSON; the ADR contains no tenant or subscription identifier. Both quoted source passages are verbatim, the $488.92/month figure matches Step 2 at 730 hours, and no new issue was found.",
+  "compact_for_parent": "Pass 2 (comprehensive) | LOW | 0 must_fix, 0 should_fix | Key: None",
+  "risk_level": "low",
+  "must_fix_count": 0,
+  "should_fix_count": 0,
+  "suggestion_count": 0,
+  "findings": [],
+  "cache_inputs": {
+    "artifact_sha": "4d6e30785ef8b6dd9b2f3bbef235d8baf806b9191f73da259421f5d20ca18c21",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "d1f1341fb513f3526f38f0d1443a1604748c43b15990c875dd474d6fda438a37"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/01-requirements.md",
+      "sha256": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    }
+  ]
+}

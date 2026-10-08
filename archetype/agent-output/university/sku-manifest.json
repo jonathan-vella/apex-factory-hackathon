@@ -1,0 +1,226 @@
+{
+  "$schema": "../../tools/schemas/sku-manifest.schema.json",
+  "schema_version": "sku-manifest-v1",
+  "project": "university",
+  "default_region": "swedencentral",
+  "created_at": "2026-10-05T15:00:00Z",
+  "updated_at": "2026-10-06T14:50:00Z",
+  "current_revision": 3,
+  "environments": [
+    "dev"
+  ],
+  "revisions": [
+    {
+      "rev": 1,
+      "created_at": "2026-10-05T15:00:00Z",
+      "agent": "02-Requirements",
+      "step": "1",
+      "apex_recall_checkpoint": "university:1:phase_5_artifact",
+      "summary": "User pins from the B09 archetype brief for every service class; on-demand only, single dev environment, no zones; approved regions swedencentral + germanywestcentral.",
+      "changed_ids": [
+        "app-service-plan",
+        "container-registry",
+        "sql-managed-instance",
+        "storage-account",
+        "service-bus"
+      ]
+    },
+    {
+      "rev": 2,
+      "created_at": "2026-10-06T07:10:00Z",
+      "agent": "03-Architect",
+      "step": "2",
+      "apex_recall_checkpoint": "university:2:phase_2.5_compacted",
+      "summary": "Step 2 review of user pins: all five pins kept unchanged (no candidate sets; every class pinned). Verified P0v3 regional VNet integration and regional offer of every SKU in swedencentral and germanywestcentral. Added architect-computed sla_achieved. Single-region deployment in the hub region; the second approved region is an alternate, not a second deployment. Prices written back by cost-estimate-subagent.",
+      "changed_ids": [
+        "app-service-plan",
+        "container-registry",
+        "sql-managed-instance",
+        "storage-account",
+        "service-bus"
+      ],
+      "commit_sha": "4309ccf"
+    },
+    {
+      "rev": 3,
+      "created_at": "2026-10-06T14:50:00Z",
+      "agent": "05-IaC Planner",
+      "step": "4",
+      "apex_recall_checkpoint": "university:4:phase_3_plan",
+      "summary": "Step 4 governance reconciliation: all five user pins kept unchanged; no discovered Deny or SKU allow-list constrains them. requires[] cross-check passes (P0v3 vnet-integration; ACR Premium, StorageV2, Service Bus Premium private-endpoints; managed-identity on all). IaC values set explicitly over AVM defaults: App Service plan skuCapacity 1, zoneRedundant false (AVM default 3/true); Storage skuName Standard_LRS (AVM default Standard_GRS); Service Bus skuObject Premium capacity 1 (AVM default 2); SQL MI zoneRedundant false (raw). AVM-forced zone redundancy accepted and recorded: container-registry 0.13.1 zoneRedundancy Enabled, service-bus 0.17.1 zoneRedundant true (platform-automatic in swedencentral).",
+      "changed_ids": [
+        "app-service-plan",
+        "container-registry",
+        "sql-managed-instance",
+        "storage-account",
+        "service-bus"
+      ],
+      "commit_sha": "5cc66af"
+    }
+  ],
+  "services": [
+    {
+      "id": "app-service-plan",
+      "service": "App Service Plan",
+      "size": "P0v3",
+      "iac_logical_names": {
+        "bicep": "appServicePlan",
+        "terraform": "module.app_service_plan"
+      },
+      "capacity": {
+        "mode": "fixed",
+        "default": 1
+      },
+      "zonal": false,
+      "regions": [
+        "swedencentral",
+        "germanywestcentral"
+      ],
+      "sla_target": "best-effort (no target)",
+      "commitment": {
+        "type": "on-demand"
+      },
+      "requires": [
+        "vnet-integration",
+        "managed-identity"
+      ],
+      "notes": "Linux, container. Brief requires verifying P0v3 supports regional VNet integration; if not, use the smallest Premium v3 tier that does and record a deviation. Region derived from hub at deploy time. Approved regions: swedencentral (primary), germanywestcentral (owner-approved, same SKU; availability and pricing to be checked at Step 2). Step 2: P0v3 verified for regional VNet integration (Basic and above) and offered for Linux in both approved regions; no deviation. Regions are approved alternates, one deployment in the hub region.",
+      "sla_achieved": "No availability commitment claimed: best-effort target; single instance, no zone redundancy, single region.",
+      "source": "user-pin",
+      "source_step": "1",
+      "last_modified_rev": 3,
+      "cost_estimate_monthly_usd": 64.97,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    },
+    {
+      "id": "container-registry",
+      "service": "Container Registry",
+      "size": "Premium",
+      "iac_logical_names": {
+        "bicep": "containerRegistry",
+        "terraform": "module.container_registry"
+      },
+      "capacity": {
+        "mode": "fixed",
+        "default": 1
+      },
+      "zonal": false,
+      "regions": [
+        "swedencentral",
+        "germanywestcentral"
+      ],
+      "sla_target": "best-effort (no target)",
+      "commitment": {
+        "type": "on-demand"
+      },
+      "requires": [
+        "private-endpoints",
+        "managed-identity"
+      ],
+      "notes": "No zones pinned; platform zone redundancy accepted per kit convention. Admin user off, public access off, trusted-services bypass for az acr import. Approved regions: swedencentral (primary), germanywestcentral (owner-approved, same SKU; availability and pricing to be checked at Step 2). Step 2: offered in both approved regions; zone redundancy is automatic in AZ regions at no extra cost (zoneRedundancy property no longer controls behaviour). Regions are approved alternates, one deployment in the hub region.",
+      "sla_achieved": "No availability commitment claimed: best-effort target; platform zone redundancy applies automatically, single region.",
+      "source": "user-pin",
+      "source_step": "1",
+      "last_modified_rev": 3,
+      "cost_estimate_monthly_usd": 50.69,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    },
+    {
+      "id": "sql-managed-instance",
+      "service": "SQL Managed Instance",
+      "size": "GP_Gen5",
+      "iac_logical_names": {
+        "bicep": "sqlManagedInstance",
+        "terraform": "module.sql_managed_instance"
+      },
+      "capacity": {
+        "mode": "fixed",
+        "default": 1
+      },
+      "zonal": false,
+      "regions": [
+        "swedencentral",
+        "germanywestcentral"
+      ],
+      "sla_target": "best-effort (no target)",
+      "commitment": {
+        "type": "on-demand"
+      },
+      "requires": [
+        "managed-identity"
+      ],
+      "notes": "General Purpose, Standard-series (Gen5), 4 vCores, 64 GB storage. licenseType BasePrice (AHB), requestedBackupStorageRedundancy Local, SQLServer2022 format, Entra-only. Approved regions: swedencentral (primary), germanywestcentral (owner-approved, same SKU; availability and pricing to be checked at Step 2). Step 2: GP_Gen5 4 vCores Available in both approved regions (capabilities API). Native startStopSchedules@2025-01-01 Mon-Fri 07:30-18:30; ineffective while an MI link is active (before C7). Regions are approved alternates, one deployment in the hub region.",
+      "sla_achieved": "No availability commitment claimed: best-effort target; General Purpose single instance, no zone redundancy, Local backup redundancy; unavailable while stopped by schedule after C7.",
+      "source": "user-pin",
+      "source_step": "1",
+      "last_modified_rev": 3,
+      "cost_estimate_monthly_usd": 497.68,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    },
+    {
+      "id": "storage-account",
+      "service": "Storage Account",
+      "size": "Standard_LRS",
+      "iac_logical_names": {
+        "bicep": "storageAccount",
+        "terraform": "module.storage_account"
+      },
+      "capacity": {
+        "mode": "fixed",
+        "default": 1
+      },
+      "zonal": false,
+      "regions": [
+        "swedencentral",
+        "germanywestcentral"
+      ],
+      "sla_target": "best-effort (no target)",
+      "commitment": {
+        "type": "on-demand"
+      },
+      "requires": [
+        "private-endpoints"
+      ],
+      "notes": "StorageV2 (general-purpose v2), LRS. Shared key access off. Approved regions: swedencentral (primary), germanywestcentral (owner-approved, same SKU; availability and pricing to be checked at Step 2). Step 2: Hot access tier; LRS keeps data in one region (EU residency). Regions are approved alternates, one deployment in the hub region.",
+      "sla_achieved": "No availability commitment claimed: best-effort target; LRS, single region.",
+      "source": "user-pin",
+      "source_step": "1",
+      "last_modified_rev": 3,
+      "cost_estimate_monthly_usd": 1.08,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    },
+    {
+      "id": "service-bus",
+      "service": "Service Bus Namespace",
+      "size": "Premium",
+      "iac_logical_names": {
+        "bicep": "serviceBusNamespace",
+        "terraform": "module.service_bus_namespace"
+      },
+      "capacity": {
+        "mode": "fixed",
+        "default": 1
+      },
+      "zonal": false,
+      "regions": [
+        "swedencentral",
+        "germanywestcentral"
+      ],
+      "sla_target": "best-effort (no target)",
+      "commitment": {
+        "type": "on-demand"
+      },
+      "requires": [
+        "private-endpoints",
+        "managed-identity"
+      ],
+      "notes": "1 messaging unit. No zones pinned; platform zone redundancy accepted. Local (SAS) auth off. Approved regions: swedencentral (primary), germanywestcentral (owner-approved, same SKU; availability and pricing to be checked at Step 2). Step 2: offered in both approved regions; Premium applies zone redundancy in AZ regions. Regions are approved alternates, one deployment in the hub region.",
+      "sla_achieved": "No availability commitment claimed: best-effort target; Premium 1 MU with platform zone redundancy, single region.",
+      "source": "user-pin",
+      "source_step": "1",
+      "last_modified_rev": 3,
+      "cost_estimate_monthly_usd": 677.08,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    }
+  ]
+}

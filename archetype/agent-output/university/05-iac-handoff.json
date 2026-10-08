@@ -1,0 +1,78 @@
+{
+  "$schema": "../../tools/schemas/iac-handoff.schema.json",
+  "schema_version": "iac-handoff-v1",
+  "project": "university",
+  "iac_tool": "Bicep",
+  "generated_at": "2026-10-07T13:55:00Z",
+  "tree_hash": {
+    "algorithm": "sha256-of-sorted-file-hashes",
+    "root": "infra/bicep/university/",
+    "value": "dcbe54788bc2952beeb9773b5abded34df3a33e6054851c0997e250972680091",
+    "file_count": 18
+  },
+  "entrypoint": {
+    "path": "infra/bicep/university/main.bicep",
+    "kind": "bicep-main",
+    "scope": "subscription"
+  },
+  "validation_summary": {
+    "verdict": "APPROVED",
+    "tool_versions": {
+      "bicep": "0.47.16",
+      "az": "2.90.0",
+      "node": "24.21.0",
+      "pwsh": "7.6.6"
+    },
+    "validate_gate": {
+      "command": "az deployment sub validate --location <hub-region> --template-file infra/bicep/university/main.bicep --parameters infra/bicep/university/main.bicepparam",
+      "exit_code": 0,
+      "stdout_sha256": "8b4bebd36c83f5cab2c8abd01c1c2af0c3eed1a6f790a2f3dfdf2f28e58d3c95"
+    }
+  },
+  "governance_attestation": {
+    "l1m_ref": {
+      "path": "04-policy-property-map.json",
+      "sha256": "7735a31195aacb0b77c9605298631b5698d0efed5e04b4f5635bf9739637cef2"
+    },
+    "l2_summary": {
+      "mismatched": 0,
+      "verified_at": "2026-10-07T13:55:00Z",
+      "policy_map_ref": "04-policy-property-map.json",
+      "verified_by": "bicep-validate-subagent"
+    },
+    "rows": [
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/b2982f36-99f2-4db5-8eff-283140c09693", "resource_logical_name": "st", "iac_ref": { "file": "infra/bicep/university/modules/storage.bicep", "line": 35, "snippet": "publicNetworkAccess: 'Disabled'" }, "status": "satisfied" },
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/0fdf0491-d080-4575-b627-ad0e843cba0f", "resource_logical_name": "cr", "iac_ref": { "file": "infra/bicep/university/modules/registry.bicep", "line": 40, "snippet": "publicNetworkAccess: 'Disabled'" }, "status": "satisfied" },
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/405c5871-3e91-4644-8a63-58e19d68ff5b", "resource_logical_name": "kv", "iac_ref": { "file": "infra/bicep/university/modules/keyvault.bicep", "line": 38, "snippet": "publicNetworkAccess: 'Disabled'" }, "status": "satisfied" },
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/cbd11fd3-3002-4907-b6c8-579f0e700e13", "resource_logical_name": "sbns", "iac_ref": { "file": "infra/bicep/university/modules/messaging.bicep", "line": 40, "snippet": "publicNetworkAccess: 'Disabled'" }, "status": "satisfied" },
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/cbd11fd3-3002-4907-b6c8-579f0e700e13", "resource_logical_name": "sbns", "iac_ref": { "file": "infra/bicep/university/modules/messaging.bicep", "line": 42, "snippet": "networkRuleSets.publicNetworkAccess: 'Disabled'" }, "status": "satisfied" },
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/9dfea752-dd46-4766-aed1-c355fa93fb91", "resource_logical_name": "sqlmi", "iac_ref": { "file": "infra/bicep/university/modules/sql-mi.bicep", "line": 67, "snippet": "publicDataEndpointEnabled: false" }, "status": "satisfied" },
+      { "policy_id": "Tenant Root Group: AzureSQLMI_WithoutAzureADOnlyAuthentication_Deny", "resource_logical_name": "sqlmi", "iac_ref": { "file": "infra/bicep/university/modules/sql-mi.bicep", "line": 75, "snippet": "azureADOnlyAuthentication: true" }, "status": "satisfied" },
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/83a86a26-fd1f-447c-b59d-e51f44264114", "resource_logical_name": "pe-cr", "iac_ref": { "file": "infra/bicep/university/modules/private-endpoints.bicep", "line": 56, "snippet": "no public IP declared; platform NICs only" }, "status": "satisfied" },
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/7509877f-d414-4d79-8d1f-d600ea78d087", "resource_logical_name": "rg-workload", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 15, "snippet": "@allowed swedencentral, germanywestcentral" }, "status": "satisfied" },
+      { "policy_id": "Tenant Root Group: AzureSQL_WithoutAzureADOnlyAuthentication_Deny", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no Microsoft.Sql/servers declared" }, "status": "n/a" },
+      { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/6c112d4e-5bc7-47ae-a041-ea2d9dccd749", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no classic resource types" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: a15944e7-86a5-4adf-a36c-d851916c9001", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no classic resource types" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: VirtualMachine_SKU_Deny (BlockVMSKUs_H)", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no virtual machines declared" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: VirtualMachine_SKU_Deny (BlockVMSKUs_M)", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no virtual machines declared" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: VirtualMachine_SKU_Deny (BlockVMSKUs_N)", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no virtual machines declared" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: AKS_LimitNodeCount_Deny", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no AKS declared" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: VMSS_LimitNodesCount_Deny", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no VM scale sets declared" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: AzureOpenAI_ProvisionedCapacity_Deny", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no Cognitive Services declared" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: Sentinel_Commitment_Deny", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no workspace declared" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: KeyVaultManagedHSM_PurgeProtectionEnabled_Deny", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no Managed HSM declared" }, "status": "n/a" }
+    ]
+  },
+  "required_inputs": [
+    { "param_name": "suffix", "source_field": "operator input: azd env SUFFIX (4-6 lowercase letters or digits)" },
+    { "param_name": "tenantId", "source_field": "environments.dev.tenant_id", "redact": true },
+    { "param_name": "location", "source_field": "environments.dev.primary_region" },
+    { "param_name": "logAnalyticsWorkspaceId", "source_field": "derived by scripts/preflight.ps1 (log-management found through the spoke peering)", "redact": true },
+    { "param_name": "sqlMiDirectoryIdentityId", "source_field": "derived by scripts/preflight.ps1 (rg-management/id-sqlmi-directory in the shared services subscription)", "redact": true },
+    { "param_name": "deployerObjectId", "source_field": "environments.dev.deployer_object_id", "redact": true },
+    { "param_name": "deployerPrincipalName", "source_field": "derived by scripts/preflight.ps1 (signed-in user UPN)", "redact": true }
+  ],
+  "policy_precheck_inputs": {
+    "what_if_command": "az deployment sub what-if --location <hub-region> --template-file infra/bicep/university/main.bicep --parameters infra/bicep/university/main.bicepparam --no-pretty-print"
+  }
+}

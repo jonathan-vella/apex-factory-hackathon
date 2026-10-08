@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/03-des-adr-0001-linux-app-service-vs-aks.md",
+  "artifact_type": "design-adr",
+  "artifact": "03-des-adr-0001-linux-app-service-vs-aks.md",
+  "pass": 1,
+  "source": "challenge-findings-design-adr-0001.json",
+  "recorded_at": "2026-10-06T12:21:24Z",
+  "decisions": [
+    {
+      "issue_id": "c231ee68",
+      "source_file": "challenge-findings-design-adr-0001.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "The ADR misclassifies the overall platform as low complexity",
+      "action": "accept",
+      "note": "Edit: Context now cites Requirements > Complexity Classification (standard) and its criteria.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "3c8478ec",
+      "source_file": "challenge-findings-design-adr-0001.json",
+      "pass_number": 1,
+      "issue_index": 1,
+      "severity": "should_fix",
+      "title": "AKS WAF impacts lack a comparable evaluated deployment",
+      "action": "accept",
+      "note": "Edit: arrows defined as qualitative; AKS impacts and cost marked not assessed; AKS row no longer scored.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "b243f912",
+      "source_file": "challenge-findings-design-adr-0001.json",
+      "pass_number": 1,
+      "issue_index": 2,
+      "severity": "should_fix",
+      "title": "The Security benefit omits known exposure and unchanged private-link duties",
+      "action": "accept",
+      "note": "Edit: Security row now states residual exposure (no WAF, no end-user auth, four private endpoints with DNS readiness).",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "3ef9a403",
+      "source_file": "challenge-findings-design-adr-0001.json",
+      "pass_number": 1,
+      "issue_index": 3,
+      "severity": "suggestion",
+      "title": "The Re-platform later option repeats the selected decision",
+      "action": "accept",
+      "note": "Edit: option row removed.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "8cd52069",
+      "source_file": "challenge-findings-design-adr-0001-pass2.json",
+      "pass_number": 2,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "The WAF table still asserts neutral reliability versus an unevaluated AKS design",
+      "action": "accept",
+      "note": "Edit: Reliability impact set to Not assessed; App Service single-instance and best-effort facts kept in Notes. Needs a fresh review to close.",
+      "decided_at": "2026-10-06T13:05:00Z"
+    },
+    {
+      "issue_id": "3c8478ec",
+      "source_file": "challenge-findings-design-adr-0001-pass2.json",
+      "pass_number": 2,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "AKS WAF impacts lack a comparable evaluated deployment",
+      "action": "accept",
+      "note": "Owner change 2026-10-06: fix instead of defer (supersedes the earlier deferral). Edit: ADR-0001 Performance impact set to Not assessed. The pass-2 review of ADR-0001 is now stale against the edited ADR; a fresh 10-Challenger review is needed to close the finding.",
+      "decided_at": "2026-10-06T13:22:08Z"
+    },
+    {
+      "issue_id": "3c8478ec",
+      "source_file": "challenge-findings-design-adr-0001-pass3.json",
+      "pass_number": 3,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "AKS WAF impacts lack a comparable evaluated deployment",
+      "action": "accept",
+      "resolution": "resolved",
+      "resolved_by": "challenge-findings-design-adr-0001-pass3.json",
+      "note": "Resolved. The pass-3 comprehensive review of the edited ADR-0001 is APPROVED with 0 findings and confirms 3c8478ec closed (Performance impact is Not assessed). It supersedes the stale pass-2 file for ADR-0001.",
+      "decided_at": "2026-10-06T13:29:00Z"
+    }
+  ]
+}

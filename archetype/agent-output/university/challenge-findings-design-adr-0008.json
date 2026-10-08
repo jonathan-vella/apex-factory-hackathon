@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/03-des-adr-0008-native-sql-mi-start-stop-schedule.md",
+  "artifact_type": "design-adr",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The native schedule decision matches the approved requirements and architecture, and no discovered governance policy conflicts with it. The ADR understates the post-cutover SQL MI availability/start-delay tradeoff and ambiguously says no resource although the architecture deploys a schedule child resource.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 1 should_fix | Key: none",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 1,
+  "suggestion_count": 1,
+  "findings": [
+    {
+      "id": "f04caf69",
+      "severity": "should_fix",
+      "category": "waf_blind_spot",
+      "claim": "WAF summary understates SQL MI availability impact",
+      "evidence": "In WAF Pillar Analysis, Reliability is marked neutral and Performance says the platform is 'intentionally drained' only when the environment allows it. The approved requirement instead enables a fixed weekday schedule (Mon-Fri 07:30-18:30, W. Europe Standard Time), with the MI stopped overnight and on weekends after C7 removes the MI link. The architecture states that the MI is unavailable outside those hours and takes about 20 minutes to start; it does not describe workload draining or a workload-aware guard.",
+      "impact": "After cutover, dependent app requests or checks outside the window encounter a stopped database; startup can add about 20 minutes of unavailability. The neutral WAF rating and 'drained' wording can cause reviewers or operators to underestimate this accepted availability loss.",
+      "artifact_section": "WAF Pillar Analysis",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0008-native-sql-mi-start-stop-schedule.md",
+        "line_range": [62, 63],
+        "proposed_edit": "Mark Reliability as a negative availability tradeoff after C7 and state that the enabled schedule stops SQL MI outside the weekday window; note the approximately 20-minute startup delay. Replace 'intentionally drained' with wording that describes the MI as stopped and dependent requests as unavailable until it is started."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "ADR §WAF Pillar Analysis, Reliability and Performance rows (lines 62-63)",
+        "01-requirements.md §Functional Requirements, capability 12 (line 75)",
+        "01-requirements.md §Operational Requirements → Support & Maintenance (line 338)",
+        "02-architecture-assessment.md §Reliability Assessment (lines 181-182)"
+      ]
+    },
+    {
+      "id": "94e1316a",
+      "severity": "suggestion",
+      "category": "architectural_weakness",
+      "claim": "Clarify that the native schedule is a deployed child resource",
+      "evidence": "The quoted 'no extra resource or runbook' statement appears in the architecture assessment, but its implementation handoff explicitly lists SQL MI start/stop schedule as provisioned resource 5, a `Microsoft.Sql/managedInstances/startStopSchedules` child resource. The architecture's wording means no separate Automation or Logic App infrastructure; the ADR table's unqualified 'no extra resource' is ambiguous.",
+      "impact": "A reader could interpret the ADR as saying no ARM resource is deployed and omit the schedule object from scope or deployment-permission accounting, even though the architecture handoff inventories it.",
+      "artifact_section": "Context; Alternatives Considered",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0008-native-sql-mi-start-stop-schedule.md",
+        "line_range": [25, 38],
+        "proposed_edit": "Qualify 'no extra resource' as 'no separate Automation or Logic App resource or runtime identity; deploy one free Microsoft.Sql/managedInstances/startStopSchedules child resource.'"
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "ADR §Context quotation (line 25)",
+        "ADR §Alternatives Considered, Native start/stop schedule row (line 37)",
+        "02-architecture-assessment.md §Cost Optimization Applied (line 224)",
+        "02-architecture-assessment.md §Resources to Provision, item 5 (line 370)"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "cf5784395d274569319d33c6ec211351bc47f4a0bac3355008196f75e15c4dbd",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "096a771ce026d32411fb6f52b8603e6b337bf46bb3ac37dee763699ac870ec01"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/01-requirements.md",
+      "sha256": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    }
+  ]
+}
