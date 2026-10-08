@@ -4,10 +4,22 @@ import { fileURLToPath } from "node:url";
 
 const defaultRoot = fileURLToPath(new URL("..", import.meta.url));
 const textExtensions = new Set([".astro", ".md", ".mdx", ".yml", ".yaml"]);
-const challengeContract = []; // B11 fills this in.
-const expectedChallengeCount = 0;
-const expectedMinutes = 0;
-const expectedPoints = 0;
+const challengeContract = [
+  ["c00-ready-to-hack.md", 150, 10],
+  ["c01-define-the-opportunity.md", 45, 10],
+  ["c02-secure-ai-ready-foundation.md", 120, 35],
+  ["c03-assess-the-source.md", 60, 15],
+  ["c04-choose-target-states.md", 45, 25],
+  ["c05-deploy-the-coe-archetype.md", 90, 15],
+  ["c06-modernize-with-ghcp.md", 180, 30],
+  ["c07-migrate-and-go-live.md", 120, 20],
+  ["c08-validate-the-pattern.md", 45, 10],
+  ["c09-optimize-the-db-with-ghcp.md", 60, 10],
+  ["c10-package-hand-over-review-ai-readiness.md", 60, 20],
+];
+const expectedChallengeCount = 11;
+const expectedMinutes = 975;
+const expectedPoints = 200;
 
 async function collectFiles(path) {
   let entries;

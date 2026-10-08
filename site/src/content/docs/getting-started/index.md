@@ -8,4 +8,7 @@ sidebar:
 
 This section explains pre-work, setup and how the event runs.
 
-> **Under construction:** This section will be filled in before v1.
+- [Event overview](./event-overview/): the two-day agenda, and the T-14 and T-3 gates.
+- [Roles](./roles/): platform lead, members and coach.
+- [Prerequisites](./prerequisites/): what to have ready before T-14.
+- [Pre-work](./pre-work/): what to actually do before the event — it's [C0](../challenges/c00-ready-to-hack/).
