@@ -67,21 +67,30 @@ Once the governance check and the prerequisites pass:
 
 1. From `infra/bicep/university/`, run `azd env new <suffix>`.
 2. Set the azd environment values from the three inputs: tenant ID, subscription ID,
-   suffix. Set no other values by hand — location and everything else is derived by
-   `preflight.ps1` in the next step, same as `deploy.ps1`.
-3. Run `./scripts/preflight.ps1` **in the same shell session**, right after step 2 and
+   suffix. Set no other values by hand yet.
+3. Derive the hub's region the same way `preflight.ps1` does (the spoke VNet's
+   `Connected` peering points at the hub; read the hub VNet's `location`), then run
+   `azd env set AZURE_LOCATION <that region>`. This has to happen before step 4:
+   `AZURE_LOCATION` is a core azd environment value, and azd needs it present on a
+   fresh environment before it will run provisioning at all, independent of anything
+   `preflight.ps1` or `main.bicepparam` do with it later.
+4. Run `./scripts/preflight.ps1` **in the same shell session**, right after step 3 and
    before the preview. It's read-only (creates nothing), validates the prerequisites
-   again against the live subscription, and sets `AZURE_LOCATION`,
+   again against the live subscription, and sets `AZURE_LOCATION` (reconfirming step 3),
    `LOG_ANALYTICS_WORKSPACE_ID`, `SQLMI_DIRECTORY_IDENTITY_ID`, `DEPLOYER_OBJECT_ID`
    and `DEPLOYER_UPN` as process environment variables that the next command inherits.
    This step is required: `azd provision --preview` compiles `main.bicepparam`'s
    `readEnvironmentVariable()` calls for these same five values *before* the
    `preprovision` hook that would otherwise derive them runs, so skipping this step
    fails with `BCP427` on a fresh azd environment (confirmed on the owner's
-   requirement 18 run; worked around last night by running `azd hooks run
+   requirement 18 run; worked around the night before by running `azd hooks run
    preprovision` first — this step replaces that workaround with a documented one).
-4. Run `azd provision --preview` **in that same shell session** and show the user the
-   full output.
+5. Run `azd provision --preview` **in that same shell session** and show the user the
+   full output. Tell the user: this preview only lists resource types azd has display
+   names for — on the owner's requirement 18 run it showed 12 creates and omitted the
+   SQL Managed Instance, the UAMI, role assignments, diagnostic settings and the
+   maintenance schedule, even though they are all in the template and will be created.
+   Missing from the preview list is expected, not a sign the MI won't deploy.
 
 **This prompt stops here.** It never runs `azd provision`, `azd down`, or agent
 `07b-Bicep Deploy`, and never runs anything else that writes to Azure beyond the
@@ -89,7 +98,8 @@ Once the governance check and the prerequisites pass:
 preview to the user (what it will create, the cost while deployed — see `README.md`),
 and tell them to run `azd provision` themselves when ready. APEX Deploy (`07b`) stays
 available as a separate, optional advanced path the member can choose to run instead —
-this prompt does not hand off to it.
+this prompt does not hand off to it. `azd` stores the tenant and subscription IDs it
+was given in the gitignored `.azure/<env>/.env` — expected, not a leak.
 
 Tell the user: this adapts the CoE archetype platform only (App Service, ACR, SQL MI,
 Storage, Service Bus, Key Vault, Application Insights) into the existing spoke. It does

@@ -56,10 +56,15 @@ repo and continue from there.
    (live Deny-effect discovery, compared against the packaged policy set by policy definition and
    resource type -- stopping only on a genuinely new deny; never overwriting the tracked
    `04-governance-*` files or running drift routing/Step 4-5 re-emission), creates the `azd`
-   environment and sets the three inputs, runs `./scripts/preflight.ps1` in the same shell session
-   to derive location and the other required values, then stops at `azd provision --preview`. It
-   never runs `azd provision`, `azd down`, `07b-Bicep Deploy`, or anything else that writes to
-   Azure -- running the deployment is the member's own decision.
+   environment, sets the three inputs, sets `AZURE_LOCATION` from the hub's region (a core azd
+   value azd needs before it will provision at all), runs `./scripts/preflight.ps1` in the same
+   shell session to derive the other required values, then stops at `azd provision --preview`.
+   The preview only lists resource types azd has display names for -- expect it to omit the SQL
+   Managed Instance, the UAMI, role assignments, diagnostic settings and the maintenance schedule
+   even though they're all in the template and will be created. It never runs `azd provision`,
+   `azd down`, `07b-Bicep Deploy`, or anything else that writes to Azure -- running the deployment
+   is the member's own decision. `azd` stores the tenant and subscription IDs it was given in the
+   gitignored `.azure/<env>/.env` -- expected, not a leak.
 4. Review the preview, then run `azd provision` yourself (from `infra/bicep/university/`, same
    shell session) to deploy. The `preprovision`/`postprovision` hooks run `preflight.ps1` and
    `postdeploy-tests.ps1` automatically.
