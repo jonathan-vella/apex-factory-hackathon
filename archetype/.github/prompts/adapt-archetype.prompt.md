@@ -101,6 +101,13 @@ available as a separate, optional advanced path the member can choose to run ins
 this prompt does not hand off to it. `azd` stores the tenant and subscription IDs it
 was given in the gitignored `.azure/<env>/.env` — expected, not a leak.
 
+**Next step after the member runs `azd provision`:** the `postprovision` hook runs
+`postdeploy-tests.ps1`, then `write-deployment-summary.ps1`, which writes
+`agent-output/university/06-deployment-summary.md` from the live deployment record and
+test results and tries to mark APEX Step 6 complete with `apex-recall` — because `azd`
+bypasses APEX Deploy (`07b`), which would otherwise write that artifact. Tell the member
+their next step is **As-Built** (agent `08-As-Built`, workflow step 7).
+
 Tell the user: this adapts the CoE archetype platform only (App Service, ACR, SQL MI,
 Storage, Service Bus, Key Vault, Application Insights) into the existing spoke. It does
 not deploy or modernize the Contoso University app itself (that's a separate

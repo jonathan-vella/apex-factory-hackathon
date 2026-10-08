@@ -50,9 +50,10 @@ infra/bicep/university/
 └── scripts/
     ├── preflight.ps1              # Read-only checks and derivation (standalone, PowerShell 7)
     ├── postdeploy-tests.ps1       # Readiness tests (standalone, PowerShell 7)
+    ├── write-deployment-summary.ps1 # Writes 06-deployment-summary.md + apex-recall Step 6 (owner-approved, 2026-10-08: azd bypasses 07b, which would otherwise write it)
     └── hooks/
         ├── preprovision.ps1       # azd wrapper for preflight.ps1
-        └── postprovision.ps1      # azd wrapper for postdeploy-tests.ps1
+        └── postprovision.ps1      # azd wrapper for postdeploy-tests.ps1, then write-deployment-summary.ps1
 ```
 
 No `deploy.ps1` is generated, as the plan states; the kit's `archetype/deploy.ps1` calls the standalone scripts.

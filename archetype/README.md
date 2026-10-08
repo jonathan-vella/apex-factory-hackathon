@@ -87,7 +87,13 @@ repo and continue from there.
    gitignored `.azure/<env>/.env` -- expected, not a leak.
 4. Review the preview, then run `azd provision` yourself (from `infra/bicep/university/`, same
    shell session) to deploy. The `preprovision`/`postprovision` hooks run `preflight.ps1` and
-   `postdeploy-tests.ps1` automatically.
+   `postdeploy-tests.ps1` automatically. Because `azd` bypasses APEX Deploy (`07b`), which would
+   otherwise write the Step 6 artifact, `postprovision` also runs `write-deployment-summary.ps1`:
+   it writes `agent-output/university/06-deployment-summary.md` from the live deployment record
+   (name, timing, outcome, resource types/names -- no tenant, subscription or full ARM resource
+   ID) and the post-deploy test results, then tries to mark Step 6 complete with `apex-recall`. If
+   `apex-recall` isn't on your PATH it still writes the file and prints the command to run
+   yourself before As-Built.
 5. Run **As-Built** (agent `08-As-Built`, workflow step 7) to generate
    `agent-output/university/07-as-built.md`.
 6. Verify with APEX's `apex-recall` (or its current equivalent) that workflow state shows steps 1-8
