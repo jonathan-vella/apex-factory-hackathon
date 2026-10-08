@@ -4,14 +4,17 @@
     Writes agent-output/university/06-deployment-summary.md from the live deployment record and marks APEX Step 6 complete.
 
 .DESCRIPTION
-    Runs PowerShell 7 and the Azure CLI only. Reads the azd subscription-scope deployment record (name, timestamp,
-    duration, provisioning state, output resource types/names) and the post-deploy test results, and writes them to
-    `agent-output/university/06-deployment-summary.md` so the artifact exists even though `azd` bypasses APEX Deploy
-    (`07b`), which would normally write it. No tenant ID, subscription ID or full ARM resource ID is written: output
-    resources are reduced to resource type and name only. After writing the file it tries to mark Step 6 complete with
-    `apex-recall` (if present on PATH); if that command is not available it leaves the file in place and prints the
-    command to run manually. Both the summary write and the `apex-recall` call are best-effort: a missing or failing
-    `apex-recall` does not fail the caller (the azd postprovision hook).
+    Runs PowerShell 7 and the Azure CLI only. Reads the azd subscription-scope deployment record (name, location,
+    timestamp, duration, provisioning state, output resource types/names, deployment outputs) and the post-deploy
+    test results, and writes them to `agent-output/university/06-deployment-summary.md` so the artifact exists even
+    though `azd` bypasses APEX Deploy (`07b`), which would normally write it. The H2 heading sequence matches APEX's
+    `06-deployment-summary.md` template exactly (`tools/scripts/check-h2-order.mjs` enforces this as a required
+    prefix), with content adapted for a live `azd provision` outcome instead of a pre-deploy dry run. No tenant ID,
+    subscription ID, full ARM resource ID or identity client/object ID is written: output resources are reduced to
+    resource type and name only, and any GUID-shaped deployment output value is redacted. After writing the file it
+    tries to mark Step 6 complete with `apex-recall` (if present on PATH); if that command is not available it leaves
+    the file in place and prints the command to run manually. Both the summary write and the `apex-recall` call are
+    best-effort: a missing or failing `apex-recall` does not fail the caller (the azd postprovision hook).
 
 .PARAMETER EnvName
     azd environment name, used to find the matching subscription-scope deployment. Defaults to AZURE_ENV_NAME.
@@ -59,6 +62,19 @@ function ConvertTo-RedactedResource {
     return $Id.Substring($index + $marker.Length)
 }
 
+function ConvertTo-RedactedOutputValue {
+    # Deployment outputs are resource names/FQDNs (safe) except for identity client/object IDs, which are GUIDs.
+    # Redact any bare GUID value so no identity ID is ever written to the artifact.
+    [CmdletBinding()]
+    param([Parameter(Mandatory, ValueFromPipeline)][AllowNull()]$Value)
+    process {
+        if ($Value -is [string] -and $Value -match '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$') {
+            return '<redacted-guid>'
+        }
+        return $Value
+    }
+}
+
 if ([string]::IsNullOrWhiteSpace($EnvName)) {
     throw 'EnvName is required (AZURE_ENV_NAME is not set). Run this from azd, or pass -EnvName explicitly.'
 }
@@ -76,6 +92,7 @@ $outputResources = @($deployment.properties.outputResources | ForEach-Object { C
 # ConvertFrom-Json deserializes .properties.timestamp as a [datetime]; string interpolation then renders it in the
 # local culture/offset, not UTC. Format explicitly to avoid that (a real bug hit earlier in this effort).
 $deploymentTimestamp = ([DateTime]$deployment.properties.timestamp).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
+$resourceGroupName = $deployment.properties.outputs.resourceGroupName.value
 
 $testRows = foreach ($r in $Outcome.Results) {
     "| $($r.Name) | $($r.Status) | $($r.Detail) |"
@@ -87,6 +104,18 @@ $failed = @($Outcome.Results | Where-Object { $_.Status -eq 'Failed' }).Count
 $generatedAt = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
 $resourceRows = foreach ($r in $outputResources) { "- ``$r``" }
 
+$redactedOutputs = [ordered]@{}
+foreach ($prop in $deployment.properties.outputs.PSObject.Properties) {
+    $value = $prop.Value.value
+    if ($value -is [array]) {
+        $redactedOutputs[$prop.Name] = @($value | ConvertTo-RedactedOutputValue)
+    }
+    else {
+        $redactedOutputs[$prop.Name] = (ConvertTo-RedactedOutputValue -Value $value)
+    }
+}
+$outputsJson = ($redactedOutputs | ConvertTo-Json -Depth 5)
+
 $markdown = @"
 # 🚀 Step 6: Deployment Summary - university
 
@@ -97,44 +126,97 @@ $markdown = @"
 <details open>
 <summary><strong>📑 Deployment Summary</strong></summary>
 
-- [🧾 Deployment Record](#-deployment-record)
-- [🏗️ Resources Deployed](#️-resources-deployed)
-- [🧪 Post-Deployment Test Results](#-post-deployment-test-results)
-- [📝 Key Notes](#-key-notes)
+- [✅ Preflight Validation](#-preflight-validation)
+- [📋 Deployment Details](#-deployment-details)
+- [🏗️ Deployed Resources](#️-deployed-resources)
+- [📤 Outputs (Expected)](#-outputs-expected)
+- [🚀 To Actually Deploy](#-to-actually-deploy)
+- [📝 Post-Deployment Tasks](#-post-deployment-tasks)
+- [References](#references)
 
 </details>
 
 > Generated by ``write-deployment-summary.ps1`` (postprovision hook) | $generatedAt
+> Status: **Succeeded**
 
 | ⬅️ Previous                                                        | 📑 Index            | Next ➡️                              |
 | ------------------------------------------------------------------ | -------------------- | ------------------------------------- |
 | [05-implementation-reference.md](05-implementation-reference.md)   | [README](README.md)  | 07-as-built.md (As-Built, agent 08)   |
 
-## 🧾 Deployment Record
+## ✅ Preflight Validation
 
-| Field              | Value                                   |
-| ------------------ | ---------------------------------------- |
-| Deployment name    | ``$($deployment.name)``                  |
-| Scope              | Subscription                             |
-| Provisioning state | $($deployment.properties.provisioningState) |
-| Timestamp          | $deploymentTimestamp                     |
-| Duration           | $($deployment.properties.duration)       |
+This deployment ran through the ``adapt-archetype`` prompt, not APEX Deploy (``07b``): ``preflight.ps1`` (read-only)
+set the derived azd env values, then ``azd provision --preview`` previewed the change before the member ran
+``azd provision``. See ``05-implementation-reference.md`` for that preview's output; it only lists resource types
+azd has display names for (SQL MI, the UAMI, role assignments, diagnostic settings and the schedule do not appear
+there even though they are deployed).
+
+| Property             | Value                 | Status |
+| --------------------- | --------------------- | ------ |
+| Project Type          | azd-project            | ℹ️     |
+| Deployment Scope      | Subscription            | ℹ️     |
+| What-If Status        | Ran via ``azd provision --preview`` (adapt-archetype prompt) | ✅     |
+| Provisioning Result   | $($deployment.properties.provisioningState) | ✅     |
+
+## 📋 Deployment Details
+
+| Field              | Value                                        |
+| ------------------- | --------------------------------------------- |
+| Deployment Name     | ``$($deployment.name)``                       |
+| Resource Group      | ``$resourceGroupName``                        |
+| Location            | $($deployment.location)                       |
+| Timestamp           | $deploymentTimestamp                          |
+| Duration            | $($deployment.properties.duration)            |
+| Status              | $($deployment.properties.provisioningState)   |
 
 No tenant ID, subscription ID or full ARM resource ID is recorded here (resource type/name only, same convention as
 every other packaged artifact).
 
-## 🏗️ Resources Deployed
+## 🏗️ Deployed Resources
 
 $($resourceRows -join "`n")
 
-## 🧪 Post-Deployment Test Results
+## 📤 Outputs (Expected)
+
+<details>
+<summary><strong>Deployment Outputs JSON</strong></summary>
+
+``````json
+$outputsJson
+``````
+
+</details>
+
+Identity client/object IDs (GUID-shaped values, for example ``uamiClientId``) are redacted above; resource names and
+FQDNs are not sensitive and are kept.
+
+## 🚀 To Actually Deploy
+
+Already deployed via ``azd provision`` (owner decision, 2026-10-07: CoE consumers deploy with azd, not APEX Deploy).
+To apply further template changes:
+
+<details>
+<summary><strong>🚀 azd</strong></summary>
+
+``````bash
+cd infra/bicep/university
+azd env select $EnvName
+azd provision --preview
+azd provision
+``````
+
+</details>
+
+APEX Deploy (``07b``) stays an optional advanced path; ``deploy.ps1`` stays the no-azd fallback.
+
+## 📝 Post-Deployment Tasks
 
 Container image persisted for later provisions: ``$($Outcome.ContainerImage)``
 
 Summary: $passed passed, $pending pending, $failed failed.
 
-| Test | Status | Detail |
-| ---- | ------ | ------ |
+| Task (Test) | Status | Detail |
+| ------------ | ------ | ------ |
 $($testRows -join "`n")
 
 ## 📝 Key Notes
@@ -143,6 +225,13 @@ $($testRows -join "`n")
 | --------------------------------------------------------------------| ---------------------------- | --------------------------------------------------- |
 | This file is written by the ``azd postprovision`` hook, not APEX Deploy (``07b``) | Artifact parity for As-Built | ``azd`` is the primary deploy path (owner decision, 2026-10-07); ``07b`` stays optional |
 | Diagnostics and telemetry rows may show ``Pending``                  | Expected, not a defect        | DeployIfNotExists settings and app telemetry are asynchronous or await the app image (B06/B10) |
+
+## References
+
+| Topic             | Link                                                                                   |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| azd provision      | [azd provision](https://learn.microsoft.com/azure/developer/azure-developer-cli/reference#azd-provision) |
+| What-If Operations | [Preview Changes](https://learn.microsoft.com/azure/azure-resource-manager/bicep/deploy-what-if) |
 
 ---
 
