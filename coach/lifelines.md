@@ -55,6 +55,8 @@ Template copies don't include non-default branches, so fetch the lifeline from t
    git push -u origin lifeline/L3-servicebus
    ```
 
+   If GitHub refuses the push because the token lacks the `workflow` scope (the lifeline carries the kit's workflow files), run `gh auth refresh -h github.com -s workflow` and push again.
+
 3. Remove leftovers that `git switch` keeps, because old plans and build output steer the agent:
 
    ```powershell
