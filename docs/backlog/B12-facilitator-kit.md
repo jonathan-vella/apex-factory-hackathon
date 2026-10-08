@@ -95,3 +95,4 @@ docs: add the facilitator kit
 
 - **Facilitator files are public,** like `coach/` (PRD §2). Don't put tenant details or real names in them.
 - **Cleanup safety:** match resources by the kit's names and the member index, never by wildcard across the subscription.
+- **Event prep needs a directory admin:** once per team, after ALZ-lite and before C7, a Privileged Role Administrator grants `id-sqlmi-directory` its Microsoft Graph read permissions (`infra/foundation/README.md`, "Event prep: SQL MI directory identity"). Put it in the guide's T-14 prep timeline, with who does it, and add "SQL MI can't create the web app's database user" to the escalation list.
