@@ -106,6 +106,14 @@ A member who prefers APEX to drive the deployment itself, instead of azd, can ha
 after the governance refresh, the same way the `adapt-archetype` prompt used to. This still works,
 but isn't the path the prompt or this README walks through by default.
 
+**Known tree hash drift (tracked, [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52)):**
+the packaged `infra/bicep/university/` tree hash no longer matches the APEX handoff, because two
+bugs (cmd.exe escaping in `preflight.ps1`, an ACR NIC match in `postdeploy-tests.ps1`) and the new
+`write-deployment-summary.ps1` were hand-patched into this APEX-output tree instead of being
+re-emitted by APEX step `06b`. This only matters for **APEX Deploy** above, which checks the tree
+hash; `azd provision` does not check it and is unaffected. The drift clears once the owner ports
+the fixes into `apex-factory-coe` and this item re-packages from the new handoff (#52).
+
 ### Fallback (no agent, no azd)
 
 ```powershell
