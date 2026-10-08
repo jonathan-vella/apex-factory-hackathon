@@ -10,13 +10,13 @@ The branches hold only what GitHub Copilot produced on the kit's golden path (th
 
 | Branch | Commit | Checkpoint | Golden-path commits | Next for the member |
 |---|---|---|---|---|
-| `lifeline/L1-net10` | `b862050` | .NET 10 and ASP.NET Core MVC; builds and runs on `vm-dev01` against the source database | `d08dc9d` plan, `bfd8bf7` task 01 | Task 02 |
-| `lifeline/L2-blob` | `5067391` | L1 plus the database task (Entra-only outside Development, SQL authentication in Development) and uploads on Blob | `bd0ecad` task 02, `e9a1003` task 03 | Task 04 |
-| `lifeline/L3-servicebus` | `9b34a12` | L2 plus Service Bus instead of MSMQ, with the notification service in DI | `4b7fb02` task 04 | Task 05 |
-| `lifeline/L4-ready` | `a37b659` | L3 plus Key Vault, OpenTelemetry and the CVE audit: C6's code is complete | `e9d21d1` task 05, `c07f747` task 06, `54b5b45` task 07 | Package and C6 configuration (playbook steps 4 and 5) |
-| `lifeline/L5-cutover` | `5ec0d3c` | L4 plus the app README's App Service and SQL Managed Instance section: the C7 end state | L5 adds documentation only | C7 go-live (playbook step 5) |
+| `lifeline/L1-net10` | `7b3a631` | .NET 10 and ASP.NET Core MVC; builds and runs on `vm-dev01` against the source database | `d08dc9d` plan, `bfd8bf7` task 01 | Task 02 |
+| `lifeline/L2-blob` | `fb8bcbf` | L1 plus the database task (Entra-only outside Development, SQL authentication in Development) and uploads on Blob | `bd0ecad` task 02, `e9a1003` task 03 | Task 04 |
+| `lifeline/L3-servicebus` | `f79d392` | L2 plus Service Bus instead of MSMQ, with the notification service in DI | `4b7fb02` task 04 | Task 05 |
+| `lifeline/L4-ready` | `295882d` | L3 plus Key Vault, OpenTelemetry and the CVE audit: C6's code is complete | `e9d21d1` task 05, `c07f747` task 06, `54b5b45` task 07 | Package and C6 configuration (playbook steps 4 and 5) |
+| `lifeline/L5-cutover` | `119ea50` | L4 plus the app README's App Service and SQL Managed Instance section: the C7 end state | L5 adds documentation only | C7 go-live (playbook step 5) |
 
-Every lifeline is cut from base commit `608e6a6`, the kit with the playbook and skills. L1 and L2 keep notifications in memory, in the app's own process, until task 04. That's how the golden path did it, and they don't survive a restart.
+Every lifeline is cut from base commit `3ce1bbf`, the kit with the playbook and skills. L1 and L2 keep notifications in memory, in the app's own process, until task 04. That's how the golden path did it, and they don't survive a restart.
 
 The **known-good image** `ghcr.io/jonathan-vella/contoso-university:known-good` is L5 built with .NET SDK container publishing, also tagged with L5's commit. Its digest is in [versions.md](../versions.md).
 
@@ -85,7 +85,7 @@ git cherry-pick d08dc9d bfd8bf7;          git branch -f lifeline/L1-net10
 git cherry-pick bd0ecad e9a1003;          git branch -f lifeline/L2-blob
 git cherry-pick 4b7fb02;                  git branch -f lifeline/L3-servicebus
 git cherry-pick e9d21d1 c07f747 54b5b45;  git branch -f lifeline/L4-ready
-git cherry-pick 5ec0d3c;                  git branch -f lifeline/L5-cutover
+git cherry-pick 119ea50;                  git branch -f lifeline/L5-cutover
 git push --force origin lifeline/L1-net10 lifeline/L2-blob lifeline/L3-servicebus lifeline/L4-ready lifeline/L5-cutover
 ```
 
