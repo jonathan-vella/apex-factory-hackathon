@@ -52,13 +52,16 @@ repo and continue from there.
    `.github/prompts/adapt-archetype.prompt.md` into the matching paths of that repo.
 3. Run the `adapt-archetype` prompt in VS Code's **built-in agent mode** (not `01-Orchestrator`,
    which would route on to APEX Deploy). It's self-contained: it asks for tenant ID, subscription
-   ID and suffix, checks that a spoke is already vended, refreshes governance by invoking
-   `04g-Governance`'s discovery directly and following APEX's own drift routing for Steps 4/5,
-   sets the three inputs as an `azd` environment, and stops at `azd provision --preview`. It never
-   runs `azd provision`, `azd down`, `07b-Bicep Deploy`, or anything else that writes to Azure --
-   running the deployment is the member's own decision.
-4. Review the preview, then run `azd provision` yourself (from `infra/bicep/university/`) to
-   deploy. The `preprovision`/`postprovision` hooks run `preflight.ps1` and
+   ID and suffix, checks that a spoke is already vended, runs a lightweight governance check
+   (live Deny-effect discovery, compared against the packaged policy set by policy definition and
+   resource type -- stopping only on a genuinely new deny; never overwriting the tracked
+   `04-governance-*` files or running drift routing/Step 4-5 re-emission), creates the `azd`
+   environment and sets the three inputs, runs `./scripts/preflight.ps1` in the same shell session
+   to derive location and the other required values, then stops at `azd provision --preview`. It
+   never runs `azd provision`, `azd down`, `07b-Bicep Deploy`, or anything else that writes to
+   Azure -- running the deployment is the member's own decision.
+4. Review the preview, then run `azd provision` yourself (from `infra/bicep/university/`, same
+   shell session) to deploy. The `preprovision`/`postprovision` hooks run `preflight.ps1` and
    `postdeploy-tests.ps1` automatically.
 5. Run **As-Built** (agent `08-As-Built`, workflow step 7) to generate
    `agent-output/university/07-as-built.md`.
@@ -150,10 +153,16 @@ This redaction, verified against this package with the real validators:
 
 There is no sanctioned way to refresh `l1m_ref` or the sidecar hashes without re-running the owning
 APEX step (Step 6 re-emits `05-iac-handoff.json`; a fresh Step 3.5 Challenger pass refreshes a
-sidecar), and this kit never hand-edits a hash to force a check to pass. They document the CoE
-build tenant's own review history; a member's `adapt-archetype` run re-discovers governance and
-re-emits its own `05-iac-handoff.json` before Deploy, which is what actually matters for their
-deployment. See the PR for the exact command output.
+sidecar), and this kit never hand-edits a hash to force a check to pass. **These files, and APEX's
+whole hash chain, are the CoE's own review evidence** -- proof that this archetype's plan and Bicep
+passed a real governance review in the build tenant. They are not, and never become, a per-member
+deployment gate (owner decision, 2026-10-08). A member's `adapt-archetype` run does a lighter check
+instead: live Deny-effect discovery in the member's own tenant, written only to a gitignored
+scratch folder, diffed against the packaged policy set by policy definition and resource type. It
+stops only if the member's tenant has a genuinely new deny on a resource type this archetype
+deploys; it never overwrites these tracked files and never re-emits `05-iac-handoff.json`. The real
+gate for a member's deployment is that check plus `preflight.ps1` (read-only) and
+`azd provision --preview`. See the PR for the exact command output.
 
 ### ID scan
 

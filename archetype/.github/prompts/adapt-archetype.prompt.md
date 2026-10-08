@@ -7,8 +7,8 @@ agent: agent
 
 This prompt runs in VS Code's built-in agent mode (not `01-Orchestrator`, which would
 route on to `07b-Bicep Deploy`). It is self-contained: it asks for the three inputs,
-refreshes governance directly, and sets up and previews the azd deployment, all within
-this one prompt.
+runs a lightweight governance check directly, and sets up and previews the azd
+deployment, all within this one prompt.
 
 Ask the user for three inputs, in order, if not already supplied in this conversation:
 
@@ -31,42 +31,57 @@ Ask the user for three inputs, in order, if not already supplied in this convers
   in interactively (not a service principal), because the SQL Managed Instance's Entra
   admin is the deploying user.
 
-## Refresh governance before adapting
+## Lightweight governance check before adapting (owner decision, 2026-10-08)
 
 The packaged `agent-output/university/04-governance-constraints.json` and
-`04-policy-property-map.json` carry the CoE build tenant's discovery, with
-`discovery_status: "PARTIAL"` and `subscription_id: "unknown"` — deliberately stale, so
-APEX's own L0-envelope staleness gate forces a refresh here, in the member's own
-tenant, before anything deploys:
+`04-policy-property-map.json` are the CoE's own review evidence from the build
+tenant — proof that the plan and Bicep in this archetype passed a real governance
+review there. They are **not** a per-member deployment gate, and this prompt never
+overwrites them, never runs APEX's drift routing, and never triggers a Step 4/5
+re-emission. The real gate for a member's deployment is this check plus
+`preflight.ps1` (read-only) and the `azd provision --preview` below.
 
-1. Hand off to **04g-Governance** to re-run live discovery against the supplied tenant
-   ID and subscription ID. This overwrites `04-governance-constraints.{md,json}` with
-   the member's real policy set.
-2. Follow whatever APEX's own drift routing (`governance-drift-routing.md`) returns for
-   the refreshed envelope:
-   - If it only requires re-stamping `04-policy-property-map.json` (Step 4) and
-     re-emitting `05-iac-handoff.json` (Step 5 / `06b-Bicep CodeGen`), let those steps
-     run and continue.
-   - If it demands a real change to `04-implementation-plan.md` or the Bicep in
-     `infra/bicep/university/` — the member's policies genuinely differ from what this
-     archetype assumes — **stop and tell the user**, same as any other Stop-and-ask.
-     Don't continue on a plan or Bicep that no longer matches what passed review.
-3. Never hand-edit a hash or signature field (`l1m_ref.sha256`, `tree_hash`,
+1. Run discovery directly against the member's supplied tenant ID and subscription
+   ID — the same ARM/Graph calls **04g-Governance** uses — and write the result only
+   to `agent-output/university/tmp/` (gitignored; never commit it, never write it to
+   the tracked `04-governance-*` files).
+2. Compare the discovery's Deny-effect policy findings against the packaged
+   `04-governance-constraints.json` and `04-policy-property-map.json`, matched by
+   policy definition ID and resource type.
+3. If the member's tenant has a **new Deny-effect policy on a resource type this
+   archetype deploys** that isn't already accounted for in the packaged set, **stop
+   and tell the user**: name the policy and the resource type, same as any other
+   Stop-and-ask. Don't continue on a plan or Bicep that no longer matches what passed
+   review.
+4. Otherwise, continue straight to the azd steps below. Don't re-stamp, re-emit, or
+   hand-edit any hash or signature field (`l1m_ref.sha256`, `tree_hash`,
    `supporting_inputs`/`cache_inputs.artifact_sha` in any `challenge-findings-*.json`)
-   to force a check to pass. Only the owning agent step may refresh those.
+   — those stay exactly as packaged.
 
-This refresh is part of this prompt, not a separate step the member runs: the contract
+This check is part of this prompt, not a separate step the member runs: the contract
 stays three inputs (tenant ID, subscription ID, suffix).
 
 ## Set the azd environment and preview
 
-Once governance is refreshed and the prerequisites pass:
+Once the governance check and the prerequisites pass:
 
 1. From `infra/bicep/university/`, run `azd env new <suffix>`.
-2. Set the azd environment values from the three inputs (and location, if the template
-   needs it): tenant ID, subscription ID, suffix. Set no other values — everything else
-   is derived or discovered by the Bicep, same as `deploy.ps1`.
-3. Run `azd provision --preview` and show the user the full output.
+2. Set the azd environment values from the three inputs: tenant ID, subscription ID,
+   suffix. Set no other values by hand — location and everything else is derived by
+   `preflight.ps1` in the next step, same as `deploy.ps1`.
+3. Run `./scripts/preflight.ps1` **in the same shell session**, right after step 2 and
+   before the preview. It's read-only (creates nothing), validates the prerequisites
+   again against the live subscription, and sets `AZURE_LOCATION`,
+   `LOG_ANALYTICS_WORKSPACE_ID`, `SQLMI_DIRECTORY_IDENTITY_ID`, `DEPLOYER_OBJECT_ID`
+   and `DEPLOYER_UPN` as process environment variables that the next command inherits.
+   This step is required: `azd provision --preview` compiles `main.bicepparam`'s
+   `readEnvironmentVariable()` calls for these same five values *before* the
+   `preprovision` hook that would otherwise derive them runs, so skipping this step
+   fails with `BCP427` on a fresh azd environment (confirmed on the owner's
+   requirement 18 run; worked around last night by running `azd hooks run
+   preprovision` first — this step replaces that workaround with a documented one).
+4. Run `azd provision --preview` **in that same shell session** and show the user the
+   full output.
 
 **This prompt stops here.** It never runs `azd provision`, `azd down`, or agent
 `07b-Bicep Deploy`, and never runs anything else that writes to Azure beyond the
