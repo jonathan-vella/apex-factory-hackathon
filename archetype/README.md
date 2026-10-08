@@ -48,8 +48,28 @@ repo and continue from there.
 
 1. Create a repo from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator)
    template, at the commit this project is pinned to (above).
-2. Copy this folder's `agent-output/university/`, `infra/bicep/university/` and
-   `.github/prompts/adapt-archetype.prompt.md` into the matching paths of that repo.
+2. Import this folder into that repo with one command (run from the kit repo, against the new
+   repo's checkout):
+
+   ```powershell
+   ./archetype/Import-Archetype.ps1 -Ref <kit tag or commit> -Destination <path to the new repo>
+   ```
+
+   This downloads `archetype/` at `-Ref` straight from GitHub (no git clone, no auth needed for the
+   public repo), copies `agent-output/university/`, `infra/bicep/university/` and
+   `.github/prompts/adapt-archetype.prompt.md` into the matching paths, and adds the prompt to
+   `EXCLUDE_PATHS` in the destination's `weekly-upstream-sync.yml` so the weekly upstream sync
+   doesn't delete it (`.github/prompts/` is otherwise synced wholesale from upstream). It refuses
+   to overwrite an existing `university` project unless you pass `-Force`, and prints a file count
+   and content hash for `infra/bicep/university/` so you can sanity-check the copy -- a mismatch
+   against the packaged tree hash below is the already-documented drift, not something the script
+   resolves. Pin `-Ref` to a tag or commit; there is no `main` default. Pinned to a tag:
+
+   ```powershell
+   $v = '<kit tag>'; iwr "https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/$v/archetype/Import-Archetype.ps1" -OutFile Import-Archetype.ps1; ./Import-Archetype.ps1 -Ref $v
+   ```
+
+   Or copy the three paths by hand if you'd rather not run a script from the kit repo.
 3. Run the `adapt-archetype` prompt in VS Code's **built-in agent mode** (not `01-Orchestrator`,
    which would route on to APEX Deploy). It's self-contained: it asks for tenant ID, subscription
    ID and suffix, checks that a spoke is already vended, runs a lightweight governance check
