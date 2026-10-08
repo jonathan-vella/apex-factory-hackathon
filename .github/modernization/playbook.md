@@ -265,11 +265,11 @@ After the MI link cutover, the database on the Managed Instance is writable:
 
    It fails before cutover, because the replica is read-only. Don't use `WITH SID` or `TYPE = E`: SQL Managed Instance doesn't support them.
 
-3. Point the web app at your image, pulled with its managed identity, and restart it:
+3. Point the web app at your image and restart it. The archetype already set the pull identity, so the image comes from the private registry with the managed identity:
 
    ```powershell
-   $uami = az identity show -g rg-university-<suffix> -n id-university-<suffix> --query clientId -o tsv
-   az webapp config container set -g rg-university-<suffix> -n app-university-<suffix> --container-image-name cruniversity<suffix>.azurecr.io/contoso-university:c6 --container-registry-url https://cruniversity<suffix>.azurecr.io --acr-use-identity --acr-identity $uami --output none
+   az webapp config container set -g rg-university-<suffix> -n app-university-<suffix> --container-image-name cruniversity<suffix>.azurecr.io/contoso-university:c6 --container-registry-url https://cruniversity<suffix>.azurecr.io --output none
+   az webapp config show -g rg-university-<suffix> -n app-university-<suffix> --query acrUseManagedIdentityCreds   # true: the archetype set the pull identity
    az webapp restart -g rg-university-<suffix> -n app-university-<suffix>
    ```
 

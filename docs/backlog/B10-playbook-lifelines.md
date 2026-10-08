@@ -68,7 +68,7 @@
     1. 🧑 HUMAN: the owner migrates the seeded source database to the archetype's MI with MI link, following `docs/spikes/B07-arc-mi-link/migration.md`, and cuts over.
     2. Create the contained user for the web app's identity on the migrated database, with the roles the app needs.
     3. Push L5's image to the archetype's registry from `vm-dev01` and point the web app at it.
-    4. Check through the web app's private endpoint from `vm-dev01`: pages show the migrated data (row counts match the source), an upload lands in Blob, a notification round-trips through Service Bus, and telemetry reaches Application Insights. Check the database still has compatibility level 110 and the perf kit objects, so C9 works after the migration.
+    4. Check through the web app's front end from `vm-dev01` (the web app has no private endpoint: its front end is the documented public exception, PRD §6): pages show the migrated data (row counts match the source), an upload lands in Blob, a notification round-trips through Service Bus, and telemetry reaches Application Insights. Check the database still has compatibility level 110 and the perf kit objects, so C9 works after the migration.
 14. Import the known-good image with `az acr import` (the registry allows trusted Azure services, B09), run the web app on it, and repeat the checks in 13.4.
 15. 🧑 HUMAN: the owner runs the playbook from a fresh copy of the repo on `vm-dev01` up to L2, using only the playbook and skills, and reports where it was unclear. Fix the playbook.
 16. Tear everything down (Teardown row).

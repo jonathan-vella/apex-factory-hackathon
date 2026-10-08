@@ -65,8 +65,8 @@ After cutover removes the link, the database is writable:
 3. **Switch the web app to your image** and restart it:
 
    ```powershell
-   $uami = az identity show -g rg-university-<suffix> -n id-university-<suffix> --query clientId -o tsv
-   az webapp config container set -g rg-university-<suffix> -n app-university-<suffix> --container-image-name cruniversity<suffix>.azurecr.io/contoso-university:<tag> --container-registry-url https://cruniversity<suffix>.azurecr.io --acr-use-identity --acr-identity $uami --output none
+   az webapp config container set -g rg-university-<suffix> -n app-university-<suffix> --container-image-name cruniversity<suffix>.azurecr.io/contoso-university:<tag> --container-registry-url https://cruniversity<suffix>.azurecr.io --output none
+   az webapp config show -g rg-university-<suffix> -n app-university-<suffix> --query acrUseManagedIdentityCreds   # true: the archetype set the pull identity
    az webapp restart -g rg-university-<suffix> -n app-university-<suffix>
    ```
 
@@ -80,6 +80,7 @@ After cutover removes the link, the database is writable:
 | Symptom | Cause |
 |---|---|
 | The app exits at startup before C7 | Expected: the database isn't migrated yet. Don't point the web app at your image before C7 |
+| The image pull fails with the identity | `acrUseManagedIdentityCreds` must be `true` and `acrUserManagedIdentityID` the identity's client ID, as the archetype sets them. To set them again: `az webapp config set --acr-use-identity true --acr-identity <identity resource ID>` (this flag takes the resource ID) |
 | `ACRTokenRetrievalFailure` | The registry must accept ARM-audience tokens: `az acr config authentication-as-arm show -r cruniversity<suffix>` prints `enabled`. The archetype sets it |
 | "KeyVault:VaultUri is not configured" | `KeyVault__VaultUri` is missing, or written with `:` |
 | "ConnectionStrings:DefaultConnection is not configured" | The Key Vault secret wasn't written (step 1), or its name uses `:` instead of `--` |
