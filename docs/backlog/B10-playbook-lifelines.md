@@ -96,10 +96,10 @@ npm run check
 
 ## Done when
 
-- [ ] Instructions, playbook and skills exist and follow the B06 golden path.
-- [ ] Five lifelines build, and L5 and the known-good image pass the end-to-end checks.
-- [ ] The owner ran the playbook to L2 and the gaps are fixed.
-- [ ] Everything is torn down.
+- [x] Instructions, playbook and skills exist and follow the B06 golden path.
+- [x] Five lifelines build, and L5 and the known-good image pass the end-to-end checks.
+- [ ] The owner ran the playbook to L2 and the gaps are fixed. Deferred to the owner (owner decision, 2026-10-08: HUMAN steps that need the Upgrade agent in VS Code don't block the PR).
+- [x] Everything is torn down.
 
 ## Commit message
 
