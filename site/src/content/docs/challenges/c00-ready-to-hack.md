@@ -3,6 +3,10 @@ title: "C0: Ready to hack"
 description: Pre-work. Preflight, datacenter, Arc onboarding and the first migration assessment.
 ---
 
+:::caution[Do this first]
+Complete [Prerequisites](../../getting-started/prerequisites/) before you start C0: your own repo from the `apex-accelerator` template, the dev container, the kit imported into `factory/`, and `.local/settings.json` written. Every command below runs from there.
+:::
+
 ## Goal
 
 Arrive at the event with your Azure prerequisites green, your "on-premises" datacenter deployed, `vm-app01` onboarded to Azure Arc, and a first look at what an Arc SQL migration assessment finds.
@@ -54,7 +58,7 @@ Reuse that `$s` in every command below (re-run the `$s = ...` line in any new te
    ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location
    ```
 
-   This is the kit's only onboarding path; there's no manual portal walkthrough. Done when `vm-app01` shows as Connected under Azure Arc > Machines.
+   This is the kit's only onboarding path; there's no manual portal steps. Done when `vm-app01` shows as Connected under Azure Arc > Machines.
 4. **Run the first Arc SQL migration assessment.** In the Azure portal, open the SQL Server instance under `vm-app01` (Azure Arc > SQL Server instances), go to its **Migration** assessment page and run an assessment targeting Azure SQL Managed Instance. Wait for it to finish, export the report, and skim the findings. C3 is where you triage them.
 5. **Confirm the datacenter is healthy.** Run:
 
