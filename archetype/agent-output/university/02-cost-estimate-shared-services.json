@@ -1,0 +1,40 @@
+{
+  "status": "COMPLETE",
+  "project_name": "university",
+  "region": "swedencentral",
+  "currency": "USD",
+  "monthly_total": 6.06,
+  "yearly_total": 72.72,
+  "resources": [
+    {
+      "name": "shared-log-analytics-ingestion-appinsights",
+      "service_name": "Log Analytics",
+      "sku": "Analytics Logs",
+      "region": "swedencentral",
+      "quantity": 1,
+      "hourly_rate": null,
+      "monthly_cost": 5.98,
+      "notes": "Azure Resource Manager MCP get_retail_prices; productName=Log Analytics; skuName=Analytics Logs; meterName=Analytics Logs Data Ingestion; meterId=e3669cc9-19b6-55fc-b9fe-782ab83615ab; unitOfMeasure=1 GB; priceType=Consumption (on-demand PAYG); currency=USD; returned billing region=swedencentral. Owner-approved usage is 2 GB/month aggregate for workspace-based Application Insights ingestion into central workspace log-management, not per instance. Returned tier rows include $0 at tierMinimumUnits=0 and $2.99/GB at tierMinimumUnits=5. Per owner assumption, apply no free monthly allowance because the central workspace allowance is shared across the landing zone; price all 2 GB at $2.99/GB: 2 GB x $2.99 = $5.98/month. Retention is within the included period; no extra retention meter included. No commitment discount."
+    },
+    {
+      "name": "shared-hub-firewall-data-processing",
+      "service_name": "Azure Firewall",
+      "sku": "Standard",
+      "region": "swedencentral",
+      "quantity": 1,
+      "hourly_rate": null,
+      "monthly_cost": 0.08,
+      "notes": "Azure Resource Manager MCP get_retail_prices; productName=Azure Firewall; skuName=Standard; meterName=Standard Data Processed; meterId=5f492263-6ee9-488d-9b66-02332b889b03; unitOfMeasure=1 GB; priceType=Consumption (on-demand PAYG); currency=USD; returned billing region=swedencentral. Catalog armSkuName is empty; the returned productName, skuName and exact meter identify the verified Standard data-processing meter. Owner-approved usage is 5 GB/month aggregate, not per instance, at $0.016/GB: 5 GB x $0.016 = $0.08/month. Scope includes web app outbound traffic including MCR image pulls and App Insights ingestion, image pushes from the dev VM to ACR, and MI link seeding (~200 MB); app-to-private-endpoint traffic inside the VNet is excluded. Fixed firewall deployment hours are excluded because they are owned by the landing zone. No commitment discount."
+    }
+  ],
+  "optimization_notes": [],
+  "savings_status": "NOT_QUANTIFIED",
+  "savings_reason": "This run prices on-demand variable charges only; reservation, savings-plan discounts, and other optimization opportunities were not evaluated.",
+  "eligible_strategies": [],
+  "data_source": "Azure Resource Manager MCP get_retail_prices",
+  "queried_at": "2026-10-06T07:16:07Z",
+  "confidence": "High",
+  "unresolved_items": [],
+  "mcp_calls_used": 2,
+  "budget_exceeded": false
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/03-des-adr-0002-sql-mi-general-purpose-vs-azure-sql-database.md",
+  "artifact_type": "design-adr",
+  "artifact": "03-des-adr-0002-sql-mi-general-purpose-vs-azure-sql-database.md",
+  "pass": 1,
+  "source": "challenge-findings-design-adr-0002.json",
+  "recorded_at": "2026-10-06T12:21:24Z",
+  "decisions": [
+    {
+      "issue_id": "c8b14550",
+      "source_file": "challenge-findings-design-adr-0002.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "Context overstates the MI-link topology and presents a paraphrase as a quote",
+      "action": "accept",
+      "note": "Modified by owner: state the topology instead of dropping it. Edit: quotes now verbatim; owner-stated topology (MI link from vm-app01, SQL Server 2022, datacenter, through the hub firewall to snet-sqlmi, TCP 5022 and 11000-11999, B07/B08) recorded and labelled as not present in the Step 1-3.5 artifacts.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "4d410452",
+      "source_file": "challenge-findings-design-adr-0002.json",
+      "pass_number": 1,
+      "issue_index": 1,
+      "severity": "should_fix",
+      "title": "SQL Database cost, reliability, and performance WAF gains lack comparative evidence",
+      "action": "accept",
+      "note": "Edit: Azure SQL Database and Business Critical rows marked not assessed; pillar table scored only from Step 2 evidence.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "9f126c79",
+      "source_file": "challenge-findings-design-adr-0002.json",
+      "pass_number": 1,
+      "issue_index": 2,
+      "severity": "should_fix",
+      "title": "The MI schedule is incorrectly characterized as a compliance feature",
+      "action": "accept",
+      "note": "Edit: now an owner-requested cost-control and operations choice, ineffective until C7.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "06e6a398",
+      "source_file": "challenge-findings-design-adr-0002.json",
+      "pass_number": 1,
+      "issue_index": 3,
+      "severity": "should_fix",
+      "title": "Governance evidence contains a subscription ID despite the project rule",
+      "action": "reject",
+      "note": "Owner: subscription_id is allowed in 04-governance-constraints.json (the schema requires it), and the exception covers the whole file, including its resource paths. No change to the JSON. 04-governance-constraints.preview.md was not needed by any validator or Step 4 consumer and was deleted (git rm, no history rewrite). The ADRs and diagram sources contain no GUID-shaped values.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "81c020c3",
+      "source_file": "challenge-findings-design-adr-0002-pass2.json",
+      "pass_number": 2,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "Performance is scored neutral while marked not assessed",
+      "action": "accept",
+      "note": "Edit: Performance impact set to Not assessed, with a note that no performance assessment or SQL Database comparison was performed. Needs a fresh review to close.",
+      "decided_at": "2026-10-06T13:05:00Z"
+    }
+  ]
+}

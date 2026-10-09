@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-governance-constraints.md",
+  "artifact_type": "governance-constraints",
+  "review_focus": "governance-reconciliation",
+  "pass_number": 3,
+  "challenge_summary": "The pass-1 design mapping and identifier redaction are verified, and the blocker arithmetic is correct. The approved Germany alternate conflicts with the current Allowed locations Deny; three Defender assignments are filtered without disclosure; Security Policies still marks unverified DINE/Modify actions green; and the tag diagram implies an undiscovered inheritance mechanism.",
+  "compact_for_parent": "Pass 3 (governance-reconciliation) | HIGH | 1 must_fix, 3 should_fix | Key: Current location Deny blocks approved Germany alternate",
+  "risk_level": "high",
+  "must_fix_count": 1,
+  "should_fix_count": 3,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "37a54ccd",
+      "severity": "must_fix",
+      "category": "governance_gap",
+      "claim": "The current location Deny blocks the approved Germany alternate",
+      "evidence": "Step 2 approves germanywestcentral as an alternate. The JSON's effective Allowed locations Deny permits only swedencentral and global, which the Markdown also records. The zero-conflict summary and compliant disposition cover only the current swedencentral primary; the owner-reported planned Deny-to-Audit change is not live policy evidence. Deploying the approved alternate under the discovered policy would be denied.",
+      "impact": "If Step 4 or a later deployment targets germanywestcentral as the approved alternate, Azure Policy Deny blocks resources in that region, contradicting the artifact's unqualified zero-conflict conclusion.",
+      "artifact_section": "Discovery Source; Azure Policy Compliance > Allowed locations; Plan Adaptations Based on Policies > Architectural Changes; Deployment Blockers > Allowed locations",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [41, 41],
+        "proposed_edit": "Qualify the zero-conflict statement: the swedencentral primary is compliant, but the approved germanywestcentral alternate is blocked by the current Allowed locations Deny (swedencentral and global only). State that Germany must not be targeted until refreshed discovery confirms a policy change or an authorized exemption is recorded; the owner-reported planned change is not current policy evidence. Add this disposition to the Allowed locations adaptation row."
+      },
+      "traces_to": [],
+      "requires_step": "step-2",
+      "verification_anchors": [
+        "Governance Markdown, Discovery Source summary: 'none conflicts with it' (line 41)",
+        "Governance Markdown, Policy Definition Analysis > Allowed locations (line 94)",
+        "Governance Markdown, Azure Policy Compliance > Allowed locations (line 127)",
+        "Governance Markdown, Plan Adaptations > Architectural Changes > Allowed locations (line 205)",
+        "Governance Markdown, Deployment Blockers > Allowed locations (lines 408-417)",
+        "Governance Markdown, Network Policies location note (line 529)",
+        "Approved Step 2 baseline, Required Capability Dependencies > Region gates (line 52)",
+        "Approved Step 2 baseline, Architecture Decision Summary > Region (line 332) and Implementation Handoff > Region (line 357)",
+        "Governance JSON, findings[] entry 'Allowed locations': effect=deny; assignment_parameters.listOfAllowedLocations=[swedencentral, global]"
+      ]
+    },
+    {
+      "id": "cdc3bcbd",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "Three filtered Defender assignments are not disclosed or reconciled",
+      "evidence": "The JSON discovery_summary reports assignment_total=27, assignment_kept=24, and defender_auto_filtered=3; assignment_inventory contains only the 24 retained assignments. The Markdown says '24 policies discovered' and does not identify the three filtered Defender auto-assignments or reconcile their effects. The governance-reconciliation checklist requires Defender/built-in auto-assignments to be treated as in-scope rather than silently filtered, and the discovery effect-classification reference confirms the default filter.",
+      "impact": "A filtered assignment could affect an in-scope resource or configuration, but its effect cannot be checked against the approved design from this artifact. The discovery summary therefore overstates the completeness of the reviewed policy set.",
+      "artifact_section": "Discovery Source",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [33, 39],
+        "proposed_edit": "Report 27 total assignments, 24 retained, and 3 Defender auto-assignments filtered. Identify and reconcile the filtered assignments using discovery diagnostics or a refreshed include-defender-auto result; state which are applicable or why any are excluded. Do not present 24 as the unqualified total."
+      },
+      "traces_to": [],
+      "requires_step": "step-3_5",
+      "verification_anchors": [
+        "Governance Markdown, Discovery Source > Policy Assignments row and Scope (lines 33-39)",
+        "Governance JSON, discovery_summary.assignment_total=27, assignment_kept=24, defender_auto_filtered=3",
+        "Governance JSON, assignment_inventory contains 24 retained entries and no records for the filtered assignments",
+        "Adversarial checklist, Lens: governance-reconciliation > Defender / built-in auto-assignments",
+        "apex-azure-governance-discovery/references/effect-classification.md > Defender Auto-Assignment Filter"
+      ]
+    },
+    {
+      "id": "77e9969e",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "Security Policies still marks unverified policy actions compliant",
+      "evidence": "The Azure Policy Compliance legend defines the warning status for DINE/Modify assignments whose runtime remediation is unverified, and the main compliance and adaptation tables use that status. However, the Security Policies table marks two DeployIfNotExists rows and five Modify rows with a green check. This contradicts the artifact's explicit unverified-runtime statements and leaves the accepted pass-2 correction incomplete.",
+      "impact": "A Step 4 reader may interpret the green checks as proof that Defender, DNS, or Modify remediation has completed and skip the policy/readiness verification the artifact otherwise requires.",
+      "artifact_section": "Security Policies > Status table",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [498, 505],
+        "proposed_edit": "Use the warning status for every DINE/Modify row whose runtime effect is unverified, consistent with the Azure Policy Compliance legend; alternatively rename and define this column as applicability only so a green check cannot be read as completed remediation. Keep green checks only for verified compliant-by-design outcomes."
+      },
+      "traces_to": ["44e9df0f"],
+      "requires_step": "step-3_5",
+      "verification_anchors": [
+        "Azure Policy Compliance status legend and rows: DINE/Modify entries are marked runtime-unverified (lines 116-172)",
+        "Plan Adaptations > Auto-Applied Resources: DINE runtime remediation unverified (lines 212-250)",
+        "Plan Adaptations > Auto-Modified Configurations: Modify runtime effect unverified (lines 252-269)",
+        "Security Policies row 'Configure Microsoft Defender for Key Vault plan' (line 498)",
+        "Security Policies Modify rows for Event Hub, Service Bus, Storage, Cosmos DB, and Key Vault (lines 499-503)",
+        "Security Policies row 'Configure Azure Key Vaults to use private DNS zones' (line 505)"
+      ]
+    },
+    {
+      "id": "ff8baa69",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "The tag diagram implies automatic inheritance with no discovered policy",
+      "evidence": "The governance JSON has tags_required=[] and the Markdown says no tag-enforcement policy was discovered, tags are a Step 1 convention, and the fallback should be applied to the resource group and every resource the archetype creates. The adjacent diagram instead labels management-group-to-subscription-to-resource-group-to-resource tag flow as 'inherited' and says Azure Policy Modify auto-applies tags, although no such tag policy is present in the discovered constraints.",
+      "impact": "A downstream implementer could infer that resource tags arrive automatically and omit explicit tag assignments, undermining the stated project convention and cost/accountability metadata.",
+      "artifact_section": "Required Tags",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [483, 486],
+        "proposed_edit": "Remove the unsupported inherited/auto-applies arrows or replace them with a note that the discovered policy set does not propagate tags and the Step 1 convention must be set explicitly on the resource group and each archetype-created resource. Show policy-driven modification only if a matching assignment is actually discovered."
+      },
+      "traces_to": [],
+      "requires_step": "step-3_5",
+      "verification_anchors": [
+        "Required Tags prose: no tag-enforcement policy; explicitly apply convention to resource group and each created resource (line 477)",
+        "Required Tags diagram: inherited scope chain and Azure Policy Modify auto-applies labels (lines 483-486)",
+        "Governance JSON, tags_required=[] and no tag-enforcement policy among discovered findings"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "b858e1722ce0e54a44e4a1bf16d2485a8b4fb0db3172b937b160844532e7359f",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "706eb08081dac0da09bd70d1c687ba06b62e23174bc49935120ea61d38edfa08"
+  }
+}

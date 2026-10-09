@@ -1,0 +1,659 @@
+{
+  "schema_version": "3.0",
+  "project": "university",
+  "iac_tool": "",
+  "region": "swedencentral",
+  "branch": "main",
+  "updated": "2026-10-07T13:41:59Z",
+  "current_step": 5,
+  "decisions": {
+    "region": "swedencentral",
+    "compliance": "none (training/demo; ALZ-lite deny policies binding)",
+    "budget": "soft; ~1.83 USD/hour workload (brief estimate)",
+    "architecture_pattern": "n-tier: Linux container App Service + SQL MI + Storage + Service Bus + Key Vault + App Insights",
+    "deployment_strategy": "single",
+    "complexity": "standard",
+    "review_depth": "default",
+    "iac_tool": "bicep",
+    "sku_preferences_captured": "true",
+    "relational_db": "sql-managed-instance",
+    "environment": "dev",
+    "cost_monitoring_mode": "deferred",
+    "cost_alert_emails": "[]",
+    "sla_rto_rpo": "best-effort; redeploy from IaC",
+    "end_user_auth": "out-of-scope (B06/B10)",
+    "sku_commitment": "on-demand",
+    "sku_manifest_status": "locked",
+    "sku_manifest_revision": "3",
+    "approved_regions": "[\"swedencentral\",\"germanywestcentral\"]",
+    "sql_mi_license_type": "BasePrice",
+    "cost_monitoring_exception": "{\"rationale\":\"Inherited from landing zone: vending (B08) creates subscription budget budget-factory-workload with 80% e-mail alert; archetype creates no budget or Action Group. Review with SKU manifest expiry or sooner if B08 vending budget changes or event date is set.\",\"expiry_date\":\"2027-01-03\"}",
+    "sql_mi_schedule": "{\"time_zone\":\"W. Europe Standard Time\",\"start\":\"Mon-Fri 07:30\",\"stop\":\"Mon-Fri 18:30\",\"enabled\":true}",
+    "sku_confirmation_status": "approved",
+    "vnet_planning_mode": "guided",
+    "vnet_mode": "use-existing",
+    "existing_vnet_id": "discovered at deploy time: rg-spoke/vnet-spoke in the workload subscription",
+    "vnet_address_space": "10.20.1.0/24",
+    "subnet_plan": "[{\"name\":\"snet-app\",\"address_prefix\":\"10.20.1.0/26\",\"purpose\":\"app-service-integration\",\"delegation\":\"Microsoft.Web/serverFarms\",\"nsg\":\"none (accepted LZ design, B08)\",\"route_table\":\"rt-app\",\"service_endpoints\":[],\"private_endpoint_network_policies\":\"Disabled\"},{\"name\":\"snet-pe\",\"address_prefix\":\"10.20.1.64/26\",\"purpose\":\"private-endpoint\",\"delegation\":\"none\",\"nsg\":\"none (accepted LZ design, B08)\",\"route_table\":\"rt-pe\",\"service_endpoints\":[],\"private_endpoint_network_policies\":\"Disabled\"},{\"name\":\"snet-sqlmi\",\"address_prefix\":\"10.20.1.128/26\",\"purpose\":\"custom\",\"nsg\":\"nsg-sqlmi\",\"route_table\":\"rt-sqlmi\",\"service_endpoints\":[],\"private_endpoint_network_policies\":\"Disabled\"}]",
+    "vnet_plan_decision": "confirmed",
+    "budget_cap_known": "true",
+    "cost_feasibility_review": "run",
+    "skip_design": "false",
+    "required_rg_tags": "none enforced by policy; Step 1 convention (APEX fallback tags; sla=best-effort, backup-policy=platform-default, maint-window=system-default) on the archetype RG and every resource it creates; vended resources never retagged",
+    "allowed_locations": "Audit, not a blocker (refreshed discovery); only blocking location rule is the tenant-root Deny on West Europe; allow-list contents not itemized or claimed; swedencentral and germanywestcentral both deployable",
+    "rg_resource_same_region": "true (project requirement backed by the live Audit assignment ALZ-lite Audit resource location matches resource group location; not a blocker)",
+    "discovery_signature": "sha256:83028bbfa145f5cac61c573c827c5e2e6f8a24cb85394c261fdfc4f6c6d3c341",
+    "design_scope": "both",
+    "diagram_tool": "python",
+    "identity_model": "user-assigned-shared",
+    "az_posture": "single-zone-mvp",
+    "public_edge_auth": "none",
+    "script_runtime_image": "not-applicable",
+    "pe_diagnostics_api": "2016-09-01 (fallback 2021-05-01-preview pre-approved)",
+    "zone_redundancy": "resolved: az_posture single-zone-mvp; ASP 1 instance zoneRedundant=false; SQL MI zoneRedundant=false; ACR/Service Bus platform zone redundancy forced by AVM and accepted",
+    "public_edge_auth_rule": "resolved: App Service public HTTPS, public_edge_auth=none, client_cert_required=false, no Easy Auth, no IP restrictions",
+    "accepted_risks": "{\"finding_id\":\"569fbf8e\",\"override_rationale\":\"id-sqlmi-directory holds only Microsoft Graph read (User.Read.All, GroupMember.Read.All, Application.Read.All); members are tenant users with default directory read, so attaching it elsewhere adds no meaningful exposure; members already hold Owner on dedicated, short-lived lab subscriptions. Owner decision 2026-10-07.\",\"step\":\"step-4\",\"requires_step\":\"step-4\"}",
+    "plan_status": "APPROVED"
+  },
+  "open_findings": [
+    "must_fix|accept|dffe7aab|ACR trusted-services bypass is not an exception to the public-access Deny|Owner-reconciled mitigation: keep publicNetworkAccess Disabled and networkRuleBypassOptions AzureServices; record the by",
+    "must_fix|accept|de18805f|Public Application Insights ingestion has no authenticated-ingestion requirement|User instructed must-fix items be fixed. Added Entra-authenticated ingestion, local auth disabled, Monitoring Metrics Pu",
+    "must_fix|accept|d78e0214|The deployer authorization needed to provision resources and assign UAMI roles is unspecified|User instructed must-fix items be fixed. Added control-plane prerequisites row and preflight capability 14; exact least-",
+    "must_fix|accept|4241eef7|Private-endpoint DNS readiness is treated as best-effort despite being required for app startup|User instructed must-fix items be fixed. Added capability 15 readiness gate (DINE verification at Step 3.5, post-deploy ",
+    "should_fix|accept|c424c36d|Three fallback tag values are deferred to a discovery step that may not supply them|sla=best-effort, backup-policy=platform-default, maint-window=system-default",
+    "should_fix|accept|95a0a270|The regional SKU manifest cannot satisfy the stated Germany West Central deployment alternative|Deploy only when discovered hub region is an approved manifest region, else block. Owner approves germanywestcentral as ",
+    "should_fix|reject|436603c6|SQL Managed Instance Azure Hybrid Benefit is selected without confirming license eligibility|Owner decision: BasePrice stays default on the stated assumption the partner holds eligible SQL Server core licences wit",
+    "should_fix|accept|117ca0af|EU telemetry residency is asserted without constraining the central workspace region|Pre-deploy check reads log-management region in rg-management (shared services); continue only if swedencentral or germa",
+    "must_fix|accept|6bd644f1|AcrPush cannot authorize ACR import|Added Container Registry Data Importer and Data Reader + preflight",
+    "should_fix|accept|fefa3874|No-Owner fallback lacks Action Group resume gate|Edit: cost monitoring inherited from LZ budget-factory-workload; read-only pre-deploy check",
+    "should_fix|accept|c39d664c|MCR egress best-effort for placeholder startup|Required; afwp-hub app-to-mcr preflight; post-deploy pull test; no fallback",
+    "must_fix|accept|d6b93f20|Placeholder image cannot serve HTTPS|samples:aspnetapp-10.0 pinned, WEBSITES_PORT=8080",
+    "must_fix|accept|d8b0dea0|MCR preflight lacks firewall-policy read access|Added afwp-hub read to deployer prerequisites; fail closed",
+    "must_fix|accept|92875fd7|Image-pull route not explicitly enabled|Added outboundVnetRouting.imagePullTraffic=true + verification",
+    "should_fix|accept|ed95ae4f|SQL MI schedule lacks window/time zone|W. Europe Standard Time Mon-Fri 07:30-18:30, params, enabled",
+    "must_fix|accept|fdd1172c|Budget preflight lacks budget-read authorization|Added budget read to deployer prerequisites; fail closed",
+    "should_fix|defer|f42fd8e0|Deferred cost-monitoring exception not in governance state|Carried to handoff for Step 3.5",
+    "BLOCKED Step 2 phase_3_cost: cost-estimate-subagent FAILED x3 (0 MCP calls) - azure-resource-manager-mcp server tools (get_retail_prices) not loaded in session; capability missing, not transient. FAILED stubs: 02-cost-estimate.json, 02-cost-estimate-sqlmi-options.json, 02-cost-estimate-shared-services.json (re-run needs overwrite:true). SKU confirmation approved and manifest rev 2 written; resume at committed pricing.",
+    "Step 2 pricing: SQL MI LicenseIncluded comparison unresolved - retail catalog (swedencentral) publishes no separate SQL licence meter for SQL MI; options worker FAILED twice (02-cost-estimate-sqlmi-options.json); retry allowance exhausted. AHB figures verified. Surface at approval gate.",
+    "Step 2 pricing recovered after crash: 02-cost-estimate.json COMPLETE 1320.95/mo; shared-services COMPLETE 6.06/mo; sqlmi-schedule COMPLETE (AHB 261h 174.61 vs 730h 488.92); manifest writeback COMPLETE. Only 02-cost-estimate-sqlmi-options.json (LicenseIncluded) FAILED twice: run 1 no licence meter in swedencentral regional response; run 2 ARM MCP server not connected after crash (0 calls).",
+    "should_fix|accept|856501fb|The private ACR image-pull path is not exercised end to end|Edit: post-deploy readiness check - import placeholder into ACR, switch web app to registry copy via UAMI AcrPull over VNet, restart, expect HTTP 200; no separate DNS check; leave app on registry copy; MCR startup test runs first",
+    "should_fix|accept|5c01d1e4|Private-endpoint diagnostics are not assigned or explicitly required|Edit: explicit diagnostic setting on each of 4 PEs, AllMetrics to log-management; no AllLogs (no PE log categories); no DINE-only path (ALZ-lite has no PE diagnostics policy); DNS policy-owned, PE diagnostics archetype-owned",
+    "Governance review pass 1 (10-Challenger): 4fe41d89 and ddfde188 accepted by owner; edits applied to 04-governance-constraints.md",
+    "Governance review pass 2 (10-Challenger): 44e9df0f accepted by owner and applied (DINE/Modify rows described as discovered, remediation unverified); tenant root MG scope replaced with Tenant Root Group in the Markdown",
+    "Governance review pass 3 (10-Challenger): 37a54ccd, cdc3bcbd, 77e9969e, ff8baa69 accepted by owner; live discovery refreshed (28 assignments, Allowed locations now Audit, new location-match Audit assignment); edits applied, pass 4 pending",
+    "Governance review pass 4 (10-Challenger): 0 must_fix, 2 should_fix open (1d29a697 Audit effects owner-confirmed not discovered; 6dec76b5 filtered Defender assignments unverified); gate status READY_FOR_PLANNING; owner disposition pending",
+    "Step 3.5 gate: pass 4 should_fix 1d29a697 and 6dec76b5 deferred to Step 4; Defender auto-assignments verified non-blocking (11 DINE policies, no Deny); location-effect evidence (az policy assignment show) pending from owner; Step 3.5 not completed",
+    "Step 3 completion (transition 3->4 on 2026-10-06) relied on script-generated design-adr findings, not a review; those files were deleted. Real pass-1 reviews: 0 must_fix, 17 should_fix, 8 suggestions across ADR-0001..0008 (challenge-findings-design-adr-000N.json). Step 3 completion and 00-handoff 'review complete' claim are invalid until the owner resolves ADR findings. Also: 04-governance-constraints.json and .preview.md contain subscription IDs (committed e97527a), contrary to the no-identifiers rule.",
+    "Step 3 reopened 2026-10-06 (skip_design=false). ADR pass-1 reviews were real: 0 must_fix, 17 should_fix, 8 suggestions; 24 accepted and applied, 06e6a398 rejected by owner (subscription_id allowed in 04-governance-constraints.json; governance preview.md deleted). Pass-2 confirmation: 0 must_fix; open should_fix 8cd52069 (ADR-0001 Reliability arrow vs unevaluated AKS) and 81c020c3 (ADR-0002 Performance arrow vs Not assessed); suggestion 3ea4e2b0 (ADR-0004 Learn quote not independently verified by the worker). ADR-0003 pass-2 review NOT completed: challenger-review-subagent failed twice (stale cache_inputs.checklists_sha, then write-boundary refusal); retry allowance exhausted, human 10-Challenger handoff required. Step 3 not complete; Step 4 not started. Supersedes the earlier entry claiming completion.",
+    "2026-10-06: applied 8cd52069 (ADR-0001 Reliability) and 81c020c3 (ADR-0002 Performance) as Not assessed. ADR-0001 and ADR-0002 pass-2 evidence is stale; ADR-0003 has no pass-2 evidence. Owner will run 10-Challenger; Step 3 not complete, Step 4 not started. Owner: subscription-ID exception covers all of 04-governance-constraints.json including resource paths. ADR-0008 keeps about 20 minutes with its Learn citation.",
+    "Step 3 pass-2 confirmation (10-Challenger, 2026-10-06): ADR-0002 APPROVED (c8b14550, 4d410452, 9f126c79, 81c020c3 closed; 06e6a398 owner-rejected). ADR-0003 APPROVED (fb748405, 0f634f1f closed) on the one retry after a worker draft recorded ADR-0002's hash. ADR-0001 NEEDS_REVISION: should_fix 3c8478ec retained (Performance still neutral arrow vs unevaluated AKS; set to Not assessed); 8cd52069 closed. 0 must_fix across all 8 ADRs. Correction returned to 04-Design; Step 3 not completed by 10-Challenger.",
+    "2026-10-06: 3c8478ec fixed, not deferred (ADR-0001 Performance set to Not assessed). Corrects the earlier note that the pass-2 reviews stay valid: ADR-0001's pass-2 file is now stale; owner will run 10-Challenger. Step 3 stays complete; Step 4 untouched.",
+    "Step 3 pass-3 confirmation (10-Challenger, 2026-10-06) on ADR-0001: APPROVED, 0 must_fix, 0 should_fix, 0 suggestions. 3c8478ec closed (Performance Not assessed); c231ee68, b243f912, 3ef9a403, 8cd52069 also confirmed closed. challenge-findings-design-adr-0001-pass3.json is current; supersedes the stale ADR-0001 pass-2 file.",
+    "should_fix|accept|23c33d49|DINE remediation prerequisites remain unverified before deployment|Edit: reduced read-only preflight of ALZ-lite DNS + diagnostics assignments (Task 12 step 9)",
+    "should_fix|accept|e48d6d77|Defender for SQL MI adds an unpriced post-deployment charge|Edit: outside archetype estimate; build-tenant Defender only; event subs CSPM-only; B09 reports in PR",
+    "should_fix|accept|e6c5e56c|Preflight does not check availability of globally unique resource names|Edit: name-availability + re-run convergence + soft-deleted KV purge hint + suffix/length checks (Task 12 steps 1, 8)",
+    "suggestion|defer|5d241bcc|Planned CodeGen outputs omit the required Azure Hybrid Benefit README guidance|carried to Step 5 handoff",
+    "should_fix|reject|57f85f8d|Deployer role-assignment rights are not constrained to the approved role set|accepted risk: member Owner on dedicated lab subscription (B08); fixed role set at resource scope",
+    "should_fix|accept|b9e56ee6|Partial single-deployment failures have no recovery behavior|Edit: failure contract + leftover virtual-cluster preflight + MI cost note",
+    "should_fix|accept|eaecc85f|Entra telemetry authentication and delivery are not verified|Edit: option (b) telemetry readiness pending app image (B06/B10); 7 settings unchanged",
+    "Step 5 bicep-validate-subagent: NEEDS_REVISION, 1 HIGH: contract lists Key Vault tenantId input but pinned AVM key-vault 0.14.2 exposes none (sets subscription().tenantId). Plan-rooted; no handoff emitted pending owner decision (accept variance or Return to Step 4). Also open: cosmetic plan-heading warnings st-container, sbns-queue, sqlmi-schedule need an edit to frozen plan/contract.",
+    "must_fix 569fbf8e (plan pass7): shared Graph-enabled id-sqlmi-directory can be attached to any resource type by member deployers (Managed Identity Operator + workload Owner); needs B08 attachment boundary or owner decision",
+    "must_fix|accept|2c0780f6|DINE preflight query omits inherited management-group assignments|"
+  ],
+  "decision_log": [
+    {
+      "decision": "review_depth=default is the system default, not a user selection",
+      "timestamp": "2026-10-05T14:40:23Z",
+      "rationale": "Corrects an earlier mis-attributed rationale; user never chose a review depth",
+      "step": "1"
+    },
+    {
+      "decision": "cost_alert_emails cleared to [] under cost_monitoring_mode=minimal",
+      "timestamp": "2026-10-05T15:08:47Z",
+      "rationale": "Owner flagged prior address as unsourced; no kit vending budget address exists in this workspace; Step 4 must ask if no human Owner exists at budget scope",
+      "step": "1"
+    },
+    {
+      "decision": "Architect-derived: Key Vault Standard; 4 private endpoints (ACR, Blob, Service Bus, Key Vault) in snet-pe with central DINE DNS; App Insights workspace-based on log-management with DisableLocalAuth=true; SQL MI schedule via native Microsoft.Sql/managedInstances/startStopSchedules@2025-01-01 named default, one scheduleList entry per weekday Mon-Fri 07:30-18:30, timeZoneId parameter",
+      "timestamp": "2026-10-06T07:00:23Z",
+      "rationale": "Owner-approved at Phase 6a 2026-10-06; native schedule avoids Automation/Logic App; stable API versions only for every resource",
+      "step": "2"
+    },
+    {
+      "decision": "Existing vended spoke used as-is; no subnet/NSG/route-table create or modify. No NSG on snet-app/snet-pe is an accepted landing-zone decision (B08: hub firewall filters egress; only SQL MI requires an NSG)",
+      "timestamp": "2026-10-06T07:00:24Z",
+      "rationale": "Owner confirmation at Phase 6b; validated live via Resource Graph 2026-10-06",
+      "step": "2"
+    },
+    {
+      "decision": "Pricing basis: SQL MI 730 h/month headline (MI link blocks schedule pre-C7); post-cutover schedule savings as separate line; report per month and per hour (/730) vs B09 brief ~1.83 USD/h, flag >10% delta. Shared-services lines (App Insights 2 GB, afw-hub Standard 5 GB processed) shown outside workload total",
+      "timestamp": "2026-10-06T07:00:24Z",
+      "rationale": "Owner usage-assumption answers at Phase 6a 2026-10-06",
+      "step": "2"
+    },
+    {
+      "decision": "No environment identifiers (subscription/tenant IDs, even truncated) in any artifact; use 'the workload subscription' and 'the shared services subscription'",
+      "timestamp": "2026-10-06T07:00:24Z",
+      "rationale": "Public repo reused by every member; owner instruction 2026-10-06",
+      "step": "2"
+    },
+    {
+      "decision": "budget_cap=1.83 USD/hour soft (B09 brief envelope; 1335.90 USD/month at 730 h). Phase 9a Case B: priced workload 1320.95 USD/month = 1.8095 USD/hour, 1.1% under brief, within the 10% owner threshold",
+      "timestamp": "2026-10-06T07:41:43Z",
+      "rationale": "Owner-supplied soft budget from Step 1; worker-verified total 02-cost-estimate.json queried 2026-10-06",
+      "step": "2"
+    },
+    {
+      "decision": "Budget gate Case B: workload 1320.95 USD/month = 1.81 USD/hour (/730) vs brief soft ~1.83 USD/hour (1.1% under, <10% delta); proceed",
+      "timestamp": "2026-10-06T08:14:33Z",
+      "rationale": "Phase 9a after COMPLETE pricing 2026-10-06; 02-cost-estimate.json",
+      "step": "2"
+    },
+    {
+      "decision": "WAF scores: Security 8 (High), Reliability 4 (High), Performance 6 (Medium), Cost 7 (Medium), Operations 7 (Medium); composite 6.4. Primary pillar Security; best-effort reliability accepted",
+      "timestamp": "2026-10-06T08:20:18Z",
+      "rationale": "02-architecture-assessment.md 2026-10-06; evidence from Learn + live spoke validation",
+      "step": "2"
+    },
+    {
+      "decision": "Step 2 approved by owner (human gate) 2026-10-06; skip Step 3 Design (As-Built covers diagrams); proceed to Step 3.5 live governance discovery against the workload subscription; pre-staged 04-governance-constraints.* for cross-check only; carry deferred cost-monitoring exception (f42fd8e0)",
+      "timestamp": "2026-10-06T08:46:16Z",
+      "rationale": "Final aggregated gate answer; architecture + cost-feasibility reviews APPROVED and hash-current (02 sha b0d49164..., 03 sha 0971f805...)",
+      "step": "2"
+    },
+    {
+      "decision": "Select Governance replacement review for completion",
+      "rationale": "Owner-authorized confirmation review (pass 4) on refreshed live discovery; supersedes earlier governance passes whose inputs changed; 0 must_fix, 2 should_fix deferred to Step 4 with evidence in the decisions log; review=challenge-findings-governance-constraints-pass4.json; pass=4; sha256=9d378cb3b5ca89b1ddf08536a45787ee0485766d499995c595b1346f638f5611",
+      "step": "3_5",
+      "timestamp": "2026-10-06T10:40:23Z"
+    },
+    {
+      "decision": "ADR-0001 Linux App Service for the web tier; AKS is a future archetype",
+      "timestamp": "2026-10-06T12:32:19Z",
+      "rationale": "Standard complexity, no AKS design or price in Steps 1-2",
+      "step": "3"
+    },
+    {
+      "decision": "ADR-0002 SQL MI General Purpose rather than Azure SQL Database for the MI-link migration",
+      "timestamp": "2026-10-06T12:32:19Z",
+      "rationale": "Capability 5; MI link from vm-app01 via hub firewall is owner-stated (B07/B08)",
+      "step": "3"
+    },
+    {
+      "decision": "ADR-0003 Premium Service Bus and ACR because private endpoints require them",
+      "timestamp": "2026-10-06T12:32:20Z",
+      "rationale": "Only compliant tiers; 51% of workload cost is Service Bus Premium",
+      "step": "3"
+    },
+    {
+      "decision": "ADR-0004 ACR trusted-services bypass (AzureServices) for az acr import",
+      "timestamp": "2026-10-06T12:32:20Z",
+      "rationale": "Registry-level persistent exception, owner-accepted, gated by post-deploy import test",
+      "step": "3"
+    },
+    {
+      "decision": "ADR-0005 Azure Hybrid Benefit on by default for SQL MI",
+      "timestamp": "2026-10-06T12:32:20Z",
+      "rationale": "488.92 vs 780.82 per month at 730 h; licence-included is the fallback",
+      "step": "3"
+    },
+    {
+      "decision": "ADR-0006 Cost monitoring inherited from vending",
+      "timestamp": "2026-10-06T12:32:20Z",
+      "rationale": "Deferred exception expires 2027-01-03; no anomaly or health alert, accepted",
+      "step": "3"
+    },
+    {
+      "decision": "ADR-0007 No zone redundancy on web app or SQL MI; region from the hub",
+      "timestamp": "2026-10-06T12:32:20Z",
+      "rationale": "Training/demo, best-effort; redeploy from IaC",
+      "step": "3"
+    },
+    {
+      "decision": "ADR-0008 Native SQL MI start/stop schedule",
+      "timestamp": "2026-10-06T12:32:20Z",
+      "rationale": "Only after C7; MI link and zone redundancy block stop (Learn)",
+      "step": "3"
+    },
+    {
+      "decision": "Subscription-ID exception covers all of 04-governance-constraints.json including resource paths",
+      "timestamp": "2026-10-06T12:37:18Z",
+      "rationale": "Owner instruction 2026-10-06; supersedes the narrower subscription_id-only reading",
+      "step": "3"
+    },
+    {
+      "decision": "Step 3 Design approved by owner; 0 must_fix across all 8 ADRs (current pass-2 reviews). 3c8478ec (ADR-0001 Performance arrow) deferred: AKS performance comparison out of scope; AKS is an unevaluated future archetype",
+      "timestamp": "2026-10-06T13:17:10Z",
+      "rationale": "Owner approval 2026-10-06; no ADR edit after pass-2 so reviews stay valid",
+      "step": "3"
+    },
+    {
+      "decision": "ADR-0001 Performance impact set to Not assessed; 3c8478ec accepted (owner changed defer to fix)",
+      "timestamp": "2026-10-06T13:22:31Z",
+      "rationale": "Owner change 2026-10-06. Supersedes the deferral entry. ADR-0001 pass-2 review is stale against the edited ADR and needs a fresh 10-Challenger review; Step 3 stays complete",
+      "step": "3"
+    },
+    {
+      "decision": "Phase 2 AVM: AVM for UAMI 0.6.0, serverfarm 0.7.0, site 0.24.0, storage 0.33.1, service-bus 0.17.1, key-vault 0.14.2, insights/component 0.8.0, private-endpoint 0.12.1, resource-group 0.4.4 (all latest MCR, deployed resources on stable APIs). Raw Bicep: ACR (AVM 0.13.1 deploys registries@2025-06-01-preview; raw uses 2025-11-01), SQL MI (AVM 0.5.1 lacks databaseFormat; raw uses 2025-01-01), startStopSchedules@2025-01-01, PE diagnostic settings (no AVM; only named-setting API is 2021-05-01-preview)",
+      "timestamp": "2026-10-06T13:54:28Z",
+      "rationale": "MCR tags/list + compiled main.json inspection 2026-10-06; stable-API owner condition",
+      "step": "4"
+    },
+    {
+      "decision": "Identity model (owner, Phase 3.5): UAMI id-university-<suffix> on the web app only (AcrPull, Storage Blob Data Contributor, SB Data Sender+Receiver, KV Secrets User, Monitoring Metrics Publisher on App Insights), ACR pull identity, AZURE_CLIENT_ID=client ID, no system-assigned on the web app. SQL MI keeps system-assigned identity, Entra admin = deploying user, Entra-only, no Directory Readers/Graph grant; contained DB user after C7 (B10). No other managed identities, no CMK, local auth off. Deployer: AcrPush, Container Registry Data Importer and Data Reader, Storage Blob Data Contributor, SB Data Sender+Receiver, KV Secrets Officer. No service principals, secrets, keyed connection strings or access keys",
+      "timestamp": "2026-10-06T14:07:00Z",
+      "rationale": "Owner answer 2026-10-06",
+      "step": "4"
+    },
+    {
+      "decision": "AZ posture (owner): ASP zoneRedundant=false, skuCapacity=1; SQL MI zoneRedundant=false (also required by startStopSchedules); Storage Standard_LRS; ACR raw sets no zones/zoneRedundancy; KV, PEs, App Insights not zonal. AVM forced/default values recorded: avm/res/service-bus/namespace 0.17.1 always emits properties.zoneRedundant (default true; the module cannot omit it) - left at true, matching the accepted platform-automatic zone redundancy in swedencentral; avm/res/web/serverfarm 0.7.0 defaults zoneRedundant=true and skuCapacity=3 for P SKUs - overridden to false/1; avm/res/storage/storage-account 0.33.1 defaults skuName Standard_GRS - overridden to Standard_LRS; service-bus AVM defaults publicNetworkAccess Enabled when no PE/networkRuleSets are passed - set Disabled explicitly. CodeGen what-if must show no other zone or GRS property",
+      "timestamp": "2026-10-06T14:26:34Z",
+      "rationale": "Owner answer 2026-10-06 + compiled AVM main.json inspection",
+      "step": "4"
+    },
+    {
+      "decision": "Owner answers 2026-10-06: (3) PE diagnostics use stable Microsoft.Insights/diagnosticSettings@2016-09-01 (workspaceId + metrics); every newer version is preview. (4) App settings use '__' (Storage__BlobServiceUri, Storage__ContainerName, ServiceBus__FullyQualifiedNamespace, ServiceBus__QueueName, KeyVault__VaultUri); APPLICATIONINSIGHTS_CONNECTION_STRING and AZURE_CLIENT_ID unchanged; .NET maps '__' to ':' so app keys are unchanged (Learn configure-common). (5) Stable-API rule applies only to resources the archetype declares itself; API versions inside exact-pinned AVM modules are accepted and the plan lists every preview API they bring in for B09 versions.md",
+      "timestamp": "2026-10-06T14:30:27Z",
+      "rationale": "Owner answers to Phase 3.5 open questions",
+      "step": "4"
+    },
+    {
+      "decision": "Owner 2026-10-06: (1) ACR via AVM container-registry/registry 0.13.1; forced zoneRedundancy 'Enabled' accepted and recorded; retentionPolicyStatus 'disabled' explicit; SQL MI and startStopSchedules stay raw. (2) PE diagnostics: diagnosticSettings@2016-09-01 name 'service', location = PE region, metrics timeGrain PT1M; pre-approved fallback if validate/what-if rejects on privateEndpoints: 2021-05-01-preview with AllMetrics, recorded, no stop. (3) Web app hardening as listed (httpsOnly, minTls/scmMinTls 1.2, ftps Disabled, http20, alwaysOn, health /, basic publishing creds off ftp+scm, clientCertEnabled false, no Easy Auth, remote debugging off, public network access on) plus no IP restrictions. Hooks: preprovision/postprovision PowerShell 7 (shell: pwsh), cross-platform, az CLI only, standalone .ps1 reusable by archetype/deploy.ps1; must run on vm-dev01, dev container and Cloud Shell. (4) Requirement 11 '__' encoding agreed",
+      "timestamp": "2026-10-06T14:36:48Z",
+      "rationale": "Owner answers 2026-10-06",
+      "step": "4"
+    },
+    {
+      "decision": "Phase 2.5 re-run: zone_redundancy and public_edge_auth resolved by the Phase 3.5 answers; deployment_script not triggered (no deploymentScripts); rbac_phase_ordering, phased_param_wiring, phase_monotonicity not triggered (single deployment)",
+      "timestamp": "2026-10-06T14:41:31Z",
+      "rationale": "plan-consistency-checks.md",
+      "step": "4"
+    },
+    {
+      "decision": "Owner 2026-10-06: identifier exception extended to 04-policy-property-map.json (full tenant-root policy IDs, required by validate:policy-property-map); Markdown artifacts stay ID-free",
+      "timestamp": "2026-10-06T14:55:14Z",
+      "rationale": "Owner answer; mandatory L1m validator matches exact policy IDs",
+      "step": "4"
+    },
+    {
+      "decision": "ecc6642f accepted (owner 2026-10-07): preflight step 6 checks afwp-hub app-to-mcr, app-to-azure-monitor and app-to-entra-id (source snet-app, port 443), fails closed 'rerun vending (B08)'; live evidence 2026-10-07 recorded; contract cap-18-telemetry-egress (owner B08) added as entra-telemetry dependency; telemetry pending B06/B10; local auth off. Plan sha256 4a67a8d8...; all Step 4 validators exit 0",
+      "timestamp": "2026-10-07T06:59:48Z",
+      "rationale": "Stage 2 should_fix decision; one confirmation review authorized",
+      "step": "4"
+    },
+    {
+      "decision": "Select Plan replacement review for completion",
+      "rationale": "Owner-authorized single confirmation review (2026-10-07) limited to the ecc6642f change; pass 5 comprehensive, 0 findings; owner approved the Step 4 gate in chat 2026-10-07; review=challenge-findings-plan-pass5.json; pass=5; sha256=e223eb09d8687b4ccda066cb2385c1361908e304ffce49abd7ec42d683e196ca",
+      "step": "4",
+      "timestamp": "2026-10-07T07:05:27Z"
+    },
+    {
+      "decision": "Step 5 implementation choices: (1) PE diagnostics kept on diagnosticSettings@2016-09-01; validate and what-if accepted it, fallback 2021-05-01-preview not used. (2) Preflight step 9 reads inherited policy assignments via ARM atScope() filter because az policy assignment list omits MG-scope ALZ-lite assignments. (3) Public web app isolated in modules/web-app.bicep so validate:iac-security-baseline --public-web-app can scope the reviewed exception. (4) Key Vault tenantId not wired: pinned AVM 0.14.2 has no such param and sets tenant to subscription().tenantId.",
+      "timestamp": "2026-10-07T08:06:54Z",
+      "rationale": "Code-level adaptations within plan scope; (4) is a frozen-contract wording variance awaiting owner disposition",
+      "step": "5"
+    },
+    {
+      "decision": "Owner-approved variance (2026-10-07): Key Vault tenantId contract input is not wired. AVM key-vault 0.14.2 has no tenantId parameter and derives it from subscription().tenantId, which equals the deployment tenant; the tenantId input stays for the SQL MI Entra admin and the preflight signed-in-tenant check. Plan-heading warnings st-container, sbns-queue, sqlmi-schedule left as cosmetic; frozen plan and contract unchanged.",
+      "timestamp": "2026-10-07T08:10:21Z",
+      "rationale": "Owner answer to Step 5 questions; avoids editing the frozen plan hash",
+      "step": "5"
+    },
+    {
+      "decision": "ACR azureADAuthenticationAsArmPolicyStatus set to enabled; post-deploy check via az acr config authentication-as-arm show",
+      "timestamp": "2026-10-07T11:05:41Z",
+      "rationale": "Owner-approved revision 2026-10-07: Learn requires ARM audience tokens for MI pull; live ACRTokenRetrievalFailure until enabled; 42781ec6 is non-Deny (Audit expected)",
+      "step": "4"
+    },
+    {
+      "decision": "Defer 92079f7c: id-sqlmi-directory lifecycle is a B08 dependency (ALZ-lite creates it, only teardown removes it; recovery = re-run ALZ-lite, the grant script and vending); recorded in 00-handoff.md, no plan change",
+      "timestamp": "2026-10-07T12:24:05Z",
+      "rationale": "Owner decision 2026-10-07",
+      "step": "4"
+    },
+    {
+      "decision": "Select Plan replacement review for completion",
+      "rationale": "Confirmation review after ACR, SQL MI identity and atScope revisions; reviewer supports pass 1-3 only; review=challenge-findings-plan-pass3.json; pass=3; sha256=a4bf264eff8c07072bf8c8fff5fac11d00084830c5a7e2535b308de226a3a2ea",
+      "step": "4",
+      "timestamp": "2026-10-07T13:20:43Z"
+    }
+  ],
+  "review_audit": {
+    "step_1": {
+      "complexity": "",
+      "passes_planned": 0,
+      "passes_executed": 0,
+      "skipped": [],
+      "skip_reasons": [],
+      "models_used": []
+    },
+    "step_2": {
+      "complexity": "standard",
+      "passes_planned": 2,
+      "passes_executed": 4,
+      "skipped": [],
+      "skip_reasons": [],
+      "models_used": [
+        "GPT-6 Luna (copilot)"
+      ]
+    },
+    "step_3_5": {
+      "complexity": "",
+      "passes_planned": 0,
+      "passes_executed": 4,
+      "skipped": [],
+      "skip_reasons": [],
+      "models_used": []
+    },
+    "step_4": {
+      "complexity": "",
+      "passes_planned": 0,
+      "passes_executed": 0,
+      "skipped": [],
+      "skip_reasons": [],
+      "models_used": []
+    },
+    "step_5": {
+      "complexity": "",
+      "passes_planned": 0,
+      "passes_executed": 0,
+      "skipped": [],
+      "skip_reasons": [],
+      "models_used": []
+    },
+    "step_6": {
+      "complexity": "",
+      "passes_planned": 0,
+      "passes_executed": 0,
+      "skipped": [],
+      "skip_reasons": [],
+      "models_used": []
+    }
+  },
+  "steps": {
+    "1": {
+      "name": "Requirements",
+      "agent": "02-Requirements",
+      "status": "complete",
+      "sub_step": null,
+      "started": "2026-10-05T14:30:36Z",
+      "completed": "2026-10-05T15:51:45Z",
+      "artifacts": [
+        "agent-output/university/challenge-findings-requirements.json"
+      ],
+      "context_files_used": []
+    },
+    "2": {
+      "name": "Architecture",
+      "agent": "03-Architect",
+      "status": "complete",
+      "sub_step": null,
+      "started": null,
+      "completed": "2026-10-06T08:46:16Z",
+      "artifacts": [],
+      "context_files_used": []
+    },
+    "3": {
+      "name": "Design",
+      "agent": "04-Design",
+      "status": "complete",
+      "sub_step": null,
+      "started": "2026-10-06T12:04:58Z",
+      "completed": "2026-10-06T13:17:10Z",
+      "artifacts": [],
+      "context_files_used": []
+    },
+    "3_5": {
+      "name": "Governance",
+      "agent": "04g-Governance",
+      "status": "complete",
+      "sub_step": "phase_3_gate",
+      "started": "2026-10-06T08:46:16Z",
+      "completed": "2026-10-06T10:40:23Z",
+      "artifacts": [],
+      "context_files_used": []
+    },
+    "4": {
+      "name": "IaC Plan",
+      "agent": "",
+      "status": "complete",
+      "sub_step": null,
+      "started": "2026-10-07T11:00:34Z",
+      "completed": "2026-10-07T13:20:43Z",
+      "artifacts": [],
+      "context_files_used": []
+    },
+    "5": {
+      "name": "IaC Code",
+      "agent": "",
+      "status": "complete",
+      "sub_step": null,
+      "started": "2026-10-07T13:24:20Z",
+      "completed": "2026-10-07T13:41:59Z",
+      "artifacts": [],
+      "context_files_used": []
+    },
+    "6": {
+      "name": "Deploy",
+      "agent": "",
+      "status": "pending",
+      "sub_step": null,
+      "started": null,
+      "completed": null,
+      "artifacts": [],
+      "context_files_used": []
+    },
+    "7": {
+      "name": "As-Built",
+      "agent": "08-As-Built",
+      "status": "pending",
+      "sub_step": null,
+      "started": null,
+      "completed": null,
+      "artifacts": [],
+      "context_files_used": []
+    }
+  },
+  "review_selections": {
+    "3_5": {
+      "schema_version": "review-selection-v1",
+      "path": "agent-output/university/challenge-findings-governance-constraints-pass4.json",
+      "sha256": "9d378cb3b5ca89b1ddf08536a45787ee0485766d499995c595b1346f638f5611",
+      "pass_number": 4,
+      "review_focus": "governance-reconciliation",
+      "input_coverage": "primary-and-review-guidance",
+      "selected_at": "2026-10-06T10:40:23Z"
+    },
+    "4": {
+      "schema_version": "review-selection-v1",
+      "path": "agent-output/university/challenge-findings-plan-pass3.json",
+      "sha256": "a4bf264eff8c07072bf8c8fff5fac11d00084830c5a7e2535b308de226a3a2ea",
+      "pass_number": 3,
+      "review_focus": "comprehensive",
+      "input_coverage": "primary-and-review-guidance",
+      "selected_at": "2026-10-07T13:20:43Z"
+    }
+  },
+  "review_attempts": [
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p1-20261006a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "2358de7af242db59e528ee56e545b7e1c993d384f6aac9938de21d5452a9f67b",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-06T14:55:44Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p1-20261006a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "2358de7af242db59e528ee56e545b7e1c993d384f6aac9938de21d5452a9f67b",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-06T15:08:12Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p2-20261006a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "b164c0726ef94d0c0dcb666d975cc3eaaf50968024f0f4a70a86bad73d54fcd7",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-06T15:14:54Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p2-20261006a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "b164c0726ef94d0c0dcb666d975cc3eaaf50968024f0f4a70a86bad73d54fcd7",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-06T15:22:33Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p3-20261006a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e0fb812e451057e071fbae81b42713f8f07268ec8d3915a669c4c5a2b2759063",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-06T15:33:17Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p3-20261006a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e0fb812e451057e071fbae81b42713f8f07268ec8d3915a669c4c5a2b2759063",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-06T15:42:42Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p4-20261006a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "1a44bf4e4789570b1074e343f4bf70cecf859c7696fd23bed1b657b1a506e88c",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-06T15:45:53Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p4-20261006a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "1a44bf4e4789570b1074e343f4bf70cecf859c7696fd23bed1b657b1a506e88c",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-06T15:55:46Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p5-20261007a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "5fb316ab84f5a6468e1825cb05c63a501003ba09c3e0e074845e23d99d35d181",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T07:00:24Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-p5-20261007a",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "5fb316ab84f5a6468e1825cb05c63a501003ba09c3e0e074845e23d99d35d181",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T07:03:06Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-arm-audience-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "c602ca6c88629b02818899575a57a56943ce6e5a3c23f33d900c72d7e18efb30",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T11:14:47Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-arm-audience-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "c602ca6c88629b02818899575a57a56943ce6e5a3c23f33d900c72d7e18efb30",
+      "outcome": "failed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T11:14:47Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-arm-audience-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "c602ca6c88629b02818899575a57a56943ce6e5a3c23f33d900c72d7e18efb30",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T11:14:47Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-arm-audience-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "c602ca6c88629b02818899575a57a56943ce6e5a3c23f33d900c72d7e18efb30",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T11:14:48Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-sqlmi-identity-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "eb12590fb6ae4b1b9935fb08f01de74dc67c596b10c2001786f2d79461b6f7ef",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T12:03:31Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-sqlmi-identity-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "eb12590fb6ae4b1b9935fb08f01de74dc67c596b10c2001786f2d79461b6f7ef",
+      "outcome": "failed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T12:10:05Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-sqlmi-identity-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "eb12590fb6ae4b1b9935fb08f01de74dc67c596b10c2001786f2d79461b6f7ef",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T12:10:05Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "plan-sqlmi-identity-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "eb12590fb6ae4b1b9935fb08f01de74dc67c596b10c2001786f2d79461b6f7ef",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-07T12:16:27Z"
+    }
+  ]
+}

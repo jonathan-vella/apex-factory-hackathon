@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/03-des-adr-0006-inherited-cost-monitoring-from-vending.md",
+  "artifact_type": "design-adr",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The decision aligns with the requirements and reconciled governance exception: dev/deferred, vending-owned budget monitoring, and no workload budget or Action Group. The ADR nevertheless implies anomaly and health alert coverage that the architecture explicitly excludes and omits the exception expiry/review triggers; its WAF arrow meaning and quote provenance also need clarification.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 2 should_fix | Key: No evidenced anomaly/health coverage; deferred exception expiry omitted; WAF notation and quote need clarification.",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 2,
+  "suggestion_count": 2,
+  "findings": [
+    {
+      "id": "c238ab53",
+      "severity": "should_fix",
+      "category": "waf_blind_spot",
+      "claim": "Inherited monitoring is described as covering anomalies and health without evidence.",
+      "evidence": "The WAF Pillar Analysis says the inherited baseline remains the governing comfort level for cost anomalies and related health tracks. The architecture assessment instead specifies an 80% email alert on the vending budget, explicitly says no subscription-scoped daily anomaly alert is created, and notes there are no operational alerts beyond the inherited budget. Requirements also state that uptime monitoring is not required. The supplied evidence supports threshold-budget notification, not cost-anomaly detection or health alerting.",
+      "impact": "Reviewers may mistake the inherited 80% budget notification for anomaly and health coverage, leaving the absence of daily anomaly or health alerts unacknowledged.",
+      "artifact_section": "WAF Pillar Analysis",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0006-inherited-cost-monitoring-from-vending.md",
+        "proposed_edit": "Replace the Reliability note with a precise description of the inherited 80% budget email notification, and state that this deferred mode has no anomaly alert or health-action notification; record those gaps as accepted rather than implying they are covered."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "WAF Pillar Analysis -> Reliability row"
+      ]
+    },
+    {
+      "id": "6b4d0d95",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "The ADR omits the deferred exception's expiry and early-review triggers.",
+      "evidence": "Requirements, the architecture assessment, the governance constraints, and the recorded project decision tie deferred cost monitoring to an exception expiring on 2027-01-03, with earlier review if the B08 vending budget changes or an event date is set. The ADR only refers generally to a later governance change or owner decision and does not preserve the concrete expiry or triggers.",
+      "impact": "The no-local-alerting decision can be read as indefinite, so a later plan may continue deferred mode after its recorded exception expires or the vending budget changes without refreshing the required governance exception.",
+      "artifact_section": "Decision; Compliance Considerations; Implementation Notes",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0006-inherited-cost-monitoring-from-vending.md",
+        "proposed_edit": "Constrain the decision to the current dev exception and state that it expires on 2027-01-03, with earlier review if the B08 vending budget changes or an event date is set; require the governance exception to be refreshed before continuing deferred mode."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Decision",
+        "Compliance Considerations",
+        "Implementation Notes"
+      ]
+    },
+    {
+      "id": "751c03ba",
+      "severity": "suggestion",
+      "category": "waf_blind_spot",
+      "claim": "The WAF arrows are ambiguous between spend and optimization impact.",
+      "evidence": "The Alternatives Considered table rates inherited monitoring as Cost up and dedicated alerting as Cost down, while the accompanying prose says inheritance avoids duplicate monitoring spend and dedicated alerting creates extra resources. No legend says whether arrows denote actual spend or the quality of the Cost Optimization pillar; the Operations arrows are similarly unlabeled.",
+      "impact": "Readers can interpret the table as saying the selected option raises spend and dedicated alerting lowers it, obscuring the trade-off the narrative intends to describe.",
+      "artifact_section": "Alternatives Considered",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0006-inherited-cost-monitoring-from-vending.md",
+        "proposed_edit": "Define the arrows as relative WAF quality impacts and label the pillar Cost Optimization, or use explicit spend/effort wording instead; ensure every option's cost and operations direction follows the stated rationale."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Alternatives Considered table -> WAF Impact cells for all options"
+      ]
+    },
+    {
+      "id": "2b56b118",
+      "severity": "suggestion",
+      "category": "untested_assumption",
+      "claim": "The Context callout presents a paraphrase as a direct quotation.",
+      "evidence": "The callout quotes 'Cost monitoring inherited from vending.' The declared supporting artifacts describe monitoring as inherited from the landing zone and identify vending as the owner of the subscription budget, but none contains that exact quoted sentence. The substance is supported, but the quotation marks imply verbatim source text.",
+      "impact": "A reader may attribute the callout as a direct statement from the architecture or requirements artifact when it is a summary written for this ADR.",
+      "artifact_section": "Context",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0006-inherited-cost-monitoring-from-vending.md",
+        "proposed_edit": "Remove the quotation marks and state this as an attributed paraphrase, or replace it with an exact quotation and link to its source section."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Context callout"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "0a6480c38763c295d593c040dec12b60993ac4ed5cf50b72b45f944823d2b0f8",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "bca60ba604c9e3c3aaedc3fe70b8ccee20c7e327596d957e38c530b0d846a810"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/01-requirements.md",
+      "sha256": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    }
+  ]
+}

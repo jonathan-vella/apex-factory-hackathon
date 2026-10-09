@@ -1,0 +1,16 @@
+name: university
+metadata:
+  template: university@1.0.0
+infra:
+  provider: bicep
+  path: .
+  module: main
+hooks:
+  preprovision:
+    shell: pwsh
+    run: ./scripts/hooks/preprovision.ps1
+    continueOnError: false
+  postprovision:
+    shell: pwsh
+    run: ./scripts/hooks/postprovision.ps1
+    continueOnError: false

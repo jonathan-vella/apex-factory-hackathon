@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-governance-constraints.md",
+  "artifact_type": "governance-constraints",
+  "review_focus": "governance-reconciliation",
+  "pass_number": 1,
+  "challenge_summary": "The governance Markdown does not reconcile its discovered Deny policies with the supplied approved Step 2 architecture, and it publishes subscription identifiers outside the owner-permitted JSON artifact. The selected region and deferred cost-monitoring exception are preserved.",
+  "compact_for_parent": "Pass 1 (governance-reconciliation) | MEDIUM | 0 must_fix, 2 should_fix | Key: none",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 2,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "4fe41d89",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "The approved architecture is not reconciled against discovered policy blockers",
+      "evidence": "The governance note says no architecture assessment was provided, and every row in Architectural Changes uses 'No architecture target' with a generic 'Review at Step 4 IaC Planning' disposition. The supplied approved Step 2 assessment defines the workload resources, region, identity model, and network posture. This artifact therefore does not distinguish policies that are not applicable to the design from constraints that already align with it or require an explicit conflict resolution.",
+      "impact": "Step 4 must rediscover applicability and may carry an actual Deny conflict forward without a recorded disposition, creating avoidable rework or a policy-denied deployment if a relevant constraint is not closed before implementation.",
+      "artifact_section": "Plan Adaptations Based on Policies > Architectural Changes",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [114, 206],
+        "proposed_edit": "Replace the 'No architecture assessment provided' note. Reconcile every Deny row with the approved Step 2 resource types, region, identity, and network choices; mark unused resource types not applicable, record the compliant approved choice for applicable constraints, and identify any actual conflict and its authorized resolution. Leave implementation details to Step 4."
+      },
+      "traces_to": [],
+      "requires_step": "step-3_5",
+      "verification_anchors": [
+        "Discovery Source note: 'No architecture assessment provided' (line 114)",
+        "Plan Adaptations Based on Policies > Architectural Changes: all 18 rows (lines 189-206)",
+        "Supporting approved baseline: agent-output/university/02-architecture-assessment.md > Executive Summary, Recommended Architecture, and Security Assessment"
+      ]
+    },
+    {
+      "id": "ddfde188",
+      "severity": "should_fix",
+      "category": "scope_risk",
+      "claim": "The Markdown exposes subscription IDs outside the permitted JSON artifact",
+      "evidence": "The Discovery Source prints the workload subscription UUID. Four private-DNS DeployIfNotExists required-value resource IDs also contain the shared-services subscription UUID. Owner-stated handling permits the subscription_id in 04-governance-constraints.json but requires subscription and tenant identifiers to remain out of other artifacts; the governance Markdown violates that boundary. The identifiers are not repeated in this findings sidecar.",
+      "impact": "A copied or forwarded governance Markdown file exposes exact workload and shared-services subscription identifiers and their central DNS relationship, contrary to the owner's identifier-handling requirement.",
+      "artifact_section": "Discovery Source; Policy Definition Analysis",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-governance-constraints.md",
+        "line_range": [38, 109],
+        "proposed_edit": "Replace the workload UUID with its approved non-ID alias or omit it. Replace the four full private-DNS ARM IDs with non-ID references to the shared-services subscription and zone names, or redact their subscription path components."
+      },
+      "traces_to": [],
+      "requires_step": "step-3_5",
+      "verification_anchors": [
+        "Discovery Source > Subscription field (line 38)",
+        "Policy Definition Analysis > ACR private DNS zone required value (line 100)",
+        "Policy Definition Analysis > Blob private DNS zone required value (line 101)",
+        "Policy Definition Analysis > Key Vault private DNS zone required value (line 107)",
+        "Policy Definition Analysis > Service Bus private DNS zone required value (line 109)"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "54e2347f27a599fe4ecd2b615161909f13c9d6b7ce34af25b7e56c91bb91e684",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "a3cbb53e7ca4e05e8cf0073c3b91706e836c876a5de67852ff6edcf17a0b620e"
+  }
+}

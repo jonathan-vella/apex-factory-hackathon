@@ -1,0 +1,146 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "artifact": "01-requirements.md",
+  "pass": 1,
+  "source": "challenge-findings-requirements.json",
+  "recorded_at": "2026-10-05T16:45:00Z",
+  "decisions": [
+    {
+      "issue_id": "dffe7aab",
+      "severity": "must_fix",
+      "title": "ACR trusted-services bypass is not an exception to the public-access Deny",
+      "waf_pillar": "Security",
+      "action": "accept",
+      "note": "Owner-reconciled mitigation: keep publicNetworkAccess Disabled and networkRuleBypassOptions AzureServices; record the bypass as a named network-rule exception (not a public endpoint) justified by az acr import; public exceptions reduced to two; carry import as a requirement with a post-deployment test, not verified."
+    },
+    {
+      "issue_id": "de18805f",
+      "severity": "must_fix",
+      "title": "Public Application Insights ingestion has no authenticated-ingestion requirement",
+      "waf_pillar": "Security",
+      "action": "accept",
+      "note": "User instructed must-fix items be fixed. Added Entra-authenticated ingestion, local auth disabled, Monitoring Metrics Publisher for the UAMI; connection string documented as endpoint metadata. App-side support recorded as a B06/B10 dependency."
+    },
+    {
+      "issue_id": "d78e0214",
+      "severity": "must_fix",
+      "title": "The deployer authorization needed to provision resources and assign UAMI roles is unspecified",
+      "waf_pillar": "Security",
+      "action": "accept",
+      "note": "User instructed must-fix items be fixed. Added control-plane prerequisites row and preflight capability 14; exact least-privileged role set confirmed at Step 4."
+    },
+    {
+      "issue_id": "4241eef7",
+      "severity": "must_fix",
+      "title": "Private-endpoint DNS readiness is treated as best-effort despite being required for app startup",
+      "waf_pillar": "Reliability",
+      "action": "accept",
+      "note": "User instructed must-fix items be fixed. Added capability 15 readiness gate (DINE verification at Step 3.5, post-deploy resolution checks from snet-app); integration SLA changed to required/gated."
+    },
+    {
+      "issue_id": "c424c36d",
+      "severity": "should_fix",
+      "title": "Three fallback tag values are deferred to a discovery step that may not supply them",
+      "waf_pillar": "Operational Excellence",
+      "action": "accept",
+      "note": "sla=best-effort, backup-policy=platform-default, maint-window=system-default"
+    },
+    {
+      "issue_id": "95a0a270",
+      "severity": "should_fix",
+      "title": "The regional SKU manifest cannot satisfy the stated Germany West Central deployment alternative",
+      "waf_pillar": "Reliability",
+      "action": "accept",
+      "note": "Deploy only when discovered hub region is an approved manifest region, else block. Owner approves germanywestcentral as second approved region for every service with same SKUs, after availability/pricing check at Step 2. Primary stays swedencentral; other regions need a new manifest revision."
+    },
+    {
+      "issue_id": "436603c6",
+      "severity": "should_fix",
+      "title": "SQL Managed Instance Azure Hybrid Benefit is selected without confirming license eligibility",
+      "waf_pillar": "Cost Optimization",
+      "action": "reject",
+      "note": "Owner decision: BasePrice stays default on the stated assumption the partner holds eligible SQL Server core licences with SA. Document assumption and LicenseIncluded switch; Step 2 shows SQL MI cost with AHB and licence-included; budget on AHB price."
+    },
+    {
+      "issue_id": "117ca0af",
+      "severity": "should_fix",
+      "title": "EU telemetry residency is asserted without constraining the central workspace region",
+      "waf_pillar": "Security",
+      "action": "accept",
+      "note": "Pre-deploy check reads log-management region in rg-management (shared services); continue only if swedencentral or germanywestcentral; otherwise stop and ask; never create a replacement workspace."
+    },
+    {
+      "issue_id": "6bd644f1",
+      "severity": "must_fix",
+      "title": "The listed AcrPush role cannot authorize the required ACR import",
+      "waf_pillar": "Security",
+      "action": "accept",
+      "note": "User instructed must-fix items be fixed. Added Container Registry Data Importer and Data Reader to deploying member and to capability 14 preflight."
+    },
+    {
+      "issue_id": "fefa3874",
+      "severity": "should_fix",
+      "title": "No-Owner fallback lacks an Action Group resume gate",
+      "waf_pillar": "Operational Excellence",
+      "action": "accept",
+      "note": "Edit: cost monitoring inherited from landing zone (B08 budget-factory-workload, 80% e-mail alert); archetype creates no budget/Action Group and no deploy inputs; replace Owner gate with read-only pre-deploy check that the budget exists with >=1 contact e-mail, else stop and tell user to run vending; cost_monitoring_mode=deferred with exception expiry 2027-01-03; cost_alert_emails empty."
+    },
+    {
+      "issue_id": "c39d664c",
+      "severity": "should_fix",
+      "title": "MCR egress is best-effort for required placeholder startup",
+      "waf_pillar": "Reliability",
+      "action": "accept",
+      "note": "MCR only approved source, no fallback; egress required for initial deployment; read-only preflight for afwp-hub rcg-member-<n> app rule app-to-mcr (snet-app -> mcr.microsoft.com, *.data.mcr.microsoft.com, HTTPS 443; B08), stop and rerun vending if missing; post-deploy pull + HTTPS test."
+    },
+    {
+      "issue_id": "d6b93f20",
+      "severity": "must_fix",
+      "title": "The placeholder runtime image cannot serve the required HTTPS response",
+      "waf_pillar": "Reliability",
+      "action": "accept",
+      "note": "Edit: placeholder mcr.microsoft.com/dotnet/samples:aspnetapp-10.0 (pinned, port 8080), WEBSITES_PORT=8080 matching contoso-university (B06); keep post-deploy HTTP 200 on public HTTPS test."
+    },
+    {
+      "issue_id": "d8b0dea0",
+      "severity": "must_fix",
+      "title": "The MCR firewall preflight omits required firewall-policy read access",
+      "waf_pillar": "Reliability",
+      "action": "accept",
+      "note": "User instructed must-fix items be fixed. Added read access to afwp-hub policy and rule collection groups to deployer control-plane prerequisites and capability 14 preflight; lookup errors fail closed."
+    },
+    {
+      "issue_id": "92875fd7",
+      "severity": "must_fix",
+      "title": "The image-pull route is not explicitly enabled or verifiable",
+      "waf_pillar": "Security",
+      "action": "accept",
+      "note": "User instructed must-fix items be fixed. Capability 3 now requires outboundVnetRouting.imagePullTraffic=true (formerly vnetImagePullEnabled) alongside route-all, with post-deploy verification of effective settings."
+    },
+    {
+      "issue_id": "ed95ae4f",
+      "severity": "should_fix",
+      "title": "The SQL MI schedule has no defined event window or time zone",
+      "waf_pillar": "Operational Excellence",
+      "action": "accept",
+      "note": "W. Europe Standard Time; start Mon-Fri 07:30, stop Mon-Fri 18:30; Bicep parameters with these defaults (facilitator-adjustable, not member inputs); deployed enabled; document MI-link limitation and start-before-checks."
+    },
+    {
+      "issue_id": "fdd1172c",
+      "severity": "must_fix",
+      "title": "Budget preflight lacks deployer budget-read authorization",
+      "waf_pillar": "Security",
+      "action": "accept",
+      "note": "User instructed must-fix items be fixed. Added budget read access to deployer control-plane prerequisites and capability 17 / 14 preflight; fail closed."
+    },
+    {
+      "issue_id": "f42fd8e0",
+      "severity": "should_fix",
+      "title": "Deferred cost-monitoring exception is not handed off to governance state",
+      "waf_pillar": "Operational Excellence",
+      "action": "defer",
+      "note": "Carried to 00-handoff.md as explicit Step 3.5 item: persist cost_monitoring_mode=deferred + exception (rationale, expiry 2027-01-03) in 04-governance-constraints.json; if live governance disallows deferral, stop for owner reconciliation."
+    }
+  ]
+}

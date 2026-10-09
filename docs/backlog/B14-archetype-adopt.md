@@ -6,7 +6,7 @@
 | Milestone | P3 Build |
 | Type | Both |
 | Depends on | B09 |
-| Unblocks | — (not needed for v1; the hackathon keeps B09's `deploy-archetype` prompt) |
+| Unblocks | — (not needed for v1; the hackathon uses B09's `adapt-archetype` prompt and `azd`) |
 | Effort | 4–6 days elapsed, including the owner's test sessions |
 | Cost | About $4.63/hour while the foundation and archetype are deployed, the same as B09 |
 | Teardown | Delete everything this item created: the archetype resources, the test policy assignment, the foundation if this item deployed it (B09's Teardown row), and the test repo |
@@ -16,7 +16,7 @@
 
 - The CoE repo, [`jonathan-vella/apex-factory-coe`](https://github.com/jonathan-vella/apex-factory-coe), has a recipe catalogue. Its first recipe is the `university` project that B09 built.
 - An adoption agent pulls a recipe into a user's own APEX repo and asks questions to fit it to the user's Azure environment, policy, workload and SKUs. It routes every change through APEX's own step owners, so that reviews and approvals stay valid.
-- If the user changes only environment values, they deploy with APEX Deploy (step 6) without re-running any step.
+- If the user changes only environment values, they deploy with `azd provision` without re-running any step. Agents adapt and document; only `azd` changes Azure (owner decision 2026-10-07).
 
 ## Before you start
 
@@ -44,7 +44,7 @@
 
    Reopen that step with `apex-recall`, then hand off to the step's own APEX agent with the change. The agent never edits reviewed artifacts or Bicep itself. It never rewrites review hashes, tree hashes or validation verdicts, and never marks a step complete. 🔎 VERIFY the `apex-recall` commands and the APEX agent names at the recipe's commit.
 9. **Provenance:** record the recipe ID and both commits in the project's decision log, through `apex-recall`, never by hand-editing `00-session-state.json`.
-10. **Finish:** run `npm run validate:all`, confirm the workflow state shows step 6 next, and offer the handoff to APEX Deploy, then As-Built.
+10. **Finish:** run `npm run validate:all`, set the environment values in a new `azd` environment, run `azd provision --preview` and explain it. Then tell the user to run `azd provision` themselves, followed by As-Built (agent `08`). The agent never runs `azd provision`, `azd down` or any other command that changes Azure.
 11. CoE `README.md`: an **Adopt an archetype** section that covers installing the agent, running it and the cost of each kind of change.
 
 ### Validate for real
@@ -54,7 +54,7 @@
 
     | Scenario | Change | Expected |
     |---|---|---|
-    | A: environment only | Tenant, subscription, suffix | No step reopened; APEX Deploy applies it; the web app answers on HTTPS |
+    | A: environment only | Tenant, subscription, suffix | No step reopened; `azd provision` applies it; the web app answers on HTTPS |
     | B: extra deny policy | You assign the built-in "Require a tag on resources" deny policy (tag `costCenter`) to the workload subscription first | Step 3.5 reopens and reports the blocker; the fix reaches steps 4–5; what-if is clean |
     | C: SKU change | App Service plan P0v3 → P1v3 | SKU manifest revision 2; steps reopened from the variability map; what-if shows only the SKU change |
 
@@ -96,7 +96,7 @@ feat: add the archetype adoption agent and recipe catalogue
 
 ## Notes and traps
 
-- **Hashes:** challenger reviews are tied to the bytes they reviewed, and APEX Deploy is tied to a hash of the Bicep tree. Any direct edit fails validation or ships unreviewed changes.
+- **Hashes:** challenger reviews are tied to the bytes they reviewed, and APEX's IaC handoff is tied to a hash of the Bicep tree. Any direct edit fails validation or ships unreviewed changes. `azd` doesn't check these hashes, so they protect the review chain in the CoE repo, not the member's deployment.
 - **Project slug:** paths inside reviews and the IaC handoff include the slug, so renaming a project breaks them. Treat a rename as a new step-1 run.
 - **APEX drift:** upgrading APEX can invalidate imported reviews, because they hash APEX's checklists and protocol. Keep the recipe and the user's repo on the same `apex-accelerator` commit.
 - **Governance:** the recipe's policy constraints describe the CoE's tenant, not the user's. Always rediscover.
