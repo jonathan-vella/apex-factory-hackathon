@@ -845,3 +845,82 @@ a {
     grid-template-areas: "id title meta";
   }
 }
+/* Challenge pages: the section structure is shared (Goal, Scope, Points, Inputs, Your tasks, Evidence, Hints, Bonus). */
+.sl-markdown-content .sl-heading-wrapper:has(:is(#scope-and-time-box, #points)) {
+  margin-bottom: 0.25rem;
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(:is(#scope-and-time-box, #points)) + p {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 999px;
+  background: var(--sl-color-gray-6);
+  font-size: var(--sl-text-sm);
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol {
+  padding-left: 0;
+  list-style: none;
+  counter-reset: task;
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li {
+  position: relative;
+  counter-increment: task;
+  margin-top: 0.75rem;
+  padding: 0.9rem 1rem 0.9rem 3.4rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+  background: var(--sl-color-gray-6);
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li::before {
+  content: counter(task);
+  position: absolute;
+  left: 0.9rem;
+  top: 0.85rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  background: var(--sl-color-accent);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--sl-text-sm);
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li > :first-child {
+  margin-top: 0;
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#evidence) + ul {
+  padding: 0.75rem 1rem 0.75rem 2.25rem;
+  border: 1px solid var(--sl-color-accent);
+  border-radius: 0.75rem;
+  background: var(--sl-color-accent-low);
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#evidence) + ul li::marker {
+  color: var(--sl-color-accent-high);
+}
+
+.sl-markdown-content details {
+  padding: 0.25rem 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+}
+
+.sl-markdown-content details summary {
+  font-size: var(--sl-text-base);
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(:is(#scope-and-time-box, #points)) h2 {
+  font-size: var(--sl-text-base);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--sl-color-gray-2);
+}
