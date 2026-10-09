@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/01-requirements.md",
+  "artifact_type": "requirements",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "Finding fdd1172c is resolved: capability 17 and the control-plane access row now require budget read access, and capability 14 fails closed on authorization errors. Full regression found one should-fix handoff gap: the approved deferred cost-monitoring exception is recorded in requirements and recall but is not explicitly required in the governance artifact that Step 4 consumes.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 1 should_fix | Key: Deferred cost-monitoring exception is not handed off to governance state",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 1,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "f42fd8e0",
+      "severity": "should_fix",
+      "category": "hidden_dependency",
+      "claim": "Deferred cost-monitoring exception is not handed off to governance state",
+      "evidence": "The Budget section records cost_monitoring_mode=deferred, an exception rationale and a 2027-01-03 review date; recall also contains the decision and cost_alert_emails=[]. However, the supplied 04-governance-constraints.json has no cost_monitoring or cost_monitoring_exception object. The canonical cost-monitoring baseline requires a deferred exception to be recorded in that governance artifact, and permits an empty email list only with an explicit deferred exception. The requirements do not state that Step 3.5 must carry this decision into the artifact consumed by Step 4.",
+      "impact": "If Step 4 consumes the governance artifact without the exception, it may apply the enforced cost-monitoring default, adding unapproved budget/action-group/anomaly resources, or block deployment because the alert-email list is empty. Either outcome conflicts with the accepted inherited-budget approach and its no-new-input requirement.",
+      "artifact_section": "Budget > Cost monitoring; Summary for Architecture Assessment > Handoff Summary > Key Decisions",
+      "waf_pillar": "Operational Excellence",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/01-requirements.md",
+        "proposed_edit": "Add an explicit handoff requirement that Step 3.5 persist cost_monitoring_mode=deferred and the existing cost_monitoring_exception (rationale and expiry 2027-01-03) in 04-governance-constraints.json for Step 4 to consume. If live governance disallows deferral, stop for owner reconciliation; never treat cost_alert_emails=[] as an implicit opt-out."
+      },
+      "traces_to": [
+        "fefa3874"
+      ],
+      "verification_anchors": [
+        "Budget > Cost monitoring paragraph",
+        "Operational Requirements > Monitoring & Alerting > Alert notifications",
+        "Summary for Architecture Assessment > Handoff Summary > Key Decisions",
+        "04-governance-constraints.json > cost_monitoring (absent)"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "50a73bf508b29b78485170f55aaa27be7d3f8702c394a2c20f62f75d6d2a8474"
+  }
+}

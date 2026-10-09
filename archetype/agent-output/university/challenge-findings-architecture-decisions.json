@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/02-architecture-assessment.md",
+  "artifact_type": "architecture",
+  "artifact": "02-architecture-assessment.md",
+  "pass": 1,
+  "source": "challenge-findings-architecture.json",
+  "recorded_at": "2026-10-06T08:35:00Z",
+  "decisions": [
+    {
+      "issue_id": "856501fb",
+      "source_file": "challenge-findings-architecture.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "The private ACR image-pull path is not exercised end to end",
+      "action": "accept",
+      "note": "Edit: one post-deploy readiness check, not a pre-deploy gate. az acr import mcr.microsoft.com/dotnet/samples:aspnetapp-10.0 into the registry; switch the web app to the registry copy with the UAMI (AcrPull) and image pull over the VNet; restart; expect HTTP 200 on the public HTTPS endpoint. Registry public access is off, so a successful pull proves private resolution and routing of the login and data endpoints; no separate DNS check from the app. Leave the web app on the registry copy so C6 changes only image and tag. Keep the MCR startup test as its own check before this one.",
+      "decided_at": "2026-10-06T08:35:00Z"
+    },
+    {
+      "issue_id": "5c01d1e4",
+      "source_file": "challenge-findings-architecture.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "Private-endpoint diagnostics are not assigned or explicitly required",
+      "action": "accept",
+      "note": "Edit: the archetype creates an explicit diagnostic setting on each of the 4 private endpoints: AllMetrics to log-management. Private endpoints have no resource-log categories (Microsoft Learn, Azure Private Link monitoring data reference), so no AllLogs. ALZ-lite has no private-endpoint diagnostics policy (B08); do not rely on one and drop the DINE-only alternative. DNS registration stays policy-owned; private-endpoint diagnostics are archetype-owned.",
+      "decided_at": "2026-10-06T08:40:00Z"
+    }
+  ]
+}

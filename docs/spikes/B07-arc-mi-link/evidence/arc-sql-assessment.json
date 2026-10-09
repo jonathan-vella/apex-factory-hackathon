@@ -1,0 +1,228 @@
+{
+  "assessmentUploadTime": "2026-10-02T11:07:56.488Z",
+  "enabled": true,
+  "impactedObjectsSummary": {
+    "azureSqlDatabase": [
+      {
+        "featureId": "TraceFlags",
+        "issueCategory": "Warning",
+        "numberImpacted": 2
+      }
+    ],
+    "azureSqlManagedInstance": [
+      {
+        "featureId": "TraceFlags",
+        "issueCategory": "Warning",
+        "numberImpacted": 2
+      }
+    ]
+  },
+  "serverAssessments": [
+    {
+      "appliesToMigrationTargetPlatform": "AzureSqlDatabase",
+      "featureId": "TraceFlags",
+      "impactedObjects": [],
+      "issueCategory": "Warning"
+    },
+    {
+      "appliesToMigrationTargetPlatform": "AzureSqlManagedInstance",
+      "featureId": "TraceFlags",
+      "impactedObjects": [],
+      "issueCategory": "Warning"
+    }
+  ],
+  "settings": {
+    "costOptions": {
+      "computeAndStorageCostOption": "PaaS:With3YearRIAndProd;IaaS:With3YearRIAndProd",
+      "sqlLicenseCostOption": "WithSQLAHB",
+      "windowsLicenseCostOption": "WithWindowsAHB"
+    },
+    "currency": "USD",
+    "discountPercentage": 0,
+    "lookbackPeriodInDays": 30,
+    "percentile": 95,
+    "strategy": "MigrateToPaaS",
+    "targetLocation": "West US"
+  },
+  "skuRecommendationResults": {
+    "azureSqlDatabase": {
+      "numberOfServerBlockerIssues": 0,
+      "recommendationStatus": "NotReady"
+    },
+    "azureSqlManagedInstance": {
+      "monthlyCost": {
+        "computeCost": 490.26,
+        "iopsCost": 0,
+        "sqlLicenseCost": 292.7,
+        "storageCost": 0,
+        "totalCost": 490.26
+      },
+      "monthlyCostOptions": [
+        {
+          "keyName": "With1YearRIAndProd",
+          "keyValue": {
+            "computeCost": 317.67,
+            "iopsCost": 0,
+            "storageCost": 0
+          }
+        },
+        {
+          "keyName": "With3YearRIAndProd",
+          "keyValue": {
+            "computeCost": 220,
+            "iopsCost": 0,
+            "storageCost": 0
+          }
+        },
+        {
+          "keyName": "WithNoOptionsSelected",
+          "keyValue": {
+            "computeCost": 490.26,
+            "iopsCost": 0,
+            "storageCost": 0
+          }
+        }
+      ],
+      "numberOfServerBlockerIssues": 0,
+      "recommendationStatus": "Ready",
+      "targetSku": {
+        "category": {
+          "computeTier": "Provisioned",
+          "hardwareType": "Gen5",
+          "sqlPurchasingModel": "vCore",
+          "sqlServiceTier": "Next-Gen General Purpose",
+          "zoneRedundancyAvailable": false
+        },
+        "computeSize": 4,
+        "maxStorageIops": 3.19,
+        "maxThroughputMBps": 145,
+        "predictedDataSizeInMb": 200,
+        "predictedLogSizeInMb": 136,
+        "storageMaxSizeInMb": 32768
+      }
+    },
+    "azureSqlVirtualMachine": {
+      "monthlyCost": {
+        "computeCost": 81.98,
+        "iopsCost": 0,
+        "sqlLicenseCost": 0,
+        "storageCost": 2.4,
+        "totalCost": 84.38,
+        "windowsLicenseCost": 67.34
+      },
+      "monthlyCostOptions": [
+        {
+          "keyName": "With1YearASPAndDevTest",
+          "keyValue": {
+            "computeCost": 0,
+            "iopsCost": 0,
+            "storageCost": 3.12
+          }
+        },
+        {
+          "keyName": "With3YearASPAndDevTest",
+          "keyValue": {
+            "computeCost": 0,
+            "iopsCost": 0,
+            "storageCost": 3.12
+          }
+        },
+        {
+          "keyName": "With1YearASPAndProd",
+          "keyValue": {
+            "computeCost": 56.57,
+            "iopsCost": 0,
+            "storageCost": 3.12
+          }
+        },
+        {
+          "keyName": "With3YearASPAndProd",
+          "keyValue": {
+            "computeCost": 38.53,
+            "iopsCost": 0,
+            "storageCost": 3.12
+          }
+        },
+        {
+          "keyName": "With1YearRIAndProd",
+          "keyValue": {
+            "computeCost": 48.08,
+            "iopsCost": 0,
+            "storageCost": 3.12
+          }
+        },
+        {
+          "keyName": "With3YearRIAndProd",
+          "keyValue": {
+            "computeCost": 30.75,
+            "iopsCost": 0,
+            "storageCost": 3.12
+          }
+        },
+        {
+          "keyName": "WithDevTest",
+          "keyValue": {
+            "computeCost": 81.98,
+            "iopsCost": 0,
+            "storageCost": 3.12
+          }
+        },
+        {
+          "keyName": "WithNoOptionsSelected",
+          "keyValue": {
+            "computeCost": 81.98,
+            "iopsCost": 0,
+            "storageCost": 3.12
+          }
+        }
+      ],
+      "numberOfServerBlockerIssues": 0,
+      "recommendationStatus": "Ready",
+      "targetSku": {
+        "category": {
+          "availableVmSkus": [
+            "Standard_D16as_v4",
+            "Standard_D2as_v4",
+            "Standard_D32as_v4",
+            "Standard_D48as_v4",
+            "Standard_D4as_v4",
+            "Standard_D64as_v4",
+            "Standard_D8as_v4",
+            "Standard_D96as_v4"
+          ],
+          "virtualMachineFamily": "standardDASv4Family"
+        },
+        "computeSize": 2,
+        "dataDiskSizes": [
+          {
+            "caching": "ReadOnly",
+            "maxSizeInGib": 8,
+            "maxThroughputInMbps": 25,
+            "redundancy": "LocallyRedundant",
+            "size": "P2"
+          }
+        ],
+        "logDiskSizes": [
+          {
+            "caching": "None",
+            "maxSizeInGib": 8,
+            "maxThroughputInMbps": 25,
+            "redundancy": "LocallyRedundant",
+            "size": "P2"
+          }
+        ],
+        "predictedDataSizeInMb": 200,
+        "predictedLogSizeInMb": 136,
+        "tempDbDiskSizes": [],
+        "virtualMachineSize": {
+          "azureSkuName": "Standard_D2as_v4",
+          "computeSize": 2,
+          "maxNetworkInterfaces": 0,
+          "sizeName": "D2as_v4",
+          "vCPUsAvailable": 2,
+          "virtualMachineFamily": "standardDASv4Family"
+        }
+      }
+    }
+  }
+}

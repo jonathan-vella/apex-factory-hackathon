@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 4,
+  "challenge_summary": "Pass-3 finding eaecc85f is CLOSED: Task 13 explicitly keeps application telemetry pending until the B06/B10 image and documents the UAMI-backed DefaultAzureCredential path without claiming deploy-time telemetry readiness. One new should-fix remains: all app traffic is routed through the hub, but the plan verifies only MCR egress and does not verify Azure Monitor egress.",
+  "compact_for_parent": "Pass 4 (comprehensive) | MEDIUM | 0 must_fix, 1 should_fix | Key: Azure Monitor telemetry egress through the hub firewall is unverified",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 1,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "ecc6642f",
+      "severity": "should_fix",
+      "category": "hidden_dependency",
+      "claim": "Azure Monitor telemetry egress through the hub firewall is unverified",
+      "evidence": "Requirement 9 requires workspace-based Application Insights, and its Integrations row says public Azure Monitor ingestion is allowed through the hub firewall. The plan sets outboundVnetRouting.allTraffic=true and disables Application Insights local auth, but its live firewall evidence and Task 12 capability-18 preflight verify only app-to-mcr access to mcr.microsoft.com and *.data.mcr.microsoft.com. Task 13 leaves telemetry pending the B06/B10 image and does not verify an Azure Monitor egress allowance. The accepted B06 DefaultAzureCredential change addresses token acquisition, not network reachability; the entra-telemetry contract lists only App Insights local-auth and Monitoring Metrics Publisher dependencies.",
+      "impact": "If the shared firewall lacks an allow path for the App Insights/Log Analytics ingestion endpoints, the application will be unable to deliver required telemetry after B06/B10 despite valid UAMI authentication. Local auth is disabled, so there is no key-based fallback; required application monitoring can remain absent without a network-path check detecting the cause.",
+      "artifact_section": "Overview — Live validation; Task 10: modules/web.bicep; Task 12: MCR egress; Task 13: Application telemetry",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Add a read-only preflight check against afwp-hub for the effective Azure Monitor/Application Insights ingestion allow path from snet-app, or require explicit B08 confirmation of the matching rule/service tag. Keep telemetry pending until a bounded post-B06/B10 check confirms Entra-authenticated ingestion; do not enable local auth."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Overview → Live validation: log-management public ingestion/query and afwp-hub app-to-mcr rule",
+        "Task 10: modules/web.bicep — outboundVnetRouting.allTraffic and Application Insights settings",
+        "Task 12: scripts/preflight.ps1 — step 6 validates only MCR egress",
+        "Task 13: scripts/postdeploy-tests.ps1 — step 7 leaves telemetry pending the app image without verifying firewall egress",
+        "Code-Generation Contract — entra-telemetry capability dependencies"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "eb847c1047e225db3f6d7507f9744e03189d0c04be5ca7391f2e87c5c1fb4eaa",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "e959f59f88d9a22e31eed8aea1aeddb5db80bbc43a563b22992b32c01c6cd796"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/04-iac-contract.json",
+      "sha256": "790ee868ba3f7e095a4f682b3a031062698d154f146b72497551591489dadb0e"
+    },
+    {
+      "path": "agent-output/university/04-policy-property-map.json",
+      "sha256": "7735a31195aacb0b77c9605298631b5698d0efed5e04b4f5635bf9739637cef2"
+    },
+    {
+      "path": "agent-output/university/04-environment-manifest.json",
+      "sha256": "f02cac2a63740b018b1b38b975c9ed9705542fab7118df1ed1535c86d562db42"
+    },
+    {
+      "path": "agent-output/university/sku-manifest.json",
+      "sha256": "f4a2512daedfd016ea31b072e544ca0cfa3284e3522c00a2fd829b6c52a353ec"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    }
+  ]
+}

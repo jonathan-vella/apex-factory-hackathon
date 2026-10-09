@@ -48,6 +48,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    | Resource group | Resource | Name | Settings |
    |---|---|---|---|
    | `rg-management` | Log Analytics workspace | `log-management` | 30-day retention |
+   | `rg-management` | User-assigned managed identity | `id-sqlmi-directory` | Every member's SQL Managed Instance uses it as its primary identity, so it can add Microsoft Entra users (C7). `scripts/Grant-SqlMiDirectoryRead.ps1` gives it Microsoft Graph `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All`, once per team, as event prep by a Privileged Role Administrator (owner decision 2026-10-07; [Managed identities in Microsoft Entra for Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/authentication-azure-ad-user-assigned-managed-identity)) |
    | `rg-hub` | VNet | `vnet-hub` | `10.100.0.0/16`, with `AzureFirewallSubnet` `10.100.0.0/26` |
    | `rg-hub` | Azure Firewall | `afw-hub` | Standard, no zones, public IP `pip-afw-hub` (Standard, no `zones` set: zone-redundant automatically), firewall policy `afwp-hub` with **DNS proxy on**, diagnostics to `log-management` |
    | `rg-hub` | Private DNS zones | The `privatelink` zones for Blob, Service Bus, ACR and Key Vault | Linked to `vnet-hub` |
@@ -60,7 +61,8 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
 
    | Policy | Effect | Notes |
    |---|---|---|
-   | Allowed locations | Deny | `location` and `global`; parameterized, so the fallback region can be added |
+   | Allowed locations | Audit | `location` and `global`; parameterized, so the fallback region can be added. Audit, not Deny (owner decision 2026-10-06): other regions are flagged, not blocked |
+   | Resource location matches the resource group's location | Audit | Owner decision 2026-10-06 |
    | Network interfaces shouldn't have public IPs | Deny | |
    | Public network access disabled for Storage, Key Vault, Service Bus and ACR, and the public data endpoint disabled for SQL MI | Deny | One assignment per service, or an initiative. Not App Service: the web front end is public by design |
    | Private endpoints register in the central private DNS zones | DeployIfNotExists | For Storage (Blob), Service Bus, ACR and Key Vault, pointing at the zones in the shared subscription's `rg-hub`. The assignment's managed identity gets the roles it needs on that resource group. Not for SQL MI |
@@ -68,7 +70,7 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
 
    🔎 VERIFY each built-in definition ID with `az policy definition list`. Record the IDs in `infra/foundation/README.md`.
 5. Microsoft Defender for Cloud stays on **Foundational CSPM** (free) on both subscriptions: every paid plan off, set with `Microsoft.Security/pricings`.
-6. `scripts/Deploy-AlzLite.ps1` (attendee script conventions) deploys requirements 1–5 for a team. Parameters: `SharedSubscriptionId`, `Location`, `MgPrefix`. It checks the management group permissions first and explains how to get them if missing (Owner at Tenant Root, or a Global Admin elevating access). It prints the cost per hour and how long it took. A re-run converges.
+6. `scripts/Deploy-AlzLite.ps1` (attendee script conventions) deploys requirements 1–5 for a team. Parameters: `SharedSubscriptionId`, `Location`, `MgPrefix`, and the switch `SkipDefender`, which leaves the subscription's Defender for Cloud plans as they are (owner decision 2026-10-02, for subscriptions that host other workloads; off by default). It checks the management group permissions first and explains how to get them if missing (Owner at Tenant Root, or a Global Admin elevating access). It prints the cost per hour and how long it took. A re-run converges.
 
 ### Vending: workload subscription
 
@@ -79,14 +81,14 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
    - DNS servers on `vnet-spoke` and `vnet-datacenter` set to the firewall's private IP;
    - UDRs: `snet-app` and `snet-pe` send `0.0.0.0/0` to the firewall; `snet-sqlmi` sends only the datacenter range to the firewall, keeping MI's own routes; `snet-servers` sends the spoke range to the firewall and keeps internet egress on the NAT gateway;
    - a rule collection group for member `n` in `afwp-hub`, allowing only: dev VM to `snet-pe` and `snet-app` on 443 (and 5671 for Service Bus); dev VM to `snet-sqlmi` on 1433 and 11000–11999; MI link between `10.10.n.4` and `snet-sqlmi` (the rules from the B07 report); App Service outbound to Entra ID, to Microsoft Container Registry (`mcr.microsoft.com` and its data endpoints, for the archetype's placeholder image) and to the Azure Monitor ingestion endpoints (the documented private-only exception; 🔎 VERIFY the endpoints on [Azure Monitor network access](https://learn.microsoft.com/azure/azure-monitor/fundamentals/azure-monitor-network-access));
-   - Owner on the workload subscription for the member (a parameter; skipped when empty);
+   - Owner on the workload subscription for the member, and Managed Identity Operator on `id-sqlmi-directory` so the archetype can attach it (a parameter; skipped when empty);
    - a monthly budget on the workload subscription (parameter, default 500 in the billing currency) with an alert at 80% to an email parameter.
-8. `scripts/Deploy-Vending.ps1` deploys it. Parameters: `WorkloadSubscriptionId`, `SharedSubscriptionId`, `MemberIndex`, `Location`, `MgPrefix`, `MemberPrincipalId` (optional), `BudgetAmount`, `BudgetEmail`. It discovers the hub's IDs in the shared subscription by the ALZ-lite names and prints them. Run it after the datacenter exists, so the datacenter is peered too; a re-run after deploying the datacenter adds its peering.
-9. The platform lead runs vending for every member, because it writes to the shared subscription (peering and firewall rules). Members need no role on the shared subscription.
+8. `scripts/Deploy-Vending.ps1` deploys it. Parameters: `WorkloadSubscriptionId`, `SharedSubscriptionId`, `MemberIndex`, `Location`, `MgPrefix`, `MemberPrincipalId` (optional), `BudgetAmount`, `BudgetEmail`, `SkipDefender` (as in requirement 6). It discovers the hub's IDs in the shared subscription by the ALZ-lite names and prints them. Run it after the datacenter exists, so the datacenter is peered too; a re-run after deploying the datacenter adds its peering.
+9. The platform lead runs vending for every member, because it writes to the shared subscription (peering and firewall rules). Members need no other role on the shared subscription.
 
 ### Exemptions
 
-10. `scripts/New-DatacenterExemptions.ps1` finds the policy assignments that `rg-datacenter` violates and creates one exemption per assignment, scoped to `rg-datacenter`: category Waiver, an expiry date parameter (default 14 days from today), and a description with the owner's name, the reason ("pre-existing on-premises simulation, migrating in C7") and the target date. It prints a table that members paste into their deferred-work register.
+10. `scripts/New-DatacenterExemptions.ps1` finds the policy assignments that `rg-datacenter` violates and creates one exemption per assignment, scoped to `rg-datacenter`. By default it exempts only the kit's ALZ-lite assignments; `-IncludeAssignment <name[]>` opts in named other assignments, such as the Microsoft cloud security benchmark that Defender for Cloud assigns, and it lists the rest without exempting them (owner decision 2026-10-02). Each exemption has category Waiver, an expiry date parameter (default 14 days from today), and a description with the owner's name, the reason ("pre-existing on-premises simulation, migrating in C7") and the target date. It prints a table that members paste into their deferred-work register.
 11. It only exempts `rg-datacenter`. It never exempts the spoke or the workload resources.
 
 ### Probes
@@ -103,9 +105,9 @@ Full portal ALZ is out of scope: a coach demos it live at the event, without kit
 
 ### Validate for real
 
-16. Deploy ALZ-lite with the shared subscription.
+16. Deploy ALZ-lite with the shared subscription. The build subscriptions host other workloads, so deploy ALZ-lite and vending there with `-SkipDefender`, and check requirement 5 with a what-if without it (owner decision 2026-10-02).
 17. Deploy the datacenter into the workload subscription with `scripts/Deploy-Datacenter.ps1`, then vending with member index `1`.
-18. Run the exemptions script and check that `rg-datacenter` shows as exempt for the assignments it violated.
+18. Run the exemptions script and check that `rg-datacenter` shows as exempt for the assignments it violated. In the build tenant, run it with `-WhatIf` only, by default and with `-IncludeAssignment` for the tenant's security benchmark assignment: never waive the build tenant's own policies (owner decision 2026-10-02).
 19. Run `scripts/Test-Connectivity.ps1`: every applicable check passes.
 20. Negative tests in the workload subscription, recorded in the PR: creating a storage account with public network access is denied; creating a NIC with a public IP is denied; a private endpoint created without a DNS zone group gets one from the DeployIfNotExists policy within 30 minutes.
 21. Tear down (Teardown row). Only delete what this item created: both subscriptions hold other resource groups that must not be touched. Query each kind of artifact and confirm nothing from this item is left, and that both subscriptions are back where requirement 5 of **Before you start** recorded them.

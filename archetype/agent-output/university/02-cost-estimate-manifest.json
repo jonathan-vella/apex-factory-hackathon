@@ -1,0 +1,117 @@
+{
+  "status": "COMPLETE",
+  "project_name": "university",
+  "region": "swedencentral",
+  "currency": "USD",
+  "monthly_total": 1291.50,
+  "yearly_total": 15498.00,
+  "resources": [
+    {
+      "name": "app-service-plan",
+      "service_name": "Azure App Service",
+      "sku": "P0v3 Linux",
+      "region": "swedencentral",
+      "quantity": 1,
+      "hourly_rate": 0.089,
+      "monthly_cost": 64.97,
+      "notes": "One approved deployment in swedencentral; on-demand Consumption. Usage=1 Linux instance x 730 hours/month. Selected productName=Azure App Service Premium v3 Plan - Linux, skuName=P0v3, meterName=P0v3 App, unitOfMeasure=1 Hour, priceType=Consumption, currency=USD; retailPrice=$0.089/hour. Calculation: $0.089 x 730 x 1 = $64.97/month."
+    },
+    {
+      "name": "container-registry",
+      "service_name": "Container Registry",
+      "sku": "Premium",
+      "region": "swedencentral",
+      "quantity": 1,
+      "hourly_rate": null,
+      "monthly_cost": 50.69,
+      "notes": "One approved deployment in swedencentral; on-demand Consumption. Usage=1 Premium registry, 730 hours/month. Selected productName=Container Registry, skuName=Premium, meterName=Premium Registry Unit, unitOfMeasure=1/Day, priceType=Consumption, currency=USD; retailPrice=$1.6666/day. Calculation uses the approved 730/24=30.4167 billable days/month assumption: $1.6666 x (730/24) x 1 = $50.6924, rounded to $50.69/month. No geo-replication or tasks; storage is within the included allowance."
+    },
+    {
+      "name": "sql-managed-instance-compute",
+      "service_name": "SQL Managed Instance",
+      "sku": "General Purpose, Standard-series (Gen5), 4 vCores; BasePrice (Azure Hybrid Benefit)",
+      "region": "swedencentral",
+      "quantity": 1,
+      "hourly_rate": 0.669756,
+      "monthly_cost": 488.92,
+      "notes": "One approved deployment in swedencentral; on-demand Consumption. Usage=730 hours/month for one catalog-priced 4-vCore unit. Selected productName=SQL Managed Instance General Purpose - Compute Gen5, skuName=4 vCore, meterName=vCore, unitOfMeasure=1 Hour, priceType=Consumption, currency=USD; retailPrice=$0.669756 per 4-vCore unit-hour. Calculation: $0.669756 x 730 x 1 = $488.92188, rounded to $488.92/month; the catalog unit already includes 4 vCores and is not multiplied by four again. BasePrice/Azure Hybrid Benefit; no separate SQL license component is added. MI link is active before cutover; no stop-schedule savings assumed."
+    },
+    {
+      "name": "sql-managed-instance-storage",
+      "service_name": "SQL Managed Instance",
+      "sku": "General Purpose data storage",
+      "region": "swedencentral",
+      "quantity": 64,
+      "hourly_rate": null,
+      "monthly_cost": 8.76,
+      "notes": "One approved deployment in swedencentral; on-demand Consumption. Usage=64 GB reserved instance storage/month, aggregate. Selected productName=SQL Managed Instance General Purpose - Storage, skuName=General Purpose, meterName=General Purpose Data Stored, unitOfMeasure=1 GB/Month, priceType=Consumption, currency=USD; retailPrice=$0.13685/GB-month. Calculation: $0.13685 x 64 = $8.7584, rounded to $8.76/month. No included data-storage allowance was established; all 64 GB are priced."
+    },
+    {
+      "name": "sql-managed-instance-backup",
+      "service_name": "SQL Managed Instance",
+      "sku": "Point-in-time backup storage, Local (LRS)",
+      "region": "swedencentral",
+      "quantity": 0,
+      "hourly_rate": null,
+      "monthly_cost": 0.00,
+      "notes": "One approved deployment in swedencentral; on-demand Consumption. Owner-approved assumption: backup storage remains within the included allowance, so billable backup usage is 0 GB/month aggregate. Matched productName=SQL Managed Instance PITR Backup Storage, skuName=Backup LRS, meterName=LRS Data Stored, unitOfMeasure=1 GB/Month, priceType=Consumption, currency=USD; retailPrice=$0.119/GB-month. Calculation: $0.119 x 0 billable GB = $0.00/month. This is an assumption-based zero quantity, not a zero-priced catalog meter."
+    },
+    {
+      "name": "storage-account",
+      "service_name": "Storage",
+      "sku": "General Purpose v2, Hot, Standard_LRS",
+      "region": "swedencentral",
+      "quantity": 1,
+      "hourly_rate": null,
+      "monthly_cost": 1.08,
+      "notes": "One approved deployment in swedencentral; on-demand Consumption. Aggregate monthly usage=10 GB stored, 100,000 write operations, and 1,000,000 read operations. Selected productName=Blob Storage, skuName=Hot LRS, priceType=Consumption, currency=USD. Components: meterName=Hot LRS Data Stored, unitOfMeasure=1 GB/Month, $0.0184/GB-month x 10 GB = $0.184; meterName=Hot LRS Write Operations, unitOfMeasure=10K, $0.05/10K x 10 = $0.50; meterName=Hot Read Operations, unitOfMeasure=10K, $0.004/10K x 100 = $0.40. Total=$1.084, rounded to $1.08/month. The stored-data quantity is within the first returned tier (tierMinimumUnits=0)."
+    },
+    {
+      "name": "service-bus",
+      "service_name": "Service Bus",
+      "sku": "Premium, 1 messaging unit",
+      "region": "swedencentral",
+      "quantity": 1,
+      "hourly_rate": 0.9275,
+      "monthly_cost": 677.08,
+      "notes": "One approved deployment in swedencentral; on-demand Consumption. Usage=1 Premium messaging unit x 730 hours/month. Selected productName=Service Bus, skuName=Premium, meterName=Premium Messaging Unit, unitOfMeasure=1/Hour, priceType=Consumption, currency=USD; retailPrice=$0.9275 per unit-hour. Calculation: $0.9275 x 730 x 1 = $677.075, rounded to $677.08/month."
+    }
+  ],
+  "optimization_notes": [],
+  "savings_status": "NOT_QUANTIFIED",
+  "savings_reason": "The estimate includes on-demand pay-as-you-go pricing only; commitment and alternative pricing were not queried or included.",
+  "eligible_strategies": [],
+  "data_source": "Azure Resource Manager MCP get_retail_prices",
+  "queried_at": "2026-10-06T07:20:25.721Z",
+  "confidence": "Medium",
+  "unresolved_items": [],
+  "mcp_calls_used": 0,
+  "budget_exceeded": false,
+  "manifest_writeback": [
+    {
+      "id": "app-service-plan",
+      "cost_estimate_monthly_usd": 64.97,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    },
+    {
+      "id": "container-registry",
+      "cost_estimate_monthly_usd": 50.69,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    },
+    {
+      "id": "sql-managed-instance",
+      "cost_estimate_monthly_usd": 497.68,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    },
+    {
+      "id": "storage-account",
+      "cost_estimate_monthly_usd": 1.08,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    },
+    {
+      "id": "service-bus",
+      "cost_estimate_monthly_usd": 677.08,
+      "cost_estimated_at": "2026-10-06T07:20:25.721Z"
+    }
+  ]
+}

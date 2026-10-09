@@ -1,0 +1,106 @@
+{
+  "status": "COMPLETE",
+  "project_name": "university",
+  "region": "swedencentral",
+  "currency": "USD",
+  "monthly_total": null,
+  "yearly_total": null,
+  "resources": [],
+  "optimization_notes": [
+    "Comparison-only pricing; no SKU approval is implied. Storage and backup are excluded.",
+    "The 4-vCore compute meter is reused from 02-cost-estimate.json (COMPLETE; queried_at 2026-10-06T07:20:25.721Z): productName='SQL Managed Instance General Purpose - Compute Gen5'; skuName='4 vCore'; meterName='vCore'; unitOfMeasure='1 Hour'; priceType='Consumption'; currency=USD; retailPrice=0.669756 per 4-vCore unit-hour; meterId='f21af315-2d50-551e-b76d-5839cfe77170'; effectiveStartDate='2025-06-01'. The catalog unit already includes four vCores; do not multiply by four.",
+    "Licence discovery: serviceName='SQL Managed Instance', priceType='Consumption', currencyCode='USD', armRegionName omitted returned 137 rows with NextPageLink=null; no General Purpose SQL licence row was selected. The follow-up armRegionName='Global' query returned 2 rows with NextPageLink=null, including the exact General Purpose SQL licence meter. Global is its billing region; deployment remains swedencentral.",
+    "The comparison is not a deployment or SKU approval. Candidate alternatives are not summed into monthly_total; storage and backup are excluded."
+  ],
+  "savings_status": "NOT_QUANTIFIED",
+  "savings_reason": "Only on-demand Consumption pricing was requested. Reservations, savings plans, Dev/Test, and Spot were not queried.",
+  "eligible_strategies": [],
+  "data_source": "Azure Resource Manager MCP get_retail_prices (with reused compute evidence)",
+  "queried_at": "2026-10-06T08:12:14.143Z",
+  "confidence": "Medium",
+  "unresolved_items": [],
+  "mcp_calls_used": 2,
+  "budget_exceeded": false,
+  "decisions": [
+    {
+      "decision_id": "sql-mi-license",
+      "winner_label": "ahb-basepriced-730h",
+      "delta_monthly_usd": 291.90072,
+      "candidates": [
+        {
+          "label": "ahb-basepriced-730h",
+          "service_name": "SQL Managed Instance",
+          "sku": "General Purpose, Standard-series (Gen5), 4 vCores",
+          "region": "swedencentral",
+          "quantity": 1,
+          "vcores": 4,
+          "license_type": "BasePrice (Azure Hybrid Benefit)",
+          "usage": "730 h/month; MI link active before cutover",
+          "hours_per_month": 730,
+          "hourly_rate": 0.669756,
+          "monthly_cost": 488.92188,
+          "notes": "BasePrice compute only. Reused meter from 02-cost-estimate.json, queried_at=2026-10-06T07:20:25.721Z: productName='SQL Managed Instance General Purpose - Compute Gen5'; skuName='4 vCore'; meterName='vCore'; unitOfMeasure='1 Hour'; retailPrice=0.669756 USD; priceType='Consumption'; meterId='f21af315-2d50-551e-b76d-5839cfe77170'; skuId='DZH318Z0BQKP/016D'; effectiveStartDate='2025-06-01'. One catalog unit is one 4-vCore instance. Calculation: 0.669756 x 730 h x 1 = 488.92188 USD/month. No separate SQL licence meter is added for this AHB/BasePrice candidate."
+        },
+        {
+          "label": "license-included-730h",
+          "service_name": "SQL Managed Instance",
+          "sku": "General Purpose, Standard-series (Gen5), 4 vCores",
+          "region": "swedencentral",
+          "quantity": 1,
+          "vcores": 4,
+          "license_type": "LicenseIncluded",
+          "usage": "730 h/month; MI link active before cutover",
+          "hours_per_month": 730,
+          "hourly_rate": 1.06962,
+          "monthly_cost": 780.8226,
+          "compute_hourly_rate": 0.669756,
+          "compute_monthly_cost": 488.92188,
+          "license_rate_per_vcore_hour": 0.099966,
+          "license_hourly_rate_per_instance": 0.399864,
+          "license_monthly_cost": 291.90072,
+          "notes": "Compute meter reused from 02-cost-estimate.json (queried_at=2026-10-06T07:20:25.721Z): productName='SQL Managed Instance General Purpose - Compute Gen5'; skuName='4 vCore'; meterName='vCore'; unitOfMeasure='1 Hour'; priceType='Consumption'; currency=USD; retailPrice=0.669756 per 4-vCore unit-hour; meterId='f21af315-2d50-551e-b76d-5839cfe77170'. Licence meter from the Global MCP query: productName='SQL Managed Instance General Purpose - SQL License'; skuName='vCore'; meterName='vCore'; unitOfMeasure='1 Hour'; priceType='Consumption'; currency=USD; retailPrice=0.099966 per vCore-hour; meterId='e52d6d04-c8a8-4387-9e76-0ceab532a294'; armRegionName='Global'. The licence meter bills per vCore, so one 4-vCore instance uses 4 meter units/hour: 0.099966 x 4 = 0.399864 USD per instance-hour. Combined rate=0.669756 + 0.399864 = 1.06962 USD per instance-hour. Calculation: 1.06962 x 730 h x 1 = 780.8226 USD/month. Licence component=0.399864 x 730=291.90072 USD/month. Global is the billing region, not the deployment region."
+        }
+      ]
+    },
+    {
+      "decision_id": "sql-mi-license-scheduled",
+      "winner_label": "ahb-scheduled-261h",
+      "delta_monthly_usd": 104.2445448,
+      "candidates": [
+        {
+          "label": "ahb-scheduled-261h",
+          "service_name": "SQL Managed Instance",
+          "sku": "General Purpose, Standard-series (Gen5), 4 vCores",
+          "region": "swedencentral",
+          "quantity": 1,
+          "vcores": 4,
+          "license_type": "BasePrice (Azure Hybrid Benefit)",
+          "usage": "260.7 billed h/month; native schedule; vCores and licence billed for every started hour",
+          "hours_per_month": 260.7,
+          "hourly_rate": 0.669756,
+          "monthly_cost": 174.6053892,
+          "notes": "BasePrice compute only. Reused meter from 02-cost-estimate.json, queried_at=2026-10-06T07:20:25.721Z: productName='SQL Managed Instance General Purpose - Compute Gen5'; skuName='4 vCore'; meterName='vCore'; unitOfMeasure='1 Hour'; retailPrice=0.669756 USD; priceType='Consumption'; meterId='f21af315-2d50-551e-b76d-5839cfe77170'; skuId='DZH318Z0BQKP/016D'; effectiveStartDate='2025-06-01'. One catalog unit is one 4-vCore instance. Usage: 12 started hours per weekday x 730/168 x 5 = 260.7 h/month. Calculation: 0.669756 x 260.7 h x 1 = 174.6053892 USD/month."
+        },
+        {
+          "label": "license-included-scheduled-261h",
+          "service_name": "SQL Managed Instance",
+          "sku": "General Purpose, Standard-series (Gen5), 4 vCores",
+          "region": "swedencentral",
+          "quantity": 1,
+          "vcores": 4,
+          "license_type": "LicenseIncluded",
+          "usage": "260.7 billed h/month; native schedule; vCores and licence billed for every started hour",
+          "hours_per_month": 260.7,
+          "hourly_rate": 1.06962,
+          "monthly_cost": 278.849934,
+          "compute_hourly_rate": 0.669756,
+          "compute_monthly_cost": 174.6053892,
+          "license_rate_per_vcore_hour": 0.099966,
+          "license_hourly_rate_per_instance": 0.399864,
+          "license_monthly_cost": 104.2445448,
+          "notes": "Compute meter reused from 02-cost-estimate.json (queried_at=2026-10-06T07:20:25.721Z): productName='SQL Managed Instance General Purpose - Compute Gen5'; skuName='4 vCore'; meterName='vCore'; unitOfMeasure='1 Hour'; priceType='Consumption'; currency=USD; retailPrice=0.669756 per 4-vCore unit-hour; meterId='f21af315-2d50-551e-b76d-5839cfe77170'. Licence meter from the Global MCP query: productName='SQL Managed Instance General Purpose - SQL License'; skuName='vCore'; meterName='vCore'; unitOfMeasure='1 Hour'; priceType='Consumption'; currency=USD; retailPrice=0.099966 per vCore-hour; meterId='e52d6d04-c8a8-4387-9e76-0ceab532a294'; armRegionName='Global'. The licence meter bills per vCore, so one 4-vCore instance uses 4 meter units/hour: 0.099966 x 4 = 0.399864 USD per instance-hour. Combined rate=0.669756 + 0.399864 = 1.06962 USD per instance-hour. Usage: 12 started hours per weekday x 730/168 x 5 = 260.7 billed h/month. Calculation: 1.06962 x 260.7 h x 1 = 278.849934 USD/month. Licence component=0.399864 x 260.7=104.2445448 USD/month. Global is the billing region, not the deployment region."
+        }
+      ]
+    }
+  ]
+}

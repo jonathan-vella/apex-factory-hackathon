@@ -2,7 +2,7 @@
 
 > **Modernize today. Enable AI tomorrow.** A repeatable framework that helps partners build, validate and scale Azure modernization practices, using existing skills, reusable assets and AI-assisted assessments.
 
-**Status:** draft (pre-v1) · **Owner:** [@jonathan-vella](https://github.com/jonathan-vella) · **Last updated:** 2026-09-25 · **Delivery:** [roadmap](roadmap.md) and [backlog](https://github.com/jonathan-vella/apex-factory-hackathon/issues)
+**Status:** draft (pre-v1) · **Owner:** [@jonathan-vella](https://github.com/jonathan-vella) · **Last updated:** 2026-10-06 · **Delivery:** [roadmap](roadmap.md) and [backlog](https://github.com/jonathan-vella/apex-factory-hackathon/issues)
 
 ## 1. Problem and approach
 
@@ -24,19 +24,20 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | Hybrid Benefit | Azure Hybrid Benefit is on by default for every resource that supports it: Windows Server VMs, the Windows 11 dev VM (multitenant hosting rights) and SQL MI. It's documented wherever it's deployed, with how to turn it off after deployment |
 | Tenancy | 1 Entra tenant per team, with 1 shared services sub per team plus 1 workload sub per member, so team size + 1 subs |
 | Kit build | The kit is built and validated in two subscriptions (one shared services, one workload) in the owner's tenant, mirroring one team |
-| IaC | Bicep only |
+| IaC | Bicep only. Lab provisioning (datacenter, ALZ-lite, vending), policy deployment and teardowns use Bicep and the kit's scripts, never agents. Agents (GHCP, APEX) are for the CoE archetype, app modernization and DB modernization only |
 | Foundation | **ALZ-lite** Bicep only: a small management group hierarchy, the hub and central services in the shared services sub, and core policies at the Corp management group. "Vending" means placing each pre-created workload sub under Corp and applying spoke, peering, firewall rules, RBAC and budget. Full portal ALZ is a live coach demo, with no kit scripts |
 | Datacenter | Two VMs: one app server (IIS and SQL Server 2022 Developer) and one dev VM. Each member deploys it into their own workload sub by T-3. It connects to the hub via **VNet peering** (simulated ExpressRoute) |
 | Datacenter access | **Azure Bastion Standard** only, never Developer: several sessions at once, and it works across the hub peering. It needs `AzureBastionSubnet` and its own public IP, the datacenter's only other public IP besides the NAT gateway's, and it bills while deployed, even when the VMs are stopped |
 | Availability zones | Never pinned, never turned on. VMs, disks, the NAT gateway and the firewall have no zone; zone redundancy is off wherever it's optional (SQL MI, App Service), and storage is LRS. Services that are zone-redundant automatically at no extra cost and can't opt out (ACR, Service Bus, Standard public IPs) are accepted |
 | Dev environment | Windows 11 Enterprise dev VM per member, inside the datacenter. APEX runs in Codespaces or Docker |
-| App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, log4net). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a GHCP predefined task. WebForms/WCF later |
+| App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, log4net). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a task in the golden-path plan. WebForms/WCF later |
 | Messaging | MSMQ → Service Bus Premium (1 MU) with a private endpoint, deployed by the archetype |
 | Compute | App Service for Linux (containers) only. AKS is a future archetype that teams can argue for in a C4 ADR |
-| Archetype | Pre-built by the CoE with APEX (steps 1–5 done) and demoed by the event deliverer. Members only run APEX Deploy and As-Built, supplying tenant ID, subscription ID and a unique suffix |
+| Archetype | Pre-built by the CoE with APEX (steps 1–5 done) and demoed by the event deliverer. Members adapt it with an agent and deploy it with `azd` (APEX's IaC is built for `azd`), supplying tenant ID, subscription ID and a unique suffix; the As-Built agent then documents what's live. Agents never change Azure for members: `azd` does (owner decision 2026-10-07) |
 | Data migration | Arc portal migration with **MI link** (online, read-only replica, planned cutover). Rollback means aborting before cutover; a real failback is a bonus. Log Replay Service (LRS) is the fallback |
 | AI | AI-readiness review only. No AI services are deployed |
-| Copilot models | No model is pinned, because models and their behaviour change. Guidance by phase, dated: a balanced model (Sonnet- or Terra-class) for assessment, the most capable (Opus- or Sol-class) for planning, and an efficient model at maximum reasoning effort (Luna-class) to explore for execution |
+| Copilot models | Dated guidance from the B06 golden path, recorded in `versions.md`: Claude Opus 5.5 at Medium to assess and plan, Claude Sonnet 5.5 at Medium to execute each task. Re-validate when models change |
+| Learning path | A site page maps each challenge to Microsoft Learn content and credentials, for Microsoft partners on any qualification track. Hands-on first: exams follow the event and finish within 9 months. Core: AZ-104, GH-300 and DP-300, all three mandatory for everyone in an infra role, within 6 months. Then AZ-305, AZ-400, SC-500, AZ-700, AI-200, plus AKS and Container Apps learning. Optional "next" stage: DP-800, GH-600, AI-103. It targets the Infra and Database Migration and App Modernization specializations. Applied Skills are stepping stones, not gates. Coach certifications are recommended, not required. No exam offers (owner decision 2026-10-06) |
 | Scoring | Markdown rubric as the single source of truth (SSOT), with coach sign-off and light gamification. Team score = platform challenges + member workload points averaged across the team |
 | Home | This monorepo and its site (factory.apexops.pro), one folder per module. APEX microhack patterns are reused, not duplicated |
 | Repos | One public template repo, owner `jonathan-vella`, MIT (§7). Coach material is public, on the honor system |
@@ -60,7 +61,7 @@ flowchart LR
     end
     subgraph W["Workload sub per member - under mg-factory-corp"]
       DC["rg-datacenter (pre-work): app VM (IIS + legacy Contoso University + MSMQ, SQL Server 2022 Developer, Arc), Windows 11 dev VM, NAT GW, Bastion Standard"]
-      SPOKE["Spoke (vended) + CoE archetype: App Service Linux, ACR Premium, SQL MI free offer, Storage (Blob), Service Bus Premium, Key Vault, App Insights"]
+      SPOKE["Spoke (vended) + CoE archetype: App Service Linux, ACR Premium, SQL MI General Purpose, Storage (Blob), Service Bus Premium, Key Vault, App Insights"]
     end
   end
   DC <-- peering --> CONN
@@ -81,7 +82,7 @@ flowchart LR
 | 1 | M1 Foundation | C2 Secure, AI-ready foundation | Team | 2 h | Live portal ALZ demo by a coach. ALZ-lite deployed by the platform lead (management groups, hub, central services, policies). Member subs vended to Corp (spoke, subnets, peering, UDRs, firewall rules, DNS). Exemptions recorded. Probes green |
 | 1 | M2 Assess and decide | C3 Assess the source | Member | 1 h | Inputs authorized. GHCP assessment of Contoso University and Arc SQL migration assessment (can run while ALZ deploys). Findings reviewed by a human |
 | 1 | M2 Assess and decide | C4 Choose target states | Team + member | 45 m | ADRs for app, data, platform and migration method, including fit with the CoE archetype. Deferred-work register |
-| 1 | M3 Archetype | C5 Deploy the CoE archetype with APEX | Member | 30 m demo + 1 h | Archetype repo from the CoE template. APEX Deploy and As-Built run with only tenant ID, subscription ID and suffix. Policy-compliant App Service, ACR, SQL MI, Blob storage, Service Bus, Key Vault and monitoring (MI provisions in the background) |
+| 1 | M3 Archetype | C5 Deploy the CoE archetype with APEX | Member | 30 m demo + 1 h | Archetype repo from the CoE template. An agent adapts it with only tenant ID, subscription ID and suffix; `azd provision --preview`, then `azd provision`, deploys it; the As-Built agent documents it. Policy-compliant App Service, ACR, SQL MI, Blob storage, Service Bus, Key Vault and monitoring (MI provisions in the background) |
 | 1–2 | M4 Modernize the app | C6 Modernize with GHCP | Member | 1.5 h + 1.5 h | .NET 10 ASP.NET Core running on the dev VM against the source DB. Uploads moved to Blob and MSMQ to Service Bus, both with Entra auth (GHCP predefined tasks). Image in private ACR. App Service identity, Key Vault and OpenTelemetry configured |
 | 2 | M5 Migrate the data | C7 Migrate and go live | Member | 2 h | Link seeded, read-only replica validated, go/no-go, planned cutover (link removed), DB user for the app identity created, app live on App Service against MI, runbook written |
 | 2 | M6 Validate and optimize | C8 Validate the pattern | Member | 45 m | Fixed acceptance pack: smoke, load and security checks, including an upload and a notification round-trip over private endpoints |
@@ -114,13 +115,13 @@ flowchart LR
   - **Dev VM (`vm-dev01`):** the latest Windows 11 Enterprise image, with multitenant hosting rights. It also runs the DB workload generator (B05). It has:
     - VS Code, plus VS Build Tools with the web workload, which the legacy WAP project needs. VS 2026 is optional, licensed via partner benefits.
     - The .NET 10 SDK and the .NET Framework 4.8 developer pack.
-    - SSMS 22, Git, the GitHub CLI, PowerShell 7, Az CLI, Bicep and the GHCP extensions.
+    - SSMS 22, Git, the GitHub CLI, PowerShell 7, Az CLI, Bicep, and the GHCP extensions: GitHub Copilot, Copilot Chat and GitHub Copilot upgrade (the Upgrade agent).
 - **Foundation:**
-  - ALZ-lite Bicep, run by the team's platform lead: management groups `mg-factory` → `mg-factory-platform` (shared services sub) and `mg-factory-corp` (workload subs); in the shared services sub, the hub VNet with Azure Firewall Standard (DNS proxy on), central private DNS zones and the central LAW; core policies at `mg-factory-corp` (allowed locations, no public IPs on NICs, no public network access on PaaS, private DNS registration, diagnostics to the LAW); Defender for Cloud on Foundational CSPM only (free; every paid plan off). DDoS off.
+  - ALZ-lite Bicep, run by the team's platform lead: management groups `mg-factory` → `mg-factory-platform` (shared services sub) and `mg-factory-corp` (workload subs); in the shared services sub, the hub VNet with Azure Firewall Standard (DNS proxy on), central private DNS zones, the central LAW and `id-sqlmi-directory` (the identity every member's SQL MI uses to look up Entra principals; a Privileged Role Administrator grants it Microsoft Graph read permissions once per team as event prep); core policies at `mg-factory-corp` (allowed locations and resource location matching its resource group, both audit; no public IPs on NICs, no public network access on PaaS, private DNS registration, diagnostics to the LAW); Defender for Cloud on Foundational CSPM only (free; every paid plan off). DDoS off.
   - Vending Bicep, also run by the platform lead: workload sub placement under `mg-factory-corp`, the spoke and all its subnets, cross-sub peering (spoke and datacenter to the hub), UDRs, DNS, firewall rules, RBAC (Owner on the member's own workload sub) and budget.
   - Full portal ALZ is shown in a live demo by a coach, in the coach's own tenant. The kit has no scripts for it.
 - **CoE archetype (`archetype/`):** an APEX project, pinned to an APEX release, with steps 1–5 pre-completed (artifacts, challenger reviews and workflow state).
-  - A small `deploy-archetype` prompt asks for tenant ID, subscription ID and suffix, then hands off to APEX Deploy (agent `07b`, workflow step 6) and As-Built (agent `08`, workflow step 7). A plain `az deployment` is the no-agent fallback.
+  - Members deploy with `azd` (owner decision 2026-10-07). An `adapt-archetype` prompt asks for tenant ID, subscription ID and suffix, refreshes governance in the member's tenant, sets them as `azd` environment values and stops at `azd provision --preview`, which it may explain. The member then runs `azd provision`: its hooks run the preflight and post-deploy checks. As-Built (agent `08`, workflow step 7) documents the deployed state. Agents adapt and document; only `azd` (or the `deploy.ps1` fallback) changes Azure. APEX Deploy (agent `07b`) stays an optional advanced path. Why: in B09, the agent-driven deploy path broke on APEX's hash checks (line endings, 7-day governance expiry, review limits) and one unattended run created resources on its own, while the scripted path deployed first time.
   - Nothing else is typed. Values are derived by convention or discovered:
     - region and hub from the spoke's peering to the hub;
     - spoke and subnets from vending;
@@ -133,25 +134,26 @@ flowchart LR
     - diagnostics go to the central LAW;
     - managed identity;
     - Entra-only SQL.
-  - SQL MI free offer:
+  - SQL MI, General Purpose (not the free offer, owner decision 2026-10-02):
+    - Standard-series (Gen5) hardware, 4 vCores, 64 GB storage, no zone redundancy. About $0.68/hour while running.
     - The update policy is pinned to SQL Server 2022, which failback needs.
-    - The time zone and schedule are set for the event, and the public endpoint is off.
-    - AHB is on (`licenseType: 'BasePrice'`), subject to how it interacts with the free offer.
+    - The time zone and a stop and start schedule are set for the event, and the public endpoint is off.
+    - AHB is on (`licenseType: 'BasePrice'`).
     - An MI with an active link can't be stopped, so the schedule only applies once cutover removes the link.
   - App Service pulls from the private ACR with its managed identity (AcrPull) and VNet image pull.
   - Storage (Blob) and Service Bus Premium (1 MU), both with private endpoints. The app identity gets Blob Data Contributor and Service Bus Data Sender/Receiver. The signed-in member gets the same data roles, for local runs from the dev VM.
   - Deploys are control-plane only, so Codespaces works. Data-plane checks run from the dev VM.
 - **App modernization (`app/`):** the legacy starting state, plus the modernization aids in `.github/`.
-  - Copilot instructions and a playbook that sequences the predefined tasks: SQL MI with managed identity, Blob, Service Bus and Key Vault. Custom skills cover the gaps: Global.asax and bundling → Program.cs, the `new NotificationService()` in BaseController → DI, and Trace → OpenTelemetry.
+  - Copilot instructions and a playbook built from the B06 golden path: the Upgrade agent in VS Code (Local harness) runs the `dotnet-version-upgrade` scenario with the kit's seven-task prompt (.NET 10 and ASP.NET Core MVC, SQL MI with managed identity, Blob, Service Bus, Key Vault, OpenTelemetry, CVE audit). Custom skills cover the gaps the golden path still shows.
   - Lifeline checkpoint branches (`lifeline/*`) after each major step, plus a known-good image as the last resort. They're public, on the honor system; a coach points a member to one on request.
-  - Images built without Docker, via .NET SDK container publishing from the dev VM. The playbook steers GHCP's containerize task to this path.
+  - Images built without Docker, via .NET SDK container publishing from the dev VM. The golden-path prompt requires this path, with no Dockerfile.
   - Config per environment: on the dev VM, SQL auth to the source DB; on App Service, managed identity to MI. Blob and Service Bus use Entra in both, via the member's identity locally and the app identity on App Service.
 - **Migration:**
   - Arc portal MI link, with hub firewall and NSG rules for 5022 and 11000–11999, plus certificates.
   - Validate the read-only replica with the admin login. The replica stays read-only until cutover, so the DB user for the App Service identity is created only after cutover removes the link. Then switch the app over.
   - Rollback means aborting before cutover (the app stays on the source). Bonus: a real failback, which keeps the link and fails back, then cuts over again before C9.
   - SQL Agent jobs and logins move separately (a teaching point).
-  - LRS is the fallback. It's promoted to the golden path if the free-offer spike fails.
+  - LRS is the fallback. It's promoted to the golden path if the MI link spike fails.
 - **DB optimization:** planted issues live in DB objects and the workload, so they survive the app upgrade. The schema has real targets: TPH `Person`, many-to-many course assignments, a `LIKE '%x%'` student search, multi-Include instructor queries and enrollment statistics. A workload generator runs the load, and Query Store provides the before/after evidence.
 - **CI/CD:** the golden path deploys from the dev VM. A pipeline with a self-hosted runner on the dev VM is a bonus, because GitHub-hosted runners can't reach private endpoints.
 
@@ -169,17 +171,18 @@ flowchart LR
 3. **Scripts:** preflight (go/no-go), probes, exemptions and cleanup. Cleanup covers the re-run traps: Key Vault purge and MI subnet release.
 4. **Attendee templates:** opportunity canvas, ADRs, deferred-work register, cutover/rollback runbook, acceptance/handover, AI-readiness gap register and factory-kit checklist.
 5. **Compatibility manifest (`versions.md`):** the versions of APEX, GHCP tooling, .NET, ALZ, AVM, the Arc extension, SSMS, Az CLI, Bicep and the VM images, with the date and region each was last validated. Components the kit controls (commits, releases, modules) are pinned; marketplace images and vendor installers use the latest version at deploy time, so their rows record what was validated, and drift is accepted.
+6. **Partner learning path:** a site page under Guides with stages, role tracks, a challenge-to-credential map and the specialization skilling it supports, with a last-validated date.
 
 ## 8. Risks and validation spikes
 
 | Risk | Mitigation / spike |
 |---|---|
-| The GHCP upgrade is non-deterministic, even on the quickstart sample. Hot spots: the MSMQ → Service Bus receive path, uploads → Blob, Global.asax/bundling, Razor helpers | Golden-path spike in VS Code and Copilot CLI, including an end-to-end comparison of the two VS Code extensions: GitHub Copilot modernization and GitHub Copilot upgrade. The dev VM's extension set is decided from it. Tuned playbook/skills, lifelines, known-good image |
+| The GHCP upgrade is non-deterministic, even on the quickstart sample. Hot spots: the MSMQ → Service Bus receive path, uploads → Blob, Global.asax/bundling, Razor helpers | Golden-path spike in VS Code and Copilot CLI, including an end-to-end comparison of the two VS Code extensions: GitHub Copilot modernization and GitHub Copilot upgrade. Decided from it (B06): GitHub Copilot upgrade only, with the Upgrade agent in the Local harness. Tuned playbook/skills, lifelines, known-good image |
 | ALZ-lite in fresh CSP tenants: the platform lead needs rights at Tenant Root to create management groups and move subs; CSP RBAC gaps | T-14 preflight checks both. Start ALZ-lite first on Day 1 |
 | The pre-built archetype drifts from the tenant's ALZ policies or from new APEX releases | Pin the APEX release and ALZ options. Re-validate per release (`versions.md`). Plain deploy fallback |
 | ALZ policies hit the pre-existing datacenter (e.g. deployIfNotExists policies on VMs without a guest agent) | Effective-policy list from the spike. Exemption script right after the move |
 | Arc on Azure VMs needs a workaround. Arc features vary by edition and licence | Reuse the Jumpstart pattern. Compare Developer with Standard PAYG |
-| MI link on a free-offer MI: support, no stop while linked, update policy for failback, provisioning time | End-to-end spike first. Pin the SQL Server 2022 update policy. Deploy the MI on Day 1. Promote LRS if the spike fails |
+| MI link to a General Purpose MI: no stop while linked (cost runs), update policy for failback, provisioning time | End-to-end spike first. Pin the SQL Server 2022 update policy. Deploy the MI on Day 1. Promote LRS if the spike fails |
 | Private-only networking: spoke-to-spoke via firewall (UDRs), MI subnet routes, ACR push/pull, DNS | Vending owns the network contract. Probe script. Spike through the hub |
 | New CSP subs have low vCPU or MI quota | No automated quota checks. VM size and region are parameters, with germanywestcentral as the fallback region. Pre-work tells members to deploy early and request quota if a deployment fails |
 | Bring-your-own Copilot: org policies (agent mode, MCP, CLI), premium requests. Codespaces isn't included in Copilot licensing | Preflight, model guidance, local dev container as the alternative |

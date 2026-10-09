@@ -15,7 +15,7 @@ The work items that build v1 of the kit. Scope is in the [PRD](../prd.md) and ph
 4. Answer the 🧑 HUMAN steps and approval questions as they come up.
 5. Review the draft PR, mark it ready and squash-merge it. The merge closes the item's issue.
 
-Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR exists.
+Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR exists. Items from B14 on have their issue number in their field table.
 
 ## Items
 
@@ -35,6 +35,8 @@ Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR 
 | [B11](B11-challenge-content.md) | Write the challenges, module contracts and templates | P4 | Agent | B07, B08, B09, B10 | Ready |
 | [B12](B12-facilitator-kit.md) | Build the facilitator kit | P4 | Both | B11 | Ready |
 | [B13](B13-dry-run-v1.md) | Dry run, tune and release v1.0 | P5 | Both | B12 | Ready |
+| [B14](B14-archetype-adopt.md) | Build the archetype adoption agent (not needed for v1) | P3 | Both | B09 | Ready |
+| [B15](B15-learning-path.md) | Publish the partner learning path | P4 | Agent | B11 | Ready |
 
 **Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps.
 
@@ -49,6 +51,8 @@ flowchart LR
   B06 --> B09
   B07 --> B09
   B08 --> B09 --> B10
+  B09 --> B14
+  B11 --> B15
   B06 --> B10
   B07 --> B11
   B08 --> B11
@@ -154,7 +158,7 @@ Every resource that supports Azure Hybrid Benefit (AHB) or a bring-your-own-lice
 | Windows 11 VM (`vm-dev01`) | `licenseType: 'Windows_Client'` | Multitenant hosting rights, needed to run Windows 11 on Azure |
 | SQL Server Developer on the VM | None | Developer edition is free |
 | Arc-enabled SQL Server Developer | None | Developer edition is free |
-| SQL Managed Instance | `licenseType: 'BasePrice'` | B09 checks how it interacts with the free offer |
+| SQL Managed Instance | General Purpose, Standard-series (Gen5), 4 vCores, 64 GB, `licenseType: 'BasePrice'` | Never the free offer (owner decision 2026-10-02) |
 | App Service for Linux, Azure Firewall, other PaaS | None | AHB doesn't apply |
 
 Every script or page that deploys one of these says that AHB is on, what it assumes (the partner holds eligible licences) and how to turn it off after deployment, for example `az vm update -g rg-datacenter -n vm-app01 --license-type None`.
@@ -182,6 +186,7 @@ Other services that are zone-redundant automatically are accepted the same way. 
 
 ### Scripts
 
+- **IaC only for lab infrastructure, no agents (owner decision 2026-10-02).** Lab provisioning (the datacenter, ALZ-lite, vending), policy deployment and every teardown run as Bicep plus the kit's scripts, deterministically. Copilot and APEX agents are used only for the CoE work (the archetype with APEX), app modernization and DB modernization.
 - Scripts the attendee runs (in `scripts/`) are PowerShell 7 and must also work in Azure Cloud Shell, which runs on Linux. Use `Join-Path` and don't use Windows-only cmdlets. Each one starts with `#Requires -Version 7.4`, uses `[CmdletBinding()]` with typed parameters, sets `$ErrorActionPreference = 'Stop'`, and has comment-based help with at least one example.
 - Scripts that run inside the VMs (run commands and anything under `infra/**/scripts/`) are Windows PowerShell 5.1. Start them with `$ErrorActionPreference = 'Stop'`, `$ProgressPreference = 'SilentlyContinue'` and `[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12`. Use `Invoke-WebRequest -UseBasicParsing`. Make them idempotent, and log to `C:\LabTools\logs\<script-name>.log`.
 - Every script is clean under PSScriptAnalyzer with its default rules.

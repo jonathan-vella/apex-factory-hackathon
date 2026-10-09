@@ -57,17 +57,17 @@ On `vm-dev01`, from a clone of the repo, in PowerShell 7:
 ./db/perf-kit/Start-Workload.ps1 -MemberIndex <n>
 ```
 
-After cutover, against SQL MI, which is Entra-only:
+After cutover, against SQL MI, which is Entra-only. On `vm-dev01`, use `ActiveDirectoryInteractive`:
 
 ```powershell
-./db/perf-kit/Start-Workload.ps1 -Server '<sql-mi-host-name>' -Authentication ActiveDirectoryDefault
+./db/perf-kit/Start-Workload.ps1 -Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive
 ```
 
 | Parameter | Default | Notes |
 |---|---|---|
 | `Server` | `10.10.n.4` | The source SQL Server, from `MemberIndex`. After cutover, the SQL MI host name |
 | `MemberIndex` | `1` | 1–20 |
-| `Authentication` | `SqlPassword` | `SqlPassword` connects as `contosoapp`, with the password from `$HOME/.apex-factory/<subscription-id>/datacenter.json` if it's on the machine, or the documented lab password. `ActiveDirectoryDefault` uses the signed-in Entra identity (`az login`, or Visual Studio Code), for SQL MI |
+| `Authentication` | `SqlPassword` | `SqlPassword` connects as `contosoapp`, with the password from `$HOME/.apex-factory/<subscription-id>/datacenter.json` if it's on the machine, or the documented lab password. `ActiveDirectoryDefault` uses the signed-in Entra identity (`az login`, or Visual Studio Code), for SQL MI. `ActiveDirectoryInteractive` signs you in in a browser, once per run. Use it on `vm-dev01`: the VM has a managed identity, so `ActiveDirectoryDefault` signs in as the VM, not as you, and the MI refuses the login |
 | `DurationMinutes` | `15` | |
 | `Concurrency` | `8` | Connections running queries at the same time |
 
@@ -79,7 +79,7 @@ To re-run C9, or run it standalone, put the issues back:
 
 ```powershell
 ./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>
-./db/perf-kit/Reset-PerfKit.ps1 -Server '<sql-mi-host-name>' -Authentication ActiveDirectoryDefault
+./db/perf-kit/Reset-PerfKit.ps1 -Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive
 ```
 
 It takes the same `Server`, `MemberIndex` and `Authentication` parameters as the workload, and runs `02`, `03`, `04` and then `90-reset.sql`, which drops every index added to the app's tables since `EnsureCreated()`, whatever its name, and clears Query Store. It doesn't touch the data. The login needs `db_owner`: `contosoapp` on the source, the MI Entra admin on MI. While MI link is running, the replica on MI is read-only: reset the source instead, and the link replicates it.

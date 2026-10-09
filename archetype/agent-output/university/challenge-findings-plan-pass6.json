@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The ACR setting, plan-contract mapping, and pre-switch read-only fail-closed check align; resource-group read covers the check. The current governance snapshot has no Deny row for this policy, but does not establish its effective Audit status, so the plan overstates the expected audit result.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 1 should_fix | Key: Effective ACR policy effect is unverified",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 1,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "3fd577cf",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "The governance note asserts an Audit outcome not proven by the saved discovery",
+      "evidence": "The plan says to expect an Audit non-compliance result because policy 42781ec6-6127-4c30-bdfa-fb423a0047d3 is in member_policy_index but not in policies[]. The discovery implementation builds member_policy_index from every resolved definition referenced by assigned initiatives or standalone assignments, regardless of effect. Its finding loop counts Audit and Disabled effects and omits both from policies[]. Therefore the current snapshot establishes no Deny finding for this policy, but does not distinguish effective Audit from Disabled or expose the effective initiative parameters. The definition's default Audit effect alone does not prove the assigned effect.",
+      "impact": "If the effective assignment is Disabled, the promised Audit non-compliance result will not occur, making the plan's governance expectation inaccurate. The current data does not show a Deny blocker; this is an effect-classification and reporting risk, not evidence that the enabled setting will presently be denied.",
+      "artifact_section": "Overview > Carried items > ACR ARM audience tokens (owner revision 2026-10-07)",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [85, 85],
+        "proposed_edit": "Qualify the expected Audit result: the current governance snapshot has no Deny finding for policy 42781ec6-6127-4c30-bdfa-fb423a0047d3, but member_policy_index does not record its effective effect. Confirm the assigned policy-set member's resolved effect before claiming an Audit non-compliance result; if a current discovery resolves it as Deny, return the conflict to 04g-Governance before deployment."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "04-implementation-plan.md > Overview > Carried items > ACR ARM audience tokens (line 85)",
+        "04-governance-constraints.json > member_policy_index: policy 42781ec6-6127-4c30-bdfa-fb423a0047d3 (line 5295); no matching effect-specific entry in policies[]",
+        ".github/skills/apex-azure-governance-discovery/scripts/discover.py: member_policy_index includes resolved definitions regardless of effect; Audit and Disabled are omitted from policies[]"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "f3c7ee7250df25a99cb95c99590885385100d38363e39c6ebeb7feddc0839e75",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "375ac120afbe5d32d17a7f4c3a3308f80b4383a79d1724ea34f83d149ded3b4f"
+  }
+}

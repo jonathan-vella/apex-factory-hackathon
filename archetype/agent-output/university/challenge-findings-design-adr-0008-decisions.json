@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/03-des-adr-0008-native-sql-mi-start-stop-schedule.md",
+  "artifact_type": "design-adr",
+  "artifact": "03-des-adr-0008-native-sql-mi-start-stop-schedule.md",
+  "pass": 1,
+  "source": "challenge-findings-design-adr-0008.json",
+  "recorded_at": "2026-10-06T12:21:24Z",
+  "decisions": [
+    {
+      "issue_id": "f04caf69",
+      "source_file": "challenge-findings-design-adr-0008.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "WAF summary understates SQL MI availability impact",
+      "action": "accept",
+      "note": "Modified by owner: no number unless cited from Microsoft Learn. Edit: Reliability is negative after C7; the start duration (about 20 minutes) is quoted from Microsoft Learn's stop-and-start article with its link, because Learn does state it.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "94e1316a",
+      "source_file": "challenge-findings-design-adr-0008.json",
+      "pass_number": 1,
+      "issue_index": 1,
+      "severity": "suggestion",
+      "title": "Clarify that the native schedule is a deployed child resource",
+      "action": "accept",
+      "note": "Edit: stated as one free startStopSchedules child resource with no separate Automation or Logic App resource, identity or runbook.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    }
+  ]
+}

@@ -217,3 +217,28 @@ resource perfKit 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
     legacySite
   ]
 }
+
+// Arc prep (B07): places C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1 without running it. Running it ends run commands.
+resource arcPrep 'Microsoft.Compute/virtualMachines/runCommands@2025-11-01' = {
+  parent: vm
+  name: 'app-07-arc-prep'
+  location: location
+  properties: {
+    source: {
+      scriptUri: '${scriptsBaseUrl}/Install-AppArcPrep.ps1'
+    }
+    parameters: [
+      runIdParameter
+      {
+        name: 'PrepScriptUrl'
+        value: '${scriptsBaseUrl}/Prepare-ArcOnAzureVm.ps1'
+      }
+    ]
+    asyncExecution: false
+    timeoutInSeconds: 300
+    treatFailureAsDeploymentFailure: true
+  }
+  dependsOn: [
+    perfKit
+  ]
+}

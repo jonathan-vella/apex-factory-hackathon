@@ -41,7 +41,7 @@
    | Subnet | `AzureBastionSubnet` | `10.10.n.192/26` (the name and a /26 are required). No NSG and no route table. `10.10.n.128/27` stays free for B06's `snet-pe-spike` |
    | NSG | `nsg-servers` | No inbound rules from the internet |
    | NAT gateway | `nat-datacenter` | Standard, no zone, with public IP `pip-nat-datacenter` (Standard, static, no `zones` set: it's zone-redundant automatically in regions with zones) |
-   | Bastion | `bas-datacenter` | **Standard** SKU (never Developer), in `AzureBastionSubnet`, with public IP `pip-bas-datacenter` (Standard, static, no `zones` set). Several sessions at once; works across the hub peering (B08) |
+   | Bastion | `bas-datacenter` | **Standard** SKU (never Developer), in `AzureBastionSubnet`, with public IP `pip-bas-datacenter` (Standard, static, no `zones` set), and native client support on (`enableTunneling`). Several sessions at once; works across the hub peering (B08) |
    | App VM | `vm-app01` | Static private IP `10.10.n.4` |
    | Dev VM | `vm-dev01` | Static private IP `10.10.n.5` |
 
@@ -98,7 +98,7 @@
 12. **`vm-dev01`**, in this order:
     1. Create `C:\src`. The dev VM has no data disk.
     2. Install machine-wide, silently, from the vendors' official download locations: Visual Studio Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone, on the machine `PATH`), the .NET 10 SDK, the .NET Framework 4.8 Developer Pack, Visual Studio Build Tools (current release) with the web build tools workload and its recommended components, NuGet CLI, and SSMS 22. 🔎 VERIFY the Build Tools workload ID on [Visual Studio Build Tools workload and component IDs](https://learn.microsoft.com/visualstudio/install/workload-component-id-vs-build-tools).
-    3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot modernization (`vscjava.migrate-java-to-azure`, the only modernization extension for now; it replaces the deprecated GitHub Copilot app modernization for .NET extension. B06 compares it end to end with GitHub Copilot upgrade, `ms-dotnettools.upgrade-agent`, and the owner decides the final set from that), C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the modernization extension on [Install GitHub Copilot modernization](https://learn.microsoft.com/dotnet/azure/migration/appmod/install) (VS Code tab: install **GitHub Copilot modernization**, then check that `@modernize` responds in Copilot Chat).
+    3. Register a first-logon step for every user that installs these VS Code extensions: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`, the Upgrade agent; owner decision 2026-10-02 from the B06 golden path, which replaces GitHub Copilot modernization, `vscjava.migrate-java-to-azure`, so don't install that one), C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. VS Code extensions install per user, so they can't be installed by a run command running as SYSTEM. 🔎 VERIFY the extension IDs on the Visual Studio Marketplace, and the upgrade extension on [Install GitHub Copilot upgrade](https://learn.microsoft.com/dotnet/core/porting/github-copilot-upgrade/install) (VS Code: install **GitHub Copilot upgrade**, then check that the **Upgrade** agent is in the agent picker).
     4. Write the installed versions to `C:\LabTools\versions.txt`.
 13. Don't use winget: it isn't available to SYSTEM in a run command.
 
@@ -107,7 +107,9 @@
 14. `scripts/Deploy-Datacenter.ps1` follows the attendee script conventions. Parameters: `SubscriptionId` (mandatory), `MemberIndex` (1–20, default 1), `Location` (default `swedencentral`), `VmSize` (default `Standard_D8as_v6`), `DevImageSku` (default `win11-25h2-ent`), `ScriptsRef` (default `main`), a `NoHybridBenefit` switch, and optional `AdminPassword` and `SqlAppPassword` (requirement 15).
 15. Both passwords default to the fixed lab password `FactoryLab-2026-Pw` (backlog conventions, **Secrets**, datacenter exception), with optional `AdminPassword` and `SqlAppPassword` parameters (secure strings) to override them. The script saves the values it deploys in `$HOME/.apex-factory/<subscription-id>/datacenter.json`, with the keys `adminUsername`, `adminPassword`, `sqlAppLogin` and `sqlAppPassword`, which B05 reads. A re-run converges an existing datacenter to those values, including VMs created with another password: ARM doesn't change `osProfile.adminPassword` on a provisioned VM, so a run command sets the `labadmin` password on both VMs, with the password in `protectedParameters`.
 16. Before deploying, it prints what it will deploy, the hourly cost from this runbook, and that AHB is on (or off with `-NoHybridBenefit`) and what that assumes. It doesn't check quota.
-17. After deploying, it prints: how to connect with Bastion from the portal, where the passwords are saved, how to stop and start the VMs (`az vm deallocate` / `az vm start`), and how to turn AHB off (`az vm update -g rg-datacenter -n vm-app01 --license-type None`).
+17. After deploying, it prints: how to connect with `scripts/Connect-DatacenterVm.ps1` (native client) and with Bastion from the portal, where the passwords are saved, how to stop and start the VMs (`az vm deallocate` / `az vm start`), and how to turn AHB off (`az vm update -g rg-datacenter -n vm-app01 --license-type None`).
+
+    `scripts/Connect-DatacenterVm.ps1` (parameters `SubscriptionId`, `VmName` `vm-dev01` or `vm-app01`) follows the attendee script conventions and opens the local Remote Desktop client to the VM with `az network bastion rdp`. It needs Windows, `az login`, the Azure CLI bastion extension and Reader on the VM, its NIC and `bas-datacenter`; on Cloud Shell, macOS or Linux the portal is the fallback. 🔎 VERIFY on [Connect to a VM using Bastion and the Windows native client](https://learn.microsoft.com/azure/bastion/connect-vm-native-client-windows).
 
 ### Test script
 
@@ -115,7 +117,7 @@
 
     | On | Check |
     |---|---|
-    | Azure | Both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP. The disks match requirement 2: `vm-app01` has its P30 data disk, and `vm-dev01` has no data disk and its OS disk at performance tier P30. No public IPs in `rg-datacenter` apart from `pip-nat-datacenter` and `pip-bas-datacenter`. `bas-datacenter` is the Standard SKU in `AzureBastionSubnet` |
+    | Azure | Both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP. The disks match requirement 2: `vm-app01` has its P30 data disk, and `vm-dev01` has no data disk and its OS disk at performance tier P30. No public IPs in `rg-datacenter` apart from `pip-nat-datacenter` and `pip-bas-datacenter`. `bas-datacenter` is the Standard SKU in `AzureBastionSubnet`, with `enableTunneling` on |
     | `vm-app01` | `http://localhost/` returns 200 and contains "Contoso University"; `F:` exists; SQL data files are on `F:`; `ContosoUniversity` has the app's tables and at least 8 students (the app's seed data); HADR is enabled; trace flags 1800 and 9567 are on; the MSMQ queue exists |
     | `vm-dev01` | `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, `dotnet` (SDK 10), `code`, `msbuild` and SSMS are installed; outbound HTTPS to `github.com` works |
 
@@ -137,7 +139,7 @@
 - `infra/datacenter/main.bicep`, `infra/datacenter/main.bicepparam`, `infra/datacenter/modules/*.bicep`.
 - `infra/datacenter/scripts/*.ps1` (in-VM scripts for `vm-app01` and `vm-dev01`).
 - `infra/datacenter/README.md`.
-- `scripts/Deploy-Datacenter.ps1`, `scripts/Test-Datacenter.ps1`.
+- `scripts/Deploy-Datacenter.ps1`, `scripts/Test-Datacenter.ps1`, `scripts/Connect-DatacenterVm.ps1`.
 - `versions.md` updated.
 
 ## Verify

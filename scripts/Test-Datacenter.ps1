@@ -5,7 +5,7 @@
 Checks that the member's datacenter is ready: attendees run it at T-3.
 .DESCRIPTION
 Checks rg-datacenter in Azure (VM state, size, licence type, Trusted Launch, zones, IPs, disks, public
-IPs), then runs read-only checks inside vm-app01 and vm-dev01 through az vm run-command invoke. Prints
+IPs, Bastion SKU and native client support), then runs read-only checks inside vm-app01 and vm-dev01 through az vm run-command invoke. Prints
 PASS or FAIL per check, then an overall verdict. Exits 0 when every check passes, 1 otherwise.
 Changes nothing.
 .PARAMETER SubscriptionId
@@ -145,8 +145,19 @@ if ($results.Count -eq 0) {
     }
 
     $publicIps = @(Invoke-AzureCli -Arguments @('network', 'public-ip', 'list', '-g', $resourceGroup) | ForEach-Object { $_.name })
-    $unexpected = @($publicIps | Where-Object { $_ -ne 'pip-nat-datacenter' })
-    Add-Result -Check 'azure: no public IPs except pip-nat-datacenter' -Pass ($unexpected.Count -eq 0) -Detail ($publicIps -join ', ')
+    $unexpected = @($publicIps | Where-Object { $_ -notin 'pip-nat-datacenter', 'pip-bas-datacenter' })
+    Add-Result -Check 'azure: no public IPs except pip-nat-datacenter and pip-bas-datacenter' -Pass ($unexpected.Count -eq 0) -Detail ($publicIps -join ', ')
+
+    try {
+        $bastion = Invoke-AzureCli -Arguments @('network', 'bastion', 'show', '-g', $resourceGroup, '-n', 'bas-datacenter')
+        $bastionSubnet = (@($bastion.ipConfigurations)[0].subnet.id -split '/')[-1]
+        Add-Result -Check 'azure: bas-datacenter Standard SKU in AzureBastionSubnet' `
+            -Pass ($bastion.sku.name -eq 'Standard' -and $bastionSubnet -eq 'AzureBastionSubnet') -Detail "$($bastion.sku.name), $bastionSubnet"
+        Add-Result -Check 'azure: bas-datacenter native client support' -Pass ($bastion.enableTunneling -eq $true) -Detail "enableTunneling $($bastion.enableTunneling)"
+    }
+    catch {
+        Add-Result -Check 'azure: bas-datacenter exists' -Pass $false -Detail $_.Exception.Message
+    }
 
     if ($appVm -and $appVm.powerState -eq 'VM running') {
         Invoke-VmCheck -Name 'vm-app01' -Script 'Test-AppVm.ps1' -Parameters @('MinStudents=8', 'TargetStudents=200000', 'TargetEnrollments=2000000')
