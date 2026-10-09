@@ -192,10 +192,12 @@ $deadline = (Get-Date) + $timeout
 do {
     Start-Sleep -Seconds 30
     $sql = @(Invoke-AzureCli -Arguments @('resource', 'list', '--subscription', $SubscriptionId, '-g', $resourceGroup, '--resource-type', 'Microsoft.AzureArcData/sqlServerInstances') -AllowFailure)
-} while (-not $sql[0] -and (Get-Date) -lt $deadline)
-if (-not $sql[0]) {
+    # The engine's default instance is named after the machine; Analysis Services and SSIS can report first.
+    $engine = $sql | Where-Object { $_.name -eq $vmName } | Select-Object -First 1
+} while (-not $engine -and (Get-Date) -lt $deadline)
+if (-not $engine) {
     throw @"
-$vmName is Connected, but no SQL Server instance appeared within 20 minutes. Check the WindowsAgent.SqlServer
+$vmName is Connected, but no SQL Server database engine instance ($vmName) appeared within 20 minutes. Check the WindowsAgent.SqlServer
 extension in the portal (Azure Arc > Machines > $vmName > Extensions); it installs automatically.
 $logHelp
 "@
@@ -205,7 +207,7 @@ Write-Information @"
 
 Done in $([int] ((Get-Date) - $started).TotalMinutes) minutes. Arc-enabled SQL Server: $($sql.name -join ', ') in $resourceGroup.
 Next steps:
-  1. Check it in the portal: Azure Arc > SQL Server instances > $($sql[0].name). Edition Developer is free.
+  1. Check it in the portal: Azure Arc > SQL Server instances > $($engine.name). Edition Developer is free.
   2. Run the Arc SQL migration assessment: open the instance > Migration > Database migration > Assess source
      instance > View report (Run assessment if there's no result yet), and review ContosoUniversity.
 Run commands and VM extensions don't work on $vmName any more. Use Bastion to reach it:
