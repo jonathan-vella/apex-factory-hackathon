@@ -9,8 +9,9 @@ Every attendee, including the platform lead, must finish this whole page first: 
 
 ```mermaid
 flowchart LR
-  A["1. Accounts<br/>and access"] --> B["2. Install<br/>tools"] --> C["3. Create your repo<br/>from apex-accelerator"] --> D["4. Open the<br/>dev container"] --> E["5. Import the kit<br/>into factory/"] --> F["6. Write<br/>settings.json"] --> G["7. Manual<br/>checks"] --> H["Start C0"]
-```n
+  A[Accounts and access] --> B[Install tools] --> C[Create repo from apex-accelerator] --> D[Open dev container] --> E[Import kit into factory] --> F[Write settings.json] --> G[Manual checks] --> H[Start C0]
+```
+
 Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
 
 ## Blockers: you are not ready if any of these is true
