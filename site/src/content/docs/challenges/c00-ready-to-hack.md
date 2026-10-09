@@ -3,6 +3,10 @@ title: "C0: Ready to hack"
 description: Pre-work. Preflight, datacenter, Arc onboarding and the first migration assessment.
 ---
 
+:::caution[Do this first]
+Complete [Prerequisites](../../getting-started/prerequisites/) before you start C0: your own repo from the `apex-accelerator` template, the dev container, the kit imported into `factory/`, and `.local/settings.json` written. Every command below runs from there.
+:::
+
 ## Goal
 
 Arrive at the event with your Azure prerequisites green, your "on-premises" datacenter deployed, `vm-app01` onboarded to Azure Arc, and a first look at what an Arc SQL migration assessment finds.

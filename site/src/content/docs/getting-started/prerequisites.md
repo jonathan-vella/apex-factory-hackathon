@@ -3,6 +3,10 @@ title: Prerequisites
 description: Accounts, tools and the one repo you set up before T-14.
 ---
 
+:::caution[Required before C0]
+Every attendee, including the platform lead, must finish this whole page first: create your own repo from the `apex-accelerator` template, open it in the dev container, import the kit and write your settings. C0 and every later challenge run from that dev container, and nothing works without it.
+:::
+
 Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
 
 ## Blockers: you are not ready if any of these is true
