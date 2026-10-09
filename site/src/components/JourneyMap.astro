@@ -1,0 +1,128 @@
+---
+const steps = [
+  {
+    id: "C0",
+    title: "Ready to hack",
+    scope: "Member",
+    min: 150,
+    pts: 10,
+    day: "Pre",
+    href: "/challenges/c00-ready-to-hack/",
+  },
+  {
+    id: "C1",
+    title: "Define the opportunity",
+    scope: "Team",
+    min: 45,
+    pts: 10,
+    day: "Day 1",
+    href: "/challenges/c01-define-the-opportunity/",
+  },
+  {
+    id: "C2",
+    title: "Secure, AI-ready foundation",
+    scope: "Team",
+    min: 120,
+    pts: 35,
+    day: "Day 1",
+    href: "/challenges/c02-secure-ai-ready-foundation/",
+  },
+  {
+    id: "C3",
+    title: "Assess the source",
+    scope: "Member",
+    min: 60,
+    pts: 15,
+    day: "Day 1",
+    href: "/challenges/c03-assess-the-source/",
+  },
+  {
+    id: "C4",
+    title: "Choose target states",
+    scope: "Team + member",
+    min: 45,
+    pts: 25,
+    day: "Day 1",
+    href: "/challenges/c04-choose-target-states/",
+  },
+  {
+    id: "C5",
+    title: "Deploy the CoE archetype",
+    scope: "Member",
+    min: 90,
+    pts: 15,
+    day: "Day 1",
+    href: "/challenges/c05-deploy-the-coe-archetype/",
+  },
+  {
+    id: "C6",
+    title: "Modernize with GHCP",
+    scope: "Member",
+    min: 180,
+    pts: 30,
+    day: "Day 1–2",
+    href: "/challenges/c06-modernize-with-ghcp/",
+  },
+  {
+    id: "C7",
+    title: "Migrate and go live",
+    scope: "Member",
+    min: 120,
+    pts: 20,
+    day: "Day 2",
+    href: "/challenges/c07-migrate-and-go-live/",
+  },
+  {
+    id: "C8",
+    title: "Validate the pattern",
+    scope: "Member",
+    min: 45,
+    pts: 10,
+    day: "Day 2",
+    href: "/challenges/c08-validate-the-pattern/",
+  },
+  {
+    id: "C9",
+    title: "Optimize the DB with GHCP",
+    scope: "Member",
+    min: 60,
+    pts: 10,
+    day: "Day 2",
+    href: "/challenges/c09-optimize-the-db-with-ghcp/",
+  },
+  {
+    id: "C10",
+    title: "Package, hand over, review",
+    scope: "Team",
+    min: 60,
+    pts: 20,
+    day: "Day 2",
+    href: "/challenges/c10-package-hand-over-review-ai-readiness/",
+  },
+];
+const phases = [
+  { label: "Prepare", range: [0, 1] },
+  { label: "Foundation", range: [2, 5] },
+  { label: "Modernize", range: [6, 8] },
+  { label: "Optimize and hand over", range: [9, 11] },
+];
+---
+
+<ol class="journey">
+  {steps.map((s, i) => {
+    const phase = phases.find((p) => i >= p.range[0] && i < p.range[1]);
+    const first = phase && phase.range[0] === i;
+    return (
+      <li class:list={["journey__step", { "journey__step--team": s.scope === "Team" }]}>
+        {first && <span class="journey__phase">{phase.label}</span>}
+        <a href={s.href}>
+          <span class="journey__id">{s.id}</span>
+          <span class="journey__title">{s.title}</span>
+          <span class="journey__meta">
+            {s.day} · {s.scope} · {s.min} min · {s.pts} pts
+          </span>
+        </a>
+      </li>
+    );
+  })}
+</ol>

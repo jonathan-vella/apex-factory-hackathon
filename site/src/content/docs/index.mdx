@@ -5,6 +5,7 @@ template: splash
 ---
 
 import { CardGrid, LinkCard } from "@astrojs/starlight/components";
+import JourneyMap from "../../components/JourneyMap.astro";
 
 <section class="landing-hero not-content">
   <div class="landing-hero__copy">
@@ -56,6 +57,17 @@ import { CardGrid, LinkCard } from "@astrojs/starlight/components";
         </ul>
       </div>
     </div>
+  </div>
+</section>
+
+<section id="journey" class="landing-section scenario-frame not-content">
+  <div class="scenario-frame__head">
+    <div class="section-label">The journey</div>
+    <h2>Eleven challenges, two days</h2>
+    <p>From a ready workstation to a reusable, AI-ready modernization pattern.</p>
+  </div>
+  <div class="scenario-frame__body">
+    <JourneyMap />
   </div>
 </section>
 
