@@ -13,7 +13,7 @@ takes up to 60 minutes and is unattended.
 labadmin (both VMs) and the SQL login contosoapp use the fixed, documented lab password
 FactoryLab-2026-Pw unless you pass -AdminPassword or -SqlAppPassword. The VMs have no public IPs
 and are reachable only through Bastion, so a documented lab password is acceptable here, and only here.
-The script saves the values it deploys in $HOME/.apex-factory/<subscription-id>/datacenter.json.
+The script saves the values it deploys in .local/<subscription-id>/datacenter.json (git-ignored, in the repo folder so it survives a dev container rebuild).
 Re-runs converge an existing datacenter to those values.
 
 Azure Hybrid Benefit is on by default for vm-app01 (licenseType Windows_Server). It assumes you hold
@@ -67,7 +67,7 @@ $InformationPreference = 'Continue'
 $resourceGroup = 'rg-datacenter'
 $repository = 'jonathan-vella/apex-factory-hackathon'
 $template = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'datacenter', 'main.bicep'
-$secretsDir = Join-Path -Path $HOME -ChildPath '.apex-factory' -AdditionalChildPath $SubscriptionId
+$secretsDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', $SubscriptionId
 $secretsFile = Join-Path -Path $secretsDir -ChildPath 'datacenter.json'
 $hybridBenefit = -not $NoHybridBenefit.IsPresent
 # Fixed, documented lab password: see docs/backlog/README.md, Secrets.

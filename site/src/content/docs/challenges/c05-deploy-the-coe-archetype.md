@@ -17,12 +17,12 @@ Member. **90 min** (30 min demo + 60 min hands-on).
 
 ## Inputs
 
-C2's vended spoke. C4's platform ADR.
+C2's vended spoke. C4's platform ADR. The APEX repo you created and imported the kit into during Prerequisites.
 
 ## Your tasks
 
 1. Watch the coach's demo of the archetype's shape and the `adapt-archetype` flow.
-2. Create a repo from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template, at the commit pinned in `archetype/README.md`, and import this kit's `archetype/` folder into it (the import script in `archetype/README.md` does this in one command).
+2. Open your own repo (created from the `apex-accelerator` template in [Prerequisites](../../getting-started/prerequisites/)) in its dev container or Codespaces, and confirm the archetype is already there: `agent-output/university/`, `infra/bicep/university/` and `.github/prompts/adapt-archetype.prompt.md` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1 -Ref main` from the repo root (or the `Import-Kit.ps1` step from Prerequisites if `factory/` doesn't exist).
 3. Run the `adapt-archetype` prompt in VS Code's built-in agent mode, in the dev container or Codespaces (not natively on Windows). It's self-contained: it asks only for tenant ID, subscription ID and suffix, checks a spoke is already vended, runs a lightweight live governance check, and stops at `azd provision --preview`.
 4. Review the preview, then run `azd provision` yourself to deploy for real.
 5. Run **As-Built** (agent `08-As-Built`) to generate the deployed-state document.

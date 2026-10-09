@@ -21,14 +21,29 @@ None beyond the kit brief: Contoso University, an ASP.NET MVC 5 app on .NET Fram
 
 ## Your tasks
 
-1. Fill in the [opportunity canvas](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/opportunity-canvas.md) as a team: the business case, the current pain, and the target outcome in plain language.
-2. Cover the six modernization dimensions in the canvas: application, data, platform, security, operations and cost. For each, write one or two sentences on where Contoso University is today and where you intend to take it.
-3. Agree on what "done" looks like for the team by the end of day two, in terms a sponsor would accept as a handover.
-4. Commit the filled-in canvas to your team repo.
+Work on one shared screen (one person types, everyone contributes). Create the team repo first if it doesn't exist: one teammate creates a private repo from `templates/team/` and gives every teammate write access.
+
+1. **Copy the template.** In the team repo, copy `templates/opportunity-canvas.md` to `evidence/team/c01-opportunity-canvas.md`.
+2. **Business case (5 min).** Name the sponsor (a role, for example "the university's CIO") and write one or two sentences on the problem modernizing Contoso University solves for them.
+3. **Current pain (5 min).** List at least three concrete problems with today's app: for example .NET Framework 4.8 end of mainstream support, SQL Server 2022 on a VM, MSMQ, manual deployment. Say whether each is cost, risk, agility or support burden.
+4. **Six dimensions (20 min).** For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed shape as the target where it applies: .NET 10 on Azure App Service, SQL Managed Instance, private-by-default networking, central logging, and cost tracked against the vending budget.
+5. **Target outcome (5 min).** Write one sentence a sponsor would accept as "done" at the end of day two, and make sure every teammate can say it from memory.
+6. **Open questions.** Record any disagreement under "Open questions" with the people holding each view, then move on. C4 decides.
+7. **Commit.**
+
+   ```bash
+   git add evidence/team/c01-opportunity-canvas.md
+   git commit -m "C1: opportunity canvas"
+   git push
+   ```
+
+   Don't commit tenant IDs, subscription IDs or secrets.
+
+Done when no HTML comment prompt text remains in the file, all six dimensions have both a `Today:` and a `Target:` line, and the commit is on the team repo's main branch.
 
 ## Evidence
 
-- `opportunity-canvas.md`, committed, with all six dimensions filled in (not left as the template's placeholder text).
+- `evidence/team/c01-opportunity-canvas.md`, committed, with all six dimensions filled in (not left as the template's placeholder text).
 - A one-sentence target outcome the whole team can repeat.
 
 ## Hints

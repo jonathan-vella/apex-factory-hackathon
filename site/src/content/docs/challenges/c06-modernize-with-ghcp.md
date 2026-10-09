@@ -21,7 +21,7 @@ C3's reviewed assessment and plan. C5's deployed archetype (for the registry and
 
 ## Your tasks
 
-1. Follow the [GHCP upgrade guide](../../guides/ghcp-upgrade/) and the [modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md): harness **Local**, agent **Upgrade**, one task per new chat, build and run the app after every task, commit and push before the next.
+1. Switch to `vm-dev01` as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01), then follow the [GHCP upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone: harness **Local**, agent **Upgrade**, one task per new chat, build and run the app after every task, commit before the next.
 2. Run all seven tasks in order: .NET 10 and ASP.NET Core MVC; SQL Managed Instance; Blob; Service Bus; Key Vault; OpenTelemetry; CVE audit. Each task's check is in the playbook's task table — don't skip a check to save time.
 3. Close the gaps the tasks don't fully cover, using the three skills in `.github/skills/` if a check fails.
 4. Package the app with .NET SDK container publishing (no Dockerfile) and push it to your archetype's private registry.

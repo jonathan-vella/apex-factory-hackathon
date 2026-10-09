@@ -9,7 +9,7 @@ Stand up the team's landing zone: a live portal ALZ demo first, then ALZ-lite de
 
 ## Scope and time box
 
-Team. **120 min**.
+Team. **120 min**. The platform lead does tasks 2 and 3; every member does tasks 4 and 5 for their own datacenter.
 
 ## Points
 
@@ -21,11 +21,46 @@ C1's opportunity canvas (context only — C2 doesn't depend on its content).
 
 ## Your tasks
 
-1. Watch the coach's live demo of a full portal-based Azure Landing Zone, and note what ALZ-lite deliberately leaves out (it's a comparison table in the [ALZ-lite guide](../../guides/alz-lite/), not a gap to fix).
-2. The platform lead deploys ALZ-lite into the team's shared services subscription with `scripts/Deploy-AlzLite.ps1`: management groups, the hub (Azure Firewall Standard with DNS proxy, central private DNS zones), the central Log Analytics workspace, and the core policies at `mg-factory-corp`.
-3. The platform lead runs `scripts/Deploy-Vending.ps1` for every member, connecting each workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget.
-4. Record the datacenter's deliberate policy exceptions with `scripts/New-DatacenterExemptions.ps1` — each exemption needs an owner, a reason and an expiry.
-5. Run `scripts/Test-Connectivity.ps1` from inside the datacenter and confirm every applicable check passes.
+1. **Everyone: get the shared services subscription ID.** The platform lead posts it in the team channel at the start of C2. Add it to your settings (it keeps your other values), then confirm:
+
+   ```powershell
+   ./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
+   ```
+
+   The platform lead already has it; run the same command once to record it.
+2. Watch the coach's live demo of a full portal-based Azure Landing Zone, and note what ALZ-lite deliberately leaves out (it's a comparison table in the [ALZ-lite guide](../../guides/alz-lite/), not a gap to fix).
+3. **Platform lead: deploy ALZ-lite.** In your dev container, from `factory/` (the same place as C0), against the **shared services** subscription:
+
+   ```powershell
+   $s = Get-Content .local/settings.json | ConvertFrom-Json
+   az account set --subscription $s.sharedSubscriptionId
+   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -WhatIf
+   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
+   ```
+
+   It creates the management groups, the hub (Azure Firewall Standard with DNS proxy, central private DNS zones), the central Log Analytics workspace, and the core policies at `mg-factory-corp`. The other members wait for this before task 4.
+4. **Platform lead: vend every member, yourself included.** You are also a student with one workload subscription like everyone else, and you need to be vended too. Collect from each member their workload subscription ID, member index and Entra object ID, then run once per member, from the same `factory/` folder:
+
+   ```powershell
+   ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -WhatIf
+   ```
+
+   Re-run without `-WhatIf` once the plan looks right. Each run connects that workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget.
+5. **Every member (including the platform lead): record your datacenter's exemptions.** After you've been vended, run this from your own `factory/` folder against your workload subscription. Each exemption needs an owner, a reason and an expiry (the default is 14 days):
+
+   ```powershell
+   az account set --subscription $s.subscriptionId
+   ./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $s.subscriptionId -Owner '<your name>' -WhatIf
+   ```
+
+   Re-run without `-WhatIf` to create them.
+6. **Every member: prove connectivity.** Run this from your own dev container, from `factory/`. It runs its checks inside your datacenter VMs through Azure, so you don't sign in to the VMs:
+
+   ```powershell
+   ./scripts/Test-Connectivity.ps1 -SubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex
+   ```
+
+   Every applicable check must PASS.
 
 ## Evidence
 
