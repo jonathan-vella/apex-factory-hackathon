@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/03-des-adr-0004-acr-trusted-services-bypass-for-import.md",
+  "artifact_type": "design-adr",
+  "artifact": "03-des-adr-0004-acr-trusted-services-bypass-for-import.md",
+  "pass": 1,
+  "source": "challenge-findings-design-adr-0004.json",
+  "recorded_at": "2026-10-06T12:21:24Z",
+  "decisions": [
+    {
+      "issue_id": "b5afd1a6",
+      "source_file": "challenge-findings-design-adr-0004.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "The bypass is described as import-only and time-scoped",
+      "action": "accept",
+      "note": "Edit: bypass stated as a registry-level exception that persists; the import test gates readiness but does not narrow it; Security rated down and accepted.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "612e2977",
+      "source_file": "challenge-findings-design-adr-0004.json",
+      "pass_number": 1,
+      "issue_index": 1,
+      "severity": "suggestion",
+      "title": "The WAF table implies an unverified performance gain",
+      "action": "accept",
+      "note": "Edit: Performance now neutral, not assessed.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "35f0935e",
+      "source_file": "challenge-findings-design-adr-0004.json",
+      "pass_number": 1,
+      "issue_index": 2,
+      "severity": "suggestion",
+      "title": "The opening quotation is a paraphrase, not verbatim source text",
+      "action": "accept",
+      "note": "Edit: quote replaced with the verbatim Microsoft Learn sentence and its URL, confirmed against the page.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    }
+  ]
+}

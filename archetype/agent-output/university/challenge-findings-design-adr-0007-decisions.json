@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/03-des-adr-0007-no-zone-redundancy-region-derived-from-hub.md",
+  "artifact_type": "design-adr",
+  "artifact": "03-des-adr-0007-no-zone-redundancy-region-derived-from-hub.md",
+  "pass": 1,
+  "source": "challenge-findings-design-adr-0007.json",
+  "recorded_at": "2026-10-06T12:21:24Z",
+  "decisions": [
+    {
+      "issue_id": "f4061e8d",
+      "source_file": "challenge-findings-design-adr-0007.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "ADR describes the lab as a production footprint",
+      "action": "accept",
+      "note": "Edit: scoped to a training/demo platform with no production data and best-effort availability.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "4604f13c",
+      "source_file": "challenge-findings-design-adr-0007.json",
+      "pass_number": 1,
+      "issue_index": 1,
+      "severity": "should_fix",
+      "title": "The no-zone decision does not preserve automatic redundancy exceptions",
+      "action": "accept",
+      "note": "Edit: decision limited to the web app and SQL MI; ACR Premium and Service Bus Premium keep their automatic zone redundancy.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "80cfeb31",
+      "source_file": "challenge-findings-design-adr-0007.json",
+      "pass_number": 1,
+      "issue_index": 2,
+      "severity": "should_fix",
+      "title": "Recovery is attributed to platform governance instead of IaC redeployment",
+      "action": "accept",
+      "note": "Edit: recovery is best-effort and owner-initiated redeployment from IaC; no automatic failover or DR replication.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "5eb14199",
+      "source_file": "challenge-findings-design-adr-0007.json",
+      "pass_number": 1,
+      "issue_index": 3,
+      "severity": "should_fix",
+      "title": "The ADR claims an approved cost envelope without a fixed cap",
+      "action": "accept",
+      "note": "Edit: cites about $1.81/hour against the brief's soft ~$1.83/hour; states there is no fixed monthly cap.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "6dd34fce",
+      "source_file": "challenge-findings-design-adr-0007.json",
+      "pass_number": 1,
+      "issue_index": 4,
+      "severity": "suggestion",
+      "title": "The Context block presents a stitched paraphrase as a verbatim quote",
+      "action": "accept",
+      "note": "Edit: replaced with the assessment's verbatim sentence, with the requirements and region-row text cited separately.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    }
+  ]
+}

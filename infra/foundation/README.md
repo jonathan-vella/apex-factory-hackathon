@@ -122,7 +122,7 @@ What it deploys:
 
 The platform lead runs vending for every member, one at a time (each run updates `afwp-hub`). It needs Owner at Tenant Root, because it writes to both subscriptions and the cross-subscription peerings need rights on both VNets. Members need no other role on the shared services subscription: only Managed Identity Operator on `id-sqlmi-directory`.
 
-**SQL MI directory identity (event prep, once per team).** ALZ-lite creates `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it as its primary identity, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up Microsoft Entra principals, such as the web app's identity in C7. A Privileged Role Administrator grants it Microsoft Graph `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All` once per team with `scripts/Grant-SqlMiDirectoryRead.ps1` ([Managed identities in Microsoft Entra for Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/authentication-azure-ad-user-assigned-managed-identity)). Without it, creating the web app's database user fails with "Server identity does not have Azure Active Directory Readers permission" (B09 validation, 2026-10-07).
+**SQL MI directory identity (event prep, once per team).** ALZ-lite creates `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it as its primary identity, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up Microsoft Entra principals, such as the web app's identity in C7. A Privileged Role Administrator grants it Microsoft Graph read permissions once per team (see [Event prep: SQL MI directory identity](#event-prep-sql-mi-directory-identity); [Managed identities in Microsoft Entra for Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/authentication-azure-ad-user-assigned-managed-identity)). Without it, creating the web app's database user fails with "Server identity does not have Azure Active Directory Readers permission" (B09 validation, 2026-10-07).
 
 ## Firewall rules
 
@@ -182,12 +182,45 @@ It skips the checks that don't apply yet and says so: private endpoints and the 
 
 The platform lead needs **Owner at the Tenant Root management group**: to create the management groups, move both subscriptions, assign policies and give their identities roles, and write to both subscriptions in vending. Both deploy scripts check it first. To get it, a Global Administrator elevates access (Microsoft Entra ID > Properties > Access management for Azure resources) and assigns Owner at Tenant Root.
 
+## Event prep: SQL MI directory identity
+
+Once per team, after ALZ-lite and before C7, someone with **Privileged Role Administrator** (or Global Administrator) in the event tenant grants `id-sqlmi-directory` its Microsoft Graph read permissions. Members and the platform lead usually can't: it's a directory role, not an Azure role. Without it, C7 can't create the web app's database user on any member's SQL Managed Instance.
+
+1. If the role is assigned through Privileged Identity Management, activate it first: in the Microsoft Entra admin center, go to **Identity governance > Privileged Identity Management > My roles**, then **Activate**. From the command line, use Microsoft Graph PowerShell; the Azure CLI's sign-in can't activate PIM roles:
+
+   ```powershell
+   Install-Module Microsoft.Graph.Identity.Governance -Scope CurrentUser   # once
+   Connect-MgGraph -Scopes 'RoleAssignmentSchedule.ReadWrite.Directory' -TenantId '<tenant-id>'
+   $userId = (Invoke-MgGraphRequest GET 'https://graph.microsoft.com/v1.0/me').id
+   New-MgRoleManagementDirectoryRoleAssignmentScheduleRequest -BodyParameter @{
+     action           = 'selfActivate'
+     principalId      = $userId
+     roleDefinitionId = 'e8611ab8-c189-46e8-94e1-60213ab1f814'   # Privileged Role Administrator
+     directoryScopeId = '/'
+     justification    = 'Hackathon prep: SQL MI directory identity'
+     scheduleInfo     = @{ startDateTime = (Get-Date).ToUniversalTime().ToString('o'); expiration = @{ type = 'AfterDuration'; duration = 'PT1H' } }
+   }
+   ```
+
+   The tenant's PIM settings may require approval or MFA, in which case the request stays pending until it's approved. An existing `az login` session picks up the activated role without signing in again (B09 validation, 2026-10-07).
+2. Grant the permissions:
+
+   ```powershell
+   $s = Get-Content (Join-Path '.local' 'settings.json') | ConvertFrom-Json
+   ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId
+   ```
+
+3. Check: the same command with `-WhatIf` prints "already granted" for `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All`. Anyone signed in to the tenant can run the check; it changes nothing.
+
+The grant belongs to the identity. Re-running ALZ-lite keeps the identity and its permissions; deleting `rg-management` (teardown) deletes both, so a redeploy after teardown needs the grant again.
+
 ## Run it
 
 ```powershell
 $s = Get-Content (Join-Path '.local' 'settings.json') | ConvertFrom-Json
 ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -WhatIf
 ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
+./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId   # once per team, Privileged Role Administrator
 ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex -BudgetEmail '<email>'
 ./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $s.subscriptionId -Owner '<owner name>'
 ./scripts/Test-Connectivity.ps1 -SubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex

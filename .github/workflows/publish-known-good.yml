@@ -1,0 +1,61 @@
+name: Publish known-good image
+
+on:
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  DOTNET_NOLOGO: true
+  IMAGE: ghcr.io/jonathan-vella/contoso-university
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-known-good
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish from lifeline/L5-cutover
+    if: github.repository == 'jonathan-vella/apex-factory-hackathon'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout lifeline/L5-cutover
+        uses: actions/checkout@v7
+        with:
+          ref: lifeline/L5-cutover
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.401"
+
+      - name: Publish image
+        env:
+          DOTNET_CONTAINER_REGISTRY_UNAME: ${{ github.actor }}
+          DOTNET_CONTAINER_REGISTRY_PWORD: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          commit=$(git rev-parse HEAD)
+          echo "COMMIT=$commit" >> "$GITHUB_ENV"
+          dotnet publish app/ContosoUniversity/ContosoUniversity.csproj -c Release /t:PublishContainer \
+            -p:ContainerRegistry=ghcr.io \
+            -p:ContainerRepository=jonathan-vella/contoso-university \
+            -p:ContainerImageTags="\"known-good;$commit\""
+
+      - name: Record digest
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          digest=$(docker buildx imagetools inspect "$IMAGE:known-good" --format '{{json .Manifest.Digest}}' | tr -d '"')
+          {
+            echo "### Known-good image"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Image | \`$IMAGE:known-good\` |"
+            echo "| Commit tag | \`$IMAGE:$COMMIT\` |"
+            echo "| Source | \`lifeline/L5-cutover\` at \`$COMMIT\` |"
+            echo "| Digest | \`$digest\` |"
+          } >> "$GITHUB_STEP_SUMMARY"

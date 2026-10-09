@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/03-des-adr-0006-inherited-cost-monitoring-from-vending.md",
+  "artifact_type": "design-adr",
+  "artifact": "03-des-adr-0006-inherited-cost-monitoring-from-vending.md",
+  "pass": 1,
+  "source": "challenge-findings-design-adr-0006.json",
+  "recorded_at": "2026-10-06T12:21:24Z",
+  "decisions": [
+    {
+      "issue_id": "c238ab53",
+      "source_file": "challenge-findings-design-adr-0006.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "Inherited monitoring is described as covering anomalies and health without evidence.",
+      "action": "accept",
+      "note": "Edit: Reliability now describes only the inherited 80% budget e-mail; no anomaly alert and no health-action notification, both accepted gaps.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "6b4d0d95",
+      "source_file": "challenge-findings-design-adr-0006.json",
+      "pass_number": 1,
+      "issue_index": 1,
+      "severity": "should_fix",
+      "title": "The ADR omits the deferred exception's expiry and early-review triggers.",
+      "action": "accept",
+      "note": "Edit: decision limited to the current dev exception; expiry 2027-01-03 and early-review triggers stated; governance exception must be refreshed before deferred mode continues.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "751c03ba",
+      "source_file": "challenge-findings-design-adr-0006.json",
+      "pass_number": 1,
+      "issue_index": 2,
+      "severity": "suggestion",
+      "title": "The WAF arrows are ambiguous between spend and optimization impact.",
+      "action": "accept",
+      "note": "Edit: arrows defined as quality impact; pillar relabelled Cost Optimization.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    },
+    {
+      "issue_id": "2b56b118",
+      "source_file": "challenge-findings-design-adr-0006.json",
+      "pass_number": 1,
+      "issue_index": 3,
+      "severity": "suggestion",
+      "title": "The Context callout presents a paraphrase as a direct quotation.",
+      "action": "accept",
+      "note": "Edit: replaced with the verbatim Budget paragraph from 01-requirements.md.",
+      "decided_at": "2026-10-06T12:21:24Z"
+    }
+  ]
+}

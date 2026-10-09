@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/03-des-adr-0001-linux-app-service-vs-aks.md",
+  "artifact_type": "design-adr",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The App Service choice matches the approved architecture and requirements, and the reviewed ADR has no governance conflict or tenant/subscription UUID. Revision is needed because the ADR misstates platform complexity, omits a known security caveat, and presents AKS WAF deltas without a comparable evaluated design. The re-platform-later row also overlaps the selected decision.",
+  "compact_for_parent": "Pass 1 (comprehensive) | MEDIUM | 0 must_fix, 3 should_fix | Key: Complexity misclassified; AKS WAF comparison unsupported; security caveat omitted",
+  "risk_level": "medium",
+  "must_fix_count": 0,
+  "should_fix_count": 3,
+  "suggestion_count": 1,
+  "findings": [
+    {
+      "id": "c231ee68",
+      "severity": "should_fix",
+      "category": "architectural_weakness",
+      "claim": "The ADR misclassifies the overall platform as low complexity",
+      "evidence": "The ADR's Context calls the workload a low-complexity platform. The requirements classify it as standard and explain that it has more than eight resource types plus cross-subscription discovery and existing-spoke constraints. The architecture assessment inventories 16 resources. App Service may be the simpler hosting option, but that does not make the overall platform low complexity.",
+      "impact": "The inaccurate premise can understate the integration and operating surface and make the resource-count argument against AKS misleading, weakening future reassessment of the hosting decision.",
+      "artifact_section": "Context",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0001-linux-app-service-vs-aks.md",
+        "line_range": [27, 27],
+        "proposed_edit": "Replace the low-complexity characterization with: 'The approved requirements classify the overall platform as standard complexity: it spans more than eight resource types and includes cross-subscription discovery and existing-spoke constraints. Linux App Service is the simpler hosting choice for this workload; AKS is not required by the current business flow or approved service list.'"
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Context: low-complexity characterization",
+        "01-requirements.md: Complexity Classification (standard; more than 8 resource types)",
+        "02-architecture-assessment.md: Resources to Provision (16 resources)"
+      ]
+    },
+    {
+      "id": "3c8478ec",
+      "severity": "should_fix",
+      "category": "untested_assumption",
+      "claim": "AKS WAF impacts lack a comparable evaluated deployment",
+      "evidence": "The Alternatives Considered table assigns AKS directional impacts across security, cost, reliability, performance, and operations, but the approved architecture evaluates only the App Service design. It contains no AKS topology, node/SKU configuration, availability design, workload test, or comparable AKS cost estimate. In particular, the Reliability-neutral and Performance-positive claims are not established by the current single-instance, best-effort requirements or by an untested workload.",
+      "impact": "Readers may interpret generic expectations as assessed project evidence, overstating confidence in the trade-off and obscuring that AKS reliability, performance, and cost depend on an unevaluated deployment profile.",
+      "artifact_section": "Alternatives Considered",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0001-linux-app-service-vs-aks.md",
+        "line_range": [38, 38],
+        "proposed_edit": "Define the arrow semantics and label the AKS impacts as qualitative assumptions. Either provide a comparable AKS topology and supporting cost, reliability, and performance evidence, or mark those impacts unassessed rather than presenting them as established project trade-offs."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Alternatives Considered: Linux App Service, AKS now, and Re-platform later rows",
+        "02-architecture-assessment.md: WAF Pillar Assessment and Resources to Provision",
+        "01-requirements.md: Non-Functional Requirements"
+      ]
+    },
+    {
+      "id": "b243f912",
+      "severity": "should_fix",
+      "category": "waf_blind_spot",
+      "claim": "The Security benefit omits known exposure and unchanged private-link duties",
+      "evidence": "The ADR marks Security positive and says fewer runtime controls reduce private-endpoint complexity. The architecture assessment explicitly records that the public HTTPS front end has no WAF and no end-user authentication, both excluded from B09; requirements assign end-user authentication to the separate B06/B10 app workstream. The same requirements still mandate four private PaaS endpoints and policy-driven central DNS, independent of the hosting choice. The ADR's rationale therefore omits a known residual exposure and overstates the private-endpoint simplification attributable to App Service.",
+      "impact": "The ADR can be read as implying that the hosting choice resolves the front-end security gap or removes network controls, causing downstream readers to lose track of the accepted exposure and the remaining private DNS readiness dependency.",
+      "artifact_section": "WAF Pillar Analysis",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0001-linux-app-service-vs-aks.md",
+        "line_range": [62, 62],
+        "proposed_edit": "Qualify the Security rationale: 'App Service reduces the cluster attack surface compared with AKS, but does not remove the four private PaaS endpoints or their policy-driven DNS readiness requirements. The public HTTPS front end remains without WAF or end-user authentication in B09; end-user authentication is owned by B06/B10. These are residual scope constraints, not benefits of the hosting choice.'"
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "WAF Pillar Analysis: Security row",
+        "02-architecture-assessment.md: Security Assessment, Gaps",
+        "01-requirements.md: User Types and Compliance & Security Requirements / Network Security"
+      ]
+    },
+    {
+      "id": "3ef9a403",
+      "severity": "suggestion",
+      "category": "scope_risk",
+      "claim": "The Re-platform later option repeats the selected decision",
+      "evidence": "The decision is to use App Service now and retain AKS as a future option. The Re-platform later row likewise says it preserves the current workload while keeping an upgrade path for scale, so it describes the adopted approach rather than a distinct alternative. Its all-neutral WAF assessment does not clarify a different choice.",
+      "impact": "The comparison table does not make clear which distinct options were considered or why the adopted timing strategy was selected over the other paths.",
+      "artifact_section": "Alternatives Considered",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/03-des-adr-0001-linux-app-service-vs-aks.md",
+        "line_range": [39, 39],
+        "proposed_edit": "Remove this row or define a distinct option it represents. If it means 'defer any AKS commitment until a trigger is met,' identify it as the decision strategy and compare it against a specific alternative, such as a committed AKS migration now."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Decision section",
+        "Alternatives Considered: Re-platform later row"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "0cccd44fb31ba50b9e4655ec835595c0c68a81dc17c69004b474b593fc412ba6",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "8afbfaae732321304526faff7158224ba9bac223ac123de5d0d6f9447d4e824b"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/01-requirements.md",
+      "sha256": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    }
+  ]
+}

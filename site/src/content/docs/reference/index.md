@@ -8,4 +8,9 @@ sidebar:
 
 This section covers the glossary, naming, IP plan and troubleshooting.
 
-> **Under construction:** This section will be filled in before v1.
+- [Naming and IP plan](./naming-and-ip-plan/)
+- [Azure Hybrid Benefit](./azure-hybrid-benefit/)
+- [Availability zones](./availability-zones/)
+- [Cost](./cost/)
+- [Glossary](./glossary/)
+- [Troubleshooting](./troubleshooting/)

@@ -1,0 +1,71 @@
+{
+  "status": "COMPLETE",
+  "project_name": "university",
+  "region": "swedencentral",
+  "currency": "USD",
+  "monthly_total": 174.6053892,
+  "yearly_total": 2095.2646704,
+  "resources": [
+    {
+      "name": "sql-managed-instance-compute",
+      "service_name": "SQL Managed Instance",
+      "sku": "General Purpose, Standard-series (Gen5), 4 vCores; BasePrice (Azure Hybrid Benefit)",
+      "region": "swedencentral",
+      "quantity": 1,
+      "hourly_rate": 0.669756,
+      "monthly_cost": 174.6053892,
+      "notes": "Comparison-only winner ahb-scheduled-261h; not SKU approval. Reused the exact returned meter from agent-output/university/02-cost-estimate.json, queried_at=2026-10-06T07:20:25.721Z: productName=SQL Managed Instance General Purpose - Compute Gen5; skuName=4 vCore; meterName=vCore; unitOfMeasure=1 Hour; priceType=Consumption; currency=USD; region=swedencentral; retailPrice=0.669756 USD per 4-vCore unit-hour. Usage=260.7 billed hours/month x 1 instance. Calculation: 0.669756 x 260.7 x 1 = 174.6053892 USD/month. Historical source estimate used 18 MCP calls; this invocation issued no pricing requests."
+    }
+  ],
+  "optimization_notes": [
+    "Comparison-only pricing; the advised winner is not SKU approval and does not change the manifest. Top-level totals reflect the lower-cost candidate only.",
+    "Native schedule: Mon-Fri 07:30-18:30 W. Europe Standard Time; 12 fully billed started hours per weekday. Monthly hours = 12 x (730 / 168 x 5) = 260.7142857, rounded to 260.7 h/month.",
+    "AHB BasePrice compute only. Stopped instances are not billed for vCores or licence; storage remains billed and is excluded because it is identical across candidates. LicenseIncluded is out of scope."
+  ],
+  "savings_status": "QUANTIFIED",
+  "savings_reason": "The comparison quantifies the BasePrice compute-only reduction from 730 to 260.7 billed hours/month. Unchanged storage is excluded; LicenseIncluded is out of scope.",
+  "eligible_strategies": [],
+  "data_source": "Azure Resource Manager MCP get_retail_prices",
+  "queried_at": "2026-10-06T07:20:25.721Z",
+  "confidence": "High",
+  "unresolved_items": [],
+  "mcp_calls_used": 0,
+  "budget_exceeded": false,
+  "decisions": [
+    {
+      "decision_id": "sql-mi-run-hours-post-cutover",
+      "winner_label": "ahb-scheduled-261h",
+      "delta_monthly_usd": 314.3164908,
+      "candidates": [
+        {
+          "label": "ahb-24x7-730h",
+          "service_name": "SQL Managed Instance",
+          "sku": "General Purpose, Standard-series (Gen5), 4 vCores",
+          "region": "swedencentral",
+          "quantity": 1,
+          "vcores": 4,
+          "license_type": "BasePrice (Azure Hybrid Benefit)",
+          "usage": "730 h/month; 1 instance; on-demand pay-as-you-go",
+          "hours_per_month": 730,
+          "hourly_rate": 0.669756,
+          "monthly_cost": 488.92188,
+          "notes": "Compute-only BasePrice candidate; monthly cost rounds to 488.92 USD. Reused source queried_at=2026-10-06T07:20:25.721Z. Selected productName=SQL Managed Instance General Purpose - Compute Gen5; skuName=4 vCore; meterName=vCore; unitOfMeasure=1 Hour; priceType=Consumption; currency=USD; region=swedencentral; retailPrice=0.669756 USD per 4-vCore unit-hour. Calculation: 0.669756 x 730 x 1 = 488.92188 USD/month. No separate SQL licence meter is applied to AHB BasePrice."
+        },
+        {
+          "label": "ahb-scheduled-261h",
+          "service_name": "SQL Managed Instance",
+          "sku": "General Purpose, Standard-series (Gen5), 4 vCores",
+          "region": "swedencentral",
+          "quantity": 1,
+          "vcores": 4,
+          "license_type": "BasePrice (Azure Hybrid Benefit)",
+          "usage": "260.7 h/month; Mon-Fri 07:30-18:30 W. Europe Standard Time; 12 fully billed started hours per weekday; 1 instance; on-demand pay-as-you-go",
+          "hours_per_month": 260.7,
+          "hourly_rate": 0.669756,
+          "monthly_cost": 174.6053892,
+          "notes": "Compute-only BasePrice candidate; monthly cost rounds to 174.61 USD. Schedule derivation: 12 x (730 / 168 x 5) = 260.7142857 hours/month, rounded to 260.7. Reused source queried_at=2026-10-06T07:20:25.721Z. Selected productName=SQL Managed Instance General Purpose - Compute Gen5; skuName=4 vCore; meterName=vCore; unitOfMeasure=1 Hour; priceType=Consumption; currency=USD; region=swedencentral; retailPrice=0.669756 USD per 4-vCore unit-hour. Calculation: 0.669756 x 260.7 x 1 = 174.6053892 USD/month. No separate SQL licence meter is applied to AHB BasePrice."
+        }
+      ]
+    }
+  ]
+}

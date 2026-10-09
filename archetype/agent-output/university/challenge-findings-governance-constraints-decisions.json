@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0",
+  "project": "university",
+  "challenged_artifact": "agent-output/university/04-governance-constraints.md",
+  "artifact_type": "governance-constraints",
+  "artifact": "04-governance-constraints.md",
+  "pass": 1,
+  "source": "challenge-findings-governance-constraints-pass1.json",
+  "recorded_at": "2026-10-06T09:50:11Z",
+  "decisions": [
+    {
+      "issue_id": "4fe41d89",
+      "source_file": "challenge-findings-governance-constraints-pass1.json",
+      "pass_number": 1,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "The approved architecture is not reconciled against discovered policy blockers",
+      "action": "accept",
+      "note": "Edit: remove the 'No architecture assessment provided' note and map every Deny row to the approved Step 2 design, marking each not applicable, compliant, or a conflict with its approved fix. Leave implementation detail to Step 4.",
+      "decided_at": "2026-10-06T09:50:11Z"
+    },
+    {
+      "issue_id": "ddfde188",
+      "source_file": "challenge-findings-governance-constraints-pass1.json",
+      "pass_number": 1,
+      "issue_index": 1,
+      "severity": "should_fix",
+      "title": "The Markdown exposes subscription IDs outside the permitted JSON artifact",
+      "action": "accept",
+      "note": "Edit: replace subscription IDs with 'the workload subscription' or 'the shared services subscription'; keep only zone names for the private DNS zones. The JSON subscription_id is unchanged (the schema requires it). Also reconcile the blocker count with the JSON blocker_count (20) and explain any difference.",
+      "decided_at": "2026-10-06T09:50:11Z"
+    },
+    {
+      "issue_id": "44e9df0f",
+      "source_file": "challenge-findings-governance-constraints-pass2.json",
+      "pass_number": 2,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "DINE assignments are marked as deployed without remediation evidence",
+      "action": "accept",
+      "note": "Edit: describe the DeployIfNotExists rows as discovered assignments with remediation unverified at plan time, not completed deployments, and reference the post-deploy DNS (capability 15) and diagnostics readiness gates. Owner states B08 grants the DINE assignment identities their roles (not verified in discovery). Supersedes the earlier defer answer; applied instead of deferring. Also replace the root management group scope (equals the tenant ID) with Tenant Root Group so the Markdown carries no tenant or subscription IDs; the JSON stays as discovered.",
+      "decided_at": "2026-10-06T10:06:07Z"
+    },
+    {
+      "issue_id": "37a54ccd",
+      "source_file": "challenge-findings-governance-constraints-pass3.json",
+      "pass_number": 3,
+      "issue_index": 0,
+      "severity": "must_fix",
+      "title": "The current location Deny blocks the approved Germany alternate",
+      "action": "accept",
+      "note": "Edit: re-run live discovery against the workload subscription and regenerate both governance files, keeping every earlier fix. Refreshed evidence: ALZ-lite Allowed locations is now Audit and is no longer a blocker, and a new Audit assignment, ALZ-lite Audit resource location matches resource group location, exists. germanywestcentral is not blocked by any discovered Deny; the allow-list contents are not itemized by discovery and are not claimed. Step 2 is not edited; its approved regions stand. Resolved by the refreshed evidence per the owner.",
+      "decided_at": "2026-10-06T10:23:33Z"
+    },
+    {
+      "issue_id": "cdc3bcbd",
+      "source_file": "challenge-findings-governance-constraints-pass3.json",
+      "pass_number": 3,
+      "issue_index": 1,
+      "severity": "should_fix",
+      "title": "Three filtered Defender assignments are not disclosed or reconciled",
+      "action": "accept",
+      "note": "Edit: report the refreshed totals (28 total, 25 retained, 3 filtered) and state that the filtered assignments are Defender for Cloud's automatic assignments, excluded as the discovery default and not workload blockers. Do not use --include-defender-auto.",
+      "decided_at": "2026-10-06T10:23:33Z"
+    },
+    {
+      "issue_id": "77e9969e",
+      "source_file": "challenge-findings-governance-constraints-pass3.json",
+      "pass_number": 3,
+      "issue_index": 2,
+      "severity": "should_fix",
+      "title": "Security Policies still marks unverified policy actions compliant",
+      "action": "accept",
+      "note": "Edit: warning status on the two DeployIfNotExists rows (remediation unverified, checked by the post-deploy gates); keep green on the five Modify rows with a note that Modify applies in the create or update request itself. Applied consistently to the compliance and Auto-Modified tables.",
+      "decided_at": "2026-10-06T10:23:33Z"
+    },
+    {
+      "issue_id": "ff8baa69",
+      "source_file": "challenge-findings-governance-constraints-pass3.json",
+      "pass_number": 3,
+      "issue_index": 3,
+      "severity": "should_fix",
+      "title": "The tag diagram implies automatic inheritance with no discovered policy",
+      "action": "accept",
+      "note": "Edit: replace the tags diagram with one line saying no tag policy was discovered and the archetype sets the Step 1 convention tags explicitly. An accurate explicit-tagging diagram was kept only to satisfy the artifact template's Mermaid requirement.",
+      "decided_at": "2026-10-06T10:23:33Z"
+    },
+    {
+      "issue_id": "1d29a697",
+      "source_file": "challenge-findings-governance-constraints-pass4.json",
+      "pass_number": 4,
+      "issue_index": 0,
+      "severity": "should_fix",
+      "title": "Audit location effects are presented as live discovery despite owner-only confirmation",
+      "action": "defer",
+      "note": "Defer to Step 4; no artifact edit, so pass 4 stays valid. Both ALZ-lite location effects (Audit) were verified live on 2026-10-06 with the owner's az policy assignment show at mg-factory-corp, not from discovery. Evidence supplied by the owner: {\"displayName\":\"ALZ-lite: Allowed locations\",\"effect\":\"Audit\",\"enforcementMode\":\"Default\"} and {\"displayName\":\"ALZ-lite: Audit resource location matches resource group location\",\"effect\":\"Audit\",\"enforcementMode\":\"Default\"}. 04-governance-constraints.md already says Audit for both (owner-confirmed). Discovery does not itemize Audit effects or allowed locations; no allow-list is claimed. Step 4 cites that command as the evidence. Evidence is owner-run output; 04g-Governance did not run it (az policy reads are outside its deterministic-discovery scope).",
+      "decided_at": "2026-10-06T10:37:07Z"
+    },
+    {
+      "issue_id": "6dec76b5",
+      "source_file": "challenge-findings-governance-constraints-pass4.json",
+      "pass_number": 4,
+      "issue_index": 1,
+      "severity": "should_fix",
+      "title": "Filtered Defender assignments are called non-blocking without effect-level evidence",
+      "action": "defer",
+      "note": "Defer to Step 4; no artifact edit, so pass 4 stays valid. Evidence recorded 2026-10-06 from the deterministic discovery script run to a scratch path with Defender auto-assignments retained (the governance files were not changed; hash verified). Three Defender for Cloud automatic assignments, all at the workload subscription scope, enforcement mode Default: (1) ASC DataProtection, 3 policies: Defender for SQL managed instances, SQL servers, Synapse SQL, all deployIfNotExists; (2) ASC OpenSourceRelationalDatabasesProtection, 5 policies: Advanced Threat Protection for MariaDB, MySQL (single and flexible) and PostgreSQL (single and flexible), all deployIfNotExists; (3) Defender for SQL Servers on Machines provisioning, 3 policies: SQL VM identity and Defender for SQL extension, all deployIfNotExists. 11 policies in total, none with a Deny effect; blocker_count stays 19. The only one touching an archetype resource type is the Defender for SQL managed instances configuration (DeployIfNotExists enabling a protection plan, not a Deny). Verified non-blocking.",
+      "decided_at": "2026-10-06T10:37:07Z"
+    }
+  ]
+}
