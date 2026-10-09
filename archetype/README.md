@@ -49,7 +49,8 @@ repo and continue from there.
 1. Create a repo from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator)
    template, at the commit this project is pinned to (above).
 2. Import this folder into that repo with one command (run from the kit repo, against the new
-   repo's checkout):
+   repo's checkout). Members normally don't run this by hand: `scripts/Import-Kit.ps1` (see the
+   site's Prerequisites page) imports the kit into `factory/` and then runs this script for them.
 
    ```powershell
    ./archetype/Import-Archetype.ps1 -Ref <kit tag or commit> -Destination <path to the new repo>

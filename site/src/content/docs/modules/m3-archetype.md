@@ -13,7 +13,7 @@ M1's vended spoke for the member. M2's platform ADR (informs the archetype's par
 
 ## Bootstrap (standalone)
 
-Create a repo from the `apex-accelerator` template at the commit pinned in `archetype/README.md`, import this kit's `archetype/` folder, and run the `adapt-archetype` prompt in the dev container or Codespaces, followed by `azd provision`.
+In your repo created from the `apex-accelerator` template, with the kit imported as in Prerequisites (`Import-Kit.ps1` also imports the archetype), run the `adapt-archetype` prompt in the dev container or Codespaces, followed by `azd provision`.
 
 ## Exit evidence
 

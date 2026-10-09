@@ -11,7 +11,7 @@ APEX agents adapt the archetype template and document the result. They don't dep
 
 ## Get the archetype into your own repo
 
-Create a repository from the `apex-accelerator` template at the commit recorded in `archetype/README.md`. Run the import step documented there to copy this kit's `archetype/` folder into your new repo as its working tree.
+You did this in [Prerequisites](../../getting-started/prerequisites/): your repo is created from the `apex-accelerator` template, and `Import-Kit.ps1` copied the kit into `factory/` and the archetype's APEX project into the repo root. To redo only the archetype import, run `./factory/archetype/Import-Archetype.ps1 -Ref main -Force` from the repo root.
 
 ## Run in the dev container or Codespaces, not natively on Windows
 

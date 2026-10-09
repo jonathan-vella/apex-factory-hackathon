@@ -5,7 +5,8 @@ Installs the developer tools on vm-dev01, machine-wide and silently.
 Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM. Creates C:\src, then installs VS Code
 (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone), the .NET 10
 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI from the vendors' official download
-locations. Tools that are already installed are skipped. Build Tools and SSMS have their own scripts.
+locations. Tools that are already installed are skipped. Finally it clones the kit (public repo) to
+C:\src\factory if it isn't there yet. Build Tools and SSMS have their own scripts.
 Exit code 3010 (restart required) is logged and ignored: the lab doesn't need a restart.
 .PARAMETER RunId
 The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
@@ -134,6 +135,16 @@ try {
         Write-LabLog 'NuGet CLI installed.'
     }
     Add-MachinePath -Directory $nugetDir
+
+    # Clone as SYSTEM, so mark the folder safe for the lab user. Re-runs leave the clone untouched.
+    $git = 'C:\Program Files\Git\cmd\git.exe'
+    $kitDir = 'C:\src\factory'
+    if (-not (Test-Path (Join-Path $kitDir '.git'))) {
+        & $git clone --quiet https://github.com/jonathan-vella/apex-factory-hackathon.git $kitDir
+        if ($LASTEXITCODE -ne 0) { throw "git clone failed with exit code $LASTEXITCODE." }
+        Write-LabLog "Cloned the kit to $kitDir."
+    }
+    & $git config --system --replace-all safe.directory 'C:/src/factory'
 
     Write-LabLog 'Developer tools are installed.'
 }

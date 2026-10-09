@@ -19,14 +19,51 @@ Member. **150 min** (pre-work, done before the event; not on the two-day agenda)
 
 None. This is the first challenge: your workload subscription, assigned at onboarding.
 
+## Where to run
+
+Everything runs in the dev container of your own repo, from the `factory/` folder, as set up in [Prerequisites](../../getting-started/prerequisites/). Open a terminal there (`pwsh`), then:
+
+```powershell
+cd factory
+az login --use-device-code
+$s = Get-Content .local/settings.json | ConvertFrom-Json
+az account set --subscription $s.subscriptionId
+```
+
+Reuse that `$s` in every command below (re-run the `$s = ...` line in any new terminal).
+
 ## Your tasks
 
-1. Run `scripts/Test-Preflight.ps1` against your workload subscription. Fix every automated check it reports red, and work through its manual checks (RBAC, MFA registration, resource provider registrations, GitHub Copilot policy, APEX runtime access). Re-run `-Fix` if it offers to register providers for you.
-2. Deploy your datacenter with `scripts/Deploy-Datacenter.ps1`: `vm-app01` (the legacy Contoso University on IIS, SQL Server 2022, MSMQ) and `vm-dev01` (your workstation for the rest of the kit).
-3. Onboard `vm-app01` to Azure Arc, unattended, with `scripts/Connect-DatacenterArc.ps1`. This is the kit's only onboarding path — there's no manual portal walkthrough to fall back to.
-4. From the Arc resource, run the first Arc SQL migration assessment against the SQL Server instance on `vm-app01`. Skim the findings; C3 is where you triage them in depth.
-5. Confirm the legacy app is healthy with `scripts/Test-Datacenter.ps1`: VM state and size, licence type, Trusted Launch, no public IPs, Bastion Standard, and the in-VM checks (IIS site up, SQL Server up, the perf kit's planted data and objects present).
-6. Note that Azure Hybrid Benefit is on by default for `vm-app01`'s Windows Server licence — don't turn it off. Stop both VMs when you're not working, to save cost; the datacenter bills while running whether or not you're using it.
+1. **Preflight.** Run:
+
+   ```powershell
+   ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $s.subscriptionId -Location $s.location -OutFile .local/preflight.json
+   ```
+
+   Fix every FAIL it reports. Work through the MANUAL rows yourself (RBAC, MFA, GitHub Copilot policy, APEX runtime access). Then re-run with `-Fix` to let it register missing resource providers (it waits up to 15 minutes). Done when the verdict is GO and no row is FAIL.
+2. **Deploy your datacenter.** Run:
+
+   ```powershell
+   ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location
+   ```
+
+   This creates `rg-datacenter` with `vm-app01` (legacy Contoso University on IIS, SQL Server 2022, MSMQ) and `vm-dev01` (your workstation for the rest of the kit).
+3. **Onboard `vm-app01` to Azure Arc.** Run:
+
+   ```powershell
+   ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location
+   ```
+
+   This is the kit's only onboarding path; there's no manual portal walkthrough. Done when `vm-app01` shows as Connected under Azure Arc > Machines.
+4. **Run the first Arc SQL migration assessment.** In the Azure portal, open the SQL Server instance under `vm-app01` (Azure Arc > SQL Server instances), go to its **Migration** assessment page and run an assessment targeting Azure SQL Managed Instance. Wait for it to finish, export the report, and skim the findings. C3 is where you triage them.
+5. **Confirm the datacenter is healthy.** Run:
+
+   ```powershell
+   ./scripts/Test-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex
+   ```
+
+   It checks VM state and size, licence type, Trusted Launch, no public IPs, Bastion Standard, and the in-VM checks (IIS site up, SQL Server up, the perf kit's planted data and objects present). Every row must be PASS.
+6. **Control cost.** Azure Hybrid Benefit is on by default for `vm-app01`'s Windows Server licence; don't turn it off. Stop both VMs when you're not working (`az vm deallocate -g rg-datacenter -n vm-app01` and `-n vm-dev01`); the datacenter bills while running.
 
 ## Evidence
 

@@ -64,7 +64,7 @@ The deployment configures both VMs through run commands. Each downloads its scri
 | `vm-app01` | `app-06-perf-kit` | `Install-AppPerfKit.ps1` | The [DB perf kit](../../db/perf-kit/README.md): runs `db/perf-kit/sql/01`–`04` from the same `-ScriptsRef`, which add about 200,000 students and 2 million enrollments, plant the five performance issues, set compatibility level 110 and configure Query Store. Logs each script's time |
 | `vm-app01` | `app-07-arc-prep` | `Install-AppArcPrep.ps1` | Places the Arc prep script `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` from the same `-ScriptsRef`, without running it. Members run it before Arc onboarding (C0); see **Known traps** |
 | `vm-dev01` | `dev-00-admin-password` | `Set-LabAdminPassword.ps1` | Same as `app-00-admin-password` |
-| `vm-dev01` | `dev-01-tools` | `Install-DevTools.ps1` | `C:\src`, VS Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep, the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI |
+| `vm-dev01` | `dev-01-tools` | `Install-DevTools.ps1` | `C:\src`, VS Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep, the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI. Clones the kit repo to `C:\src\factory` (skipped if it's already there; students run `git pull` to refresh it) |
 | `vm-dev01` | `dev-02-build-tools` | `Install-DevBuildTools.ps1` | Visual Studio Build Tools (current release) with the web build tools workload and its recommended components |
 | `vm-dev01` | `dev-03-ssms` | `Install-DevSsms.ps1` | SSMS 22 |
 | `vm-dev01` | `dev-04-first-logon` | `Register-DevFirstLogon.ps1` | A logon task that installs the VS Code extensions for each user (see below) |
@@ -96,7 +96,7 @@ You need PowerShell 7.4 or later and the Azure CLI, signed in to the member's te
 
 The script:
 
-1. Saves the credentials it deploys (the lab password, or your overrides) in `$HOME/.apex-factory/<subscription-id>/datacenter.json`, with the keys `adminUsername`, `adminPassword`, `sqlAppLogin` and `sqlAppPassword`. Later items read this file.
+1. Saves the credentials it deploys (the lab password, or your overrides) in `.local/<subscription-id>/datacenter.json` next to the kit's scripts (git-ignored, so it survives a dev container rebuild), with the keys `adminUsername`, `adminPassword`, `sqlAppLogin` and `sqlAppPassword`. Later items read this file.
 2. Prints what it deploys, the cost and the Hybrid Benefit setting. It doesn't check quota.
 3. Deploys `infra/datacenter/main.bicep` at subscription scope, passing the passwords in a temporary parameters file that it deletes afterwards. This takes up to 60 minutes, unattended.
 4. Sets the `vm-dev01` OS disk to performance tier P30. The VM's `osDisk` block has no tier property, so it's set on the disk. It changes without downtime.
