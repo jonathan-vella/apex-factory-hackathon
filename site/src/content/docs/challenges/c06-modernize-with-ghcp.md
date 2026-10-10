@@ -19,6 +19,10 @@ Member. **180 min**.
 
 C3's reviewed assessment and plan. C5's deployed archetype (for the registry and the App Service identity you'll check against, not deploy to).
 
+## Where to run
+
+Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShell on the VM, in your clone of the kit at `C:\src\factory`. Connect through Bastion first: see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01). The only exceptions are the portal checks in task 5, which you can do in any browser.
+
 ## Your tasks
 
 1. Switch to `vm-dev01` as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01), then follow the [GHCP upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone: harness **Local**, agent **Upgrade**, one task per new chat, build and run the app after every task, commit before the next.

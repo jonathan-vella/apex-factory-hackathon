@@ -9,14 +9,15 @@ This guide covers the mechanics of running GitHub Copilot's Upgrade agent agains
 
 From C6 you leave the dev container and work on `vm-dev01`, because the Upgrade agent's Local harness has to run next to the app and the datacenter's private network. The VM has Git, `gh`, VS Code and the Upgrade extension preinstalled.
 
-1. **Get the password.** In your dev container, from `factory/`:
+1. **Get the password.** In your dev container, open a terminal, start `pwsh` and go to `factory/`:
 
    ```powershell
+   cd factory
    $s = Get-Content .local/settings.json | ConvertFrom-Json
    (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
    ```
 
-   The user name is `labadmin`. The file is in your repo folder (git-ignored), so it survives a dev container rebuild.
+   The user name is `labadmin`. The file is in your repo folder (git-ignored), so it survives a dev container rebuild. The same password opens `vm-app01`.
 2. **Connect through Bastion.** In the Azure portal open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**, enter `labadmin` and the password, and open the session. There's no public IP and no other way in.
 3. **Sign in to GitHub.** In PowerShell on the VM:
 
@@ -38,6 +39,10 @@ From C6 you leave the dev container and work on `vm-dev01`, because the Upgrade 
    If `C:\src\factory` is missing, clone it: `git clone https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\factory`.
 
 The modernization files are at `C:\src\factory\.github\modernization\`. Your work stays in this local clone: commit after each task, but there is nothing to push.
+
+## Where to run
+
+Every command on this page runs on `vm-dev01`: the deployment cloned the kit to `C:\src\factory`, and the Upgrade agent works in the kit clone's `app\ContosoUniversity`. Connect through Bastion first: see [Switching to vm-dev01](#switching-to-vm-dev01). Don't run these in the dev container.
 
 ## Setup
 

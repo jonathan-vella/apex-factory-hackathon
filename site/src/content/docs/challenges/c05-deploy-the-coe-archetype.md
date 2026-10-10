@@ -19,6 +19,18 @@ Member. **90 min** (30 min demo + 60 min hands-on).
 
 C2's vended spoke. C4's platform ADR. The APEX repo you created and imported the kit into during Prerequisites.
 
+## Where to run
+
+Open your own repo in its dev container (VS Code, **Reopen in Container**), then in the terminal:
+
+```bash
+pwsh
+cd factory
+$s = Get-Content .local/settings.json | ConvertFrom-Json
+```
+
+The `adapt-archetype` prompt and `azd` run at the repo root (not in `factory/`); every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
+
 ## Your tasks
 
 1. Watch the coach's demo of the archetype's shape and the `adapt-archetype` flow.

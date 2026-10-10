@@ -19,6 +19,12 @@ Member. **60 min** (can run while ALZ-lite deploys in C2).
 
 C0's first Arc migration assessment. C2's foundation doesn't need to be finished to start this challenge.
 
+## Where to run
+
+- **Upgrade agent assessment (task 1):** on `vm-dev01`, in VS Code opened on `C:\src\factory\app\ContosoUniversity`. Connect through Bastion as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01). Don't use the dev container: the Local harness has to run next to the app.
+- **Arc assessment (task 2):** the Azure portal, in your browser.
+- **Triage record (tasks 3 to 6):** the team repo, in `evidence/c03/member-<n>/` on your computer (see [the team repo](../c01-define-the-opportunity/#the-team-repo-what-it-is-and-how-to-set-it-up)).
+
 ## Your tasks
 
 1. Run the GitHub Copilot Upgrade agent's assessment step against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade` — see the [GHCP upgrade guide](../../guides/ghcp-upgrade/)). Don't approve planning yet; read the assessment first.
