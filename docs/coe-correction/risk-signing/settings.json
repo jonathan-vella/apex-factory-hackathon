@@ -1,0 +1,63 @@
+{
+  "project": "university",
+  "operation": "author reusable lab kit (Plan approval and CodeGen only)",
+  "authorization_id": "university-kit-lab-risk-1",
+  "actions": ["plan-complete", "codegen"],
+  "validity_days": 30,
+  "owner": "Jonathan Vella (lab kit maintainer)",
+  "limits": "Kit-authoring authorization only for a non-production lab. It grants no deployment and no production reuse. Each adopting team must supply its own tenant authorization, event expiry, cleanup owner and teardown verification before any deployment. The three signing identities are held by the same person; independence is therefore limited to separate keys and separate principal records, and is accepted by the owner for a lab.",
+  "keys": {
+    "owner": {
+      "key_id": "lab-kit-owner",
+      "principal": "Jonathan Vella (lab kit maintainer)",
+      "roles": ["kit-maintainer", "human-gate-approver"],
+      "authority_evidence": "Repository admin and maintainer of jonathan-vella/apex-factory-coe and jonathan-vella/apex per GitHub repository permissions and CODEOWNERS. Authority covers reusable kit authoring only; no tenant or subscription authority is asserted."
+    },
+    "reviewer": {
+      "key_id": "lab-eligibility-reviewer",
+      "principal": "Jonathan Vella (second signing identity, eligibility reviewer)",
+      "roles": ["eligibility-reviewer"],
+      "authority_evidence": "Second signing identity held by the same person as the kit owner, used only to assess finding eligibility. Independence is limited to a separate key and principal record, accepted by the owner for a non-production lab."
+    },
+    "ruleAuthority": {
+      "key_id": "lab-rule-authority",
+      "principal": "Jonathan Vella (APEX security baseline rule authority)",
+      "roles": ["mandatory-exception-owner"],
+      "authority_evidence": "Maintainer of the APEX IaC security baseline (jonathan-vella/apex) per GitHub repository permissions and CODEOWNERS; may grant an exception to that baseline for the named non-production lab kit only.",
+      "rules": [
+        "IaC Security Baseline: App Service hosting a public-facing web application - public HTTPS ingress permitted; authentication and other security controls still apply"
+      ]
+    }
+  },
+  "findings": {
+    "a749666a": {
+      "classification": "residual-risk",
+      "rule_reference": "Managed identity assignment boundary (guidance). No mandatory governance policy requires restricting where id-sqlmi-directory is attached.",
+      "rationale": "Remediation is not feasible within the owner's decision to keep SQL Managed Instance and the existing shared-identity architecture. The same risk was reviewed and accepted by the owner on 2026-10-07 (finding 569fbf8e, same claim under a previous ID) and again on 2026-10-09. The lab runs in a dedicated non-production tenant and the identity is deleted after the event. This is risk acceptance, not technical closure.",
+      "residual_impact": "A member holding Managed Identity Operator on id-sqlmi-directory could attach it to another resource they control and obtain Microsoft Graph application tokens for tenant-wide read of users, groups and applications (User.Read.All, GroupMember.Read.All, Application.Read.All). The permissions are read-only; they do not by themselves grant directory writes, mailbox, file or SQL data access. The exposure is not bounded by the workload subscription, and removing the grant does not instantly revoke already issued tokens.",
+      "assessment": "The finding describes a residual lab risk of an intentionally shared identity, not a violation of a mandatory rule. No applicable law is identified. Deployment of the reviewed design is technically possible. The classification is residual-risk: the risk is accepted by the owner for non-production use, and the identity remains attachable until the adopting team deletes it after the event."
+    },
+    "bc629836": {
+      "classification": "mandatory-with-exception",
+      "rule_reference": "IaC Security Baseline: App Service hosting a public-facing web application - public HTTPS ingress permitted; authentication and other security controls still apply",
+      "rationale": "End-user authentication and a WAF were explicitly excluded from the B09 archetype by the owner (session decisions 2026-10-06: no Easy Auth, public_edge_auth=none; requirements: end-user authentication is handled by the application in B06/B10). Remediation needs application code, an Entra app registration, or reopened requirements, none of which is in scope for this kit change. The deployed image is a placeholder and the exposure depends on the application the adopting team deploys. This is risk acceptance, not technical closure.",
+      "residual_impact": "If the deployed application exposes operations that use the app identity, an anonymous Internet caller could cause it to read or write blobs, send or receive Service Bus messages, or read Key Vault secrets through id-web's Storage Blob Data Contributor, Service Bus Data Sender and Receiver, and Key Vault Secrets User roles. The exposure depends on the application deployed by the adopter and is limited to the lab resources.",
+      "assessment": "The baseline states that public HTTPS ingress is permitted but that authentication and other security controls still apply. The reviewer treats this as a mandatory baseline requirement, not as optional guidance, so a rule-authority exception is required. No applicable law is identified. Deployment is technically possible.",
+      "exception_text": "As maintainer and rule authority of the APEX IaC security baseline, the owner grants an exception to the 'authentication still applies' requirement for the public-facing web application of this kit only, for non-production lab authoring (Plan approval and CodeGen). The exception does not extend to deployment, production, or any other project, and each adopting team must separately authorize any deployment."
+    }
+  },
+  "obligations": [
+    {
+      "id": "adopter-deployment-authorization",
+      "phase": "before-deploy",
+      "owner": "Adopting team",
+      "requirement": "Before any deployment, obtain a separate signed deployment authorization bound to the adopter's actual tenant, subscription, event, expiry, cleanup owner and teardown deadline. This kit authorization permits no deployment."
+    },
+    {
+      "id": "adopter-teardown-verification",
+      "phase": "after-teardown",
+      "owner": "Adopting team cleanup owner",
+      "requirement": "After the event, independently verify that all SQL Managed Instance consumers are removed, that id-sqlmi-directory and its Graph grants are deleted, and that the public web app is removed. Evidence is collected after teardown, not before."
+    }
+  ]
+}
