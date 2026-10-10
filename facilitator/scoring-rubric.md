@@ -1,6 +1,6 @@
 # Scoring rubric
 
-This is the scoring single source of truth. The base contract is 80 team points and 120 member points: 200 total before bonuses. Challenge minutes and base points match the B11 challenge pages.
+This is the scoring single source of truth. The base contract is 80 team points and 120 member points: 200 total before bonuses. Challenge minutes and base points match the challenge pages.
 
 ## Scoring rules
 
@@ -9,7 +9,7 @@ This is the scoring single source of truth. The base contract is 80 team points 
 - Base team score = team base points + the arithmetic mean of member base points. The maximum base score is 200.
 - Score each evidence row independently. Full points require the listed evidence. Award half the row value, rounded down, when evidence is present but one verifiable subcomponent is incomplete; award zero when evidence is absent, unverified or materially incorrect. Record the reason for partial credit. Never exceed a row's maximum or move unused points between rows.
 - Lifelines cap the affected challenge only; later challenges remain eligible. Record the branch or image in the scoreboard. C6 use of L1, L2, L3, L4 or the known-good image caps C6 at **15 of 30 member points**. C7 use of L5 caps C7 at **10 of 20 member points**. Ordinary hints and coach discussion do not trigger a cap.
-- Challenge bonus tasks and badges draw from one event-wide bonus pool capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the B11 maxima. When the pool is exhausted, further eligible bonus evidence is recorded but adds no points.
+- Challenge bonus tasks and badges draw from one event-wide bonus pool capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. When the pool is exhausted, further eligible bonus evidence is recorded but adds no points.
 - Team score = team base points + average member base points + awarded team bonus + average awarded member bonus, with combined bonus capped at 30. The scoreboard shows the components separately.
 - Coaches sign off evidence and the event owner resolves scoring disagreements against this rubric. Keep evidence in the team's repository; redact secrets and tenant, subscription and object IDs before sharing it publicly.
 
@@ -36,7 +36,7 @@ This is the scoring single source of truth. The base contract is 80 team points 
 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
-| Preflight output is green and the member records the AHB and VM-stop checks | 0 | 2 |
+| Preflight output is green and the member confirms the Azure Hybrid Benefit check | 0 | 2 |
 | Datacenter test output is green, or a coach-approved failure is explained | 0 | 3 |
 | `vm-app01` is Arc-connected and the SQL Server extension reports its instance | 0 | 3 |
 | First Arc SQL migration assessment is captured | 0 | 2 |
@@ -151,9 +151,9 @@ Each badge adds 5 team bonus points when its evidence is signed off. Badges shar
 | Policy clean | Kit Deny policies have no unapproved violations on the archetype resources; the documented datacenter exemptions are not counted as unapproved violations | Policy compliance evidence and the reviewed exemption register |
 | Rollback ready | The team can explain the pre-cutover abort, the writable MI copy trap and the safe reseed plan | Committed cutover/rollback runbook, with C7 abort evidence if the curveball was triggered |
 | Trust but verify | AI-produced changes are reviewed by a person and the relevant build, test or runtime checks are recorded | Task commits and check output linked from the team's evidence |
-| Cost guardian | Team records the event cost, deallocates idle datacenter VMs and accounts for the MI schedule and budget | Cost worksheet and shutdown/schedule evidence |
+| Cost guardian | Team records the event cost, stops idle datacenter VMs outside the event days (never `vm-dev01` during the event) and accounts for the MI schedule and budget | Cost worksheet and shutdown/schedule evidence |
 | Reusable-asset contributor | Another team could use the packaged asset without undocumented tribal knowledge | C10 asset, README and handover reference |
 
 ## Challenge bonus tasks
 
-Use the bonus opportunities in the B11 challenge pages: C2, C3, C5, C6, C7 and C8 offer up to 5 points each; C10 offers up to 10. C0, C1, C4 and C9 have no bonus task. Award only documented evidence and apply the shared 30-point ceiling.
+Use the bonus opportunities on the challenge pages: C2, C3, C5, C6, C7 and C8 offer up to 5 points each; C10 offers up to 10. C0, C1, C4 and C9 have no bonus task. Award only documented evidence and apply the shared 30-point ceiling.

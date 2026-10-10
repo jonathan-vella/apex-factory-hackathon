@@ -1,6 +1,8 @@
 ---
 title: Pre-work
 description: What to do before the event — it's C0.
+sidebar:
+  order: 4
 ---
 
 Pre-work is [Prerequisites](../prerequisites/) (accounts, tools, your repo with the kit imported) followed by [C0: Ready to hack](../../challenges/c00-ready-to-hack/). Complete Prerequisites and C0's preflight by T-14. By T-3, deploy the datacenter, pass `Test-Datacenter.ps1` (before Arc onboarding), and onboard Arc.

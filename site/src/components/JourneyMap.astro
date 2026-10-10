@@ -42,12 +42,13 @@ const steps = [
     scope: "Team + member",
     min: 45,
     pts: 25,
+    split: "15 team + 10 member",
     day: "Day 1",
     href: "/challenges/c04-choose-target-states/",
   },
   {
     id: "C5",
-    title: "Deploy the CoE archetype",
+    title: "Deploy the CoE archetype with APEX",
     scope: "Member",
     min: 90,
     pts: 15,
@@ -92,7 +93,7 @@ const steps = [
   },
   {
     id: "C10",
-    title: "Package, hand over, review",
+    title: "Package, hand over, review AI readiness",
     scope: "Team",
     min: 60,
     pts: 20,
@@ -101,25 +102,26 @@ const steps = [
   },
 ];
 const phases = [
-  { label: "Prepare", range: [0, 1] },
-  { label: "Foundation", range: [2, 5] },
-  { label: "Modernize", range: [6, 8] },
-  { label: "Optimize and hand over", range: [9, 11] },
+  { label: "Prepare", start: 0 },
+  { label: "Foundation", start: 1 },
+  { label: "Assess and deploy", start: 3 },
+  { label: "Modernize", start: 6 },
+  { label: "Optimize and hand over", start: 9 },
 ];
 ---
 
 <ol class="journey">
   {steps.map((s, i) => {
-    const phase = phases.find((p) => i >= p.range[0] && i < p.range[1]);
-    const first = phase && phase.range[0] === i;
+    const phase = [...phases].reverse().find((p) => i >= p.start);
+    const first = phase && phase.start === i;
     return (
-      <li class:list={["journey__step", { "journey__step--team": s.scope === "Team" }]}>
+      <li class:list={["journey__step", { "journey__step--team": s.scope.startsWith("Team") }]}>
         {first && <span class="journey__phase">{phase.label}</span>}
         <a href={s.href}>
           <span class="journey__id">{s.id}</span>
           <span class="journey__title">{s.title}</span>
           <span class="journey__meta">
-            {s.day} · {s.scope} · {s.min} min · {s.pts} pts
+            {s.day} · {s.scope} · {s.min} min · {s.pts} pts{s.split ? ` (${s.split})` : ""}
           </span>
         </a>
       </li>

@@ -1,10 +1,22 @@
 # Cleanup
 
-Run cleanup after the showcase, normally on T+2 (the day after the two-day event). First clean each member's resources; then run the team scope once. The team script uses exact kit names and subscription membership under the named kit management groups. It does not delete subscriptions, management groups outside the kit hierarchy or resource groups outside the explicit kit names.
+Run cleanup after the showcase, normally on T+2 (the day after the two-day event). First export and check the evidence; then clean each member's resources; then run the team scope once. The team script uses exact kit names and subscription membership under the named kit management groups. It does not delete subscriptions, management groups outside the kit hierarchy or resource groups outside the explicit kit names.
+
+## Before you delete anything
+
+Member cleanup deletes `rg-datacenter`, which removes `vm-dev01` and its `C:\src\factory` clone. Team cleanup deletes `rg-hub` and the shared policy artifacts. Neither can be undone. Don't start until every item below is true for every member:
+
+- Scores are signed off in the [scoreboard](scoreboard.md) and no evidence question is open.
+- The member's work branch on `vm-dev01` (`vm-dev01-work`, or the lifeline branch a coach applied) is pushed to the member's own repo with `git push`. Check `git branch -vv` on `vm-dev01` and that the commits are on GitHub.
+- The evidence that the challenge pages ask for is in the team repo under `evidence/cNN/member-<n>/`, copied, committed and pushed as in [Copy your evidence to the team repo](../site/src/content/docs/guides/ghcp-upgrade.md#copy-your-evidence-to-the-team-repo). That covers the C6 task commits, the C9 fix scripts and results, and any screenshots from the Azure portal or Application Insights.
+- Each member has noted their `.local/settings.json` values (workload subscription, member index, suffix, location), or the person running cleanup has them. Member cleanup needs them, and they're lost if the dev container is rebuilt without the file.
+- The event report has the costs and the owner follow-ups.
+
+The GitHub repos (members' repos and the team repo) aren't touched by cleanup. Decide with the partner how long to keep them.
 
 ## Member cleanup
 
-From the kit repository, preview each member's cleanup using that member's workload subscription, member index and archetype suffix:
+From the kit repository, each member previews their own cleanup from their dev container, using that member's workload subscription, member index and archetype suffix. If the event owner runs it for a member, use the values that member noted and an account with Owner on their subscription:
 
 ```powershell
 $s = Get-Content (Join-Path '.local' 'settings.json') | ConvertFrom-Json
@@ -36,6 +48,12 @@ If the event owner wants the subscriptions returned to a management group other 
 
 Team cleanup removes the named kit policy assignments and datacenter exemptions, vending budgets, kit firewall rule groups and peerings, policy-created diagnostic role assignments and vending's Managed Identity Operator grants. It deletes `rg-hub` and the `log-management` workspace. It preserves `rg-management`, `id-sqlmi-directory` and that identity's Microsoft Graph grant, then moves the kit subscriptions back and deletes only `<prefix>-corp`, `<prefix>-platform` and `<prefix>`.
 
+## Post-event access
+
+Preserving the identity is opt-out, not a requirement. The grant gives `id-sqlmi-directory` the tenant-wide application permissions `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All` in the partner's tenant, and it stays after the event. If no later event will reuse the tenant, delete `rg-management` in the shared services subscription once team cleanup has finished; that deletes the identity and its permissions with it (see the header of `scripts/Grant-SqlMiDirectoryRead.ps1`). A later event then needs the grant again.
+
+Also remove access that was only needed for the event: the platform lead's Owner at Tenant Root, the elevated access a Global Administrator used to give it, and any Privileged Role Administrator activation or assignment made for the Graph grant.
+
 ## Verify
 
 - Confirm `rg-datacenter`, `rg-spoke` and `rg-university-<suffix>` are absent in each member workload subscription.
@@ -43,6 +61,6 @@ Team cleanup removes the named kit policy assignments and datacenter exemptions,
 - Confirm the shared `rg-hub`, `log-management`, `budget-factory-workload`, `rcg-member-<n>`, `alzl-*` policy assignments and kit exemptions are absent.
 - Confirm every workload and shared-services subscription is under the event owner's return management group, and the kit management groups are absent.
 - Confirm `rg-management/id-sqlmi-directory` and its Graph grant remain. Only vending-created Managed Identity Operator and diagnostic policy role assignments are removed.
-- Confirm no billable kit resources remain. Do not interpret an empty resource-group query alone as proof: check the Arc resources, budgets, policy artifacts and management-group placement too.
+- Confirm no billable kit resources remain. Do not interpret an empty resource-group query alone as proof: check the Arc resources, budgets, policy artifacts and management-group placement too. The challenges create nothing outside the kit's named groups: the Arc assessment is on the Arc SQL Server instance, the C6 image is in the registry in `rg-university-<suffix>`, and the C7 secret is in that group's Key Vault.
 
 If an MI subnet association has not released, the member cleanup stops before deleting the VNet and reports the timeout. Wait for the provider to release the subnet and rerun the same member cleanup; do not force-delete the VNet or manually remove its service association.
