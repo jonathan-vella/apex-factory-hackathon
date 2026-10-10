@@ -1,0 +1,29 @@
+---
+import Default from "@astrojs/starlight/components/PageTitle.astro";
+import { getCollection } from "astro:content";
+
+const match = Astro.locals.starlightRoute.entry.id.match(/^challenges\/c(\d+)-/);
+let position;
+if (match) {
+  const docs = await getCollection("docs");
+  const total = docs.filter((d) => /^challenges\/c\d+-/.test(d.id)).length;
+  const index = Number(match[1]);
+  position = { label: `C${index}`, current: index + 1, total };
+}
+---
+
+{position && (
+  <p class="challenge-position">
+    <span class="challenge-position__label">
+      {position.label} · challenge {position.current} of {position.total}
+    </span>
+    <span class="challenge-position__bar" aria-hidden="true">
+      {Array.from({ length: position.total }, (_, i) => (
+        <span class:list={{ "is-done": i < position.current }} />
+      ))}
+    </span>
+  </p>
+)}
+<Default {...Astro.props}>
+  <slot />
+</Default>

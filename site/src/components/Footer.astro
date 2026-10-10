@@ -15,7 +15,7 @@ import StarlightFooter from "@astrojs/starlight/components/Footer.astro";
   }
 
   function getTheme() {
-    return document.documentElement.dataset.theme === "light" ? "default" : "dark";
+    return document.documentElement.dataset.theme === "light" ? "neutral" : "dark";
   }
 
   async function renderMermaid(nodes) {
