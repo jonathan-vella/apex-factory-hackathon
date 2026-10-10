@@ -10,9 +10,9 @@ The event runs over two days, plus pre-work before day one. Format: a team of me
 Every member completes [C0: Ready to hack](../../challenges/c00-ready-to-hack/) before the event: preflight, datacenter, Arc onboarding and a first migration assessment. Two readiness gates apply:
 
 - **T-14 (two weeks before):** every automated and manual preflight check green. This is the last point where an access or quota problem can realistically be escalated and fixed before the event.
-- **T-3 (three days before):** `Test-Datacenter.ps1` green for every member — the datacenter deployed, Arc onboarded, the legacy app healthy.
+- **T-3 (three days before):** the datacenter deployed, `Test-Datacenter.ps1` green for every member (run before Arc onboarding, because Arc turns off the run commands it uses), Arc onboarded, the first assessment run and the legacy app healthy.
 
-Missing either gate puts a member's start on day one at risk; coaches escalate gate misses to the event organizer, not to the team.
+Missing either gate puts a member's start on day one at risk; coaches escalate gate misses to the event owner, not to the team.
 
 ## Day one
 

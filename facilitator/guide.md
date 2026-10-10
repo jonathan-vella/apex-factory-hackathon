@@ -20,15 +20,15 @@ for points.
 - Choose the event dates, team size and region (`swedencentral`; `germanywestcentral` is the fallback).
 - Confirm each team has one shared-services subscription and each member has a separate workload subscription.
 - Confirm the platform lead has the rights described in the [ALZ-lite guide](../site/src/content/docs/guides/alz-lite.md), including rights at Tenant Root to create management groups and move subscriptions.
-- Ask a Privileged Role Administrator to grant `id-sqlmi-directory` its Microsoft Graph read permissions once per team, after ALZ-lite is deployed and before C7. Use `infra/foundation/README.md`, “Event prep: SQL MI directory identity”.
+- Line up a Privileged Role Administrator for each team who will be reachable on day one. In C2, right after the platform lead deploys ALZ-lite, they run `scripts/Grant-SqlMiDirectoryRead.ps1` once per team to grant `id-sqlmi-directory` its Microsoft Graph read permissions (see `infra/foundation/README.md`, “Event prep: SQL MI directory identity”). It can't happen earlier, because ALZ-lite creates the identity, and C7 needs it.
 - Check member MFA, resource-provider registration, quota, Copilot policies and access to the APEX runtime. Do not put tenant, subscription or object IDs in this public kit.
 - Confirm the attendees can use the approved Copilot features and extensions on the dev VM. Escalate organizational Copilot policy issues before the event.
 - Freeze the kickoff roster and publish the agenda, room details and escalation channel.
 
 ### T-3: platform lead and members
 
-- Run the member preflight, deploy the datacenter with Azure Hybrid Benefit on by default, onboard `vm-app01` to Arc with `scripts/Connect-DatacenterArc.ps1`, run the first Arc SQL migration assessment and confirm the legacy app with `scripts/Test-Datacenter.ps1`.
-- Keep the datacenter ready for the event. Stop both VMs whenever they are idle; Bastion Standard, disks and networking continue to incur charges.
+- Run the member preflight, deploy the datacenter with Azure Hybrid Benefit on by default, confirm the legacy app with `scripts/Test-Datacenter.ps1` while both VMs are running, then onboard `vm-app01` to Arc with `scripts/Connect-DatacenterArc.ps1` and run the first Arc SQL migration assessment. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks.
+- Keep the datacenter ready for the event. Idle VMs can be stopped before the event (Bastion Standard, disks and networking still incur charges), but start both before day one. During the event, never stop `vm-dev01`: it's each member's workstation.
 - Check the private-network path and the exact region and naming values before the event. No availability zones are pinned or enabled.
 
 ### Kickoff and event days

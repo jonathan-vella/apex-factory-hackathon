@@ -9,7 +9,7 @@ Stand up the team's landing zone: a live portal ALZ demo first, then ALZ-lite de
 
 ## Scope and time box
 
-Team. **120 min**. The platform lead does tasks 2 and 3; every member does tasks 4 and 5 for their own datacenter.
+Team. **120 min**. The platform lead does tasks 3 to 5; every member does tasks 6 and 7 for their own datacenter.
 
 ## Points
 
@@ -57,15 +57,23 @@ Task 2 is a demo; there's nothing to run.
    ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
    ```
 
-   It creates the management groups, the hub (Azure Firewall Standard with DNS proxy, central private DNS zones), the central Log Analytics workspace, and the core policies at `mg-factory-corp`. The other members wait for this before task 4.
-4. **Platform lead: vend every member, yourself included.** You are also a student with one workload subscription like everyone else, and you need to be vended too. Collect from each member their workload subscription ID, member index and Entra object ID, then run once per member, from the same `factory/` folder:
+   It creates the management groups, the hub (Azure Firewall Standard with DNS proxy, central private DNS zones), the central Log Analytics workspace, and the core policies at `mg-factory-corp`. It creates the identity `id-sqlmi-directory` in `rg-management`, which task 4 needs. The other members wait for vending (task 5) before their own tasks.
+4. **Platform lead, with a Privileged Role Administrator: grant the SQL MI identity its Graph read, once per team.** Every member's SQL Managed Instance uses `id-sqlmi-directory`, and without this grant C7 can't create the web app's database user (`CREATE USER ... FROM EXTERNAL PROVIDER` fails with "Server identity does not have Azure Active Directory Readers permission"). Only someone with the Privileged Role Administrator (or Global Administrator) directory role can grant it. The platform lead usually can't, so your coach arranges that person (see the facilitator's pre-work): they sign in with `az login` as themselves in the same dev container (or any machine with the kit), and run:
 
    ```powershell
-   ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -WhatIf
+   ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>' -WhatIf
+   ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
    ```
 
-   Re-run without `-WhatIf` once the plan looks right. Each run connects that workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget.
-5. **Every member (including the platform lead): record your datacenter's exemptions.** After you've been vended, run this from your own `factory/` folder against your workload subscription. Each exemption needs an owner, a reason and an expiry (the default is 14 days):
+   Done when the second run reports the three Graph permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) as granted. A re-run skips what is already granted. If the identity lookup is denied, give that person Reader on the shared services subscription first.
+5. **Platform lead: vend every member, yourself included.** You are also a student with one workload subscription like everyone else, and you need to be vended too. Collect from each member their workload subscription ID, member index, location (the same as yours unless the coach said otherwise), Entra object ID (`az ad signed-in-user show --query id -o tsv`) and email, then run once per member, from the same `factory/` folder:
+
+   ```powershell
+   ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -WhatIf
+   ```
+
+   Re-run without `-WhatIf` once the plan looks right. Each run connects that workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget. The output names subscription IDs, so don't paste it into the team repo without redacting them.
+6. **Every member (including the platform lead): record your datacenter's exemptions.** After you've been vended, run this from your own `factory/` folder against your workload subscription. Each exemption needs an owner, a reason and an expiry (the default is 14 days). Policy changes can take up to 30 minutes to take effect after ALZ-lite, so if the output looks empty, wait and run it again:
 
    ```powershell
    az account set --subscription $s.subscriptionId
@@ -73,7 +81,7 @@ Task 2 is a demo; there's nothing to run.
    ```
 
    Re-run without `-WhatIf` to create them.
-6. **Every member: prove connectivity.** Run this from your own dev container, from `factory/`. It runs its checks inside your datacenter VMs through Azure, so you don't sign in to the VMs:
+7. **Every member: prove connectivity.** Vending changed your datacenter's DNS servers and routes, and running VMs keep their old settings, so first restart both VMs (`az vm restart -g rg-datacenter -n vm-dev01`, then `-n vm-app01`). Then run this from your own dev container, from `factory/`. It runs its checks inside your datacenter VMs through Azure, so you don't sign in to the VMs:
 
    ```powershell
    ./scripts/Test-Connectivity.ps1 -SubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex
@@ -84,7 +92,8 @@ Task 2 is a demo; there's nothing to run.
 ## Evidence
 
 - `Deploy-AlzLite.ps1` output: management groups, hub and policies in place.
-- `Deploy-Vending.ps1` output for every member in the team.
+- `Grant-SqlMiDirectoryRead.ps1` output: the three Graph permissions granted.
+- `Deploy-Vending.ps1` output for every member in the team (with subscription IDs redacted).
 - The exemptions table, with owner, reason and expiry for each.
 - `Test-Connectivity.ps1`: PASS on every applicable check.
 

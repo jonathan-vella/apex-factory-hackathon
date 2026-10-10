@@ -7,9 +7,9 @@ The challenge minutes are effort targets, not a serial schedule. ALZ-lite and th
 | When | Activity | Owner |
 |---|---|---|
 | T-14 | Preflight, access and Copilot-policy gate; confirm the roster and team subscriptions | Event owner, platform lead, members |
-| T-14 to T-3 | Resolve access and quota blockers; grant the SQL MI directory identity its Graph read permissions after ALZ-lite is available and before C7 | Platform lead, directory administrator |
-| T-3 | Deploy and validate datacenters, Arc onboarding, first migration assessment and legacy app | Members, platform lead |
-| Before Day 1 | Stop idle VMs, check the room and projection, stage demo materials and publish this agenda | Event owner, coaches |
+| T-14 to T-3 | Resolve access and quota blockers; line up a Privileged Role Administrator for each team for day one (the Graph grant for the SQL MI identity, run in C2 after ALZ-lite) | Platform lead, directory administrator |
+| T-3 | Deploy datacenters, validate them with `Test-Datacenter.ps1` while the VMs run, then Arc onboarding and the first migration assessment | Members, platform lead |
+| Before Day 1 | Start both VMs of every datacenter (idle ones may have been stopped), check the room and projection, stage demo materials and publish this agenda | Event owner, coaches |
 
 ## Day 1
 
@@ -18,7 +18,7 @@ The challenge minutes are effort targets, not a serial schedule. ALZ-lite and th
 | 08:30–09:00 | Welcome, roles, roster lock and evidence walkthrough | Kickoff / event owner | Explain that the roster is fixed for the member average |
 | 09:00–09:45 | Define the opportunity | C1 / teams | ALZ-lite deployment starts in parallel |
 | 09:00–10:00 | Assess the source | C3 / members | Runs in parallel with C1 and the start of C2 |
-| 09:45–11:45 | Secure the foundation | C2 / platform lead and teams | Coach's live portal ALZ demo opens C2; ALZ-lite and vending follow while C3 finishes |
+| 09:45–11:45 | Secure the foundation | C2 / platform lead and teams | Coach's live portal ALZ demo opens C2; ALZ-lite and vending follow while C3 finishes. Right after ALZ-lite deploys, the platform lead and the Privileged Role Administrator run the Graph grant (C2 task 4) |
 | 11:45–12:30 | Choose target states | C4 / teams and members | Complete the ADRs and deferred-work register |
 | 12:30–13:15 | Lunch break | — | — |
 | 13:15–13:45 | APEX archetype demo | C5 / coach | Use the 30-minute script; show APEX's artifact/review flow and the `azd` deployment path |

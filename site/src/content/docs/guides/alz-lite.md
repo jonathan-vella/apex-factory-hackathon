@@ -16,7 +16,11 @@ This mirrors the real distinction between platform-team-owned shared infrastruct
 
 ## What the platform lead needs
 
-Owner (or an equivalent custom role with management-group write and subscription-move permissions) at Tenant Root scope. Without this, `Deploy-AlzLite.ps1` can't create management groups or move subscriptions into them, and the deploy fails early with a clear permissions error.
+The built-in **Owner** role at Tenant Root scope (the script checks for the role named `Owner`, so an equivalent custom role doesn't pass). Without this, `Deploy-AlzLite.ps1` can't create management groups or move subscriptions into them, and the deploy fails early with a clear permissions error.
+
+## One step that needs a directory role
+
+ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up the web app's identity in C7. Once per team, right after `Deploy-AlzLite.ps1`, someone with the **Privileged Role Administrator** (or Global Administrator) directory role grants it Microsoft Graph read permissions with `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <id>`. The platform lead usually doesn't hold that role, so arrange it before the event. [C2](../../challenges/c02-secure-ai-ready-foundation/) has the exact step.
 
 ## Fixed values
 
@@ -32,7 +36,7 @@ The coach's live demo in C2 shows a complete portal-deployed Azure Landing Zone.
 
 | Full ALZ | ALZ-lite |
 |---|---|
-| Platform, Landing Zones, Sandbox and Decommissioned management groups | `mg-factory-platform` and `mg-factory-corp` only |
+| Platform, Landing Zones, Sandbox and Decommissioned management groups | `mg-factory` (under Tenant Root) with `mg-factory-platform` and `mg-factory-corp` beneath it |
 | Multiple landing zone archetypes (Corp, Online, confidential) | One archetype (Corp) |
 | Full Azure Policy initiative set (hundreds of built-ins) | A small, fixed set: Audit for location, Deny for public network access/public IPs, DeployIfNotExists for private DNS and diagnostics |
 | Defender for Cloud with paid plans | Foundational CSPM only, free |
