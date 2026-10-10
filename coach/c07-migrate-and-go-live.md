@@ -7,20 +7,21 @@ The cutover mechanism is the one detail worth double-checking: the validated pat
 
 ## Expected evidence
 
-- Arc portal migration status: link created, seeded, replica healthy and validated, cutover complete, link removed.
+- Arc portal migration status: link created, seeded (status **Ready for cutover**), replica validated, cutover complete. The portal removes the link on cutover.
+- The maintenance-window output from `vm-app01`: site and pool `Stopped`, `Sessions: 0`, and the lag at no lag (two dashes) just before the cutover.
 - The live app at `https://app-university-<suffix>.azurewebsites.net/` showing the migrated data on all five pages.
 - The contained database user created with a plain `CREATE USER [<identity-name>] FROM EXTERNAL PROVIDER;` (no `WITH SID`, no `TYPE = E` — both are SQL MI-unsupported syntax from on-premises habits) and granted `db_datareader`, `db_datawriter`, `db_ddladmin`.
-- The source's trace flags (`-T1800`, `-T9567`) removed after cutover.
+- The source's trace flags (`-T1800`, `-T9567`) removed after cutover (empty `DBCC TRACESTATUS` output).
 - The cutover and rollback runbook, filled in from what actually happened.
 
 ## Model answer
 
-1. Arc portal > SQL Server on `vm-app01` > start MI link migration against the target managed instance; wait for seeding to finish and the replica to show healthy.
+1. Arc portal > SQL Server on `vm-app01` > **Migration** > **Database migration** > **Migrate data** > **Migrate using real-time replication (online)**; wait for seeding to finish and the status to show **Ready for cutover**.
 2. Validate: row counts per table match source vs. replica; spot-check a few `Students`/`Courses`/`Enrollment` rows.
-3. Go/no-go: stop the app's writes to the source (the source stays technically writable, so this is a procedural stop, not a technical one). Confirm lag is 0. Cut over via **Monitor and cutover > Complete cutover**, leaving forced failover unticked (it's for when lag isn't truly zero — ticking it with lag 0 adds risk for no benefit).
-4. After cutover: write the Key Vault secret `ConnectionStrings--DefaultConnection` with an MI link connection string using `Authentication=Active Directory Default`, no user name or password. Create the contained user and grant roles.
+3. Go/no-go: stop the app's writes to the source (the source stays technically writable, so this is a procedural stop, not a technical one). Confirm the **Lag** column shows two dashes. Cut over via **Monitor and cutover > Complete cutover** (Learn calls it **Cutover**), ticking the box that confirms traffic is stopped and leaving forced failover unticked (it's for when lag isn't truly zero — ticking it with lag 0 adds risk for no benefit).
+4. After cutover: write the Key Vault secret `ConnectionStrings--DefaultConnection` with a normal managed instance connection string using `Authentication=Active Directory Default`, no user name or password. Create the contained user and grant roles.
 5. Point the web app's container config at the C6 image; restart; confirm the five pages, an upload round-trip, a notification round-trip, and Application Insights telemetry.
-6. Remove `-T1800 -T9567` from the source SQL Server's startup parameters and restart the SQL Server service (not the VM) to apply.
+6. Remove `-T1800 -T9567` from the source SQL Server's startup parameters (SQL Server Configuration Manager > the SQL Server service > Properties > **Startup Parameters**) and restart the SQL Server service (not the VM) to apply.
 7. Fill in the cutover/rollback runbook template with the actual sequence, including anything that needed a retry.
 
 ## Common mistakes
@@ -42,4 +43,4 @@ A genuine abort-and-reseed, with the cleanup of the leftover writable copy docum
 
 ## Reset
 
-If the link needs to be redone: delete the partially migrated database on the MI first (an aborted or failed link leaves a writable copy behind), then restart the link migration from the Arc portal.
+If the link needs to be redone: in the Arc portal, **Monitor and cutover** > select the database > **Cancel migration**, then delete the partially migrated database on the MI (an aborted or failed link leaves a writable copy behind) with `az sql midb delete --resource-group <rg> --managed-instance <mi-name> --name ContosoUniversity --yes`, and restart the link migration from the Arc portal. Budget 20 to 30 minutes for a reseed, validation and a second window.

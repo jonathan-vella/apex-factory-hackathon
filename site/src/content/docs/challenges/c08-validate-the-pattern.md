@@ -46,7 +46,7 @@ The last line prints your archetype's resource group and the web app's host name
 
 ## Your tasks
 
-1. **Smoke checks.** Open `https://<your web app host name>/` in a browser, then each of **Students**, **Courses**, **Instructors** and **Departments** from the menu. Every page must load with no error page, and the four list pages must show rows. Then confirm the data is the migrated data: on `vm-dev01`, open SSMS and run this query against the source (`10.10.<n>.4`, SQL authentication as `contosoapp`) and against your SQL Managed Instance (Microsoft Entra authentication). The counts must match:
+1. **Smoke checks.** Open `https://<your web app host name>/` in a browser, then each of **Students**, **Courses**, **Instructors** and **Departments** from the menu. Every page must load with no error page, and the four list pages must show rows. Then confirm the data is the migrated data: on `vm-dev01`, open SSMS and run this query against the source (`10.10.<n>.4`, SQL authentication as `contosoapp`; the password is `sqlAppPassword` in the same `datacenter.json` file as the Bastion password, see C7) and against your SQL Managed Instance (Microsoft Entra authentication). The counts must match, and the source stays running after cutover, so both queries work:
 
    ```sql
    SELECT
@@ -74,8 +74,8 @@ The last line prints your archetype's resource group and the web app's host name
    ./scripts/Test-Acceptance.ps1 -SubscriptionId $s.subscriptionId -ResourceGroup $rg -OutFile .local/acceptance.json
    ```
 
-   It reports PASS, FAIL or UNKNOWN for: the five pages and the HTTP-to-HTTPS redirect; the web app's HTTPS-only and minimum TLS 1.2; public network access off and an approved private endpoint for Storage, Service Bus, Key Vault and Container Registry; and SQL Managed Instance's public data endpoint off. It must end with `ACCEPT`. Fix every FAIL, and explain every UNKNOWN with the portal view that settles it. It doesn't replace tasks 1 to 3, and it doesn't prove the data is right. As a second view, check **Azure Policy > Compliance** (filter on your resource group) and **Microsoft Defender for Cloud > Recommendations** for findings on the same resources. Treat them as corroboration only: they can lag the live settings by many minutes.
-6. **Record every result** against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`). Save it in `evidence/c08/member-<n>/` in the team repo.
+   It reports PASS, FAIL or UNKNOWN for: the five pages and the HTTP-to-HTTPS redirect; the web app's HTTPS-only and minimum TLS 1.2; public network access off and an approved private endpoint for Storage, Service Bus, Key Vault and Container Registry; and SQL Managed Instance's public data endpoint off. It must end with `ACCEPT`. Fix every FAIL, and explain every UNKNOWN with the portal view that settles it. It doesn't replace tasks 1 to 3, and it doesn't prove the data is right. If you have time, check **Azure Policy > Compliance** (filter on your resource group) and **Microsoft Defender for Cloud > Recommendations** for findings on the same resources as a second view; they can lag the live settings by many minutes, so treat them as corroboration only, and skip them if you're short of time.
+6. **Record every result** against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`). Save it in `evidence/c08/member-<n>/` in the team repo. Your `acceptance.json` is in `factory/.local/` in your own repo on your computer: copy it from there into the team repo's folder, then commit and push.
 
 ## Evidence
 
@@ -94,7 +94,19 @@ A handful of concurrent requests — ten to twenty page loads in a short burst i
 <details>
 <summary>How do I confirm public network access is off without a portal tour of every resource?</summary>
 
-Run `Test-Acceptance.ps1` (task 5). To check one resource by hand, `az resource show --ids <resource id> --query properties.publicNetworkAccess` works for most of these resources; SQL MI uses `az sql mi show --query publicDataEndpointEnabled`.
+Run `Test-Acceptance.ps1` (task 5). To check one resource by hand, `az resource show --ids <resource id> --query properties.publicNetworkAccess` works for most of these resources; for SQL MI, run `az sql mi show --resource-group $rg --name sqlmi-university-<suffix> --query publicDataEndpointEnabled`.
+</details>
+
+<details>
+<summary>The pages return errors, or the app is slow to answer</summary>
+
+The managed instance starts and stops on a schedule the facilitator sets (by default weekdays 07:30 to 18:30, W. Europe time). If it's stopped, the app returns errors: tell your coach.
+</details>
+
+<details>
+<summary>I'm running out of the 45 minutes</summary>
+
+Plan about 10 minutes each for tasks 1 to 3, 5 for task 4, 5 for the checker and 5 to write the pack. Skip the Policy and Defender views first, then run the checker (task 5) while you do the browser flows.
 </details>
 
 <details>
