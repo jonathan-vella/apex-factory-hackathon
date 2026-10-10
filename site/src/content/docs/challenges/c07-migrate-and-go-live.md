@@ -38,7 +38,7 @@ $s = Get-Content .local/settings.json | ConvertFrom-Json
 (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
 ```
 
-Never stop or deallocate `vm-dev01`: it's your workstation for the whole event.
+Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 
 Pacing for the 120 minutes: tasks 1 and 2 about 20, task 3 about 25, tasks 4 and 5 about 40, task 6 about 10 and task 7 about 15. The rest is slack.
 

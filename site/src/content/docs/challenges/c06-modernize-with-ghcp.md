@@ -23,7 +23,7 @@ C3's reviewed assessment and plan. C5's deployed archetype (for the registry and
 
 Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShell on the VM, in your clone of the kit at `C:\src\factory`, on your `vm-dev01-work` branch. Connect through Bastion and set up the branch first: see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01). The configuration checks in task 5 that only read Azure Resource Manager (the identity, app settings and role assignments) also work in any browser or with `az` on any computer. The image check needs `vm-dev01`, because the registry has no public access.
 
-Never stop or deallocate `vm-dev01`: it's your workstation for the whole event.
+Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 
 Start with Step 0 of the playbook (`.github/modernization/playbook.md`) if you haven't finished it in C3: the sign-ins, git identity and `AZURE_TOKEN_CREDENTIALS` take time, and they count against the 180 minutes. The time box is split across two days.
 
@@ -32,7 +32,7 @@ Start with Step 0 of the playbook (`.github/modernization/playbook.md`) if you h
 1. Switch to `vm-dev01` as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (you did most of this in C3), then follow the [GHCP upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone: harness **Local**, agent **Upgrade**, one task per new chat, build and run the app after every task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once.
 2. Run all seven tasks in order: .NET 10 and ASP.NET Core MVC; SQL Managed Instance; Blob; Service Bus; Key Vault; OpenTelemetry; CVE audit. Each task's check is in the playbook's task table — don't skip a check to save time.
 3. Close the gaps the tasks don't fully cover, using the three skills in `.github/skills/` if a check fails.
-4. Package the app with .NET SDK container publishing (no Dockerfile) and push it to your archetype's private registry.
+4. Package the app with .NET SDK container publishing (no `Dockerfile`) and push it to your archetype's private registry.
 5. Check — don't set — the web app's App Service configuration: its identity, its app settings, its Key Vault access, and that your image landed in the registry. The playbook's step 5 and the `app-service-configuration` skill have the commands. For the Key Vault access, list the identity's role assignments and look for **Key Vault Secrets User** on `kv-university-<suffix>`:
 
    ```powershell
