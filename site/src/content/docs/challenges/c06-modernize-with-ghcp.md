@@ -27,6 +27,12 @@ Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 
 Start with Step 0 of the playbook (`.github/modernization/playbook.md`) if you haven't finished it in C3: the sign-ins, git identity and `AZURE_TOKEN_CREDENTIALS` take time, and they count against the 180 minutes. The time box is split across two days.
 
+## The source database login and one Azure change
+
+Locally, the app uses the `contosoapp` SQL login against the source database on `vm-app01`. It's the lab-only login the datacenter creates, with a documented lab password (the playbook's user-secrets command already has it). It's reachable only from inside the private network, and the app accepts it only in `Development`: outside `Development` the app refuses a user name or password.
+
+The one change C6 asks of you in Azure, besides pushing the image, is a Monitoring Metrics Publisher grant on Application Insights for your own sign-in (the playbook's task 06 check has the command). The archetype doesn't give it to you yet; the fix is tracked in [issue #60](https://github.com/jonathan-vella/apex-factory-hackathon/issues/60).
+
 ## Your tasks
 
 1. Switch to `vm-dev01` as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (you did most of this in C3), then follow the [GHCP upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone: harness **Local**, agent **Upgrade**, one task per new chat, build and run the app after every task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once.

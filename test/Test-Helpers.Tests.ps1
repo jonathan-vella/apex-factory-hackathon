@@ -99,6 +99,16 @@ function global:az {
         $passed++
     }
 
+    # The member's Reader grant on the hub shows in the summary only when a principal is passed.
+    foreach ($principal in '', '33333333-3333-3333-3333-333333333333') {
+        $extra = if ($principal) { " -MemberPrincipalId '$principal'" } else { '' }
+        $run = Invoke-Child -Variables @{ v = $vendingScript } -Script "$vendingStub`n& `$v -WorkloadSubscriptionId '11111111-1111-1111-1111-111111111111' -SharedSubscriptionId `$hubSub -MemberIndex 1 -BudgetEmail 'lead@example.test' -WhatIf$extra *>&1"
+        Assert-True ($run.ExitCode -eq 0) "Vending what-if failed (principal='$principal'): $($run.Output)"
+        $expected = if ($principal) { 'Hub Reader\s+the member' } else { 'Hub Reader\s+skipped' }
+        Assert-True ($run.Output -match $expected) "The vending summary should show the hub Reader grant as '$expected' (principal='$principal'): $($run.Output)"
+        $passed++
+    }
+
     # PerfKit: the SQL password comes from -SqlPassword, then the kit's .local, then the lab password.
     if (Get-Module -ListAvailable -Name SqlServer) {
         $perfKit = Join-Path $work 'perf'

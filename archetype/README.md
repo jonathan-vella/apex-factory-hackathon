@@ -1,8 +1,11 @@
 # The CoE archetype: Contoso University platform
 
-> **Status: deployed and validated.** `agent-output/university/` and `infra/bicep/university/` are
-> real APEX output from a build tenant, with the two governance files redacted as described below.
-> Both deploy paths (`azd` and the `deploy.ps1` fallback) were run end to end there, then torn down.
+> **Status:** APEX output from a build tenant, deployed with both `azd` and the `deploy.ps1` fallback
+> and torn down there. `agent-output/university/` and `infra/bicep/university/` are that output, with
+> the two governance files redacted as described below. The APEX Deploy path and the re-emitted
+> handoff aren't validated yet ([#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52)).
+> The deployer doesn't get Monitoring Metrics Publisher on Application Insights yet
+> ([#60](https://github.com/jonathan-vella/apex-factory-hackathon/issues/60)).
 
 ## What this is
 
@@ -244,6 +247,16 @@ instead, change `licenseType` to `'LicenseIncludedPrice'` in `infra/bicep/univer
 
 ## Validation
 
-Both deploy paths and the post-deploy checks (public-endpoint audit, policy compliance, private DNS
-resolution, image push, pull and restart, telemetry reaching Application Insights) were run in a
-build tenant. The result is recorded in `docs/backlog/B09-archetype.md` in the kit repo.
+What was run in the build tenant, quoted from `docs/backlog/B09-archetype.md` (B09) and the B10 pull
+request ([#53](https://github.com/jonathan-vella/apex-factory-hackathon/issues/53)). `TODO` marks a
+row with no evidence in the repo.
+
+| What | Result | Source |
+|---|---|---|
+| `adapt-archetype` prompt, then `azd provision`, then As-Built (environment `m18f06`) | Deployment `m18f06-1791436413` reported `Succeeded` (22m59s, started 05:13:45 UTC) on 2026-10-08, with all 17 expected resources. As-Built ran 17:11 to 17:41 UTC | B09, item 18 |
+| `deploy.ps1` fallback | Validated end to end. TODO: no timing is recorded | B09, "Done when" |
+| Post-deploy checks (public endpoints, policy compliance, private DNS, MI name resolution, image push, pull and restart, telemetry) | Pass, with two non-blocking gaps: the `alzl-diag-appinsights` compliance-reporting gap and a false negative on the SQL MI port-11000 check | B09, "Done when" |
+| Web app on the archetype, after the B10 cutover test | 13 of 13 front-end checks passed with the L5 image and again with the known-good image | #53 |
+| Teardown | Done on 2026-10-08 and checked with fresh queries; `rg-management` kept | B09, "Done when"; #53 |
+| APEX Deploy (`07b`) against the packaged tree | Not validated: the tree hash no longer matches the handoff | [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |
+| `write-deployment-summary.ps1` recording Step 6 to 7 in `apex-recall` | TODO: `apex-recall` wasn't installed in the test, so only the manual-command fallback ran | B09; [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |

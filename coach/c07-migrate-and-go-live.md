@@ -59,7 +59,7 @@ The [curveball](../facilitator/curveballs.md) fails the replica go/no-go for **o
 
 ## Bonus
 
-A genuine abort-and-reseed, with the cleanup of the leftover writable copy documented, is worth up to 5 bonus points. The curveball's staged abort is the same exercise for one member per team: it earns the bonus only if the reseed is clean and fully evidenced (owner to confirm). Don't manufacture a fault for anyone else just to claim it.
+A real, unplanned abort-and-reseed, with the cleanup of the leftover writable copy documented, is worth up to 5 bonus points. The curveball's staged abort earns no bonus: it's part of the event. Don't manufacture a fault for anyone just to claim the bonus.
 
 ## Reset
 

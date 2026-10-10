@@ -402,6 +402,7 @@ else {
     $managementGroupResourceRoles = @()
     $managedIdentityRoles = @()
     $memberOwnerRoles = [System.Collections.Generic.List[object]]::new()
+    $memberReaderRoles = [System.Collections.Generic.List[object]]::new()
     $diagnosticPrincipals = @($policyAssignments |
         Where-Object { $_.name.StartsWith('alzl-diag-', [System.StringComparison]::OrdinalIgnoreCase) -and $_.identity.principalId } |
         ForEach-Object { $_.identity.principalId } | Sort-Object -Unique)
@@ -433,6 +434,13 @@ else {
                 Add-CleanupPlan 'Delete vending-created Managed Identity Operator access on id-sqlmi-directory; preserve its Microsoft Graph grant.'
             }
             $managedIdentityPrincipals = @($managedIdentityRoles | ForEach-Object { $_.principalId } | Sort-Object -Unique)
+            $sharedScope = "/subscriptions/$SharedSubscriptionId"
+            foreach ($role in @(Get-RoleAssignmentsAtScope -TargetScope $sharedScope | Where-Object {
+                $_.scope -eq $sharedScope -and $_.roleDefinitionName -eq 'Reader' -and $_.principalId -in $managedIdentityPrincipals
+            })) {
+                [void] $memberReaderRoles.Add($role)
+                Add-CleanupPlan 'Delete the vending-created Reader assignment for a member on the shared services subscription.'
+            }
             foreach ($workloadSubscription in $workloadSubscriptions) {
                 if ($managedIdentityPrincipals.Count -eq 0) {
                     break
@@ -580,6 +588,9 @@ foreach ($workloadSubscription in $workloadSubscriptions) {
 }
 
 foreach ($role in $memberOwnerRoles) {
+    $null = Invoke-AzureCli -Arguments @('role', 'assignment', 'delete', '--ids', $role.id)
+}
+foreach ($role in $memberReaderRoles) {
     $null = Invoke-AzureCli -Arguments @('role', 'assignment', 'delete', '--ids', $role.id)
 }
 foreach ($role in $managedIdentityRoles) {

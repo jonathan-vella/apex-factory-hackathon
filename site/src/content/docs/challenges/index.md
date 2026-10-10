@@ -24,6 +24,6 @@ This section introduces the challenges in order, with their time boxes and point
 
 **Totals: 975 min across 11 challenges, 200 base points (80 team + 120 member).** Bonus points (up to 30, noted per challenge) are separate from this base contract.
 
-Each challenge's own time box is a guide for pacing, not a hard stop — the event's real gates are T-14 and T-3 (pre-work) and the end of each day.
+Time boxes are pacing, not hard stops. Coaches flex on the day. The event's real gates are T-14 and T-3 (pre-work) and the end of each day.
 
 If you're blocked, try the hints on the page and the guide it links to first, then ask your coach. Your coach decides how to help and records it; the page doesn't promise any particular help.
