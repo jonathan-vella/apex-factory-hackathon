@@ -10,7 +10,7 @@ Fill this in from what you actually did in C7, not from a plan written in advanc
 
 ## Go/no-go decision
 
-<!-- What you confirmed before cutting over: replication lag, source writes stopped, replica validation passed. -->
+<!-- What you confirmed before cutting over: every writer to the source stopped (site and pool `ContosoUniversity` on vm-app01, any local app on vm-dev01), no remaining database sessions, replication lag at 0, replica validation passed. Paste the command output. -->
 
 ## Cutover steps taken
 

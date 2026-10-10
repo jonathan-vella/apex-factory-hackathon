@@ -51,7 +51,7 @@ The datacenter deployment runs `01`–`04` on `vm-app01` through the `app-06-per
 
 ## Run the workload
 
-On `vm-dev01`, from a clone of the repo, in PowerShell 7:
+On `vm-dev01`, from a clone of the repo (`C:\src\factory`), in PowerShell 7:
 
 ```powershell
 ./db/perf-kit/Start-Workload.ps1 -MemberIndex <n>
@@ -72,6 +72,10 @@ After cutover, against SQL MI, which is Entra-only. On `vm-dev01`, use `ActiveDi
 | `Concurrency` | `8` | Connections running queries at the same time |
 
 It needs only the `SqlServer` module, and installs it for the current user if it's missing. For the whole run, each connection calls a weighted random mix of the three planted objects and app-like queries shaped like the app's EF Core queries: student search, student details with enrollments, a student's enrollment statistics, and the instructor page with course assignments. Students, departments and search terms are random, read from the database. At the end it prints the calls, errors, and average and 95th percentile duration per query type. One default run makes every planted issue show up in Query Store's **Top Resource Consuming Queries**.
+
+## Capture before and after numbers
+
+[`Get-QueryStoreSnapshot.sql`](Get-QueryStoreSnapshot.sql) is a read-only report for C9's evidence. Run it in SSMS against `ContosoUniversity` after each workload run, with the run's UTC window and a label such as `baseline` or `after-P1`. For each query and plan it gives the executions and the average duration, CPU and logical reads, weighted by execution count, using only the whole 5-minute Query Store intervals inside the window. It changes nothing. Don't run `Reset-PerfKit.ps1` between a baseline and its re-runs: it clears Query Store.
 
 ## Reset
 

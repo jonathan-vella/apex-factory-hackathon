@@ -19,20 +19,39 @@ Team. **120 min**. The platform lead does tasks 2 and 3; every member does tasks
 
 C1's opportunity canvas (context only — C2 doesn't depend on its content).
 
+## Where to run
+
+Every command on this page runs in the dev container of your own repo, from the `factory/` folder, unless a task says otherwise. Open a terminal there, start PowerShell, and go to `factory`:
+
+```bash
+pwsh
+cd factory
+```
+
+Check you're signed in (run `az login --use-device-code` if this fails), and load your settings. In any new terminal, repeat the `$s = ...` line; you only re-run `Initialize-Settings.ps1` when you add or change a value (task 1):
+
+```powershell
+az account show --output table
+$s = Get-Content .local/settings.json | ConvertFrom-Json
+```
+
+Task 2 is a demo; there's nothing to run.
+
 ## Your tasks
 
-1. **Everyone: get the shared services subscription ID.** The platform lead posts it in the team channel at the start of C2. Add it to your settings (it keeps your other values), then confirm:
+1. **Everyone: get the shared services subscription ID.** The platform lead posts it in the team channel at the start of C2. In the terminal above, add it to your settings (it keeps your other values), then reload `$s`:
 
    ```powershell
    ./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
+   $s = Get-Content .local/settings.json | ConvertFrom-Json
+   $s.sharedSubscriptionId
    ```
 
-   The platform lead already has it; run the same command once to record it.
+   The last line prints the ID you just saved. The platform lead already has it; run the same command once to record it.
 2. Watch the coach's live demo of a full portal-based Azure Landing Zone, and note what ALZ-lite deliberately leaves out (it's a comparison table in the [ALZ-lite guide](../../guides/alz-lite/), not a gap to fix).
-3. **Platform lead: deploy ALZ-lite.** In your dev container, from `factory/` (the same place as C0), against the **shared services** subscription:
+3. **Platform lead: deploy ALZ-lite.** In the same terminal (dev container, `factory/`), against the **shared services** subscription:
 
    ```powershell
-   $s = Get-Content .local/settings.json | ConvertFrom-Json
    az account set --subscription $s.sharedSubscriptionId
    ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -WhatIf
    ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location

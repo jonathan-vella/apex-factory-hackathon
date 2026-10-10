@@ -3,16 +3,29 @@ title: Prerequisites
 description: Accounts, tools and the one repo you set up before T-14.
 ---
 
-:::caution[Required before C0]
-Every attendee, including the platform lead, must finish this whole page first: create your own repo from the `apex-accelerator` template, open it in the dev container, import the kit and write your settings. C0 and every later challenge run from that dev container, and nothing works without it.
+:::danger[C0 is mandatory pre-work: finish it before the event]
+This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not** event-day tasks. Every attendee, including the platform lead, completes both **before the event starts**:
+
+- **By T-14:** this page, plus C0's preflight.
+- **By T-3:** C0's datacenter deployment and Azure Arc onboarding.
+
+If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, and the deployments run unattended for part of that. Raise any blocker with your coach now.
 :::
 
 ```mermaid
-flowchart LR
-  A[Accounts and access] --> B[Install tools] --> C[Create repo from apex-accelerator] --> D[Open dev container] --> E[Import kit into factory] --> F[Write settings.json] --> G[Manual checks] --> H[Start C0]
+flowchart TB
+  subgraph S1["1. This page, by T-14"]
+    direction LR
+    A[Accounts and access] --> B[Install tools] --> C[Create repo from apex-accelerator] --> D[Open dev container] --> E[Import kit]
+  end
+  subgraph S2["2. C0, preflight by T-14, datacenter by T-3"]
+    direction LR
+    F[Write settings.json] --> G[Manual checks] --> H[Preflight] --> I[Datacenter and Arc] --> J[Ready for the event]
+  end
+  S1 --> S2
 ```
 
-Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
+Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS, and `vm-app01` Connected in Azure Arc. If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
 
 ## Blockers: you are not ready if any of these is true
 
@@ -24,9 +37,9 @@ Complete this page by **T-14**, then continue with [C0: Ready to hack](../../cha
 
 ## How you work: one repo, one dev container
 
-You work in **one repo of your own**: a private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. It brings the dev container (Azure CLI, PowerShell 7, Git, `azd`, Bicep) and the APEX agents. A single import command then copies the kit into a `factory/` folder at the root of that repo. From then on you run every kit script from `factory/` inside the dev container, and the archetype for C5 is already in place.
+You work in **one repo of your own**: a private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. It brings the dev container (Azure CLI, PowerShell 7, Git, `azd`, Bicep) and the APEX agents. A single import command then copies the kit into a `factory/` folder at the root of that repo. From then on you run the kit's deployment and Azure scripts from `factory/` inside the dev container, and the archetype for C5 is already in place. From C6 the app work happens on `vm-dev01` (the VM has its own clone of the kit at `C:\src\factory`); each challenge page opens with a **Where to run** block that says which one to use.
 
-Your team also has **one shared team repo**, created from `templates/team/` (C1 onward). Your coach tells you who creates it.
+Your team also has **one shared team repo**, where the team's evidence lives. It's a separate repo from yours, created once per team in [C1](../../challenges/c01-define-the-opportunity/#the-team-repo-what-it-is-and-how-to-set-it-up) from the kit's `templates/team/` folder. You don't create it now; your coach tells you who does it.
 
 ## Accounts and access
 

@@ -3,8 +3,8 @@ title: "C0: Ready to hack"
 description: Pre-work. Preflight, datacenter, Arc onboarding and the first migration assessment.
 ---
 
-:::caution[Do this first]
-Complete [Prerequisites](../../getting-started/prerequisites/) before you start C0: your own repo from the `apex-accelerator` template, the dev container, the kit imported into `factory/`, and `.local/settings.json` written. Every command below runs from there.
+:::danger[Pre-work: finish before the event]
+C0 is done **before the event starts**: preflight by T-14, datacenter and Arc onboarding by T-3. Complete [Prerequisites](../../getting-started/prerequisites/) first: your own repo from the `apex-accelerator` template, the dev container, the kit imported into `factory/`, and `.local/settings.json` written. Every command below runs from there.
 :::
 
 ## Goal
