@@ -44,16 +44,16 @@ Reuse that `$s` in every command below (re-run the `$s = ...` line in any new te
    ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $s.subscriptionId -Location $s.location -OutFile .local/preflight.json
    ```
 
-   **Platform lead only:** also check the shared services subscription and your Tenant Root rights. Enter the shared services subscription ID in your settings (`./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`, then reload `$s`), and add `-SharedSubscriptionId $s.sharedSubscriptionId` to the command above.
+   **Platform lead only:** also check the shared services subscription and your Tenant Root rights. Enter the shared services subscription ID in your settings (`./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`, press Enter at each prompt to keep your other values, then reload `$s`), and add `-SharedSubscriptionId $s.sharedSubscriptionId` to the command above. Treat a WARN on the "Management groups" row as a blocker too: tell your coach before the event.
 
-   Fix every FAIL it reports. Work through the MANUAL rows yourself (RBAC, MFA, GitHub Copilot policy, APEX runtime access). Then re-run with `-Fix` to let it register missing resource providers (it waits up to 15 minutes). Done when the verdict is GO and no row is FAIL.
+   Fix every FAIL it reports (the Owner role on your subscription is an automated check, not a manual one). Work through the five MANUAL rows yourself: MFA, GitHub Copilot, GitHub repositories, APEX and Azure Hybrid Benefit. [Prerequisites](../../getting-started/prerequisites/) says how to confirm each. Then re-run with `-Fix` to let it register missing resource providers (it waits up to 15 minutes). Done when the verdict is GO and no row is FAIL.
 2. **Deploy your datacenter.** Run:
 
    ```powershell
    ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location
    ```
 
-   This creates `rg-datacenter` with `vm-app01` (legacy Contoso University on IIS, SQL Server 2022, MSMQ) and `vm-dev01` (your workstation for the rest of the kit). It takes up to 60 minutes and runs unattended.
+   This creates `rg-datacenter` with `vm-app01` (legacy Contoso University on IIS, SQL Server 2022, MSMQ) and `vm-dev01` (your workstation for the rest of the kit). It takes up to 60 minutes and runs unattended. Done when the script reports the datacenter is deployed and `rg-datacenter` lists both VMs.
 3. **Confirm the datacenter is healthy, before Arc.** Both VMs must be running. Run:
 
    ```powershell
@@ -67,16 +67,19 @@ Reuse that `$s` in every command below (re-run the `$s = ...` line in any new te
    ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location
    ```
 
-   This is the kit's only onboarding path; there are no manual portal steps. Done when `vm-app01` shows as Connected under Azure Arc > Machines.
-5. **Run the first Arc SQL migration assessment.** In the Azure portal, open the SQL Server instance under `vm-app01` (Azure Arc > SQL Server instances), go to its **Migration** assessment page and run an assessment targeting Azure SQL Managed Instance. Wait for it to finish, export the report, and skim the findings. C3 is where you triage them.
-6. **Control cost.** Azure Hybrid Benefit is on by default for `vm-app01`'s Windows Server licence; don't turn it off. Before the event, you can stop both VMs when you're not working (`az vm deallocate -g rg-datacenter -n vm-app01` and `-n vm-dev01`); the datacenter bills while running, and Bastion, the NAT gateway and the disks bill even when the VMs are stopped. Start both again before day one (`az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`). Don't re-run `Test-Datacenter.ps1` after Arc: it needs the run commands. During the event, never stop `vm-dev01`: it's your workstation.
+   This is the kit's only onboarding path; there are no manual portal steps. It takes 10 to 20 minutes. Done when `vm-app01` shows as Connected under Azure Arc > Machines and the script lists the Arc-enabled SQL Server instance.
+5. **Run the first Arc SQL migration assessment.** In the Azure portal, open the SQL Server instance under `vm-app01` (Azure Arc > SQL Server instances), then **Migration** > **Database migration** > **Assess source instance** > **View report**. If there's no result yet, choose **Run assessment** with Azure SQL Managed Instance as the target and wait for it to finish. Export the report and skim the findings for `ContosoUniversity`. C3 is where you triage them. Done when you have the exported report or a screenshot of its findings.
+6. **Control cost.** Azure Hybrid Benefit is on by default for `vm-app01`'s Windows Server licence, which assumes your partner holds eligible licences with Software Assurance or subscriptions. If you don't, deploy with `-NoHybridBenefit` (and run `Test-Datacenter.ps1` with `-NoHybridBenefit`) and tell your coach; otherwise don't turn it off. Before the event, you can stop both VMs when you're not working (`az vm deallocate -g rg-datacenter -n vm-app01` and `-n vm-dev01`); the datacenter bills while running, and Bastion, the NAT gateway and the disks bill even when the VMs are stopped. Start both again before day one (`az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`). Don't re-run `Test-Datacenter.ps1` after Arc: it needs the run commands. During the event, never stop `vm-dev01`: it's your workstation.
 
 ## Evidence
 
-- `Test-Preflight.ps1` output: every automated check green.
+Save your evidence in a local folder as you go, because the team repo doesn't exist until C1. On day one, copy it to the team repo as `evidence/c00/member-<n>/` (`<n>` is your member index), then commit and push as [C1](../c01-define-the-opportunity/#the-team-repo-what-it-is-and-how-to-set-it-up) describes. Redact subscription, tenant and object IDs from anything you commit.
+
+- `Test-Preflight.ps1` output: every automated check green. `.local/preflight.json` is git-ignored, so save the console output or a screenshot instead.
 - `Test-Datacenter.ps1` output from before Arc onboarding: every check green (or an explained FAIL your coach has already seen).
 - The Arc resource for `vm-app01`, with Azure Connected Machine agent connected, and the SQL Server extension showing the instance.
 - The Arc migration assessment's first output (screenshot or exported report) — you don't need to act on it yet.
+- A note that Azure Hybrid Benefit is on for `vm-app01` (or why it isn't), and a screenshot of `az vm list -g rg-datacenter -d -o table` showing both VMs and their power state.
 
 ## Hints
 

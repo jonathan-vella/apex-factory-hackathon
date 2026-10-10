@@ -9,7 +9,9 @@ Agree, as a team, what "modernized" means for Contoso University and write it do
 
 ## Scope and time box
 
-Team. **45 min** (runs in parallel with ALZ-lite deploying in C2 — don't wait for it).
+Team. **45 min**. The platform lead starts ALZ-lite at the start of day one and it deploys unattended while you work on C1 (see [C2](../c02-secure-ai-ready-foundation/), task 3), so don't wait for it. Members also start C3 in this slot (see [C3](../c03-assess-the-source/)): agree in the team who types C1 and who starts C3.
+
+The one-time repo setup below takes about 10 minutes and tasks 2 to 5 add up to 35, so the 45 minutes leave no slack. Do the setup while teammates read the canvas template, and keep to the times given.
 
 ## Points
 
@@ -55,9 +57,11 @@ The repo has an `evidence/` folder with one folder per challenge (`evidence/c01/
 
 If you can't create repos in the partner org, or a teammate can't be added, tell your coach before the event: it's a blocker like any other prerequisite.
 
-## Your tasks
+## Where to run
 
-Work on one shared screen (one person types, everyone contributes), in the team repo's folder on that person's computer. No dev container or Azure access is needed for C1.
+Work on one shared screen (one person types, everyone contributes), in the team repo's folder on that person's computer (a terminal on your computer, WSL on Windows 11). No dev container or Azure access is needed for C1.
+
+## Your tasks
 
 1. **Copy the template.** In the team repo, copy `templates/opportunity-canvas.md` to `evidence/c01/opportunity-canvas.md`:
 
@@ -68,7 +72,7 @@ Work on one shared screen (one person types, everyone contributes), in the team 
    ```
 
 2. **Business case (5 min).** Name the sponsor (a role, for example "the university's CIO") and write one or two sentences on the problem modernizing Contoso University solves for them.
-3. **Current pain (5 min).** List at least three concrete problems with today's app: for example .NET Framework 4.8 end of mainstream support, SQL Server 2022 on a VM, MSMQ, manual deployment. Say whether each is cost, risk, agility or support burden.
+3. **Current pain (5 min).** List at least three concrete problems with today's app: for example a framework that's no longer evolving, IIS and Windows patching on a VM, MSMQ with no managed equivalent, manual deployment. Say whether each is cost, risk, agility or support burden.
 4. **Six dimensions (20 min).** For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed shape as the target where it applies: .NET 10 on Azure App Service, SQL Managed Instance, private-by-default networking, central logging, and cost tracked against the vending budget.
 5. **Target outcome (5 min).** Write one sentence a sponsor would accept as "done" at the end of day two, and make sure every teammate can say it from memory.
 6. **Open questions.** Record any disagreement under "Open questions" with the people holding each view, then move on. C4 decides.
@@ -111,4 +115,4 @@ None for C1.
 ## Learn more
 
 - [Cloud Adoption Framework: strategy and plan](https://learn.microsoft.com/azure/cloud-adoption-framework/strategy/)
-- [App Service migration planning guidance](https://learn.microsoft.com/azure/app-service/migrate-overview)
+- [Assess .NET apps for migration to Azure App Service](https://learn.microsoft.com/azure/app-service/app-service-migration-assess-net)

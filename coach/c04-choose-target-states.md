@@ -3,7 +3,7 @@
 > [!WARNING]
 > Coach material. This page has the answers to C4. Attendees write their own ADRs and deferred-work register from C3's findings.
 
-Four ADRs are the minimum bar: platform and migration method (team-level), app and data (member-level). Check each one actually states a decision, not just a restatement of the inputs.
+Four ADRs are the minimum bar: platform and migration method (team-level, `evidence/c04/adr-platform.md` and `adr-migration.md`), app and data (member-level, `evidence/c04/member-<n>/adr-app.md` and `adr-data.md`). The kit fixes the target states, so what you're checking is the alternative considered and the consequence, not the choice itself. Check each one actually states a decision, not just a restatement of the inputs.
 
 ## Expected evidence
 
@@ -11,7 +11,7 @@ Four ADRs are the minimum bar: platform and migration method (team-level), app a
 - **Migration method ADR (team):** decision = Arc SQL migration assessment + MI link, online, planned cutover; alternative considered = offline backup/restore; consequence = near-zero downtime at the cost of needing a healthy, validated replica before cutover (C7).
 - **App ADR (member):** decision = .NET 10 / ASP.NET Core MVC via the Upgrade agent; alternative considered = a rewrite from scratch; consequence = faster, lower-risk modernization, but inherits the app's existing design.
 - **Data ADR (member):** decision = SQL Managed Instance, Microsoft Entra authentication only; alternative considered = SQL Server on an Azure VM; consequence = no SQL authentication path outside Development, simplifying secrets management.
-- **Deferred-work register:** every C3 finding not immediately fixed, each with an owner, a target and a timeline — the trace-flag removal entry must be present (owner = the member, target = "remove `-T1800 -T9567` from the source," timeline = "after C7 cutover").
+- **Deferred-work register (team, `evidence/c04/deferred-work-register.md`):** every C3 finding not immediately fixed, each with an owner, a target and a timeline — one trace-flag removal entry per member must be present (owner = the member, target = "remove `-T1800 -T9567` from the source," timeline = "after C7 cutover"). The C2 exemptions should appear too.
 
 ## Common mistakes
 

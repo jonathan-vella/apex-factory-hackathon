@@ -20,14 +20,14 @@ The one thing to watch for here is members trying this natively on Windows — i
 3. Run `adapt-archetype` in agent mode: it asks only for tenant ID, subscription ID and suffix, confirms C2's vended spoke exists (`rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe`, `snet-sqlmi`), runs its lightweight governance check, and stops at `azd provision --preview`.
 4. Review the preview (see the "looks incomplete" hint below — it's expected to be partial), then run `azd provision` for real.
 5. Run agent `08-As-Built` to produce the deployed-state document.
-6. Confirm no public endpoints beyond the web app's front door and Application Insights ingestion, naming convention followed, and the managed identity's roles present (ACR Pull, Key Vault Secrets User, Storage Blob Data Contributor, Service Bus Data Owner/Sender-Receiver as applicable, Monitoring Metrics Publisher — note #60 if this last one is missing; that's a known archetype gap, not something to fix here).
+6. Confirm no public endpoints beyond the web app's front end and Application Insights ingestion (the member's `publicNetworkAccess` queries on Storage, Key Vault, Service Bus and ACR all return `Disabled`), naming convention followed, and the managed identity's roles present (ACR Pull, Key Vault Secrets User, Storage Blob Data Contributor, Service Bus Data Owner/Sender-Receiver as applicable, Monitoring Metrics Publisher — note #60 if this last one is missing; that's a known archetype gap, not something to fix here).
 
 ## Common mistakes
 
 - Running `adapt-archetype` natively on Windows "because the dev container is slow to start" — this is the single most impactful mistake in C5; insist on the dev container or Codespaces every time.
 - Treating `azd provision --preview`'s partial output as a failure — it only lists resource types `azd` has display names for; SQL MI, the managed identity, role assignments and the maintenance schedule are created even though the preview doesn't name them.
 - Skipping the As-Built step because the deployment "obviously worked" — As-Built is graded evidence, not optional.
-- Trying to run `adapt-archetype` before C2's vending finished for that member — it fails fast with a clear "spoke not found" message; this is a sequencing issue, not a bug.
+- Trying to run `adapt-archetype` before C2's vending finished for that member — it fails fast with a clear "spoke not found" message; this is a sequencing issue, not a bug. A preflight that stops with "cannot be read" or a missing `assign/action` permission on `id-sqlmi-directory` means vending ran without the member's `-MemberPrincipalId`: the platform lead re-runs vending with it.
 
 ## Partial credit
 
@@ -36,8 +36,8 @@ The one thing to watch for here is members trying this natively on Windows — i
 
 ## Bonus
 
-The no-agent fallback (`archetype/deploy.ps1 -WhatIf`, then for real) run side by side with the APEX path is worth up to 5 bonus points — useful for members curious about what the agent flow automates versus the fallback script.
+The no-agent fallback compared with the APEX path, in preview only (`./archetype/deploy.ps1 -WhatIf` against `azd provision --preview`), is worth up to 5 bonus points — useful for members curious about what the agent flow automates versus the fallback script. Discourage a real fallback run after `azd`: same resource group and SQL MI subnet, and it can reset the web app to the placeholder image.
 
 ## Reset
 
-`azd down --purge` then redeploy from the member's repo if something needs a clean restart. **It deletes `rg-university-<suffix>` including the SQL managed instance and, after C7, the migrated database**, so only use it before C7, and tell the member first. Deleting a managed instance can leave its virtual cluster behind; check the subnet before redeploying. The governance check and spoke vending don't need to be redone.
+`azd down --purge` then redeploy from the member's repo if something needs a clean restart. **It deletes `rg-university-<suffix>` including the SQL managed instance and, after C7, the migrated database**, so only use it before C7, and tell the member first. After the managed instance is deleted, its SQL virtual cluster keeps holding `snet-sqlmi` for a while, and the preflight stops with "a SQL virtual cluster from a deleted managed instance still holds snet-sqlmi" until Azure releases it (this can take hours). So prefer fixing forward over `azd down` when you can, and if you do tear down, expect to wait before redeploying. The governance check and spoke vending don't need to be redone.
