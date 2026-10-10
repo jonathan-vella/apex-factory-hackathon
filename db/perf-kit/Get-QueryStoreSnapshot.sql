@@ -2,16 +2,19 @@
     DB perf kit: Query Store snapshot for C9 before/after evidence. Read-only except an optional flush.
 
     Run it in SSMS or the MSSQL extension, connected to the ContosoUniversity database (the source SQL
-    Server before cutover, SQL MI after). Run it twice, with the same window length and the same workload
-    (Start-Workload.ps1 with the same -DurationMinutes and -Concurrency): once after the baseline run, and
-    once after each fix and re-run. Save each result grid, with its label and window, as evidence.
+    Server before cutover, SQL MI after). Run it once per measured workload run: the baseline, and each
+    checkpoint after a group of fixes. Use the same workload every time (Start-Workload.ps1 with the same
+    -DurationMinutes and -Concurrency). Save each result grid, with its label and window, as evidence.
 
     How to read it
     - Query Store aggregates into 5-minute intervals (see 04-query-store.sql). Only intervals that start
       and end inside your window count. Set @FromUtc to the five-minute mark at or before the workload
       run's start and @ToUtc to the five-minute mark at or after its end, for example a run that started
-      at 09:03 and ended at 09:08 gets 09:00 to 09:10. Don't run anything else against the database in
-      that window.
+      at 09:03 and ended at 09:08 gets 09:00 to 09:10. Start the next run at least five minutes after the
+      previous one ended, so two runs never share an interval, and don't run anything else against the
+      database during the run.
+    - The third result lists the intervals in your window with their executions. Every interval with
+      executions must belong to the run you're measuring.
     - Averages are weighted by execution count. Duration and CPU are in milliseconds, logical reads are
       8 KB pages per execution.
     - A fix can change a query's plan, so compare by object or query text, not only by plan_id.
@@ -24,7 +27,8 @@ DECLARE @Label nvarchar(100) = N'baseline';
 -- Window, in UTC. Replace with exact times, for example '2026-10-14T09:00:00+00:00'.
 DECLARE @FromUtc datetimeoffset = DATEADD(MINUTE, -30, SYSDATETIMEOFFSET());
 DECLARE @ToUtc datetimeoffset = SYSDATETIMEOFFSET();
-DECLARE @Top int = 15;
+-- Enough rows to keep fast queries visible below the workload's own set-up queries.
+DECLARE @Top int = 30;
 
 -- Query Store keeps recent data in memory and flushes it every minute. Run this once after a workload
 -- run, wait a few seconds, then run the rest, so the last interval is on disk. It changes no data.
@@ -45,6 +49,17 @@ SELECT
     MAX(end_time) AS last_interval_end_utc
 FROM sys.query_store_runtime_stats_interval
 WHERE start_time >= @FromUtc AND end_time <= @ToUtc;
+
+SELECT
+    i.start_time AS interval_start_utc,
+    i.end_time AS interval_end_utc,
+    ISNULL(SUM(rs.count_executions), 0) AS executions
+FROM sys.query_store_runtime_stats_interval AS i
+LEFT JOIN sys.query_store_runtime_stats AS rs
+    ON rs.runtime_stats_interval_id = i.runtime_stats_interval_id AND rs.execution_type = 0
+WHERE i.start_time >= @FromUtc AND i.end_time <= @ToUtc
+GROUP BY i.start_time, i.end_time
+ORDER BY i.start_time;
 
 SELECT TOP (@Top)
     @Label AS label,

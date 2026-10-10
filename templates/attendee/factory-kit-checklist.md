@@ -15,4 +15,5 @@ A final sanity pass across the team's deliverables in C10. Check each item; don'
 - [ ] Every member's acceptance pack (C8) is complete.
 - [ ] Every member's C9 fixes have before/after Query Store evidence.
 - [ ] The team's reusable asset, acceptance and handover, and AI-readiness gap register (C10) are complete.
+- [ ] The showcase notes cover what was modernized, what's deferred and the most useful thing Copilot did.
 - [ ] Nothing in the repo contains a tenant ID, subscription ID or object ID.

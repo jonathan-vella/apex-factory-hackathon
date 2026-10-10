@@ -26,4 +26,4 @@ Fill this in from what you actually did in C7, not from a plan written in advanc
 
 ## Follow-up actions
 
-<!-- Anything still open after cutover — e.g. removing trace flags from the source, pointing the web app at the modernized image. -->
+<!-- Anything still open after cutover — e.g. removing trace flags from the source, the web app's first start on App Service, or anything you deferred. -->
