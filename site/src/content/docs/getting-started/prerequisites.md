@@ -7,7 +7,7 @@ description: Accounts, tools and the one repo you set up before T-14.
 This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not** event-day tasks. Every attendee, including the platform lead, completes both **before the event starts**:
 
 - **By T-14:** this page, plus C0's preflight.
-- **By T-3:** C0's datacenter deployment and Azure Arc onboarding.
+- **By T-3:** C0's datacenter deployment, a passing `Test-Datacenter.ps1` run (before Arc onboarding), and Azure Arc onboarding.
 
 If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, and the deployments run unattended for part of that. Raise any blocker with your coach now.
 :::
@@ -20,12 +20,12 @@ flowchart TB
   end
   subgraph S2["2. C0, preflight by T-14, datacenter by T-3"]
     direction LR
-    F[Write settings.json] --> G[Manual checks] --> H[Preflight] --> I[Datacenter and Arc] --> J[Ready for the event]
+    F[Write settings.json] --> G[Manual checks] --> H[Preflight] --> I[Datacenter, test, then Arc] --> J[Ready for the event]
   end
   S1 --> S2
 ```
 
-Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS, and `vm-app01` Connected in Azure Arc. If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
+Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS (run before Arc onboarding), and `vm-app01` Connected in Azure Arc. If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
 
 ## Blockers that mean you are not ready
 
@@ -119,7 +119,13 @@ The archetype was built against APEX commit `c209d8b` (recorded in `archetype/RE
 
 ## Sign in and create your settings file
 
-In the dev container terminal:
+In the dev container terminal (it starts in bash), start PowerShell:
+
+```bash
+pwsh
+```
+
+Then, in PowerShell:
 
 ```powershell
 az login --use-device-code
@@ -132,7 +138,9 @@ The script asks for your tenant ID and workload subscription ID (it offers the o
 
 **Member index:** your coach assigns you a number from 1 to 20 from the event roster. Ask your coach if you don't have one; don't pick your own.
 
-**Shared services subscription:** press Enter to skip it for now. The platform lead shares its ID in the team channel at the start of C2, and you add it then by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId <id>`. Re-running never changes your other values.
+**Shared services subscription (members):** press Enter to skip it for now. The platform lead shares its ID in the team channel at the start of C2, and you add it then by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId <id>`. Re-running never changes your other values.
+
+**Shared services subscription (platform lead):** enter it now. C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not on day one.
 
 `factory/.local/` is git-ignored: your IDs never go to GitHub. Run every script from the `factory/` folder.
 

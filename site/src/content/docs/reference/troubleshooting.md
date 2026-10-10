@@ -6,7 +6,7 @@ description: Known traps from the kit's own validation runs.
 ## Preflight and onboarding
 
 - **Preflight fails on a resource provider:** re-run `Test-Preflight.ps1 -Fix` and wait up to 15 minutes for the registration to propagate before re-checking.
-- **Arc onboarding times out:** confirm `vm-app01` has outbound internet access to Arc's endpoints through the datacenter's NAT gateway before retrying `Connect-DatacenterArc.ps1`.
+- **Arc onboarding times out:** don't just run `Connect-DatacenterArc.ps1` again. Once it has started, it turns off the VM's guest agent and refuses a second run. Connect to `vm-app01` through Bastion and read `C:\LabTools\logs\Connect-AppArc.log`. If onboarding didn't finish, redeploy `vm-app01` with `Deploy-Datacenter.ps1` and run the Arc script again. Check outbound access to Arc's endpoints through the NAT gateway first if the log shows a network error.
 
 ## ALZ-lite and vending
 

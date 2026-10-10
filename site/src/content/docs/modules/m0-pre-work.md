@@ -23,7 +23,7 @@ Run `scripts/Test-Preflight.ps1 -Fix`, then `scripts/Deploy-Datacenter.ps1`, the
 
 ## Reset
 
-Re-run `Deploy-Datacenter.ps1`; it's idempotent. To fully reset Arc onboarding, remove the Arc resource and re-run `Connect-DatacenterArc.ps1`.
+Re-running `Deploy-Datacenter.ps1` is safe (it's idempotent) only before the datacenter is vended or Arc-onboarded. After that, a reset means deleting `rg-datacenter`, deploying it again, then vending that member again (the platform lead) and re-running `Connect-DatacenterArc.ps1`. Ask your coach before you do it.
 
 ## Time box
 

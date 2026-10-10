@@ -18,6 +18,7 @@ Every member's M0 complete. A shared services subscription for the platform lead
 ## Exit evidence
 
 - ALZ-lite's management groups, hub and core policies deployed.
+- The Graph read grant for `id-sqlmi-directory` done once for the team (C2, task 4).
 - Every member's subscription vended: spoke, subnets, peering, UDRs, DNS, RBAC, budget.
 - `scripts/Test-Connectivity.ps1` passing from inside the datacenter.
 - The opportunity canvas committed.
