@@ -9,9 +9,9 @@ This is the first challenge where the platform lead needs elevated rights (Owner
 
 - `Deploy-AlzLite.ps1` output: management groups (`mg-factory` under Tenant Root, with `mg-factory-platform` and `mg-factory-corp`), the hub (`vnet-hub`, `afw-hub`, `afwp-hub` in `rg-hub`), the central Log Analytics workspace, and the core policies assigned at `mg-factory-corp`.
 - `Grant-SqlMiDirectoryRead.ps1` output: the three Graph permissions granted to `id-sqlmi-directory`. Without it C7's `CREATE USER ... FROM EXTERNAL PROVIDER` fails, and only a Privileged Role Administrator can run it, so check it was done on day one.
-- `Deploy-Vending.ps1` output for every member's workload subscription: spoke VNet, subnets, peering to the hub, UDRs pointing at the firewall, DNS pointing at the hub's resolvers, RBAC and a budget.
-- The exemptions table from `New-DatacenterExemptions.ps1`, with an owner, a reason and an expiry per exemption (the datacenter predates the policy move, so it needs exemptions, not fixes).
-- `Test-Connectivity.ps1`: PASS on every applicable check, run from inside the datacenter.
+- `Deploy-Vending.ps1` output for every member's workload subscription: spoke VNet, subnets, peering to the hub, UDRs pointing at the firewall, DNS pointing at the hub firewall (which acts as the DNS proxy), RBAC and a budget. The output names subscription IDs, so check the copy in the team repo is redacted.
+- The exemptions table from `New-DatacenterExemptions.ps1`, with an owner, a reason and an expiry per exemption (the datacenter predates the policy move, so it needs exemptions, not fixes). The result "nothing to do" straight after vending usually means the policies haven't taken effect yet (up to 30 minutes): ask for a re-run.
+- `Test-Connectivity.ps1`: PASS on every applicable check, run from the member's dev container (it probes inside the VMs through Azure).
 
 ## Model answer
 
@@ -37,7 +37,7 @@ Values come from each person's `.local/settings.json` (`$s`); the platform lead 
 
 ## Bonus
 
-Running the negative tests from the B08 report (public storage denied, NIC with public IP denied, private endpoint auto-registers in central DNS) is worth up to 5 bonus points if the team records the actual denial messages, not just "it worked."
+Running the negative tests from the foundation's validation record (`infra/foundation/validation.md`: a public-network container registry denied, a NIC with a public IP denied, a private endpoint auto-registers in central DNS) is worth up to 5 bonus points if the team records the actual denial messages, not just "it worked." The public storage account test isn't a reliable one: in a tenant with a "disable public network access" Modify policy the account is created private instead of denied.
 
 ## Reset
 
