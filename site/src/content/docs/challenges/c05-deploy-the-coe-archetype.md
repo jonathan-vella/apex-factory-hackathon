@@ -29,13 +29,13 @@ cd factory
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 ```
 
-The `adapt-archetype` prompt and `azd` run at the repo root (not in `factory/`); every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
+The `adapt-archetype` prompt runs at the repo root (not in `factory/`); `azd` runs in `infra/bicep/university/` (the prompt takes you there; `azure.yaml` is in that folder); every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
 
 ## Your tasks
 
 1. Watch the coach's demo of the archetype's shape and the `adapt-archetype` flow.
-2. Open your own repo (created from the `apex-accelerator` template in [Prerequisites](../../getting-started/prerequisites/)) in its dev container or Codespaces, and confirm the archetype is already there: `agent-output/university/`, `infra/bicep/university/` and `.github/prompts/adapt-archetype.prompt.md` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1 -Ref main` from the repo root (or the `Import-Kit.ps1` step from Prerequisites if `factory/` doesn't exist).
-3. Run the `adapt-archetype` prompt in VS Code's built-in agent mode, in the dev container or Codespaces (not natively on Windows). It's self-contained: it asks only for tenant ID, subscription ID and suffix, checks a spoke is already vended, runs a lightweight live governance check, and stops at `azd provision --preview`.
+2. Open your own repo (created from the `apex-accelerator` template in [Prerequisites](../../getting-started/prerequisites/)) in its dev container or Codespaces, and confirm the archetype is already there: `agent-output/university/`, `infra/bicep/university/` and `.github/prompts/adapt-archetype.prompt.md` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1` from the repo root (or the `Import-Kit.ps1` step from Prerequisites if `factory/` doesn't exist).
+3. Run the `adapt-archetype` prompt in VS Code's built-in agent mode, in the dev container or Codespaces (not natively on Windows). It's self-contained: it reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` (and asks you to confirm them; it asks for them if the file is missing), checks a spoke is already vended, runs a lightweight live governance check, and stops at `azd provision --preview`. If it says the spoke is missing, your platform lead has to vend your subscription (C2); members can't.
 4. Review the preview, then run `azd provision` yourself to deploy for real.
 5. Run **As-Built** (agent `08-As-Built`) to generate the deployed-state document.
 6. Confirm: no public endpoints other than the web app's front end and Application Insights ingestion; every resource uses the naming convention; the web app's managed identity has the roles it needs.

@@ -10,7 +10,9 @@ route on to `07b-Bicep Deploy`). It is self-contained: it asks for the three inp
 runs a lightweight governance check directly, and sets up and previews the azd
 deployment, all within this one prompt.
 
-Ask the user for three inputs, in order, if not already supplied in this conversation:
+Ask the user for three inputs, in order, if not already supplied in this conversation.
+If `factory/.local/settings.json` exists in the repo, read `tenantId`, `subscriptionId`
+and `suffix` from it and show them for confirmation instead of asking:
 
 1. **Tenant ID** — the Entra tenant the workload subscription lives in.
 2. **Subscription ID** — the workload subscription (already vended: it has `rg-spoke`
@@ -25,8 +27,9 @@ Ask the user for three inputs, in order, if not already supplied in this convers
 - `az group show -g rg-spoke --subscription <subscription-id>` succeeds, and
   `az network vnet subnet list -g rg-spoke --vnet-name vnet-spoke --subscription <subscription-id>`
   includes `snet-app`, `snet-pe` and `snet-sqlmi`. If the spoke is missing, stop and tell
-  the user to run `scripts/Deploy-Vending.ps1` from the kit repo first (B08) — this
-  prompt never creates the spoke.
+  the user to ask their platform lead to run `scripts/Deploy-Vending.ps1` for their
+  subscription (only the platform lead can; members can't) — this prompt never creates
+  the spoke.
 - `az account show --subscription <subscription-id> --query user.name -o tsv` is signed
   in interactively (not a service principal), because the SQL Managed Instance's Entra
   admin is the deploying user.

@@ -17,24 +17,24 @@ content hash over the copied infra/bicep/university/ tree so the member can comp
 archetype's packaged tree hash -- a mismatch there is a known, already-documented drift (see
 archetype/README.md and PR #51), not something this script tries to resolve.
 .PARAMETER Ref
-The kit's git tag or commit to import archetype/ from (jonathan-vella/apex-factory-hackathon).
-Mandatory: there is no "main" default, so an import is always pinned to a specific point in time.
+The kit's git ref (jonathan-vella/apex-factory-hackathon) to import archetype/ from: a branch, tag or commit.
+Defaults to main, like Import-Kit.ps1. Pass a commit to import a fixed point in time.
 .PARAMETER Destination
 The apex-accelerator repo root to import into. Defaults to the current directory's git root.
 .PARAMETER Force
 Overwrite an existing university project at the destination (agent-output/university/ and/or
 infra/bicep/university/ already present). Without it, the script refuses rather than merge trees.
+Your changes to those folders are lost.
 .EXAMPLE
-./archetype/Import-Archetype.ps1 -Ref v1.2.0
+./factory/archetype/Import-Archetype.ps1
 .EXAMPLE
 ./archetype/Import-Archetype.ps1 -Ref a1b2c3d -Destination C:\repos\my-apex-accelerator -Force
 #>
 
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string] $Ref,
+    [string] $Ref = 'main',
     [string] $Destination,
     [switch] $Force
 )
