@@ -52,11 +52,34 @@ put("challenge-findings-plan-pass10.json", JSON.stringify(review));
 
 const env = { ...process.env, APEX_RISK_HOME: path.join(base, "keys"), APEX_RISK_TEST_YES: "1" };
 const out = path.join(base, "out");
+// The real settings pin fingerprints of the production keys; the test generates fresh keys, so strip them.
+const testSettings = JSON.parse(fs.readFileSync(path.join(here, "settings.json"), "utf8"));
+for (const key of Object.values(testSettings.keys)) delete key.fingerprint;
+const settingsPath = path.join(base, "settings.json");
+fs.writeFileSync(settingsPath, JSON.stringify(testSettings));
 const run = (script, args, cwd = here) => execFileSync("node", [path.join(here, script), ...args], { cwd, env, encoding: "utf8" });
-const risk = (args) => run("risk.mjs", [...args, "--out", out, "--facts", path.join(base, "facts.json")]);
+const risk = (args) => run("risk.mjs", [...args, "--out", out, "--facts", path.join(base, "facts.json"), "--settings", settingsPath]);
 
 fs.writeFileSync(path.join(base, "facts.json"), run("collect-facts.mjs", ["university"], ws));
 risk(["keygen"]);
+// restore: copy the keys to a second home, verify them, and reject a wrong expected fingerprint
+const restoreEnv = { ...env, APEX_RISK_HOME: path.join(base, "keys-restored") };
+const restoreRun = (settingsFile) =>
+  execFileSync("node", [path.join(here, "risk.mjs"), "restore", "--from", path.join(base, "keys"), "--settings", settingsFile], { cwd: here, env: restoreEnv, encoding: "utf8" });
+const restoredOk = restoreRun(settingsPath);
+console.log(/restored and verified/.test(restoredOk) ? "PASS  restore verifies and copies the keys" : "FAIL  restore output unexpected");
+if (!/restored and verified/.test(restoredOk)) process.exitCode = 1;
+const wrong = JSON.parse(JSON.stringify(testSettings));
+wrong.keys.owner.fingerprint = "0000000000000000";
+const wrongPath = path.join(base, "settings-wrong.json");
+fs.writeFileSync(wrongPath, JSON.stringify(wrong));
+try {
+  execFileSync("node", [path.join(here, "risk.mjs"), "restore", "--from", path.join(base, "keys"), "--settings", wrongPath], { cwd: here, env: { ...env, APEX_RISK_HOME: path.join(base, "keys-wrong") }, encoding: "utf8", stdio: "pipe" });
+  console.log("FAIL  restore accepted a wrong fingerprint");
+  process.exitCode = 1;
+} catch (error) {
+  console.log(`PASS  restore rejects a wrong fingerprint (${String(error.stderr).trim()})`);
+}
 risk(["evidence"]);
 // evidence + envelopes are placed into the synthetic workspace exactly as the real process copies them
 const place = () => {

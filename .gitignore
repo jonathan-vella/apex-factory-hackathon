@@ -3,3 +3,6 @@ site/dist/
 site/node_modules/
 site/.astro/
 .local/
+# Lab risk signing keys must never be committed
+.apex-risk/
+*.pem

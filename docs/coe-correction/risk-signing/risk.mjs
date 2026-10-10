@@ -15,7 +15,7 @@ import path from "node:path";
 import readline from "node:readline/promises";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { createHash, createPrivateKey, generateKeyPairSync, sign } from "node:crypto";
+import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, sign } from "node:crypto";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const argv = process.argv.slice(2);
@@ -115,6 +115,41 @@ async function signPayload(keyName, payload, fileName, description) {
   console.log(`Wrote ${written.file}\nsha256 ${written.sha256}`);
 }
 
+const fingerprintOf = (publicKeyObject) => sha(publicKeyObject.export({ type: "spki", format: "der" })).slice(0, 16);
+
+// Restore keys copied from another device. Verifies each private key matches its public key and the expected fingerprint.
+function restore() {
+  const from = option("from");
+  if (!from) fail("--from <folder that contains private\\ and public\\> is required");
+  for (const key of Object.values(settings.keys)) {
+    const { privatePem, publicPem } = keyPaths(key.key_id);
+    const source = {
+      privatePem: path.join(from, "private", `${key.key_id}.pem`),
+      publicPem: path.join(from, "public", `${key.key_id}.pem`),
+    };
+    for (const file of Object.values(source)) if (!fs.existsSync(file)) fail(`missing ${file}`);
+    const privateBytes = fs.readFileSync(source.privatePem);
+    const publicBytes = fs.readFileSync(source.publicPem);
+    const derived = createPublicKey(createPrivateKey(privateBytes));
+    const declared = createPublicKey(publicBytes);
+    const fingerprint = fingerprintOf(derived);
+    if (fingerprint !== fingerprintOf(declared)) fail(`${key.key_id}: the private key does not match its public key file`);
+    if (key.fingerprint && key.fingerprint !== fingerprint)
+      fail(`${key.key_id}: fingerprint ${fingerprint} differs from the expected ${key.fingerprint}; these are not the keys that signed the records`);
+    for (const [target, bytes] of [[privatePem, privateBytes], [publicPem, publicBytes]]) {
+      if (fs.existsSync(target)) {
+        if (!fs.readFileSync(target).equals(bytes)) fail(`${target} exists with different content; refusing to overwrite`);
+        continue;
+      }
+      fs.mkdirSync(path.dirname(target), { recursive: true });
+      fs.writeFileSync(target, bytes, { mode: 0o600 });
+    }
+    lockDown(privatePem);
+    console.log(`${key.key_id}: restored and verified, fingerprint ${fingerprint}`);
+  }
+  console.log(`Keys are in ${home}. Delete the transfer copy (and empty any recycle bin) now.`);
+}
+
 function keygen() {
   for (const key of Object.values(settings.keys)) {
     const { privatePem, publicPem } = keyPaths(key.key_id);
@@ -127,6 +162,7 @@ function keygen() {
     fs.writeFileSync(publicPem, pair.publicKey.export({ type: "spki", format: "pem" }));
     const der = pair.publicKey.export({ type: "spki", format: "der" });
     console.log(`${key.key_id}: created. public fingerprint ${sha(der).slice(0, 16)} (private key stays in ${privatePem})`);
+    if (key.fingerprint) console.log(`  NOTE: settings.json expects ${key.fingerprint}. New keys cannot verify records signed by the old ones.`);
   }
 }
 
@@ -182,7 +218,9 @@ function trust() {
   const w = window();
   const grants = Object.values(settings.keys).map((key) => {
     const { publicPem } = keyPaths(key.key_id);
-    if (!fs.existsSync(publicPem)) fail(`missing public key for ${key.key_id}; run keygen`);
+    if (!fs.existsSync(publicPem)) fail(`missing public key for ${key.key_id}; run keygen or restore`);
+    if (key.fingerprint && fingerprintOf(createPublicKey(fs.readFileSync(publicPem))) !== key.fingerprint)
+      fail(`${key.key_id}: public key fingerprint differs from settings.json; restore the original keys or update the fingerprint on purpose`);
     return {
       key_id: key.key_id,
       principal: key.principal,
@@ -324,7 +362,8 @@ async function signStep() {
 }
 
 if (command === "keygen") keygen();
+else if (command === "restore") restore();
 else if (command === "evidence") evidence();
 else if (command === "trust") trust();
 else if (command === "sign") await signStep();
-else fail("commands: keygen | evidence | trust | sign <eligibility|exception|authorization|approval>");
+else fail("commands: keygen | restore --from <folder> | evidence | trust | sign <eligibility|exception|authorization|approval>");

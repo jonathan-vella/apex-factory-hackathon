@@ -9,18 +9,21 @@
   "keys": {
     "owner": {
       "key_id": "lab-kit-owner",
+      "fingerprint": "abb903b2b140163b",
       "principal": "Jonathan Vella (lab kit maintainer)",
       "roles": ["kit-maintainer", "human-gate-approver"],
       "authority_evidence": "Repository admin and maintainer of jonathan-vella/apex-factory-coe and jonathan-vella/apex per GitHub repository permissions and CODEOWNERS. Authority covers reusable kit authoring only; no tenant or subscription authority is asserted."
     },
     "reviewer": {
       "key_id": "lab-eligibility-reviewer",
+      "fingerprint": "af4b931d085ef615",
       "principal": "Jonathan Vella (second signing identity, eligibility reviewer)",
       "roles": ["eligibility-reviewer"],
       "authority_evidence": "Second signing identity held by the same person as the kit owner, used only to assess finding eligibility. Independence is limited to a separate key and principal record, accepted by the owner for a non-production lab."
     },
     "ruleAuthority": {
       "key_id": "lab-rule-authority",
+      "fingerprint": "668346513c4aca95",
       "principal": "Jonathan Vella (APEX security baseline rule authority)",
       "roles": ["mandatory-exception-owner"],
       "authority_evidence": "Maintainer of the APEX IaC security baseline (jonathan-vella/apex) per GitHub repository permissions and CODEOWNERS; may grant an exception to that baseline for the named non-production lab kit only.",
