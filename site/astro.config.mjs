@@ -23,7 +23,7 @@ export default defineConfig({
     starlight({
       title: "Partner Modernization Factory",
       description:
-        "Two-day partner hackathon: build a secure Azure foundation, deploy a CoE archetype with APEX, and modernize a legacy .NET app and its database with GitHub Copilot and Azure Arc.",
+        "Two-day partner hackathon: build a secure Azure foundation, adapt a CoE archetype with APEX and deploy it with azd, and modernize a legacy .NET app and its database with GitHub Copilot and Azure Arc.",
       disable404Route: true,
       favicon: "/images/favicon.svg",
       logo: {

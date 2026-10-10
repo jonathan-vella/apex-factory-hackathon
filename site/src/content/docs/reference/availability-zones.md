@@ -1,6 +1,8 @@
 ---
 title: Availability zones
 description: Nothing pinned or turned on; which services are zone-redundant automatically.
+sidebar:
+  order: 3
 ---
 
 The kit never pins an availability zone and never explicitly turns on zone redundancy for any resource. This is deliberate: a two-day lab event doesn't need the added complexity or cost of a zone-resilient design, and the kit's compliance rules forbid pinning zones at all.

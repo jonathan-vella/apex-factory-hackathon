@@ -17,8 +17,9 @@ import JourneyMap from "../../components/JourneyMap.astro";
     </h1>
     <p class="landing-hero__tagline">Modernize today. Enable AI tomorrow.</p>
     <p class="landing-hero__purpose">
-      Teams build a secure Azure foundation, deploy a CoE archetype with APEX,
-      and modernize the app and database with GitHub Copilot and Azure Arc.
+      Teams build a secure Azure foundation, adapt a CoE archetype with APEX and
+      deploy it with azd, and modernize the app and database with GitHub Copilot
+      and Azure Arc.
     </p>
     <p class="landing-hero__purpose">
       They keep reusable assets for customer delivery.
@@ -51,7 +52,7 @@ import JourneyMap from "../../components/JourneyMap.astro";
         <ul class="scenario-checklist">
           <li>Build a secure foundation.</li>
           <li>Assess with GitHub Copilot and Azure Arc.</li>
-          <li>Deploy the CoE archetype with APEX.</li>
+          <li>Adapt the CoE archetype with APEX and deploy it with azd.</li>
           <li>Modernize the app and migrate data to SQL Managed Instance.</li>
           <li>Optimize the database and package reusable assets.</li>
         </ul>
@@ -63,7 +64,7 @@ import JourneyMap from "../../components/JourneyMap.astro";
 <section id="journey" class="landing-section scenario-frame not-content">
   <div class="scenario-frame__head">
     <div class="section-label">The journey</div>
-    <h2>Eleven challenges, two days</h2>
+    <h2>Eleven challenges across pre-work and two days</h2>
     <p>From a ready workstation to a reusable, AI-ready modernization pattern.</p>
   </div>
   <div class="scenario-frame__body">
@@ -79,8 +80,13 @@ import JourneyMap from "../../components/JourneyMap.astro";
   <div class="scenario-frame__body">
     <CardGrid>
       <LinkCard
+        title="Before the event: start here"
+        description="Prerequisites and C0 preflight by T-14. Datacenter, Test-Datacenter and Azure Arc by T-3."
+        href="/getting-started/prerequisites/"
+      />
+      <LinkCard
         title="Getting Started"
-        description="Pre-work, setup and how the event runs."
+        description="Pre-work, setup, roles and how the event runs."
         href="/getting-started/"
       />
       <LinkCard
@@ -95,12 +101,12 @@ import JourneyMap from "../../components/JourneyMap.astro";
       />
       <LinkCard
         title="Guides"
-        description="GitHub Copilot, APEX and Azure Arc guides."
+        description="Guides for ALZ-lite, GitHub Copilot, APEX and Azure Arc."
         href="/guides/"
       />
       <LinkCard
         title="Reference"
-        description="Glossary, naming, IP plan and troubleshooting."
+        description="Glossary, naming, IP plan, cost and troubleshooting."
         href="/reference/"
       />
       <LinkCard

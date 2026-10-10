@@ -24,7 +24,7 @@ Remove unused member rows only before kickoff, then freeze the roster. Leave a z
 
 | Bonus evidence | Eligible points | Awarded | Evidence link / location | Coach |
 |---|---:|---:|---|---|
-| Challenge bonus tasks (C2, C3, C5, C6, C7, C8, C10) | Up to the B11 challenge maximums |  |  |  |
+| Challenge bonus tasks (C2, C3, C5, C6, C7, C8, C10) | Up to the challenge-page maxima |  |  |  |
 | Zero public backend endpoints | 5 |  |  |  |
 | Policy clean | 5 |  |  |  |
 | Rollback ready | 5 |  |  |  |

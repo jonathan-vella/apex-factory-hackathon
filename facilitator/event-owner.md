@@ -7,28 +7,12 @@
 3. Set the region to `swedencentral`, or use `germanywestcentral` when the default is unavailable. Do not pin zones or enable zone redundancy.
 4. Preserve the two-subscription model, names, private networking, security constraints and the challenge point/time contract. If you intentionally change a technical contract, validate it and update the affected attendee and coach material together.
 5. Keep `versions.md` as the compatibility record. Before each event, compare its pinned versions and validation dates with the current upstream file; validate any update in a disposable environment before adopting it.
-6. Check that the event copy includes the lifeline branches. Template copies may omit non-default branches; use the mirror procedure below if coaches need local copies.
+6. Know what the copy does and doesn't control. Attendees run `Import-Kit.ps1`, the datacenter deployment's script download and the `vm-dev01` clone against the upstream `jonathan-vella/apex-factory-hackathon` repository at `main`, so an event copy doesn't change what they run. Keep technical changes upstream, or agree with attendees and coaches which copy they use before the event. Pull upstream changes only when you've reviewed them, because `main` moves under attendees.
+7. Work through the [T-30 to T-14 checklist](guide.md#t-30-to-t-14-event-owner) in the facilitator guide: roster, member indexes, platform lead, team-repo creator and access.
 
-## Mirror coach-only lifelines
+## Lifelines
 
-Lifelines are public, coach-only checkpoints. Members must not fetch or apply them without a coach. From a clone of the event repository, fetch each upstream branch and push it to the event repository:
-
-```powershell
-$upstream = 'https://github.com/jonathan-vella/apex-factory-hackathon.git'
-git fetch $upstream lifeline/L1-net10:refs/remotes/upstream/lifeline/L1-net10
-git fetch $upstream lifeline/L2-blob:refs/remotes/upstream/lifeline/L2-blob
-git fetch $upstream lifeline/L3-servicebus:refs/remotes/upstream/lifeline/L3-servicebus
-git fetch $upstream lifeline/L4-ready:refs/remotes/upstream/lifeline/L4-ready
-git fetch $upstream lifeline/L5-cutover:refs/remotes/upstream/lifeline/L5-cutover
-git push origin refs/remotes/upstream/lifeline/L1-net10:refs/heads/lifeline/L1-net10
-git push origin refs/remotes/upstream/lifeline/L2-blob:refs/heads/lifeline/L2-blob
-git push origin refs/remotes/upstream/lifeline/L3-servicebus:refs/heads/lifeline/L3-servicebus
-git push origin refs/remotes/upstream/lifeline/L4-ready:refs/heads/lifeline/L4-ready
-git push origin refs/remotes/upstream/lifeline/L5-cutover:refs/heads/lifeline/L5-cutover
-git ls-remote --heads origin "lifeline/*"
-```
-
-The last command should list all five branches. If GitHub refuses a push because the token lacks the `workflow` scope, ask the repository owner to refresh the token with the required scope rather than copying the workflow files by hand.
+Lifelines are public, coach-only checkpoints. Members must not fetch or apply them without a coach. Coaches fetch them from the upstream repository, which is the `origin` of the clone on `vm-dev01`, so there is one source and nothing to mirror (see the [lifeline index](../coach/lifelines.md)). The known-good image is also pulled from upstream.
 
 ## Keep copies current
 

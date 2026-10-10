@@ -1,7 +1,17 @@
 ---
 title: Troubleshooting
 description: Known traps from the kit's own validation runs.
+sidebar:
+  order: 6
 ---
+
+## Pre-work
+
+- **`Import-Kit.ps1` fails to download or extract:** the error says it could not download the archive from `api.github.com`, or that `tar` failed. Check outbound HTTPS to `api.github.com` and `*.githubusercontent.com` (see the [network allow-list](../../getting-started/prerequisites/#network)) and run it again from the repo root in the dev container. Add `-Force` only if `factory/` already exists.
+- **The dev container won't build:** check the network allow-list first. The container pulls images and features from `ghcr.io`, `mcr.microsoft.com` and `docker.io`, and installs packages through `packagefeedproxy.microsoft.io`. If Docker Desktop won't start, check WSL 2 is on, as in [Prerequisites](../../getting-started/prerequisites/#windows-11-from-scratch).
+- **`Test-Datacenter.ps1` fails on in-VM checks:** the VMs must be running, and it must run before Arc onboarding. After `Connect-DatacenterArc.ps1` the run commands no longer work, so don't re-run it. Keep the PASS output you captured before Arc onboarding as your evidence.
+- **Bastion won't connect:** connect from the Azure portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. Check the VM is running. The native client (`Connect-DatacenterVm.ps1`) works only from Windows with the Azure CLI Bastion extension.
+- **Copilot isn't signed in on `vm-dev01`:** the VS Code extensions install at first logon, so give the first sign-in a few minutes, then sign in to GitHub in VS Code.
 
 ## Preflight and onboarding
 
