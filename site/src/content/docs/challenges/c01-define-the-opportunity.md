@@ -51,7 +51,7 @@ It isn't a GitHub template repo: the starting content is the kit's `templates/te
 2. Clone the repo into `~/repos`, next to your own repo: `git clone https://github.com/<your-org>/<team-repo>.git`.
 3. Before every edit, run `git pull`. Commit and push after every challenge.
 
-The repo has an `evidence/` folder with one subfolder per challenge (`evidence/c01/`, `evidence/c02/`, and so on), where member-scoped evidence goes in `member-<n>/` subfolders, and a `templates/` folder with copies of the attendee templates. Its README explains the layout. Never commit secrets, tenant IDs or subscription IDs.
+The repo has an `evidence/` folder with one folder per challenge (`evidence/c01/`, `evidence/c02/`, and so on), where member-scoped evidence goes in `member-<n>/` folders inside it, and a `templates/` folder with copies of the attendee templates. Its README explains the layout. Never commit secrets, tenant IDs or subscription IDs.
 
 If you can't create repos in the partner org, or a teammate can't be added, tell your coach before the event: it's a blocker like any other prerequisite.
 

@@ -71,7 +71,7 @@ Never stop or deallocate `vm-dev01`: it's your workstation for the whole event.
 
       An empty result is what you want. A row means a client is still connected: use `host_name` and `program_name` to find it (an SSMS window on `vm-dev01` is the usual one), close it, and run the check again.
    4. **Watch the lag reach zero.** In the Arc portal, open the link's **Monitor and cutover** pane. With no writers, the replication lag falls to 0 within a minute or two and stays there. If it doesn't reach 0, or a writer keeps appearing, **abort the cutover**: restart the site and pool (`Start-WebAppPool -Name ContosoUniversity; Start-Website -Name ContosoUniversity`), and ask your coach.
-   5. **Cut over at lag 0** with **Complete cutover**, and leave **forced failover unticked** — it isn't needed when there's no lag and no traffic, and ticking it risks data loss if lag isn't actually zero.
+   5. **Cut over at lag 0** with **Complete cutover**, and leave **forced failover unchecked** — it isn't needed when there's no lag and no traffic, and ticking it risks data loss if lag isn't actually zero.
 
    After a completed cutover the managed instance is the live database. Leave the legacy site on `vm-app01` stopped: restarting it would write to a source that's no longer authoritative.
 4. After cutover, write the Key Vault secret `ConnectionStrings--DefaultConnection` (Microsoft Entra authentication, no password) and create the contained database user for the web app's managed identity, with `db_datareader`, `db_datawriter` and `db_ddladmin`.

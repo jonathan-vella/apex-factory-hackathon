@@ -27,7 +27,7 @@ flowchart TB
 
 Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS, and `vm-app01` Connected in Azure Arc. If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
 
-## Blockers: you are not ready if any of these is true
+## Blockers that mean you are not ready
 
 - GitHub Copilot Chat or agent mode doesn't work in VS Code with your account.
 - The models the APEX agents use are blocked by your account or organization policy.
@@ -35,7 +35,7 @@ Complete this page by **T-14**, then continue with [C0: Ready to hack](../../cha
 - You can't register an MFA method for your Azure identity.
 - The dev container doesn't open on your machine.
 
-## How you work: one repo, one dev container
+## How you work with one repo and one dev container
 
 You work in **one repo of your own**: a private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. It brings the dev container (Azure CLI, PowerShell 7, Git, `azd`, Bicep) and the APEX agents. A single import command then copies the kit into a `factory/` folder at the root of that repo. From then on you run the kit's deployment and Azure scripts from `factory/` inside the dev container, and the archetype for C5 is already in place. From C6 the app work happens on `vm-dev01` (the VM has its own clone of the kit at `C:\src\factory`); each challenge page opens with a **Where to run** block that says which one to use.
 
