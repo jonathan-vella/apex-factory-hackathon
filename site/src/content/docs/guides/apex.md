@@ -11,7 +11,7 @@ APEX agents adapt the archetype template and document the result. They don't dep
 
 ## Get the archetype into your own repo
 
-You did this in [Prerequisites](../../getting-started/prerequisites/): your repo is created from the `apex-accelerator` template, and `Import-Kit.ps1` copied the kit into `factory/` and the archetype's APEX project into the repo root. To redo only the archetype import, run `./factory/archetype/Import-Archetype.ps1 -Ref main -Force` from the repo root.
+You did this in [Prerequisites](../../getting-started/prerequisites/): your repo is created from the `apex-accelerator` template, and `Import-Kit.ps1` copied the kit into `factory/` and the archetype's APEX project into the repo root. To redo only the archetype import, run `./factory/archetype/Import-Archetype.ps1 -Force` from the repo root. `-Force` replaces your copy of the archetype, so you lose any changes you made to it.
 
 ## Run in the dev container or Codespaces, not natively on Windows
 
@@ -23,7 +23,7 @@ Run the `adapt-archetype` prompt in VS Code's built-in agent mode (not the `01-O
 
 ## Provision
 
-Review the preview output, then run `azd provision` yourself. Its hooks run a preflight check, post-deploy tests and a deployment summary automatically — you don't need to run them separately.
+Review the preview output, then run `azd provision` yourself, in `infra/bicep/university/` (where `azure.yaml` is; the `adapt-archetype` prompt's shell session is already there). Its hooks run a preflight check, post-deploy tests and a deployment summary automatically — you don't need to run them separately.
 
 ## Document
 
