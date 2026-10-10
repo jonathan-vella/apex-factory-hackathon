@@ -64,13 +64,50 @@ The deployment configures both VMs through run commands. Each downloads its scri
 | `vm-app01` | `app-06-perf-kit` | `Install-AppPerfKit.ps1` | The [DB perf kit](../../db/perf-kit/README.md): runs `db/perf-kit/sql/01`–`04` from the same `-ScriptsRef`, which add about 200,000 students and 2 million enrollments, plant the five performance issues, set compatibility level 110 and configure Query Store. Logs each script's time |
 | `vm-app01` | `app-07-arc-prep` | `Install-AppArcPrep.ps1` | Places the Arc prep script `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` from the same `-ScriptsRef`. Placed, not run: `Connect-DatacenterArc.ps1` runs it during Arc onboarding (C0). Don't run it yourself first: it turns off the guest agent, and then `Connect-DatacenterArc.ps1` refuses to run. See **Known traps** |
 | `vm-dev01` | `dev-00-admin-password` | `Set-LabAdminPassword.ps1` | Same as `app-00-admin-password` |
-| `vm-dev01` | `dev-01-tools` | `Install-DevTools.ps1` | `C:\src`, VS Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep, the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI. Clones the kit repo to `C:\src\factory` (skipped if it's already there; students run `git pull` to refresh it) |
+| `vm-dev01` | `dev-01-tools` | `Install-DevTools.ps1` | `C:\src`, VS Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep, the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI. Clones the kit repo to `C:\src\factory` as a sparse checkout without the coach and facilitator material (see **The kit clone on `vm-dev01`**). The clone step is skipped if `C:\src\factory\.git` exists; students run `git pull` to refresh it |
 | `vm-dev01` | `dev-02-build-tools` | `Install-DevBuildTools.ps1` | Visual Studio Build Tools (current release) with the web build tools workload and its recommended components |
 | `vm-dev01` | `dev-03-ssms` | `Install-DevSsms.ps1` | SSMS 22 |
 | `vm-dev01` | `dev-04-first-logon` | `Register-DevFirstLogon.ps1` | A logon task that installs the VS Code extensions for each user (see below) |
 | `vm-dev01` | `dev-05-versions` | `Write-DevVersions.ps1` | The installed versions, in `C:\LabTools\versions.txt` |
 
 VS Code extensions install per user, so they install when you sign in, not during the deployment: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot upgrade, C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. The first sign-in takes a minute or two longer while they install.
+
+### The kit clone on `vm-dev01`
+
+`dev-01-tools` clones the public kit to `C:\src\factory` with a Git sparse checkout (non-cone patterns), so the coach and event-owner material isn't in the members' working tree on the VM. The clone leaves out `coach/`, `facilitator/`, `docs/`, `site/`, `test/` and the documentation and lint tooling at the repo root (`.vale/`, `.vale.ini`, `.markdownlint-cli2.mjs`, `.prettierignore`, `prettier.config.mjs`, `lefthook.yml`, `package.json`, `package-lock.json`, `.node-version` and `.nvmrc`). Everything members use on the VM stays: `app/`, `db/`, `scripts/`, `infra/`, `archetype/`, `templates/`, `.github/` (with `modernization/` and `copilot-instructions.md`), `README.md`, `LICENSE` and `NOTICE`.
+
+Know the limits:
+
+- **It hides files; it doesn't protect them.** The repo is public and the clone keeps its full history in `.git`, so a member who runs `git sparse-checkout disable` gets the files back. Coach material stays on the honor system.
+- **New deployments only.** The deployment runs `dev-01-tools` again every time, but the clone step is skipped when `C:\src\factory\.git` exists. A VM deployed earlier keeps its full clone until you apply the commands below.
+- **Branches behave normally.** The patterns apply to every branch. `git pull`, `git switch -c`, commits and pushes to the `member` remote work as before, and a lifeline branch (`git fetch origin lifeline/...`, then `git switch`) checks out without the left-out folders, even though the branch contains some of them. Commits never record the left-out files as deleted.
+- **The kit is still a normal clone.** The patterns live in `C:\src\factory\.git\info\sparse-checkout`.
+
+#### Slim an existing clone
+
+For a `vm-dev01` that already has the full clone, run this on the VM, in PowerShell, for example in the Bastion session with the member. It's safe to run again, and it never changes the current branch, commits or untracked files:
+
+```powershell
+cd C:\src\factory
+git sparse-checkout set --no-cone '/*' '!/coach/' '!/facilitator/' '!/docs/' '!/site/' '!/test/' '!/.vale/' '!/.vale.ini' '!/.markdownlint-cli2.mjs' '!/.prettierignore' '!/prettier.config.mjs' '!/lefthook.yml' '!/package.json' '!/package-lock.json' '!/.node-version' '!/.nvmrc'
+```
+
+Check it. The left-out folders must be gone and the others still there:
+
+```powershell
+Test-Path coach, facilitator, docs, site, app, db, scripts, infra, .github
+git status --short
+```
+
+The first line prints `False` four times, then `True` five times. `git status` shows only the member's own changes.
+
+What it does and doesn't touch:
+
+- Uncommitted changes in the folders that stay (`app/`, `db/` and the others) aren't touched, and neither are untracked files.
+- If the member edited a file in a left-out folder and didn't commit, Git keeps that file and the folder, and prints `The following paths are not up to date and were left despite sparse patterns`. Commit or discard that change (`git checkout -- <path>`), then run `git sparse-checkout reapply`.
+- To go back to the full clone, run `git sparse-checkout disable`.
+
+Both `Install-DevTools.ps1` and this block use the same patterns. `test/Test-DevSparse.Tests.ps1` checks that they match, and that a clone with these patterns behaves as described above.
 
 The app's `Web.config` connects to SQL Server as `contosoapp` with the password in plain text, and has `debug="true"`. Both are deliberate: they're findings for the assessment.
 
@@ -146,7 +183,7 @@ It checks, without changing anything:
 
 - **Azure:** both VMs running, with the expected size, `licenseType`, Trusted Launch, no zone and private IP; the `vm-app01` P30 data disk; no data disk on `vm-dev01` and its OS disk at tier P30; no public IP in `rg-datacenter` except `pip-nat-datacenter` and `pip-bas-datacenter`; `bas-datacenter` on the Standard SKU in `AzureBastionSubnet`, with native client support on.
 - **`vm-app01`**, through a run command: the app returns HTTP 200 with "Contoso University"; `F:` exists; the database files are on `F:`; the app's tables exist with at least 8 students (the app's seed data); availability groups are on; trace flags 1800 and 9567 are on; the MSMQ queue exists. For the DB perf kit: students and enrollments within 5% of 200,000 and 2,000,000; `dbo.usp_SearchStudents`, `dbo.usp_GetStudentEnrollments` and `dbo.vw_EnrollmentStatistics` exist; compatibility level 110; Query Store read-write.
-- **`vm-dev01`**, through a run command: `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, the .NET 10 SDK, `code`, `msbuild` and SSMS are installed; outbound HTTPS to `github.com` works.
+- **`vm-dev01`**, through a run command: `http://10.10.n.4/` returns 200; TCP 1433 on `10.10.n.4` is open; `git`, `gh`, `pwsh`, `az`, `bicep`, the .NET 10 SDK, `code`, `msbuild` and SSMS are installed; `C:\src\factory` is a git clone with sparse checkout on and no `coach`, `facilitator`, `docs` or `site` folder (a VM deployed before the sparse checkout fails this until you apply **Slim an existing clone**); outbound HTTPS to `github.com` works.
 
 It prints PASS or FAIL per check and an overall verdict, and exits `0` only if every check passes. If you deployed with another size or without Hybrid Benefit, pass `-VmSize` or `-NoHybridBenefit` to the test too. The in-VM checks need the VMs running: start them first if they're deallocated.
 
@@ -192,6 +229,7 @@ To turn it back on, use `--license-type Windows_Server`. Leave `vm-dev01` on `Wi
 ## Known traps
 
 - **Run the whole thing again if it fails.** Every step converges, so re-running `Deploy-Datacenter.ps1` after a transient failure (a download timeout, for example) picks up where it failed. Each deployment passes a new `RunId` to the run commands, because Azure doesn't re-run a run command that hasn't changed. Look in `C:\LabTools\logs` on the VM for the failing step.
+- **A re-run never changes the kit clone.** `dev-01-tools` runs on every deployment, but skips the clone when `C:\src\factory\.git` exists. That keeps a member's branches and work safe, and it means a clone made before the sparse checkout stays full until you apply **Slim an existing clone**. A clone that failed halfway is removed, so the next run starts it again.
 - **Quota.** The script doesn't check quota. If the deployment fails for lack of D-family vCPUs, request more quota, or pick another size or region with `-VmSize` and `-Location`.
 - **No default outbound access.** All outbound traffic goes through `nat-datacenter`. Without it, the downloads in the run commands fail.
 - **NVMe disks.** v6 and v7 sizes are NVMe-only, so disk numbers inside Windows don't match LUNs. The data disk script finds the data disk as the only raw disk.
