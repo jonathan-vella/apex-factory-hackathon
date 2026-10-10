@@ -1,6 +1,6 @@
 # B08 validation record
 
-What-if summaries and results from validating the foundation for real in the build subscriptions (B08, requirements 16–21). IDs, IP addresses and email addresses are left out.
+What-if summaries and results from validating the foundation for real in the build subscriptions (B08, requirements 16–21). IDs, IP addresses and email addresses are left out. This is a dated record: it counts 18 policy assignments at `mg-factory-corp`, and `policies.bicep` now defines 19 (see the table in the [README](README.md)).
 
 ## Before you start
 

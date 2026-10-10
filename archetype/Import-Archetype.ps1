@@ -17,8 +17,11 @@ content hash over the copied infra/bicep/university/ tree so the member can comp
 archetype's packaged tree hash -- a mismatch there is a known, already-documented drift (see
 archetype/README.md and PR #51), not something this script tries to resolve.
 .PARAMETER Ref
-The kit's git ref (jonathan-vella/apex-factory-hackathon) to import archetype/ from: a branch, tag or commit.
-Defaults to main, like Import-Kit.ps1. Pass a commit to import a fixed point in time.
+The kit's git ref to import archetype/ from: a branch or commit. Defaults to main, like Import-Kit.ps1.
+Pass a commit to import a fixed point in time.
+.PARAMETER KitRepository
+The GitHub repository (owner/name) to download the kit from. Defaults to jonathan-vella/apex-factory-hackathon.
+An event copy of the kit passes its own owner/name; it must be readable without signing in.
 .PARAMETER Destination
 The apex-accelerator repo root to import into. Defaults to the current directory's git root.
 .PARAMETER Force
@@ -36,6 +39,8 @@ param(
     [ValidateNotNullOrEmpty()]
     [string] $Ref = 'main',
     [string] $Destination,
+    [ValidatePattern('^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$')]
+    [string] $KitRepository = 'jonathan-vella/apex-factory-hackathon',
     [switch] $Force
 )
 
@@ -43,8 +48,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 
-$KitOwner = 'jonathan-vella'
-$KitRepo = 'apex-factory-hackathon'
+$KitOwner, $KitRepo = $KitRepository -split '/'
 $ImportItems = @(
     [PSCustomObject]@{ RelativePath = 'agent-output/university'; IsDirectory = $true }
     [PSCustomObject]@{ RelativePath = 'infra/bicep/university'; IsDirectory = $true }

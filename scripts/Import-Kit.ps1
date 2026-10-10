@@ -5,7 +5,8 @@
 Imports the kit's runnable folders into a member's own apex-accelerator repo, under factory/.
 .DESCRIPTION
 Downloads this kit at -Ref from GitHub (the tarball REST API; no git clone, no auth needed for the
-public repo) and copies scripts/, infra/, archetype/, app/, db/, templates/, .github/modernization/ and .github/skills/
+public repo; it needs api.github.com and codeload.github.com through the firewall) and copies scripts/,
+infra/, archetype/, app/, db/, templates/, .github/modernization/ and .github/skills/
 into <Destination>/factory/. It then imports the archetype's APEX project into the repo root by
 running factory/archetype/Import-Archetype.ps1 at the same -Ref (skip with -SkipArchetype).
 factory/.gitignore keeps factory/.local/ (your subscription IDs) out of git.
@@ -14,7 +15,11 @@ folders: factory/.local (your settings, suffix and datacenter credentials) and y
 repo root are kept, unless you also pass -ReplaceArchetype. The site, docs, backlog and coach
 material are not imported.
 .PARAMETER Ref
-The kit's git ref (jonathan-vella/apex-factory-hackathon): a branch, tag or commit. Defaults to main.
+The kit's git ref: a branch or commit. Defaults to main.
+.PARAMETER KitRepository
+The GitHub repository (owner/name) to download the kit from. Defaults to jonathan-vella/apex-factory-hackathon.
+An event copy of the kit passes its own owner/name; it must be readable without signing in. It's passed on to
+Import-Archetype.ps1. The VMs' scripts are not affected: Deploy-Datacenter.ps1 has its own -Repository.
 .PARAMETER Destination
 The apex-accelerator repo root to import into. Defaults to the current directory's git root.
 .PARAMETER Force
@@ -35,6 +40,8 @@ param(
     [ValidateNotNullOrEmpty()]
     [string] $Ref = 'main',
     [string] $Destination,
+    [ValidatePattern('^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$')]
+    [string] $KitRepository = 'jonathan-vella/apex-factory-hackathon',
     [switch] $Force,
     [switch] $ReplaceArchetype,
     [switch] $SkipArchetype
@@ -44,8 +51,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $PSNativeCommandUseErrorActionPreference = $false
 
-$KitOwner = 'jonathan-vella'
-$KitRepo = 'apex-factory-hackathon'
+$KitOwner, $KitRepo = $KitRepository -split '/'
 $ImportItems = @('scripts', 'infra', 'archetype', 'app', 'db', 'templates', '.github/modernization', '.github/skills')
 
 if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
@@ -121,7 +127,9 @@ try {
             Write-Warning "Kept your existing archetype (agent-output/university and infra/bicep/university). Pass -ReplaceArchetype to overwrite it with the kit's copy and lose your changes."
         }
         elseif ($PSCmdlet.ShouldProcess($Destination, 'Import the archetype into the repo root')) {
-            & $archetypeImport -Ref $Ref -Destination $Destination -Force:$ReplaceArchetype
+            $archetypeArguments = @{ Ref = $Ref; Destination = $Destination; Force = $ReplaceArchetype }
+            if ($KitRepository -ne 'jonathan-vella/apex-factory-hackathon') { $archetypeArguments['KitRepository'] = $KitRepository }
+            & $archetypeImport @archetypeArguments
         }
     }
 

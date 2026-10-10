@@ -56,7 +56,7 @@ ALZ-lite creates this hierarchy under Tenant Root. The prefix is the `MgPrefix` 
 | Hub networking | Hub VNet or Virtual WAN, Azure Firewall, VPN or ExpressRoute gateways, DDoS Network Protection, Bastion | `vnet-hub` with Azure Firewall Standard and DNS proxy. No gateways (the datacenter is peered: simulated ExpressRoute), DDoS off |
 | DNS | Private DNS zones for every service, often a DNS Private Resolver | Four privatelink zones (Blob, Service Bus, ACR, Key Vault) linked to the hub; the firewall's DNS proxy forwards to Azure DNS |
 | Logging | Central Log Analytics, Azure Monitor Agent and data collection rules, Sentinel option | `log-management` (30-day retention); diagnostics policies for the archetype's resource types |
-| Policies | The ALZ policy library (hundreds of definitions in many initiatives) | 18 built-in assignments at `mg-factory-corp` (below) |
+| Policies | The ALZ policy library (hundreds of definitions in many initiatives) | 19 built-in assignments at `mg-factory-corp` (below) |
 | Defender for Cloud | Paid plans per resource type | Foundational CSPM only (free); every paid plan off, unless `-SkipDefender` |
 | Identity | Identity subscription, domain controllers, privileged access | None: Entra ID only |
 | Subscription vending | Subscription creation, budgets, RBAC, networking | Places pre-created subscriptions; spoke, peering, UDRs, DNS, firewall rules, Owner for the member, budget |
@@ -106,8 +106,11 @@ The DeployIfNotExists assignments have system-assigned identities. The private D
 | `BudgetAmount` | `500` | A month, in the billing currency |
 | `BudgetEmail` | — | Alert at 80% of actual cost |
 | `SkipDefender` | off | Leave the subscription's Defender for Cloud plans as they are (see [Defender for Cloud](#defender-for-cloud)) |
+| `ShowIds` | off | Print the hub's full resource IDs, including the shared services subscription ID. By default the ID is masked |
 
-Found in the shared services subscription: `vnet-hub`'s ID, `afw-hub`'s private IP, `afwp-hub`'s ID, `rg-hub`'s ID (the DNS zones) and `log-management`'s ID. Vending connects the datacenter only if `vnet-datacenter` exists, so run it after the datacenter, and run it again after any datacenter redeploy: `Deploy-Datacenter.ps1` resets `snet-servers` (dropping `rt-servers`) and `vnet-datacenter`'s DNS servers.
+Found in the shared services subscription: `vnet-hub`'s ID, `afw-hub`'s private IP, `afwp-hub`'s ID, `rg-hub`'s ID (the DNS zones) and `log-management`'s ID. Vending connects the datacenter only if `vnet-datacenter` exists, so run it after the datacenter, and run it again after any datacenter redeploy: `Deploy-Datacenter.ps1` resets `snet-servers` (dropping `rt-servers`) and `vnet-datacenter`'s DNS servers. After vending, the running VMs pick up the hub DNS only after a restart; the script prints the `az vm restart` commands. Record the datacenter's policy exemptions again after a datacenter redeploy.
+
+The script prints the hub's resource IDs, which contain the shared services subscription ID, with the subscription ID masked. Pass `-ShowIds` to print them in full. Don't commit output that shows a subscription ID.
 
 What it deploys:
 
@@ -184,7 +187,7 @@ The platform lead needs **Owner at the Tenant Root management group**: to create
 
 ## Event prep: SQL MI directory identity
 
-Once per team, after ALZ-lite and before C7, someone with **Privileged Role Administrator** (or Global Administrator) in the event tenant grants `id-sqlmi-directory` its Microsoft Graph read permissions. Members and the platform lead usually can't: it's a directory role, not an Azure role. Without it, C7 can't create the web app's database user on any member's SQL Managed Instance.
+Once per team, in C2 on Day 1 right after the platform lead deploys ALZ-lite (and before C7), someone with **Privileged Role Administrator** (or Global Administrator) in the event tenant grants `id-sqlmi-directory` its Microsoft Graph read permissions. Members and the platform lead usually can't: it's a directory role, not an Azure role. Without it, C7 can't create the web app's database user on any member's SQL Managed Instance.
 
 1. If the role is assigned through Privileged Identity Management, activate it first: in the Microsoft Entra admin center, go to **Identity governance > Privileged Identity Management > My roles**, then **Activate**. From the command line, use Microsoft Graph PowerShell; the Azure CLI's sign-in can't activate PIM roles:
 
