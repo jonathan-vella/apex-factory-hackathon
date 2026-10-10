@@ -24,7 +24,7 @@ Every value comes from configuration. Never hard-code endpoints, keys, connectio
 ## Authentication
 
 - **On App Service:** the web app's user-assigned managed identity, through `DefaultAzureCredential`. App Service sets `AZURE_CLIENT_ID`. The database connection uses `Authentication=Active Directory Default` with no user name or password, and comes from the Key Vault secret `ConnectionStrings--DefaultConnection`.
-- **On the dev VM (`vm-dev01`):** the member's own identity, through `DefaultAzureCredential` with `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` set, because the VM's own managed identity has no data roles.
+- **On the dev VM (`vm-dev01`):** the member's own identity, through `DefaultAzureCredential` with `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` set, because the VM's own policy-added system-assigned identity has no data roles.
 - **SQL authentication** is used only in `Development`, against the unchanged source database on `vm-app01`, with the `contosoapp` login from .NET user secrets. Outside `Development` the app refuses a connection string that contains a user name or password.
 - No shared keys, SAS tokens, connection strings with secrets or local authentication for Storage, Service Bus or Application Insights.
 

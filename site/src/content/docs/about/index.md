@@ -19,7 +19,7 @@ See [Roles](../getting-started/roles/) for who does what, and [Prerequisites](..
 
 ## Certifications
 
-The hands-on event comes first. The core certifications for infra roles are AZ-104, GH-300 and DP-300, and the exams follow the event, within six months.
+The hands-on event comes first, and the exams follow it. Infra roles hold AZ-104, GH-300 and DP-300 within six months after the event. No exam is a gate for attending the event. The [Partner learning path](../guides/learning-path/) has the details.
 
 ## Agenda
 

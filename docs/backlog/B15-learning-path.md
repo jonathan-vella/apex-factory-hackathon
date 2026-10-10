@@ -43,9 +43,9 @@
    |---|---|---|
    | 0 Ready | T-30 to T-3 | AZ-104 networking, identity and governance modules; GitHub Copilot Fundamentals Part 1; the Arc SQL migration assessment docs; GH-900 path (optional); Applied Skill "Accelerate AI-assisted development by using GitHub Copilot" (recommended) |
    | 1 Hack | T-0 | The factory, C0–C10 |
-   | 2 Certify core | T+0 to T+180 days | AZ-104, GH-300 and DP-300: all three for every infra role; data and developer roles take their core exams from the role tracks |
+   | 2 Certify core | T+0 to T+180 days | AZ-104, GH-300 and DP-300: all three for every infra role; data and developer roles take their core exams from the role tracks. Data roles also take DP-800 (required for Infra and Database Migration, owner decision 2026-10-10) |
    | 3 Specialize | T+180 to T+270 days | AZ-305, AZ-400 (DevOps Engineer Expert), SC-500, AZ-700; AI-200 for the developer track; the AKS (AZ-1001) and Azure Container Apps (AZ-2003) learning paths |
-   | 4 Next (optional) | Within the 9 months | DP-800, GH-600, AI-103 |
+   | 4 Next (optional) | Within the 9 months | GH-600, AI-103 |
 
 9. **Role tracks:** a table that gives each role its core exams, its specialize exams, its optional "next" exams and the challenges it owns:
 
@@ -54,7 +54,7 @@
    | Platform lead (infra) | AZ-104, GH-300, DP-300 | AZ-700, AZ-305, SC-500 | — | C2, C5, C8 |
    | Workload engineer (infra) | AZ-104, GH-300, DP-300 | AZ-400; AKS and Container Apps paths | GH-600 | C3, C5, C6, C7, C8, C9 |
    | Security engineer (infra) | AZ-104, GH-300, DP-300 | SC-500 | — | C2, C8 |
-   | Data/DB specialist | DP-300 | SC-500 or AZ-104 | DP-800 | C3, C4, C7, C9 |
+   | Data/DB specialist | DP-300, DP-800 | SC-500 or AZ-104 | — | C3, C4, C7, C9 |
    | App modernization developer | GH-300 | AI-200, AZ-400; AKS and Container Apps paths | GH-600, AI-103 | C6, C8 |
    | Coach / CoE lead | Recommended: GH-300 plus DP-300 or AZ-104 | AZ-305 | GH-600 | All, as coach |
    | Practice lead | No exam needed | AZ-305 (optional) | — | Runs the event |
@@ -123,7 +123,7 @@ docs: add the partner learning path page
 
 - A 🔎 VERIFY shows an exam in this runbook retired, renamed or replaced.
 - A specialization's skilling groups differ from requirement 12.
-- It's still unclear whether DP-800 is a fifth required group for Infra and Database Migration or an alternative to DP-300. The partner page lists it after the database administrator group without "OR".
+- DP-800 for Infra and Database Migration: the owner decided on 2026-10-10 that it is a fifth required group, in addition to DP-300. The page treats it that way; don't reopen it unless the partner page changes.
 
 ## Notes and traps
 

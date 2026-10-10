@@ -33,8 +33,9 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - Give coaches read access to each member's private repo and to the team repo, so they can review evidence. Attendees keep their C5 and C6 work in their own repos.
 - Assign GitHub Copilot seats and check the org policies allow agent mode, MCP servers and Copilot CLI.
 - Book a Privileged Role Administrator (or Global Administrator) for each team for Day 1 around 10:15, right after ALZ-lite is deployed. They run `scripts/Grant-SqlMiDirectoryRead.ps1` once per team (see `infra/foundation/README.md`, "Event prep: SQL MI directory identity"). It can't happen earlier, because ALZ-lite creates `id-sqlmi-directory`, and C7 needs the grant.
-- Decide the SQL MI start/stop schedule. It runs Monday to Friday, 07:30 to 18:30, `W. Europe Standard Time`, and applies only after cutover removes the link. For another time zone or for event days outside that window, change the `sqlMiSchedule*` parameters in `archetype/infra/bicep/university/main.bicep` before attendees deploy. Tell coaches that after cutover the MI can be stopped outside that window.
+- Decide the SQL MI start/stop schedule. It runs Monday to Friday, 07:30 to 18:30, `W. Europe Standard Time`, and applies only after cutover removes the link. For another time zone or for event days outside that window, set `sqlMiScheduleTimeZoneId`, `sqlMiScheduleStartTime`, `sqlMiScheduleStopTime` or `sqlMiScheduleDays` (day names such as `'Monday'`) before attendees deploy. `archetype/infra/bicep/university/main.bicepparam` doesn't set them today, so they take the defaults in `main.bicep`: either change those defaults, or add for example `param sqlMiScheduleStartTime = '08:00'` to the `.bicepparam` file. Attendees import that folder with `Import-Archetype.ps1`, so make the change in your event copy and have them import from it (see "Pointing the scripts at an event copy" below). If they import from upstream, they get the upstream schedule, and each attendee has to make the same change in their own `infra/bicep/university` before `azd provision`. Tell coaches that after cutover the MI can be stopped outside that window.
 - Decide who owns the APEX demo subscription and its cleanup (see the [APEX demo](apex-demo.md)).
+- Tell attendees that certifications follow the event: infra roles hold AZ-104, GH-300 and DP-300 within six months after it, and no exam is a gate for attending (see the [learning path](../site/src/content/docs/guides/learning-path.md)).
 
 ### T-14: event owner and platform lead
 
@@ -50,6 +51,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - Run the member preflight, deploy the datacenter with Azure Hybrid Benefit on by default, confirm the legacy app with `scripts/Test-Datacenter.ps1` while both VMs are running, then onboard `vm-app01` to Arc with `scripts/Connect-DatacenterArc.ps1` and run the first Arc SQL migration assessment. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks.
 - Have a coach review every member's C0 output (see the [C0 answer key](../coach/c00-ready-to-hack.md)). A member who isn't ready at the kickoff roster lock stays on the roster with partial C0 credit unless the event owner swaps or drops them first.
 - Keep the datacenter ready for the event. Idle VMs can be stopped before the event (Bastion Standard, disks and networking still incur charges), but start both before day one. During the event, never stop `vm-dev01`: it's each member's workstation.
+- A `vm-dev01` deployed before the sparse-checkout change still has the full kit clone, with `coach/` and `facilitator/` in it. Apply the "Slim an existing clone" block in `infra/datacenter/README.md` on that VM with the member. `Test-Datacenter.ps1` reports the full clone as a failed check until you do.
 - Check the private-network path and the exact region and naming values before the event. No availability zones are pinned or enabled.
 
 ### Kickoff and event days
@@ -58,7 +60,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - Follow the [two-day agenda](agenda.md). The foundation and MI work deliberately overlap other challenges. Time boxes are pacing: coaches flex on the day, and the minutes and points don't change.
 - Staff at most one coach for every six attendees.
 - On Day 1 the platform lead starts ALZ-lite at 09:00. On Day 2 at 08:30, check both VMs are running and the Graph grant is done (`Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints "already granted"), then the members start the MI link.
-- Record every score and bonus in the [scoreboard](scoreboard.md); do not change the base contract. Teams with the same team score share the rank. The 30-point bonus pool is awarded in the order the bonuses appear in the [rubric](scoring-rubric.md) until the cap is reached.
+- Record every score and bonus in the [scoreboard](scoreboard.md); do not change the base contract. Teams with the same team score share the rank. Each team's bonus is capped at 30 points and awarded in the order the bonuses appear in the [rubric](scoring-rubric.md) until the team reaches the cap.
 - Give the [curveballs](curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link spike](../docs/spikes/B07-arc-mi-link/README.md) abort path for the Day 2 curveball. The staged Day 2 abort is part of the event and earns no bonus.
 
 ### T+2: event owner and platform lead
@@ -76,7 +78,16 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - Keep the web app's public HTTPS front end and Application Insights ingestion as the documented exceptions. Backends remain private and use their standard host names.
 - Do not use the SQL Managed Instance free offer. The event path uses the paid General Purpose configuration in the archetype.
 - The [cost estimate](cost-estimate.md) is a planning estimate, not an authorization to deploy.
-- An event copy of this repository doesn't change what attendees run. `Import-Kit.ps1`, the datacenter script download and the clone on `vm-dev01` all fetch the upstream `jonathan-vella/apex-factory-hackathon` repository at `main`, and coaches fetch lifelines from the same place. Keep technical changes upstream, or agree with attendees which copy they use.
+
+## Pointing the scripts at an event copy
+
+An event copy of this repository doesn't change what attendees run by default. `Import-Kit.ps1`, the datacenter script download and the clone on `vm-dev01` all fetch the upstream `jonathan-vella/apex-factory-hackathon` repository at `main`, and coaches fetch lifelines from the same place. Keep technical changes upstream, or point the scripts at your copy. The copy must be public: the VMs read `raw.githubusercontent.com` without signing in, and the imports run without signing in too. Tell attendees which flags to use:
+
+- `scripts/Deploy-Datacenter.ps1 -Repository <owner>/<name>` makes the VMs download `infra/datacenter/scripts` and `db/perf-kit/sql` from your copy. `-ScriptsRef` picks a branch or commit; it defaults to `main`.
+- `scripts/Import-Kit.ps1 -KitRepository <owner>/<name>` imports the kit from your copy, and passes the same value on to `Import-Archetype.ps1`. `-Ref` picks a branch or commit.
+- `archetype/Import-Archetype.ps1 -KitRepository <owner>/<name>` is the same flag for importing the archetype alone.
+- `Deploy-Datacenter.ps1` has its own `-Repository`, which `Import-Kit.ps1` doesn't pass on, so give attendees both.
+- The kit clone on `vm-dev01` and the lifelines still come from upstream.
 
 ## Lifeline handout and scoring
 

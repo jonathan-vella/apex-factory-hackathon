@@ -42,7 +42,15 @@ Step 1 runs in your dev container. Everything after it runs on `vm-dev01`.
    git pull
    ```
 
-   If `C:\src\factory` is missing, clone it: `git clone https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\factory`.
+   If `C:\src\factory` is missing, ask your coach first. If you're told to clone it yourself, make the same sparse clone that the deployment makes, so the coach and facilitator folders stay out of it:
+
+   ```powershell
+   git clone --no-checkout https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\factory
+   cd C:\src\factory
+   git sparse-checkout set --no-cone '/*' '!/coach/' '!/facilitator/' '!/docs/' '!/site/' '!/test/' '!/.vale/' '!/.vale.ini' '!/.markdownlint-cli2.mjs' '!/.prettierignore' '!/prettier.config.mjs' '!/lefthook.yml' '!/package.json' '!/package-lock.json' '!/.node-version' '!/.nvmrc'
+   git checkout
+   ```
+
 5. **Connect the clone to your own repo and start your work branch, once.** The clone's `origin` is the public kit repo, and you can't push to it. Add your own repo as a second remote, named `member`, and put your work on its own branch. Replace the placeholders with your GitHub organization and the repo you created in Prerequisites:
 
    ```powershell
