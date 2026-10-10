@@ -9,7 +9,8 @@ This is the scoring single source of truth. The base contract is 80 team points 
 - Base team score = team base points + the arithmetic mean of member base points. The maximum base score is 200.
 - Score each evidence row independently. Full points require the listed evidence. Award half the row value, rounded down, when evidence is present but one verifiable subcomponent is incomplete; award zero when evidence is absent, unverified or materially incorrect. Record the reason for partial credit. Never exceed a row's maximum or move unused points between rows.
 - Lifelines cap the affected challenge only; later challenges remain eligible. Record the branch or image in the scoreboard. C6 use of L1, L2, L3, L4 or the known-good image caps C6 at **15 of 30 member points**. C7 use of L5 caps C7 at **10 of 20 member points**. Ordinary hints and coach discussion do not trigger a cap.
-- Challenge bonus tasks and badges draw from one event-wide bonus pool capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. When the pool is exhausted, further eligible bonus evidence is recorded but adds no points.
+- Challenge bonus tasks and badges draw from one event-wide bonus pool capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. Award the pool in the order the bonuses appear in this rubric until the cap is reached. When the pool is exhausted, further eligible bonus evidence is recorded but adds no points.
+- Rank teams by team score. Teams with the same score share the rank.
 - Team score = team base points + average member base points + awarded team bonus + average awarded member bonus, with combined bonus capped at 30. The scoreboard shows the components separately.
 - Coaches sign off evidence and the event owner resolves scoring disagreements against this rubric. Keep evidence in the team's repository; redact secrets and tenant, subscription and object IDs before sharing it publicly.
 
@@ -157,3 +158,5 @@ Each badge adds 5 team bonus points when its evidence is signed off. Badges shar
 ## Challenge bonus tasks
 
 Use the bonus opportunities on the challenge pages: C2, C3, C5, C6, C7 and C8 offer up to 5 points each; C10 offers up to 10. C0, C1, C4 and C9 have no bonus task. Award only documented evidence and apply the shared 30-point ceiling.
+
+The C7 bonus (clean reseed after an abort) applies only to a real, unplanned abort. The coach-staged Day 2 abort is part of the event and earns no bonus.

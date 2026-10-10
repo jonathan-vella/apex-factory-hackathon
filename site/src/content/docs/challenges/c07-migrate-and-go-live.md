@@ -180,7 +180,7 @@ Check the Key Vault secret exists and has the right name (`ConnectionStrings--De
 
 ## Bonus
 
-Up to 5 pts for a clean reseed-after-abort you can show evidence for (not needed if your first seed and validation go cleanly).
+Up to 5 pts for a clean reseed after a real, unplanned abort that you can show evidence for (not needed if your first seed and validation go cleanly). An abort a coach stages is part of the event and earns no bonus.
 
 ## Learn more
 

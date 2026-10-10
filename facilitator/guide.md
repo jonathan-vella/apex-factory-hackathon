@@ -55,10 +55,11 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 ### Kickoff and event days
 
 - Lock the roster at kickoff, after the T-3 review, and before scoring begins. Explain the evidence handoff. Don't announce lifelines: coaches decide when to use them.
-- Follow the [two-day agenda](agenda.md). The foundation and MI work deliberately overlap other challenges.
+- Follow the [two-day agenda](agenda.md). The foundation and MI work deliberately overlap other challenges. Time boxes are pacing: coaches flex on the day, and the minutes and points don't change.
+- Staff at most one coach for every six attendees.
 - On Day 1 the platform lead starts ALZ-lite at 09:00. On Day 2 at 08:30, check both VMs are running and the Graph grant is done (`Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints "already granted"), then the members start the MI link.
-- Record every score and bonus in the [scoreboard](scoreboard.md); do not change the base contract.
-- Give the [curveballs](curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link spike](../docs/spikes/B07-arc-mi-link/README.md) abort path for the Day 2 curveball.
+- Record every score and bonus in the [scoreboard](scoreboard.md); do not change the base contract. Teams with the same team score share the rank. The 30-point bonus pool is awarded in the order the bonuses appear in the [rubric](scoring-rubric.md) until the cap is reached.
+- Give the [curveballs](curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link spike](../docs/spikes/B07-arc-mi-link/README.md) abort path for the Day 2 curveball. The staged Day 2 abort is part of the event and earns no bonus.
 
 ### T+2: event owner and platform lead
 

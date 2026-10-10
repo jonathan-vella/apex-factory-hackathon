@@ -102,7 +102,7 @@ The DeployIfNotExists assignments have system-assigned identities. The private D
 | `MemberIndex` | `1` | `n`: the spoke is `10.20.n.0/24`, the datacenter `10.10.n.0/24` |
 | `Location` | `swedencentral` | |
 | `MgPrefix` | `mg-factory` | As passed to ALZ-lite |
-| `MemberPrincipalId` | empty | The member's object ID, who gets Owner on the workload subscription and Managed Identity Operator on `id-sqlmi-directory`. Skipped when empty |
+| `MemberPrincipalId` | empty | The member's object ID, who gets Owner on the workload subscription, Reader on the shared services subscription and Managed Identity Operator on `id-sqlmi-directory`. Skipped when empty |
 | `BudgetAmount` | `500` | A month, in the billing currency |
 | `BudgetEmail` | — | Alert at 80% of actual cost |
 | `SkipDefender` | off | Leave the subscription's Defender for Cloud plans as they are (see [Defender for Cloud](#defender-for-cloud)) |
@@ -121,9 +121,10 @@ What it deploys:
 | `nsg-sqlmi`, `rt-sqlmi` | Created once, empty: a PUT without the rules and routes that SQL MI's network intent policy adds would remove them (B08 validation), so re-runs leave both alone. The kit's rules and route are child resources. `nsg-sqlmi`: MI link rules from the B07 report, inbound TCP 5022 and 11000–11999 from `10.10.n.4`, outbound TCP 5022 to `10.10.n.4`; diagnostics to `log-management` |
 | `rg-datacenter` | Peering `peer-datacenter-to-hub`; `rt-servers` on `snet-servers`; `vnet-datacenter` DNS set to `afw-hub` (after the peering) |
 | `rg-hub` | Peerings `peer-hub-to-spoke-n` and `peer-hub-to-datacenter-n`; rule collection group `rcg-member-n` in `afwp-hub` |
+| Shared services subscription | Reader for the member (if `-MemberPrincipalId` is set) |
 | Workload subscription | Owner for the member; budget `budget-factory-workload`; Defender for Cloud on Foundational CSPM only (unless `-SkipDefender`) |
 
-The platform lead runs vending for every member, one at a time (each run updates `afwp-hub`). It needs Owner at Tenant Root, because it writes to both subscriptions and the cross-subscription peerings need rights on both VNets. Members need no other role on the shared services subscription: only Managed Identity Operator on `id-sqlmi-directory`.
+The platform lead runs vending for every member, one at a time (each run updates `afwp-hub`). It needs Owner at Tenant Root, because it writes to both subscriptions and the cross-subscription peerings need rights on both VNets. A member's only roles on the shared services subscription are Reader and, on `id-sqlmi-directory`, Managed Identity Operator, both given when `-MemberPrincipalId` is passed. Reader lets the member's own sign-in read the hub for `Test-Connectivity.ps1` and the C5 preflight: the hub VNet, `afw-hub`, `afwp-hub` and its rules, the private DNS zone links, `log-management` and `id-sqlmi-directory`. The preflight lists firewall policies across the subscription, so the assignment is on the subscription, not on `rg-hub` and `rg-management`.
 
 **SQL MI directory identity (event prep, once per team).** ALZ-lite creates `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it as its primary identity, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up Microsoft Entra principals, such as the web app's identity in C7. A Privileged Role Administrator grants it Microsoft Graph read permissions once per team (see [Event prep: SQL MI directory identity](#event-prep-sql-mi-directory-identity); [Managed identities in Microsoft Entra for Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/authentication-azure-ad-user-assigned-managed-identity)). Without it, creating the web app's database user fails with "Server identity does not have Azure Active Directory Readers permission" (B09 validation, 2026-10-07).
 

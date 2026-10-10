@@ -2,7 +2,7 @@
 
 - **Length:** 30 minutes
 - **Audience:** event attendees, event owner and coaches
-- **Presenter:** coach
+- **Presenter:** coach, live (no recording)
 
 ## Before the demo
 
