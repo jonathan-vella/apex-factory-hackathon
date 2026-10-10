@@ -82,6 +82,18 @@ function Invoke-AzureCli {
     }
 }
 
+function Get-WebResponse {
+    param([string] $Uri)
+    # PowerShell 7 throws on a 3xx when redirects are off, even with -SkipHttpErrorCheck, but still
+    # returns the response when the error is silenced. No response at all (DNS, TLS, timeout) is an error.
+    $response = Invoke-WebRequest -Uri $Uri -TimeoutSec 60 -SkipHttpErrorCheck -MaximumRedirection 0 -ErrorAction SilentlyContinue -ErrorVariable requestError
+    if ($null -eq $response) {
+        $reason = if ($requestError) { $requestError[0].Exception.Message } else { 'no response' }
+        throw "No response from $Uri ($reason)."
+    }
+    return $response
+}
+
 function Invoke-Check {
     param([string] $Area, [string] $Check, [string] $Resource, [scriptblock] $Action)
     try {
@@ -192,7 +204,7 @@ else {
         $uri = "https://$hostName$($page.Path)"
         $needRows = $page.Rows
         Invoke-Check -Area 'App pages' -Check "GET $($page.Path)" -Resource $webApp -Action {
-            $response = Invoke-WebRequest -Uri $uri -TimeoutSec 60 -SkipHttpErrorCheck -MaximumRedirection 0
+            $response = Get-WebResponse -Uri $uri
             $code = [int] $response.StatusCode
             if ($code -ne 200) { return @{ Status = 'FAIL'; Detail = "HTTP $code." } }
             if ($needRows -and ([string] $response.Content) -notmatch '<td') { return @{ Status = 'FAIL'; Detail = 'HTTP 200, but the page has no table rows.' } }
@@ -201,7 +213,7 @@ else {
         }
     }
     Invoke-Check -Area 'App pages' -Check 'HTTP redirects to HTTPS' -Resource $webApp -Action {
-        $response = Invoke-WebRequest -Uri "http://$hostName/" -TimeoutSec 60 -SkipHttpErrorCheck -MaximumRedirection 0
+        $response = Get-WebResponse -Uri "http://$hostName/"
         $code = [int] $response.StatusCode
         $location = [string] ($response.Headers['Location'] | Select-Object -First 1)
         if ($code -in 301, 302, 307, 308 -and $location -like 'https://*') { return @{ Status = 'PASS'; Detail = "HTTP $code to HTTPS." } }

@@ -23,7 +23,7 @@ C7's app, live on App Service against SQL MI.
 
 | Tasks | Where |
 | --- | --- |
-| 1 (pages), 2, 3 (browser flows) | A browser, on any computer. Use `vm-dev01` if your own network can't reach the web app. The row counts in task 1 use SSMS on `vm-dev01`. |
+| 1 (pages), 2, 3 (browser flows) | A browser, on any computer. Use `vm-dev01` if your own network can't reach the web app. The row counts in task 1 and the blob listing in task 2 use `vm-dev01` (SSMS and PowerShell), because the databases and storage are private-only. |
 | 4, 5 (load and security checks) | The dev container of your own repo, from `factory/`. |
 | 6 (record) | The team repo, in `evidence/c08/member-<n>/`. |
 
@@ -57,7 +57,7 @@ The last line prints your archetype's resource group and the web app's host name
      (SELECT COUNT(*) FROM Enrollment) AS Enrollments;
    ```
 
-2. **Upload round-trip.** On **Courses > Edit** for any course, choose a small PNG as the teaching material and save. The image must show on the course's page. Then check it landed in Blob: in the portal open your storage account > **Containers** > `teaching-materials`, and see the new blob. Replace it with another image, then delete it, and confirm the blob changes and then goes. Last, try to upload a text file (switch the file dialog from "Image files" to "All files") and a file larger than the app's limit (10 MB in the original app); both must be rejected with a message. The storage account has public access disabled, so a working upload proves the app reaches it privately.
+2. **Upload round-trip.** On **Courses > Edit** for any course, choose a small PNG as the teaching material and save. The image must show on the course's page. Then check it landed in Blob. The storage account is private-only, so the portal's blob browser won't work from your own computer: on `vm-dev01`, in PowerShell, after `az login --use-device-code`, run `az storage blob list --account-name stuniversity<suffix> --container-name teaching-materials --auth-mode login --output table` (your suffix is in `.local/settings.json`), and see the new blob. Replace the image with another one, then delete it, and list again to confirm the blob changes and then goes. Last, try to upload a text file (switch the file dialog from "Image files" to "All files") and a file larger than 5 MB (the app's limit); both must be rejected with a message. The storage account has public access disabled, so a working upload proves the app reaches it privately.
 3. **Notification round-trip.** Open the browser's developer tools (`F12`) > **Network**, filter for `GetNotifications`, and leave it open. The page asks `/Notifications/GetNotifications` every 5 seconds. Edit a student (**Students > Edit**, change the first name, save). Within 5 seconds a toast must appear on screen, and the next `GetNotifications` request in the Network panel must show status `200` and a response with `success` set to `true` and a `count` of 1 or more. Then edit the student back. Don't open the `/Notifications/GetNotifications` address in another tab yourself: each call takes the queued messages, so the page would never show the toast. Service Bus has public access disabled, so a working toast proves the app reaches it privately.
 4. **Load check.** A light burst of concurrent page loads against the live app. In the dev container:
 

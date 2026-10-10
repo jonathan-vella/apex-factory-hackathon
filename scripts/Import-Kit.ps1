@@ -9,14 +9,19 @@ public repo) and copies scripts/, infra/, archetype/, app/, db/, templates/, .gi
 into <Destination>/factory/. It then imports the archetype's APEX project into the repo root by
 running factory/archetype/Import-Archetype.ps1 at the same -Ref (skip with -SkipArchetype).
 factory/.gitignore keeps factory/.local/ (your subscription IDs) out of git.
-Refuses to overwrite an existing factory/ folder unless -Force. The site, docs, backlog and coach
+Refuses to overwrite an existing factory/ folder unless -Force. -Force replaces only the imported kit
+folders: factory/.local (your settings, suffix and datacenter credentials) and your archetype work in the
+repo root are kept, unless you also pass -ReplaceArchetype. The site, docs, backlog and coach
 material are not imported.
 .PARAMETER Ref
 The kit's git ref (jonathan-vella/apex-factory-hackathon): a branch, tag or commit. Defaults to main.
 .PARAMETER Destination
 The apex-accelerator repo root to import into. Defaults to the current directory's git root.
 .PARAMETER Force
-Replace an existing factory/ folder.
+Replace the kit folders in an existing factory/ folder. Keeps factory/.local and your archetype work.
+.PARAMETER ReplaceArchetype
+With an existing archetype in the repo root (agent-output/university, infra/bicep/university), overwrite
+it with the kit's copy. This loses any changes you made to it.
 .PARAMETER SkipArchetype
 Import factory/ only; don't run the archetype import.
 .EXAMPLE
@@ -31,6 +36,7 @@ param(
     [string] $Ref = 'main',
     [string] $Destination,
     [switch] $Force,
+    [switch] $ReplaceArchetype,
     [switch] $SkipArchetype
 )
 
@@ -96,9 +102,11 @@ try {
     }
 
     if ($PSCmdlet.ShouldProcess($factory, 'Create factory/ and copy the kit into it')) {
-        if (Test-Path $factory) { Remove-Item -Path $factory -Recurse -Force }
+        # Replace only the imported folders, so factory/.local (settings, suffix, datacenter credentials)
+        # and anything else you added under factory/ survive a -Force re-import.
         foreach ($item in $ImportItems) {
             $target = Join-Path $factory $item
+            if (Test-Path $target) { Remove-Item -Path $target -Recurse -Force }
             New-Item -ItemType Directory -Path (Split-Path $target -Parent) -Force | Out-Null
             Copy-Item -Path (Join-Path $kitRoot $item) -Destination $target -Recurse -Force
         }
@@ -108,8 +116,12 @@ try {
 
     if (-not $SkipArchetype) {
         $archetypeImport = Join-Path $factory 'archetype/Import-Archetype.ps1'
-        if ($PSCmdlet.ShouldProcess($Destination, 'Import the archetype into the repo root')) {
-            & $archetypeImport -Ref $Ref -Destination $Destination -Force:$Force
+        $archetypeExists = (Test-Path (Join-Path $Destination 'agent-output/university')) -or (Test-Path (Join-Path $Destination 'infra/bicep/university'))
+        if ($archetypeExists -and -not $ReplaceArchetype) {
+            Write-Warning "Kept your existing archetype (agent-output/university and infra/bicep/university). Pass -ReplaceArchetype to overwrite it with the kit's copy and lose your changes."
+        }
+        elseif ($PSCmdlet.ShouldProcess($Destination, 'Import the archetype into the repo root')) {
+            & $archetypeImport -Ref $Ref -Destination $Destination -Force:$ReplaceArchetype
         }
     }
 
