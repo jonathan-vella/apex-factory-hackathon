@@ -92,10 +92,6 @@ Most preflight failures are missing resource provider registrations or a role as
 `Connect-DatacenterArc.ps1` needs outbound internet from `vm-app01` to Arc's endpoints — the datacenter's NAT gateway should already allow this. Don't just run the script again if it timed out after it started: it refuses a second run once the guest agent is off. Connect to `vm-app01` through Bastion and read `C:\LabTools\logs\Connect-AppArc.log`. If onboarding didn't finish, tell your coach: the fix is to redeploy `vm-app01` with `Deploy-Datacenter.ps1`, then run the Arc script again.
 </details>
 
-## Lifeline
-
-Not applicable — pre-work has no in-event lifeline. If you're stuck, ask your coach before the event starts; don't wait for T-3.
-
 ## Bonus
 
 None for C0.

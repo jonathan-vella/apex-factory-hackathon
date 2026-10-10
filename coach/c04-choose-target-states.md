@@ -16,7 +16,7 @@ Four ADRs are the minimum bar: platform and migration method (team-level), app a
 ## Common mistakes
 
 - An ADR with no alternative considered — "we decided X" isn't a decision record without at least one road not taken and why.
-- Re-litigating the platform ADR when C2 already deployed the archetype — by C4, the platform shape is effectively already committed; the ADR documents that decision, it doesn't re-open it.
+- Re-litigating the platform ADR even though the shape is already fixed — the foundation is deployed in C2, and the archetype follows in C5; the ADR documents the platform decision, it doesn't re-open it.
 - Deferred-work register entries with a vague timeline like "later" — require a specific trigger ("after cutover," "before C10 handover").
 - Forgetting the trace-flag entry in the register because it was already triaged in C3 — triage in C3 isn't the same as tracking the removal step; both need to happen.
 

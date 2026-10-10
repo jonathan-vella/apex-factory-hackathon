@@ -67,10 +67,6 @@ The preview only lists resource types `azd` has display names for — it's expec
 Don't: APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a native Windows checkout turns `main.bicepparam` to CRLF, which breaks the tree hash. Use the dev container or Codespaces.
 </details>
 
-## Lifeline
-
-Ask your coach if `azd provision` fails on something other than a quota or permission issue you can self-diagnose. Using the lifeline caps C5 at partial credit.
-
 ## Bonus
 
 Up to 5 pts for running the no-agent fallback (`archetype/deploy.ps1 -WhatIf`, then for real) side by side and comparing its output with the APEX + `azd` path.

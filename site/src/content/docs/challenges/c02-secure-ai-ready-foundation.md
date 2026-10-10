@@ -117,10 +117,6 @@ That's expected until exemptions run — the datacenter was deployed before the 
 VNet DNS servers changed, but running VMs cache their old settings. Restart the VM or run `ipconfig /renew`.
 </details>
 
-## Lifeline
-
-Ask your coach if the platform lead is blocked on management group permissions or cross-subscription peering rights — this needs Owner at Tenant Root, which only the platform lead should have. Using the lifeline caps C2 at partial credit for the team.
-
 ## Bonus
 
 Up to 5 pts for running the negative tests from the B08 report yourself (a public storage account denied, a NIC with a public IP denied, a private endpoint auto-registering in the central DNS zone) and recording the results.

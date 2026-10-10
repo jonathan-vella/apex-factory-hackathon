@@ -186,4 +186,4 @@ Expected order of work:
 
 ## Reset
 
-`./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>` puts all five issues back and clears Query Store. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryDefault`.
+`./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>` puts all five issues back and clears Query Store. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive` (on `vm-dev01`, not `ActiveDirectoryDefault`, which signs in as the VM). Don't reset in the middle of a member's before-and-after capture: it clears the Query Store numbers they need.

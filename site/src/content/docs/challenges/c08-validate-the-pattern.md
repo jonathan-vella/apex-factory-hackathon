@@ -109,10 +109,6 @@ It only looks in your archetype's resource group. If the private endpoint lives 
 Check the Network panel first. A `GetNotifications` response with `success: false` means the app couldn't reach Service Bus: check the app's `ServiceBus` settings and its identity's roles, and that the private endpoint is approved. If the response is fine but empty, someone or something else consumed the message: edit the student again.
 </details>
 
-## Lifeline
-
-Ask your coach if a specific acceptance check keeps failing for a reason you can't diagnose after one pass through the hints above. Using the lifeline caps C8 at partial credit.
-
 ## Bonus
 
 Up to 5 pts for finding and documenting a real gap the acceptance pack doesn't already cover (for example, a missing diagnostic setting).

@@ -46,10 +46,6 @@ One page: context, decision, alternatives considered, consequences. The template
 An ADR commits to a choice. The register tracks something you're explicitly not doing now — like removing the trace flags only after the link is gone. If it has an owner and a date, it's a register entry, not a decision.
 </details>
 
-## Lifeline
-
-Ask your coach if your team genuinely can't agree on the platform ADR after discussing it once. Using the lifeline caps the team portion of C4 at partial credit.
-
 ## Bonus
 
 None for C4.

@@ -24,7 +24,7 @@ Start an MI link migration from the Arc portal against a deployed SQL Managed In
 
 ## Reset
 
-Delete the MI link and any partially seeded database on the MI, then restart the seed. The web app's container setting can be pointed back at a known-good image to recover a broken go-live.
+Delete the MI link and any partially seeded database on the MI, then restart the seed. If the web app won't start after go-live, check the Key Vault secret and the database user first, and ask your coach.
 
 ## Time box
 
