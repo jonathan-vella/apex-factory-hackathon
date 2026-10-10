@@ -10,7 +10,7 @@ This is the longest member challenge (180 minutes) and the one most likely to ru
 - Seven commits, one per task, each named `app: task 0N <name>`, each preceded by a passing build and a local run against the source database on `vm-app01`.
 - The app running on `vm-dev01`: uploads landing in the archetype's Blob container, a notification toast within 5 seconds of a student edit, telemetry visible in Application Insights.
 - `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` clean, or a documented remediation for anything it flags.
-- The image pushed to the archetype's ACR (`az acr repository show-tags`), with App Service's identity, app settings and Key Vault access checked but **not changed** to point at the new image.
+- The image pushed to the archetype's ACR (`az acr repository show-tags`), with App Service's identity, app settings and Key Vault access (the identity's **Key Vault Secrets User** role assignment) checked but **not changed** to point at the new image.
 
 ## Model answer
 
@@ -42,7 +42,7 @@ After all seven: package with `dotnet publish /t:PublishContainer` (no Dockerfil
 
 ## Bonus
 
-Re-running the task 07 CVE audit after any later dependency bump, to prove it's still clean, is worth up to 5 bonus points.
+Re-running the task 07 CVE audit after the gap fixes and packaging (tasks 3 and 4 of the challenge) and recording that it's still clean, or what it found and how it was fixed, is worth up to 5 bonus points.
 
 ## Reset
 
