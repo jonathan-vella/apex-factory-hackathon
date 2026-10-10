@@ -7,10 +7,11 @@ C0 is pre-work: members do it before the event, on their own time, against their
 
 ## Expected evidence
 
-- `Test-Preflight.ps1` output: every automated check green. A member who skipped a manual check (RBAC, MFA, GitHub Copilot policy, APEX runtime access) usually surfaces later in C2 or C5 — ask them to re-run preflight if C5 behaves oddly.
+- `Test-Preflight.ps1` output: every automated check green. A member who skipped a manual check (MFA, GitHub Copilot, GitHub repositories, APEX, Azure Hybrid Benefit) usually surfaces later in C2 or C5 — ask them to re-run preflight if C5 behaves oddly.
 - `Test-Datacenter.ps1` output from before Arc onboarding: all green, including the perf kit's planted objects and data present on `vm-app01`'s SQL Server (this is what C9 depends on later — if it's missing now, the perf kit needs resetting before C9). It can't pass after Arc onboarding, so don't ask for a re-run.
 - The Arc resource for `vm-app01` showing Connected, with the SQL Server extension installed and the instance listed.
 - A screenshot or export of the first Arc migration assessment. They don't need to have acted on it — C3 is where that happens.
+- A note that Azure Hybrid Benefit is on (or why not) and the VM power state (2 of the member's 10 C0 points with the preflight output).
 
 ## Model answer
 
@@ -29,6 +30,7 @@ Parameters come from the member's `.local/settings.json` (`$s`). `-WorkloadSubsc
 - Trying a manual Arc onboarding through the portal "just to see" — this works but produces a differently-named Arc resource that later scripts (`Test-Datacenter.ps1`, the migration assessment lookups) won't find. Redo with the script if this happened.
 - Turning Azure Hybrid Benefit off "to compare" and forgetting to turn it back on — it should stay on throughout.
 - Leaving both VMs running between pre-work sessions — not a correctness problem, but worth a reminder since it's billing for nothing. Stopping `vm-dev01` during the event is the opposite mistake: it's the members' workstation.
+- Evidence kept only on the member's laptop: the team repo doesn't exist until C1, so ask them to copy it into `evidence/c00/member-<n>/` on day one.
 
 ## Partial credit
 
