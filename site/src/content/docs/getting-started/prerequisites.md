@@ -33,7 +33,7 @@ Complete this page by **T-14**, then continue with [C0: Ready to hack](../../cha
 
 The event is built for partner infrastructure architects and engineers, in teams of three to five. Each team has its own Microsoft Entra tenant and a platform lead. You don't need to be a .NET or SQL Server specialist: the application and database work is GitHub Copilot-assisted. Day-to-day Azure administration with the portal, the Azure CLI and PowerShell is the assumed background.
 
-For infra roles the core certifications are AZ-104, GH-300 and DP-300. The event is hands-on first: the exams follow it, within six months. The [Partner learning path](../../guides/learning-path/) has the stages, the role tracks and the optional learning before the event.
+The event is hands-on first. Infra roles hold AZ-104, GH-300 and DP-300 within six months after the event, so the exams follow it. No exam is a gate for attending the event. The [Partner learning path](../../guides/learning-path/) has the stages, the role tracks and the optional learning before the event.
 
 ## Blockers that mean you are not ready
 
@@ -170,6 +170,6 @@ The script asks for your tenant ID and workload subscription ID (it offers the o
 | 7 | Your roles match your kit role | Platform lead: Tenant Root Owner and a separate shared services subscription. Members: Owner on your own workload subscription. |
 | 8 | MFA is registered | Sign in to the Azure portal and confirm your MFA method works. |
 | 9 | You can create private repos in the partner's GitHub org | Try it when you create your repo below. |
-| 10 | Azure Hybrid Benefit | You hold eligible partner licences, or you accept that the kit turns it on by default and know how to turn it off (see [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/)). |
+| 10 | Azure Hybrid Benefit | You hold eligible partner licenses, or you accept that the kit turns it on by default and know how to turn it off (see [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/)). |
 
 See the [ALZ-lite guide](../../guides/alz-lite/) for why the model needs two kinds of subscription. When all of this is green, go to [C0: Ready to hack](../../challenges/c00-ready-to-hack/).
