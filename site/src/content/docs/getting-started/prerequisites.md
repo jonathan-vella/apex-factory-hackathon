@@ -33,7 +33,7 @@ Complete this page by **T-14**, then continue with [C0: Ready to hack](../../cha
 
 The event is built for partner infrastructure architects and engineers, in teams of three to five. Each team has its own Microsoft Entra tenant and a platform lead. You don't need to be a .NET or SQL Server specialist: the application and database work is GitHub Copilot-assisted. Day-to-day Azure administration with the portal, the Azure CLI and PowerShell is the assumed background.
 
-For infra roles the core certifications are AZ-104, GH-300 and DP-300. The event is hands-on first: the exams follow it, within six months.
+For infra roles the core certifications are AZ-104, GH-300 and DP-300. The event is hands-on first: the exams follow it, within six months. The [Partner learning path](../../guides/learning-path/) has the stages, the role tracks and the optional learning before the event.
 
 ## Blockers that mean you are not ready
 

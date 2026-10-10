@@ -12,3 +12,4 @@ This section collects the mechanics behind the challenges: ALZ-lite, APEX, the G
 - [APEX](./apex/): adapting and deploying the CoE archetype (C5).
 - [GitHub Copilot upgrade](./ghcp-upgrade/): working on `vm-dev01`, and the Upgrade agent in VS Code (C3, C6).
 - [Azure Arc and the MI link](./arc-mi-link/): onboarding, assessment, seeding, cutover (C0, C3, C7).
+- [Partner learning path](./learning-path/): learning before the event, certifications after it, and the Partner Center specializations.

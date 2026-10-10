@@ -12,3 +12,4 @@ This section explains pre-work, setup and how the event runs.
 - [Roles](./roles/): platform lead, members, coach and event owner.
 - [Prerequisites](./prerequisites/): what to have ready before T-14.
 - [Pre-work](./pre-work/): what to actually do before the event — it's [C0](../challenges/c00-ready-to-hack/).
+- [Learning before the event](../guides/learning-path/#stages): Stage 0 of the partner learning path. Learning only, no exams.
