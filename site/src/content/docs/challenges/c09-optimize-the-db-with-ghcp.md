@@ -53,7 +53,6 @@ $mi
    Click a bar to see its plans in the lower pane and its query text. Make a short list of the worst offenders: query ID, what it does, and why you think it's slow. (**Query Store > Tracked Queries** shows one query over time.) Don't use **Force Plan**: it hides the problem rather than fixing it.
 3. **Diagnose and fix all five planted issues:** a missing index, a non-sargable search predicate, an implicit `sql_variant` conversion, a scalar function forcing a serial plan, and the database compatibility level. Use Copilot in your tool of choice to help diagnose each plan, not just to write the fix. Fix one issue, then do task 4, before you move to the next, so each fix has its own before and after.
 4. **Capture before and after numbers for each fix.** Take the **baseline** (before any fix) and then one measurement after each fix, each time from a fresh run of task 1's command (same duration and concurrency). For each measurement, capture the **Top Resource Consuming Queries** report as a screenshot, and run the snapshot script `C:\src\factory\db\perf-kit\Get-QueryStoreSnapshot.sql` in SSMS against `ContosoUniversity`. Before each run, set its `@Label` (for example `baseline`, `after-P1`) and its UTC window: from the five-minute mark at or before the run's start (use the time task 1 printed) to the five-minute mark at or after its end. Its output gives, per query and plan, executions, average duration and CPU in milliseconds and average logical reads, weighted by execution count. Save each result grid (copy with headers into a CSV or screenshot it) with its label and window.
-5. Follow [`coach/c9-db-optimization.md`](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/coach/c9-db-optimization.md) only if you get stuck — try the diagnosis yourself first.
 
 ## Evidence
 
@@ -81,10 +80,6 @@ Confirm you've been added as an Entra login on the MI (done during the archetype
 
 Compatibility level matters here — if it's already at 160, scalar UDF inlining and batch mode can mask P3 and P4. Check the level first (P5) before chasing the others.
 </details>
-
-## Lifeline
-
-Ask your coach if you can't diagnose a specific plan after genuinely trying. The coach key documents all five issues and fixes in full, with exact numbers — using it caps C9 at partial credit, so try first.
 
 ## Bonus
 

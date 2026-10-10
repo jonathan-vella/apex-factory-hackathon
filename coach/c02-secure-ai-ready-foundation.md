@@ -7,17 +7,21 @@ This is the first challenge where the platform lead needs elevated rights (Owner
 
 ## Expected evidence
 
-- `Deploy-AlzLite.ps1` output: management groups (`mg-factory`, `mg-factory-corp`, `mg-factory-landing-zones` or equivalent), the hub (`vnet-hub`, `afw-hub`, `afwp-hub` in `rg-hub`), the central Log Analytics workspace, and the core policies assigned at `mg-factory-corp`.
+- `Deploy-AlzLite.ps1` output: management groups (`mg-factory` under Tenant Root, with `mg-factory-platform` and `mg-factory-corp`), the hub (`vnet-hub`, `afw-hub`, `afwp-hub` in `rg-hub`), the central Log Analytics workspace, and the core policies assigned at `mg-factory-corp`.
+- `Grant-SqlMiDirectoryRead.ps1` output: the three Graph permissions granted to `id-sqlmi-directory`. Without it C7's `CREATE USER ... FROM EXTERNAL PROVIDER` fails, and only a Privileged Role Administrator can run it, so check it was done on day one.
 - `Deploy-Vending.ps1` output for every member's workload subscription: spoke VNet, subnets, peering to the hub, UDRs pointing at the firewall, DNS pointing at the hub's resolvers, RBAC and a budget.
 - The exemptions table from `New-DatacenterExemptions.ps1`, with an owner, a reason and an expiry per exemption (the datacenter predates the policy move, so it needs exemptions, not fixes).
 - `Test-Connectivity.ps1`: PASS on every applicable check, run from inside the datacenter.
 
 ## Model answer
 
-1. Platform lead: `./scripts/Deploy-AlzLite.ps1`.
-2. Platform lead, once per member: `./scripts/Deploy-Vending.ps1 -MemberIndex <n>`.
-3. Platform lead or member: `./scripts/New-DatacenterExemptions.ps1 -MemberIndex <n>` — exemptions should name a real reason ("deployed before ALZ-lite; pending retirement after the event") and a real expiry (the event's end date is fine for a lab).
-4. Member, from `vm-dev01` or `vm-app01`: `./scripts/Test-Connectivity.ps1`.
+Values come from each person's `.local/settings.json` (`$s`); the platform lead takes the other members' IDs from them.
+
+1. Platform lead: `./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location`.
+2. Platform lead with a Privileged Role Administrator, once per team: `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId`.
+3. Platform lead, once per member (including themselves): `./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId <member-subscription-id> -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <n> -MemberPrincipalId <member-object-id> -BudgetEmail <member-email> -Location $s.location`.
+4. Every member, against their own workload subscription: `./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $s.subscriptionId -Owner '<name>'` — exemptions should name a real reason ("deployed before ALZ-lite; pending retirement after the event") and a real expiry (the event's end date is fine for a lab).
+5. Every member, after restarting both VMs: `./scripts/Test-Connectivity.ps1 -SubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex`. It runs from the dev container and probes inside the VMs.
 
 ## Common mistakes
 
@@ -37,4 +41,4 @@ Running the negative tests from the B08 report (public storage denied, NIC with 
 
 ## Reset
 
-`./scripts/Deploy-AlzLite.ps1 -Force` and `./scripts/Deploy-Vending.ps1 -MemberIndex <n> -Force` redeploy cleanly; re-run exemptions and connectivity afterward.
+There is no `-Force` parameter on these scripts. `Deploy-AlzLite.ps1` and `Deploy-Vending.ps1` are idempotent: run them again with the same parameters to converge a failed or partial deployment, then re-run exemptions and connectivity. Re-running `Deploy-Datacenter.ps1` after vending drops the DNS and route settings vending applied, so if a member's datacenter must be redeployed, vend that member again afterwards.

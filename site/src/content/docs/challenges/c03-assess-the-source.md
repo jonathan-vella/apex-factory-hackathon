@@ -55,10 +55,6 @@ Ask: does this finding describe something the kit deliberately set up for a diff
 Check the harness is **Local** (not the Copilot harness) and the agent picker shows **Upgrade**. If the tools report unavailable, reload the VS Code window and start a new chat.
 </details>
 
-## Lifeline
-
-Ask your coach if the trace-flag finding's framing doesn't make sense after re-reading it once. Using the lifeline caps C3 at partial credit.
-
 ## Bonus
 
 Up to 5 pts for identifying any other finding in the Arc assessment report and writing its own triage, beyond the trace-flag one this challenge requires.

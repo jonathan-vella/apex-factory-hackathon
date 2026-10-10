@@ -48,10 +48,6 @@ Someone outside the team should be able to run it without first asking you a que
 No — the register should also note where a human review step (not a lifeline) was still essential: C3's finding triage, C4's ADRs, and C7's go/no-go are all points where the kit deliberately keeps a human in the loop. Note those as the current state of AI readiness, not as gaps to close.
 </details>
 
-## Lifeline
-
-Not applicable — C10 is a synthesis challenge with no technical blocker to escalate.
-
 ## Bonus
 
 Up to 10 pts for a showcase that includes a live demo of the modernized app against SQL Managed Instance, not just slides.

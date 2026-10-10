@@ -7,7 +7,7 @@ The one thing to watch for here is members trying this natively on Windows — i
 
 ## Expected evidence
 
-- An archetype repo created from `apex-accelerator`, with this kit's `archetype/` folder imported per `archetype/README.md`'s import command, at the pinned commit.
+- The member's own repo (created from `apex-accelerator`) with the kit imported by `Import-Kit.ps1`, which also imports the archetype's APEX project into the repo root. There's no pinned tag or commit: the import takes `main`.
 - `adapt-archetype`'s outputs: the governance check's result, and the stop at `azd provision --preview`.
 - `azd provision`'s deployment record (resource group populated).
 - `agent-output/university/07-as-built.md` from the As-Built agent, describing the deployed state.
@@ -15,7 +15,7 @@ The one thing to watch for here is members trying this natively on Windows — i
 
 ## Model answer
 
-1. Create the archetype repo from the pinned `apex-accelerator` commit; import `archetype/` with the documented script.
+1. The member's repo and the archetype are already in place from the prerequisites (`Import-Kit.ps1`). If the archetype is missing, run `./factory/archetype/Import-Archetype.ps1 -Ref main` from the repo root.
 2. Open the repo in the dev container or Codespaces (never natively on Windows — `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a Windows checkout corrupts the tree hash the governance check relies on).
 3. Run `adapt-archetype` in agent mode: it asks only for tenant ID, subscription ID and suffix, confirms C2's vended spoke exists (`rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe`, `snet-sqlmi`), runs its lightweight governance check, and stops at `azd provision --preview`.
 4. Review the preview (see the "looks incomplete" hint below — it's expected to be partial), then run `azd provision` for real.
@@ -40,4 +40,4 @@ The no-agent fallback (`archetype/deploy.ps1 -WhatIf`, then for real) run side b
 
 ## Reset
 
-`azd down --purge` then redeploy from the archetype repo if something needs a clean restart; the governance check and spoke vending don't need to be redone.
+`azd down --purge` then redeploy from the member's repo if something needs a clean restart. **It deletes `rg-university-<suffix>` including the SQL managed instance and, after C7, the migrated database**, so only use it before C7, and tell the member first. Deleting a managed instance can leave its virtual cluster behind; check the subnet before redeploying. The governance check and spoke vending don't need to be redone.

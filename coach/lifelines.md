@@ -33,7 +33,7 @@ A lifeline is for a member who is blocked, not slow: they've tried the playbook'
 | C7 configuration on App Service | `lifeline/L5-cutover` |
 | The image won't build or push, and the clock is out | The known-good image |
 
-**Cost in points:** a lifeline caps that challenge's points, but later challenges stay eligible (PRD §5). The scoring rubric in `facilitator/` (B12) is the source of truth; record every lifeline there.
+**Cost in points:** a lifeline caps that challenge's points, but later challenges stay eligible (PRD §5). The scoring rubric in `facilitator/` is the source of truth for the caps (today: C6 and C7), and you record every lifeline there. Student pages don't mention lifelines or caps: you decide, you apply, and you tell the member what it costs. Ordinary hints and coach discussion never trigger a cap.
 
 ## How to apply one
 

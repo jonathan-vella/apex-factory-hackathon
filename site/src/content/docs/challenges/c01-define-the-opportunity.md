@@ -104,10 +104,6 @@ Time-box the disagreement: write both views in the canvas's "open questions" are
 Application: code and framework. Data: storage and schema. Platform: compute and networking. Security: identity and secrets. Operations: telemetry and support. Cost: what you'll spend and how you'll justify it. One line each is enough for C1.
 </details>
 
-## Lifeline
-
-A content lifeline is available if your team is stuck on the canvas format itself (not on the business decision) — ask your coach. Point cap: using it caps C1 at partial credit.
-
 ## Bonus
 
 None for C1.

@@ -111,10 +111,6 @@ Before cutover, the replica is read-only — the user creation step only works a
 Check the Key Vault secret exists and has the right name (`ConnectionStrings--DefaultConnection`, with the double dash), and that the database user was created with the identity's exact name.
 </details>
 
-## Lifeline
-
-Ask your coach if the link won't seed, or cutover doesn't complete, after one retry. Your coach can advance you to the C7 end state if needed. Using it caps C7 at partial credit.
-
 ## Bonus
 
 Up to 5 pts for a clean reseed-after-abort you can show evidence for (not needed if your first seed and validation go cleanly).

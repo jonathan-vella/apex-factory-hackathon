@@ -59,10 +59,6 @@ Task 01 changes the project's `UserSecretsId`. Re-set your user secrets (connect
 That's correct outside `Development` without `KeyVault:VaultUri` — it's by design, not a bug. Use `dotnet run` (not `--no-launch-profile`) for local Development validation.
 </details>
 
-## Lifeline
-
-Ask your coach if a task's own validation won't pass after two attempts. Your coach can unblock you at the point you're stuck. Using a lifeline caps C6 at partial credit for the tasks it skips.
-
 ## Bonus
 
 Up to 5 pts for running the task 07 CVE audit a second time after any dependency bump elsewhere in the run, to prove the audit still passes clean.
