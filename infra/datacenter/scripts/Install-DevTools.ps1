@@ -6,7 +6,14 @@ Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM. Creates C:\src, the
 (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone), the .NET 10
 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI from the vendors' official download
 locations. Tools that are already installed are skipped. Finally it clones the kit (public repo) to
-C:\src\factory if it isn't there yet. Build Tools and SSMS have their own scripts.
+C:\src\factory if it isn't there yet, as a sparse checkout (non-cone patterns) that leaves out coach/,
+facilitator/, docs/, site/, test/ and the repo's documentation and lint tooling files. Everything the
+attendees use stays: app/, db/, scripts/, infra/, archetype/, templates/, .github/, README.md, LICENSE and
+NOTICE. The full history is still in .git: the patterns only keep the files out of the working tree. The
+clone step is skipped when C:\src\factory\.git exists, and this run command runs again on every
+deployment, so an existing clone is never changed: a VM deployed before this change keeps its full
+checkout until the commands in infra/datacenter/README.md ("Slim an existing clone") are applied.
+Build Tools and SSMS have their own scripts.
 Exit code 3010 (restart required) is logged and ignored: the lab doesn't need a restart.
 .PARAMETER RunId
 The deployment's run ID. It changes on every deployment so Azure re-runs the run command. Only logged.
@@ -136,13 +143,45 @@ try {
     }
     Add-MachinePath -Directory $nugetDir
 
-    # Clone as SYSTEM, so mark the folder safe for the lab user. Re-runs leave the clone untouched.
+    # Clone as SYSTEM, so mark the folder safe for the lab user. Re-runs leave the clone untouched, so an
+    # existing clone keeps its full checkout: infra/datacenter/README.md has the commands to slim it down.
+    # The sparse patterns keep the coach and event-owner material out of the working tree (not out of .git).
+    # Keep this list in sync with the README; test/Test-DevSparse.Tests.ps1 compares them.
     $git = 'C:\Program Files\Git\cmd\git.exe'
     $kitDir = 'C:\src\factory'
+    $kitSparsePatterns = @(
+        '/*'
+        '!/coach/'
+        '!/facilitator/'
+        '!/docs/'
+        '!/site/'
+        '!/test/'
+        '!/.vale/'
+        '!/.vale.ini'
+        '!/.markdownlint-cli2.mjs'
+        '!/.prettierignore'
+        '!/prettier.config.mjs'
+        '!/lefthook.yml'
+        '!/package.json'
+        '!/package-lock.json'
+        '!/.node-version'
+        '!/.nvmrc'
+    )
     if (-not (Test-Path (Join-Path $kitDir '.git'))) {
-        & $git clone --quiet https://github.com/jonathan-vella/apex-factory-hackathon.git $kitDir
-        if ($LASTEXITCODE -ne 0) { throw "git clone failed with exit code $LASTEXITCODE." }
-        Write-LabLog "Cloned the kit to $kitDir."
+        try {
+            & $git clone --quiet --no-checkout https://github.com/jonathan-vella/apex-factory-hackathon.git $kitDir
+            if ($LASTEXITCODE -ne 0) { throw "git clone failed with exit code $LASTEXITCODE." }
+            & $git -C $kitDir sparse-checkout set --no-cone @kitSparsePatterns
+            if ($LASTEXITCODE -ne 0) { throw "git sparse-checkout failed with exit code $LASTEXITCODE." }
+            & $git -C $kitDir checkout --quiet
+            if ($LASTEXITCODE -ne 0) { throw "git checkout failed with exit code $LASTEXITCODE." }
+        }
+        catch {
+            # A half-made clone would be skipped on the next run, so remove it.
+            Remove-Item -LiteralPath $kitDir -Recurse -Force -ErrorAction SilentlyContinue
+            throw
+        }
+        Write-LabLog "Cloned the kit to $kitDir without the coach and facilitator material (sparse checkout)."
     }
     & $git config --system --replace-all safe.directory 'C:/src/factory'
 

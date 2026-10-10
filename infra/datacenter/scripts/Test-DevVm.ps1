@@ -3,7 +3,9 @@
 Checks vm-dev01 from the inside: reach to vm-app01, the developer tools and outbound HTTPS.
 .DESCRIPTION
 Sent by scripts/Test-Datacenter.ps1 through az vm run-command invoke (Windows PowerShell 5.1, as
-SYSTEM). Prints one line per check: LABCHECK|PASS or FAIL|check|detail. Changes nothing.
+SYSTEM). Prints one line per check: LABCHECK|PASS or FAIL|check|detail. Checks the developer tools and
+the kit clone at C:\src\factory, including that its working tree has no coach/ or facilitator/ folder
+(sparse checkout). Changes nothing.
 .PARAMETER AppVmIp
 Private IP of vm-app01.
 .EXAMPLE
@@ -113,6 +115,23 @@ Invoke-Check 'dev: SSMS installed' {
     $exe = if ($path) { Join-Path $path 'Common7\IDE\Ssms.exe' } else { '' }
     $found = $exe -and (Test-Path $exe)
     @($found, $(if ($found) { "SSMS $((Get-Item $exe).VersionInfo.ProductVersion)" } else { 'not found' }))
+}
+
+Invoke-Check 'dev: kit clone at C:\src\factory' {
+    $branch = @(Get-NativeOutput -FilePath 'C:\Program Files\Git\cmd\git.exe' -ArgumentList '-C', 'C:\src\factory', 'rev-parse', '--abbrev-ref', 'HEAD')
+    @(($LASTEXITCODE -eq 0), $(if ($LASTEXITCODE -eq 0) { "on $($branch[0])" } else { "not a git clone: $($branch -join ' ')" }))
+}
+
+# Coach and event-owner material stays out of the clone's working tree (sparse checkout). A clone made before
+# that change fails here until the "Slim an existing clone" commands in infra/datacenter/README.md are applied.
+Invoke-Check 'dev: kit clone has no coach or facilitator material' {
+    $sparse = @(Get-NativeOutput -FilePath 'C:\Program Files\Git\cmd\git.exe' -ArgumentList '-C', 'C:\src\factory', 'config', '--get', 'core.sparseCheckout') | Select-Object -First 1
+    $present = @('coach', 'facilitator', 'docs', 'site') | Where-Object { Test-Path (Join-Path 'C:\src\factory' $_) }
+    $ok = ($sparse -eq 'true') -and -not $present
+    $detail = if ($ok) { 'sparse checkout on; coach, facilitator, docs and site are absent' }
+    elseif ($sparse -ne 'true') { 'sparse checkout is off: see "Slim an existing clone" in infra/datacenter/README.md' }
+    else { "folders present: $($present -join ', ')" }
+    @($ok, $detail)
 }
 
 Invoke-Check 'dev: outbound HTTPS to github.com' {
