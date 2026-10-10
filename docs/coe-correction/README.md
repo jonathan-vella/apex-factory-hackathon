@@ -50,7 +50,7 @@ These stay on the old device. Plan for each one.
 1. Install Docker, VS Code with the Dev Containers extension, GitHub Copilot, Node 24 and Git.
 2. Clone the CoE repo and check out `fix/university-52-60-wip`. On Windows, use **Dev Containers: Clone Repository in Container Volume**. A plain bind mount of a Windows checkout failed earlier because the Git pointer and file ownership are wrong inside Linux. On Linux or macOS a normal open should work, but this is unverified.
 3. Let the repo's dev container finish its post-create steps. They install `apex-recall` and the tools. Check `apex-recall --help` works.
-4. Add the Azure MCP mapping to `.vscode/settings.json` under `chat.mcp.serverSampling`. The key includes the workspace folder name, for example `"<folder-name>/.vscode/mcp.json: azure-mcp"`, so it differs from the old device's `coe-linux-source`.
+4. Add the Azure MCP mapping to `.vscode/settings.json` under `chat.mcp.serverSampling`. The key includes the workspace folder name, for example `"<folder-name>/.vscode/mcp.json: azure-mcp"`, so it differs from the old device's `coe-linux-source`. The CoE prompt in [prompts.md](prompts.md) does this for you (Step 0.5).
 5. Restore the signing keys (see [Keys](#keys)), then create the trust file and pins.
 6. Send the prompt for the repo you are working in from [prompts.md](prompts.md). Each one first checks you are on the right branch and fixes it safely, then does read-only checks and stops.
 
