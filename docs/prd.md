@@ -20,7 +20,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 |---|---|
 | Format | 2 days plus pre-work. Modular: each module can also run standalone |
 | Audience | Mostly Azure infra architects/engineers. App and DB work is Copilot-assisted |
-| Licensing | Partners bring their own Azure in CSP and their own GitHub Copilot. Nothing else is supported |
+| Licensing | Partners bring their own paid Azure subscriptions and their own GitHub Copilot. Any paid subscription that passes `Test-Preflight.ps1` is supported (it needs an unconditional Owner assignment). Trial, Azure Pass and sponsorship subscriptions are not supported. Nothing else is supported |
 | Hybrid Benefit | Azure Hybrid Benefit is on by default for every resource that supports it: Windows Server VMs, the Windows 11 dev VM (multitenant hosting rights) and SQL MI. It's documented wherever it's deployed, with how to turn it off after deployment |
 | Tenancy | 1 Entra tenant per team, with 1 shared services sub per team plus 1 workload sub per member, so team size + 1 subs |
 | Kit build | The kit is built and validated in two subscriptions (one shared services, one workload) in the owner's tenant, mirroring one team |
@@ -33,8 +33,8 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | App scope | Contoso University only (.NET Framework 4.8 MVC with EF Core 3.1). It replaced eShop, whose hard parts were .NET plumbing (EF6, Autofac, log4net). Contoso's legacy dependencies (LocalDB, local files, MSMQ) each map to a task in the golden-path plan. WebForms/WCF later |
 | Messaging | MSMQ → Service Bus Premium (1 MU) with a private endpoint, deployed by the archetype |
 | Compute | App Service for Linux (containers) only. AKS is a future archetype that teams can argue for in a C4 ADR |
-| Archetype | Pre-built by the CoE with APEX (steps 1–5 done) and demoed by the event deliverer. Members adapt it with an agent and deploy it with `azd` (APEX's IaC is built for `azd`), supplying tenant ID, subscription ID and a unique suffix; the As-Built agent then documents what's live. Agents never change Azure for members: `azd` does (owner decision 2026-10-07) |
-| Data migration | Arc portal migration with **MI link** (online, read-only replica, planned cutover). Rollback means aborting before cutover; a real failback is a bonus. Log Replay Service (LRS) is the fallback |
+| Archetype | Pre-built by the CoE with APEX (steps 1–5 done) and demoed by a coach. Members adapt it with an agent and deploy it with `azd` (APEX's IaC is built for `azd`), supplying tenant ID, subscription ID and a unique suffix; the As-Built agent then documents what's live. Agents never change Azure for members: `azd` does (owner decision 2026-10-07) |
+| Data migration | Arc portal migration with **MI link** (online, read-only replica, planned cutover). Rollback means aborting before cutover; a clean reseed-after-abort is the bonus. Log Replay Service (LRS) is the fallback |
 | AI | AI-readiness review only. No AI services are deployed |
 | Copilot models | Dated guidance from the B06 golden path, recorded in `versions.md`: Claude Opus 5.5 at Medium to assess and plan, Claude Sonnet 5.5 at Medium to execute each task. Re-validate when models change |
 | Learning path | A site page maps each challenge to Microsoft Learn content and credentials, for Microsoft partners on any qualification track. Hands-on first: exams follow the event and finish within 9 months. Core: AZ-104, GH-300 and DP-300, all three mandatory for everyone in an infra role, within 6 months. Then AZ-305, AZ-400, SC-500, AZ-700, AI-200, plus AKS and Container Apps learning. Optional "next" stage: DP-800, GH-600, AI-103. It targets the Infra and Database Migration and App Modernization specializations. Applied Skills are stepping stones, not gates. Coach certifications are recommended, not required. No exam offers (owner decision 2026-10-06) |
@@ -53,7 +53,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 
 ```mermaid
 flowchart LR
-  subgraph T["Team Entra tenant (CSP)"]
+  subgraph T["Team Entra tenant"]
     subgraph P["Shared services sub (1 per team) - ALZ-lite, under mg-factory-platform"]
       MGMT["Management: LAW, Defender"]
       CONN["Connectivity: hub VNet, Azure Firewall, private DNS zones, DNS resolver or firewall DNS proxy"]
@@ -89,12 +89,12 @@ flowchart LR
 | 2 | M6 Validate and optimize | C9 Optimize the DB with GHCP | Member | 1 h | Planted issues fixed with the MSSQL extension or SSMS Copilot. Query Store before and after |
 | 2 | M7 Package and operate | C10 Package, hand over, review AI readiness | Team | 1 h | One reusable asset, acceptance and handover, AI-readiness gap register, showcase |
 
-- **Parallel work:** ALZ deploys while teams do C1 and C3; the dev VM is reachable through Bastion without ALZ. The MI provisions while C6 starts on Day 1. The MI link starts first thing on Day 2, so seeding overlaps the end of C6. Time boxes are targets, tuned in the dry run.
-- **Standalone modules:** each module ships a contract: prerequisites, bootstrap (e.g. ALZ-lite, the archetype template or a lifeline branch), exit evidence, reset steps, time box and last-validated date.
+- **Parallel work:** the platform lead starts ALZ-lite at 09:00 on Day 1 and it deploys while the team does C1; the coach's ALZ demo opens C2 at 09:45 and members start C3 at 10:15. The dev VM is reachable through Bastion without ALZ. The MI provisions while C6 starts on Day 1. The MI link starts at 08:30 on Day 2 (C7 task 1), so seeding overlaps the end of C6. Time boxes are targets, tuned in the dry run.
+- **Standalone modules:** each module ships a contract: prerequisites, bootstrap (e.g. ALZ-lite or the archetype template), exit evidence, reset steps and time box.
 - **AKS:** not built in v1. Teams may argue for it in a C4 ADR as a future archetype.
 - **Curveballs** (one per day):
   - Day 1: a new deny policy lands mid-build.
-  - Day 2: the go/no-go check on the replica fails, so the team aborts and re-plans the cutover.
+  - Day 2: the go/no-go check on the replica fails for one member per team, so that member aborts and re-plans the cutover.
 - **Scoring rules:** rosters lock at kickoff, and the member average uses the kickoff roster. A lifeline caps that challenge's points but keeps later challenges eligible.
 - **Badges:** zero public backend endpoints, policy clean, rollback ready, trust but verify (every AI change reviewed and validated), cost guardian, reusable-asset contributor.
 - **Framework mapping:**
@@ -151,7 +151,7 @@ flowchart LR
 - **Migration:**
   - Arc portal MI link, with hub firewall and NSG rules for 5022 and 11000–11999, plus certificates.
   - Validate the read-only replica with the admin login. The replica stays read-only until cutover, so the DB user for the App Service identity is created only after cutover removes the link. Then switch the app over.
-  - Rollback means aborting before cutover (the app stays on the source). Bonus: a real failback, which keeps the link and fails back, then cuts over again before C9.
+  - Rollback means aborting before cutover (the app stays on the source). Bonus: a clean reseed-after-abort, with the MI copy cleaned up.
   - SQL Agent jobs and logins move separately (a teaching point).
   - LRS is the fallback. It's promoted to the golden path if the MI link spike fails.
 - **DB optimization:** planted issues live in DB objects and the workload, so they survive the app upgrade. The schema has real targets: TPH `Person`, many-to-many course assignments, a `LIKE '%x%'` student search, multi-Include instructor queries and enrollment statistics. A workload generator runs the load, and Query Store provides the before/after evidence.
@@ -171,7 +171,7 @@ flowchart LR
 3. **Scripts:** preflight (go/no-go), probes, exemptions and cleanup. Cleanup covers the re-run traps: Key Vault purge and MI subnet release.
 4. **Attendee templates:** opportunity canvas, ADRs, deferred-work register, cutover/rollback runbook, acceptance/handover, AI-readiness gap register and factory-kit checklist.
 5. **Compatibility manifest (`versions.md`):** the versions of APEX, GHCP tooling, .NET, ALZ, AVM, the Arc extension, SSMS, Az CLI, Bicep and the VM images, with the date and region each was last validated. Components the kit controls (commits, releases, modules) are pinned; marketplace images and vendor installers use the latest version at deploy time, so their rows record what was validated, and drift is accepted.
-6. **Partner learning path:** a site page under Guides with stages, role tracks, a challenge-to-credential map and the specialization skilling it supports, with a last-validated date.
+6. **Partner learning path:** a site page under Guides with stages, role tracks, a challenge-to-credential map and the specialization skilling it supports.
 
 ## 8. Risks and validation spikes
 

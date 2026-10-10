@@ -21,7 +21,7 @@ C7's migrated database on SQL MI. The perf kit's planted issues and data (200k s
 
 ## Where to run
 
-Everything runs on `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)), in PowerShell 7 and SSMS on the VM, in your kit clone at `C:\src\factory`. Use your own identity, not the VM's managed identity: it has no data access. Sign in with the account that deployed the archetype in C5: it's the managed instance's Microsoft Entra admin, so it can change the database. The workload signs you in with a browser prompt. Never stop the VM during C9.
+Everything runs on `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)), in PowerShell 7 and SSMS on the VM, in your kit clone at `C:\src\factory`. Use your own identity: it's the one with access to the managed instance. Sign in with the account that deployed the archetype in C5: it's the managed instance's Microsoft Entra admin, so it can change the database. The workload signs you in with a browser prompt. Never stop the VM during C9.
 
 Set up once per PowerShell window:
 
@@ -107,7 +107,7 @@ The managed instance starts and stops on a schedule the facilitator sets (by def
 <details>
 <summary>The snapshot script returns no rows</summary>
 
-Check the second result: `intervals_in_window` must be above 0, and the third result shows which five-minute intervals in your window have executions. Your window must be in UTC and cover whole five-minute intervals around the run, and the run must have finished a minute or more ago so Query Store has flushed (or uncomment the `sp_query_store_flush_db` line and run it once). Also check the first result: `query_store_state` must be `READ_WRITE`.
+Check the second result: `intervals_in_window` must be above 0, and the third result shows which five-minute intervals in your window have executions. Your window must be in UTC and cover whole five-minute intervals around the run, and the run must have finished a minute or more ago so Query Store has flushed (or remove the `--` in front of the `EXEC sys.sp_query_store_flush_db;` line and run it once). Also check the first result: `query_store_state` must be `READ_WRITE`.
 </details>
 
 <details>

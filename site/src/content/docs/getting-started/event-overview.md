@@ -9,10 +9,10 @@ The event runs over two days, plus pre-work before day one. Format: a team of me
 
 ## Pre-work
 
-Every member completes [C0: Ready to hack](../../challenges/c00-ready-to-hack/) before the event: preflight, datacenter, Arc onboarding and a first migration assessment. Two readiness gates apply:
+Every member completes [C0: Ready to hack](../../challenges/c00-ready-to-hack/) before the event: preflight, datacenter, Arc onboarding, a first migration assessment and a first sign-in to `vm-dev01`. Two readiness gates apply:
 
 - **T-14 (two weeks before):** `Test-Preflight.ps1` reports GO and you've confirmed the manual checks yourself. This is the last point where an access or quota problem can realistically be escalated and fixed before the event.
-- **T-3 (three days before):** the datacenter deployed, `Test-Datacenter.ps1` green for every member (run before Arc onboarding, because Arc turns off the run commands it uses), Arc onboarded, the first assessment run and the legacy app healthy. A coach reviews every member's C0 output.
+- **T-3 (three days before):** the datacenter deployed, `Test-Datacenter.ps1` green for every member (run before Arc onboarding, because Arc turns off the run commands it uses), Arc onboarded, the first assessment run, Copilot working in VS Code on `vm-dev01` and the legacy app healthy. A coach reviews every member's C0 output.
 
 Missing either gate puts a member's start on day one at risk; coaches escalate gate misses to the event owner, not to the team. The roster locks at kickoff, so a member who can't get ready can still be swapped or dropped before then.
 

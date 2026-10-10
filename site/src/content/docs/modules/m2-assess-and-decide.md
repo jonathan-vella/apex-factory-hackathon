@@ -9,7 +9,7 @@ description: Triage the source assessments and commit to target-state ADRs.
 
 ## Prerequisites
 
-M0 complete: the datacenter, Arc onboarding and a first assessment. M1 doesn't need to be finished, because C3 can run while ALZ-lite deploys.
+M0 complete: the datacenter, Arc onboarding and a first assessment. M1 doesn't need to be finished: on Day 1 C3 starts at 10:15, while the platform lead vends.
 
 ## Where to run
 
@@ -17,7 +17,7 @@ C3's Upgrade agent assessment runs on `vm-dev01`, set up as in the [GitHub Copil
 
 ## Bootstrap (standalone)
 
-Re-run the Arc SQL migration assessment from the Arc resource, and run the Upgrade agent's assessment step against `app/ContosoUniversity` as in C3 (harness Local, agent Upgrade, scenario `dotnet-version-upgrade`), without approving planning.
+Re-run the Arc SQL migration assessment from the Arc resource, and run the Upgrade agent's assessment step against `app/ContosoUniversity` as in C3 (harness Local, agent Upgrade, scenario `dotnet-version-upgrade`). Approve planning at the assessment gate, check the plan gate (`plan.md`) and commit `app: assess and plan`, but don't start any task: that's M4.
 
 ## Exit evidence
 

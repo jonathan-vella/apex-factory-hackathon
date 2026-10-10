@@ -27,7 +27,7 @@ Open the repo in VS Code's dev container, or in GitHub Codespaces. APEX's `.gita
 
 ## Adapt and preview
 
-Run the `adapt-archetype` prompt in VS Code's built-in agent mode (not the `01-Orchestrator` custom mode — this flow doesn't need the full orchestrator). It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. Don't change the suffix: every later `<suffix>` command and resource name uses it. The prompt then checks a spoke is already vended for you (if it isn't, your platform lead vends it in C2; members can't), runs a lightweight live governance check against the upstream template, creates an `azd` environment, and stops at `azd provision --preview`.
+Run the `adapt-archetype` prompt in VS Code's built-in agent mode (not the `01-Orchestrator` custom mode — this flow doesn't need the full orchestrator). It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. Don't change the suffix: every later `<suffix>` command and resource name uses it. If your Codespace or dev container was deleted, `factory/.local/` went with it: restore the suffix with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` before you run the prompt. The prompt then checks a spoke is already vended for you (if it isn't, your platform lead vends it in C2; members can't), runs a lightweight live governance check against the upstream template, creates an `azd` environment, and stops at `azd provision --preview`.
 
 ## Provision
 

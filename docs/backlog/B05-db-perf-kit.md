@@ -16,7 +16,7 @@
 - The `ContosoUniversity` database in every datacenter comes seeded with realistic volume (about 200,000 students and 2 million enrollments) and five planted performance issues. The datacenter deployment does this automatically.
 - A workload generator on the dev VM produces steady load that makes the issues show up in Query Store, against the source SQL Server before migration and against SQL MI after it.
 - A reset script puts the issues back, so C9 can run standalone or be re-run.
-- `coach/c9-db-optimization.md` is the answer key, with before and after numbers measured in the workload subscription.
+- `coach/c09-optimize-the-db-with-ghcp.md` is the answer key, with before and after numbers measured in the workload subscription.
 
 ## Before you start
 
@@ -75,7 +75,7 @@
 
 ### Answer key
 
-16. `coach/c9-db-optimization.md` has, per issue: the symptom the attendee sees, how to find it with Query Store and the execution plan, a GitHub Copilot prompt that leads to it (MSSQL extension in VS Code or Copilot in SSMS), the fix, and the before and after numbers from the workload subscription.
+16. `coach/c09-optimize-the-db-with-ghcp.md` has, per issue: the symptom the attendee sees, how to find it with Query Store and the execution plan, a GitHub Copilot prompt that leads to it (MSSQL extension in VS Code or Copilot in SSMS), the fix, and the before and after numbers from the workload subscription.
 17. It ends with the expected order of work for a 1-hour C9 and notes for coaches on partial credit.
 18. `db/perf-kit/README.md` explains the kit to kit builders: what's planted, how it's installed, how to run the workload and reset, and a warning that `coach/` holds the answers.
 
@@ -91,7 +91,7 @@
 ## Deliverables
 
 - `db/perf-kit/sql/*.sql`, `db/perf-kit/Start-Workload.ps1`, `db/perf-kit/Reset-PerfKit.ps1`, `db/perf-kit/README.md`.
-- `coach/c9-db-optimization.md`.
+- `coach/c09-optimize-the-db-with-ghcp.md`.
 - Changes to `infra/datacenter/` (Bicep, in-VM script, README) and `scripts/Test-Datacenter.ps1`.
 - `versions.md` row for the `SqlServer` PowerShell module.
 

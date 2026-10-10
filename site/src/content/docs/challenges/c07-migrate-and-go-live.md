@@ -19,7 +19,7 @@ Member. **120 min**.
 
 C5's deployed SQL Managed Instance, with its directory read access granted (the platform lead's Graph grant in C2: ask your coach to confirm it before you start, or `CREATE USER` fails in task 4). C6's modernized, packaged app (image tag `c6`), not yet pointed at App Service.
 
-Start the link first thing on Day 2, before you finish C6, so it's already seeded when C7 starts: creating the link takes up to 10 minutes. If your coach calls the cutover off at go/no-go, plan another 20 to 30 minutes to reseed, validate again and agree a second window.
+Start the link at 08:30 on Day 2, before you finish C6, so it's already seeded when C7 starts: creating the link takes up to 10 minutes. If your coach calls the cutover off at go/no-go, plan another 20 to 30 minutes to reseed, validate again and agree a second window.
 
 ## Where to run
 
@@ -55,7 +55,7 @@ $mi
 
 ## Your tasks
 
-1. In the Arc portal, start the MI link migration against your SQL Managed Instance. Open **Azure Arc** > **SQL Server instances** > the instance on `vm-app01`, then **Migration** > **Database migration**. If **Select target** isn't done, choose your archetype's managed instance (**Yes, I have already created a target**). Then **Migrate data** > **Migrate using real-time replication (online)**, tick `ContosoUniversity`, **Next: Settings**, name the link and leave the generated availability group name, **Next: Review + create**, check the warnings and select **Start data migration**. Follow it in **Monitor migrations**: wait until the status is **Ready for cutover**.
+1. In the Arc portal, start the MI link migration against your SQL Managed Instance. Open **Azure Arc** > **SQL Server instances** > the instance on `vm-app01`, then **Migration** > **Database migration**. If **Select target** isn't done, choose your archetype's managed instance (**Yes, I have already created a target**). Then **Migrate data** > **Migrate using real-time replication (online)**, tick `ContosoUniversity`, **Next: Settings**, name the link and leave the generated availability group name, **Next: Review + create**, check the warnings and select **Start data migration**. Follow it in **Monitor migrations**: wait until the status is **Ready for cutover**. On Day 2 start this at 08:30 (the agenda), so seeding overlaps the end of C6. The time counts toward C7's 120 minutes.
 2. Validate the read-only replica: row counts, and a few spot-check queries, against the source. In SSMS on `vm-dev01`, connect to `$mi` with **Microsoft Entra MFA** (the account that deployed the archetype), and to the source at `10.10.<n>.4` with SQL authentication as `contosoapp` (the password is `sqlAppPassword` in the same `datacenter.json` file as the Bastion password). If something looks wrong, abort and reseed — don't cut over on a replica you haven't checked.
 3. **Stop every writer to the source, then cut over.** The source stays writable even after cutover, so any write after your final lag reading is lost. Agree a short maintenance window with your coach and your team, then do these steps in order:
 

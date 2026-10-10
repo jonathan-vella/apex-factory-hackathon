@@ -38,7 +38,7 @@ Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR 
 | [B14](B14-archetype-adopt.md) | Build the archetype adoption agent (not needed for v1) | P3 | Both | B09 | Ready |
 | [B15](B15-learning-path.md) | Publish the partner learning path | P4 | Agent | B11 | Ready |
 
-**Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps.
+**Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps. **Status** is "Ready" when the spec is written; it isn't updated afterwards. Check the item's issue for its current state.
 
 ```mermaid
 flowchart LR
@@ -143,8 +143,8 @@ Read a value with `(Get-Content .local/settings.json | ConvertFrom-Json).subscri
 
 ### Secrets
 
-- Scripts generate passwords; people never type them. They save them outside the repo, in `$HOME/.apex-factory/<subscription-id>/<component>.json`.
-- **Exception: the datacenter's lab credentials are fixed and documented.** `labadmin` on `vm-app01` and `vm-dev01`, and the SQL login `contosoapp`, use `FactoryLab-2026-Pw`, so attendees and coaches don't have to look anything up. This applies to the datacenter only, never to the foundation, the archetype or any Azure secret. It's safe because the datacenter has no public IPs and is reachable only through Bastion, behind Entra ID and Azure RBAC, and it's a throwaway lab that's never production. The deploy script still writes the values to `$HOME/.apex-factory/<subscription-id>/datacenter.json`.
+- Scripts generate passwords; people never type them. They save them in the kit folder's git-ignored `.local/<subscription-id>/<component>.json`, never in tracked files.
+- **Exception: the datacenter's lab credentials are fixed and documented.** `labadmin` on `vm-app01` and `vm-dev01`, and the SQL login `contosoapp`, use `FactoryLab-2026-Pw`, so attendees and coaches don't have to look anything up. This applies to the datacenter only, never to the foundation, the archetype or any Azure secret. It's safe because the datacenter has no public IPs and is reachable only through Bastion, behind Entra ID and Azure RBAC, and it's a throwaway lab that's never production. The deploy script still writes the values to `.local/<subscription-id>/datacenter.json` in the kit folder (git-ignored).
 - Azure secrets that the workload needs go into Key Vault.
 - Pass secure Bicep parameters through a temporary parameters file in `$env:TEMP` (or `/tmp` in Cloud Shell), and delete it afterwards. Don't pass them on the command line: special characters break quoting.
 
@@ -179,7 +179,7 @@ Other services that are zone-redundant automatically are accepted the same way. 
 ### Cost and teardown
 
 - Each runbook's field table states the hourly cost of what it deploys, at list price with AHB on.
-- VMs have no auto-shutdown. Teams stop them when they're idle, and every deploy script prints how. Bastion Standard keeps billing (about $0.29/hour) while the VMs are stopped.
+- VMs have no auto-shutdown. Teams stop them when they're idle outside the event (never `vm-dev01` during the event), and every deploy script prints how. Bastion Standard keeps billing (about $0.29/hour) while the VMs are stopped.
 - The executor tears down what an item deployed at the end of the item. The exception is the datacenter, which B04 deploys and B07 tears down, so that B05–B07 can build on it. The **Teardown** row in each runbook says which applies.
 - Teardown covers subscription-level artifacts too, not just resource groups: policy assignments and their managed identities' role assignments, exemptions, other role assignments, budgets, firewall policy rule collection groups, Arc resources, soft-deleted Key Vaults, and management groups and subscription placement. Verify each is gone with a query, and put the results in the PR.
 - **Private-only backends, two exceptions:** the web app's front end accepts public HTTPS inbound traffic, and Application Insights ingestion stays public, with the hub firewall allowing the Azure Monitor ingestion endpoints. Every other service has public network access off. Both exceptions are documented wherever they apply.

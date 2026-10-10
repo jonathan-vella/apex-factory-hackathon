@@ -1,6 +1,6 @@
 # Cleanup
 
-Run cleanup after the showcase, normally on T+2 (the day after the two-day event). First export and check the evidence; then clean each member's resources; then run the team scope once. The team script uses exact kit names and subscription membership under the named kit management groups. It does not delete subscriptions, management groups outside the kit hierarchy or resource groups outside the explicit kit names.
+Run cleanup after the showcase, normally on T+2 (the day after the two-day event). First export and check the evidence; then each member cleans their own resources (Member scope); then the platform lead runs the Team scope once. The team script uses exact kit names and subscription membership under the named kit management groups. It does not delete subscriptions, management groups outside the kit hierarchy or resource groups outside the explicit kit names.
 
 ## Before you delete anything
 
@@ -16,7 +16,7 @@ The GitHub repos (members' repos and the team repo) aren't touched by cleanup. D
 
 ## Member cleanup
 
-From the kit repository, each member previews their own cleanup from their dev container, using that member's workload subscription, member index and archetype suffix. If the event owner runs it for a member, use the values that member noted and an account with Owner on their subscription:
+Each member runs Member scope from the `factory/` folder of their own repo, in their own dev container, using their own workload subscription, member index and archetype suffix. If the event owner runs it for a member, use the values that member noted and an account with Owner on their subscription:
 
 ```powershell
 $s = Get-Content (Join-Path '.local' 'settings.json') | ConvertFrom-Json
@@ -33,7 +33,7 @@ The member scope removes the exact archetype resource group `rg-university-<suff
 
 ## Team cleanup
 
-After every member scope is complete, preview team cleanup. It discovers workload subscriptions directly under the kit's Corp group and the shared subscription under its Platform group; no subscription-wide wildcard is used.
+After every member scope is complete, the platform lead runs the Team scope once, from the `factory/` folder of their own repo, with their `.local/settings.json` (it holds the shared services subscription ID). Members don't run it. Preview it first: it discovers workload subscriptions directly under the kit's Corp group and the shared subscription under its Platform group; no subscription-wide wildcard is used.
 Sign in to the event tenant first; the script stops if the active Azure CLI tenant does not match the shared-services subscription.
 
 ```powershell

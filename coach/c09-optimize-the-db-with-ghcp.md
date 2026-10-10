@@ -12,7 +12,7 @@ Attendees measure three times, not six: a baseline, a checkpoint after P5, P1, P
 ## Set up
 
 1. Put the issues back and clear Query Store: `./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>`. See the [perf kit README](../db/perf-kit/README.md#reset).
-2. Run the workload: `./db/perf-kit/Start-Workload.ps1 -MemberIndex <n>`. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive` (on `vm-dev01`, `ActiveDirectoryDefault` signs in as the VM's managed identity).
+2. Run the workload: `./db/perf-kit/Start-Workload.ps1 -MemberIndex <n>`. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive` (on `vm-dev01`, `ActiveDirectoryInteractive` signs in as you with a browser prompt).
 3. In SSMS, open **ContosoUniversity > Query Store > Top Resource Consuming Queries**. Look at **Duration** and then **CPU Time**, with the **Total** statistic, over the last hour.
 
 ## Before
@@ -187,8 +187,8 @@ The page's order, P4 after P5, is on purpose: it isolates P5's effect on the vie
 - P4 fixed only by raising the compatibility level gets partial credit for P4 and full credit for P5. Full P4 credit needs the view rewritten, or a clear explanation of why inlining is enough. With the checkpoint order, a rewrite that shows little change at checkpoint 2 is expected: credit it when the view no longer calls `ufn_GradePoint` and the summary says why.
 - P3 "fixed" by the P1 index alone isn't fixed: the plan still converts the column.
 - Every AI change is reviewed and tested before it's applied, for the "trust but verify" badge. A fix pasted from Copilot without looking at the plan doesn't count.
-- Running the reset and the workload again to prove the fixes, on the source or on SQL MI after cutover, is worth a bonus.
+- C9 has no bonus task (the rubric lists none). Running the reset and the workload again to prove the fixes is good practice, not extra points.
 
 ## Reset
 
-`./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>` puts all five issues back and clears Query Store. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive` (on `vm-dev01`, not `ActiveDirectoryDefault`, which signs in as the VM). Don't reset in the middle of a member's before-and-after capture: it clears the Query Store numbers they need.
+`./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>` puts all five issues back and clears Query Store. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive` (on `vm-dev01`, use that rather than `ActiveDirectoryDefault`; it signs in as you). Don't reset in the middle of a member's before-and-after capture: it clears the Query Store numbers they need.

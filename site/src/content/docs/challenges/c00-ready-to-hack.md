@@ -1,6 +1,6 @@
 ---
 title: "C0: Ready to hack"
-description: Pre-work. Preflight, datacenter, Arc onboarding and the first migration assessment.
+description: Pre-work. Preflight, datacenter, Arc onboarding, the first migration assessment and a first sign-in to vm-dev01.
 ---
 
 :::danger[Pre-work: finish before the event]
@@ -69,7 +69,14 @@ Reuse that `$s` in every command below (re-run the `$s = ...` line in any new te
 
    This is the kit's only onboarding path; there are no manual portal steps. It takes 10 to 20 minutes. Done when `vm-app01` shows as Connected under Azure Arc > Machines and the script lists the Arc-enabled SQL Server instance.
 5. **Run the first Arc SQL migration assessment.** In the Azure portal, open the SQL Server instance under `vm-app01` (Azure Arc > SQL Server instances), then **Migration** > **Database migration** > **Assess source instance** > **View report**. If there's no result yet, choose **Run assessment** with Azure SQL Managed Instance as the target and wait for it to finish. Export the report and skim the findings for `ContosoUniversity`. C3 is where you triage them. Done when you have the exported report or a screenshot of its findings.
-6. **Control cost.** Azure Hybrid Benefit is on by default for `vm-app01`'s Windows Server licence, which assumes your partner holds eligible licences with Software Assurance or subscriptions. If you don't, deploy with `-NoHybridBenefit` (and run `Test-Datacenter.ps1` with `-NoHybridBenefit`) and tell your coach; otherwise don't turn it off. Before the event, you can stop both VMs when you're not working (`az vm deallocate -g rg-datacenter -n vm-app01` and `-n vm-dev01`); the datacenter bills while running, and Bastion, the NAT gateway and the disks bill even when the VMs are stopped. Start both again before day one (`az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`). Don't re-run `Test-Datacenter.ps1` after Arc: it needs the run commands. During the event, never stop `vm-dev01`: it's your workstation.
+6. **Check you can work on `vm-dev01`.** From C3 you work on this VM, so confirm now that you can reach it and that Copilot works there. Both VMs must be running. In your dev container, from `factory/`, get the password (the user is `labadmin`):
+
+   ```powershell
+   (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
+   ```
+
+   In the Azure portal open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**, sign in, and wait a few minutes after the first sign-in: VS Code's extensions install per user then. Open VS Code on the VM, sign in to GitHub when it asks, then open Copilot Chat and send "hello". Done when Copilot Chat answers in VS Code on `vm-dev01`. Do nothing else on the VM now: the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/#switching-to-vm-dev01) sets up the rest in C3. If Copilot is blocked by your organization's policy, tell your coach before the event.
+7. **Control cost.** Azure Hybrid Benefit is on by default for `vm-app01`'s Windows Server licence, which assumes your partner holds eligible licences with Software Assurance or subscriptions. If you don't, deploy with `-NoHybridBenefit` (and run `Test-Datacenter.ps1` with `-NoHybridBenefit`) and tell your coach; otherwise don't turn it off. Before the event, you can stop both VMs when you're not working (`az vm deallocate -g rg-datacenter -n vm-app01` and `-n vm-dev01`); the datacenter bills while running, and Bastion, the NAT gateway and the disks bill even when the VMs are stopped. Start both again before day one (`az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`). Don't re-run `Test-Datacenter.ps1` after Arc: it needs the run commands. During the event, never stop `vm-dev01`: it's your workstation.
 
 ## Evidence
 
@@ -79,7 +86,8 @@ Save your evidence in a local folder as you go, because the team repo doesn't ex
 - `Test-Datacenter.ps1` output from before Arc onboarding: every check green (or an explained FAIL your coach has already seen).
 - The Arc resource for `vm-app01`, with Azure Connected Machine agent connected, and the SQL Server extension showing the instance.
 - The Arc migration assessment's first output (screenshot or exported report) — you don't need to act on it yet.
-- A note that Azure Hybrid Benefit is on for `vm-app01` (or why it isn't), and a screenshot of `az vm list -g rg-datacenter -d -o table` showing both VMs and their power state.
+- Your Azure Hybrid Benefit confirmation: on for `vm-app01`'s Windows Server licence, or why it isn't (you deployed with `-NoHybridBenefit` and your coach agreed). Add a screenshot of `az vm list -g rg-datacenter -d -o table` showing both VMs and their power state.
+- A screenshot of Copilot Chat answering in VS Code on `vm-dev01`, signed in to GitHub (task 6).
 
 ## Hints
 

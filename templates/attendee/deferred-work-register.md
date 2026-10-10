@@ -6,4 +6,4 @@ One row per item you're consciously not doing now. Add rows as you go — C3, C4
 
 | Finding or item | Source (challenge) | Owner | Target (what resolves it) | Timeline |
 |---|---|---|---|---|
-| <!-- example --> Trace flags 1800/9567 left on the source SQL Server | C3 | <!-- name --> | Remove after the MI link is cut over and removed (C7) | By end of C7 |
+| <!-- example --> A policy exemption you recorded instead of fixing | C2 | <!-- name --> | Retire the exemption once the resource meets the policy | By end of C10 |

@@ -22,7 +22,7 @@ The **known-good image** `ghcr.io/jonathan-vella/contoso-university:known-good` 
 
 ## When to hand one out
 
-A lifeline is for a member who is blocked, not slow: they've tried the playbook's hot-spot fixes, and the time box is at risk. The coach decides, and the facilitator guide (B12) owns the handout rules. Give the earliest lifeline that unblocks the member, so they keep as much of their own work as possible.
+A lifeline is for a member who is blocked, not slow: they've tried the playbook's hot-spot fixes, and the time box is at risk. The coach decides, and the [facilitator guide](../facilitator/guide.md) owns the handout rules. Give the earliest lifeline that unblocks the member, so they keep as much of their own work as possible.
 
 | Member is stuck on | Give |
 |---|---|
@@ -37,7 +37,7 @@ A lifeline is for a member who is blocked, not slow: they've tried the playbook'
 
 ## How to apply one
 
-The member's work lives in a clone of the public kit, so lifeline branches are already available from its `origin`. On `vm-dev01`, in `C:\src\factory`, with the member. First check which branch they're on: `git branch -vv` shows `* vm-dev01-work` tracking `member/vm-dev01-work` (see the [upgrade guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight)). If the `member` remote is missing, add it first (guide, step 5).
+The member's work lives in a clone of the public kit, so lifeline branches are already available from its `origin`. The clone on `vm-dev01` doesn't check out `coach/`, `facilitator/`, `docs/` or `site/` (new deployments), but that doesn't affect lifelines: the branches are fetched from `origin` and exist as git branches whatever the sparse checkout holds. On `vm-dev01`, in `C:\src\factory`, with the member. First check which branch they're on: `git branch -vv` shows `* vm-dev01-work` tracking `member/vm-dev01-work` (see the [upgrade guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight)). If the `member` remote is missing, add it first (guide, step 5).
 
 1. Save the member's work, so nothing is lost. It stays on `vm-dev01-work` as a backup:
 

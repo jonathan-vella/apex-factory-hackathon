@@ -9,7 +9,7 @@ description: Run the Upgrade agent's seven tasks to .NET 10 on the dev VM.
 
 ## Prerequisites
 
-C3's reviewed assessment and plan from M2, as C6's Inputs list them. M3's archetype deployed, for its registry and its Key Vault, Service Bus, Storage and Application Insights, which the app's checks use. The app doesn't run on App Service yet.
+C3's reviewed assessment and approved plan (`plan.md`, committed as `app: assess and plan`) from M2, as C6's Inputs list them. M3's archetype deployed, for its registry and its Key Vault, Service Bus, Storage and Application Insights, which the app's checks use. The app doesn't run on App Service yet.
 
 ## Where to run
 

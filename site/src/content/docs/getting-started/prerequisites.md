@@ -27,7 +27,7 @@ flowchart TB
   S1 --> S2
 ```
 
-Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS (run before Arc onboarding), and `vm-app01` Connected in Azure Arc. If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
+Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS (run before Arc onboarding), `vm-app01` Connected in Azure Arc, and Copilot answering in VS Code on `vm-dev01`. If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
 
 ## Who this is for
 
@@ -56,8 +56,8 @@ Your team also has **one shared team repo**, where the team's evidence lives. It
 | What | Requirement |
 | --- | --- |
 | GitHub | A personal account in the partner's GitHub org, with GitHub Copilot enabled (agent mode and the Upgrade agent allowed by policy). |
-| Azure subscription | One workload subscription per member. Azure Pass is not supported. The kit is built and validated for CSP subscriptions and preflight doesn't check the offer type, so ask your coach before you use any other offer. |
-| Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group; activate it first if it's eligible through Privileged Identity Management). Preflight fails without it, and vending and the Arc script assume it. Contributor plus Resource Policy Contributor doesn't pass preflight: if your organization blocks Owner, raise it with your coach well before T-14, because it needs an owner decision. |
+| Azure subscription | One paid workload subscription per member, which must pass `Test-Preflight.ps1`. Trial, Azure Pass and sponsorship subscriptions are not supported. Preflight doesn't check the offer type, so confirm yours is a paid subscription before you start. |
+| Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group; activate it first if it's eligible through Privileged Identity Management). Preflight fails without it, and vending and the Arc script assume it. There is no fallback: Contributor, with or without Resource Policy Contributor, doesn't pass. If your organization blocks Owner, raise it with your coach well before T-14. |
 | MFA | Registered for your Azure identity. |
 | Region quota | Enough regional vCPU quota in `swedencentral` for a Standard_D8as_v6 VM (8 vCPU each, two VMs: `vm-app01` and `vm-dev01`), and quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. |
 | Platform lead only | A **second** subscription (shared services) plus Owner at Tenant Root. The platform lead is also a member: they still need their own workload subscription, and do C0 on it like everyone else. |
@@ -97,7 +97,7 @@ code --install-extension github.copilot-chat
 
 ### Network
 
-Allow outbound HTTPS to `github.com`, `api.github.com`, `*.githubusercontent.com`, `api.githubcopilot.com`, `*.azure.com`, `*.microsoft.com`, `login.microsoftonline.com`, `learn.microsoft.com`, `docker.io` and `registry-1.docker.io`. The dev container also needs `ghcr.io` (its features come from there), `mcr.microsoft.com` (its base image, covered by `*.microsoft.com`) and `packagefeedproxy.microsoft.io` (its npm and Python package proxy), and VS Code needs `marketplace.visualstudio.com` for extensions.
+Allow outbound HTTPS to `github.com`, `api.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `api.githubcopilot.com`, `*.azure.com`, `*.microsoft.com`, `login.microsoftonline.com`, `learn.microsoft.com`, `docker.io` and `registry-1.docker.io`. The dev container also needs `ghcr.io` (its features come from there), `mcr.microsoft.com` (its base image, covered by `*.microsoft.com`) and `packagefeedproxy.microsoft.io` (its npm and Python package proxy), and VS Code needs `marketplace.visualstudio.com` for extensions.
 
 ## Create your repo and import the kit
 

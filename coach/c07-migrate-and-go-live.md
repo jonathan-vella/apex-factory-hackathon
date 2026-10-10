@@ -5,6 +5,26 @@
 
 The cutover mechanism is the one detail worth double-checking: the validated path is the Arc portal's pane, not a CLI command issued from the managed instance.
 
+## Before the team starts
+
+- **Graph grant.** The platform lead and a Privileged Role Administrator ran `Grant-SqlMiDirectoryRead.ps1` in C2 on Day 1. On Day 2 at 08:30 confirm it: `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf` prints that the permissions are already granted. If it wasn't done, the contained user in task 4 fails with "Server identity does not have Azure Active Directory Readers permission". That is the most likely stuck point for a whole team; get the Privileged Role Administrator to run the script, then retry.
+- **Both VMs running.** `vm-app01` must be up (it holds the source), and `vm-dev01` stays running all event.
+- **Link started at 08:30.** The members start the link as C7 task 1, so seeding overlaps the end of C6. The time counts toward C7's 120 minutes.
+
+## Maintenance window
+
+At go/no-go agree a short window with each member (the page says so in task 3) and check it before they cut over:
+
+1. Nothing on `vm-dev01` writes to the source (modernized app stopped, no `Reset-PerfKit.ps1`).
+2. On `vm-app01`, the site and the `ContosoUniversity` pool show `Stopped` and the session count is 0.
+3. The **Lag** column in the Arc portal shows two dashes.
+
+Only then do they select **Complete cutover**. A write after the last lag reading is lost, because the source stays writable.
+
+## Day 2 curveball
+
+The [curveball](../facilitator/curveballs.md) fails the replica go/no-go for **one member per team**, picked by the coach, so the rest of the team keeps its pace. Don't corrupt the source database. That member records the failed check, marks no-go, cancels the migration, deletes the MI copy, writes the reseed plan (cap 15 minutes) and restarts the link. They use the new seeding wait for the runbook and finish C7, C8 and C9 after their cutover; rows that need a completed cutover (live pages, contained user) score only once they finish it.
+
 ## Expected evidence
 
 - Arc portal migration status: link created, seeded (status **Ready for cutover**), replica validated, cutover complete. The portal removes the link on cutover.
@@ -39,7 +59,7 @@ The cutover mechanism is the one detail worth double-checking: the validated pat
 
 ## Bonus
 
-A genuine abort-and-reseed, with the cleanup of the leftover writable copy documented, is worth up to 5 bonus points — most members won't hit this if their first seed goes cleanly, so don't manufacture a fault just to claim it.
+A genuine abort-and-reseed, with the cleanup of the leftover writable copy documented, is worth up to 5 bonus points. The curveball's staged abort is the same exercise for one member per team: it earns the bonus only if the reseed is clean and fully evidenced (owner to confirm). Don't manufacture a fault for anyone else just to claim it.
 
 ## Reset
 

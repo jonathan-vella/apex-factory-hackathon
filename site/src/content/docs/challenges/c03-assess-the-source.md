@@ -9,7 +9,7 @@ Turn raw assessment output into a reviewed, human-authorized list of findings, e
 
 ## Scope and time box
 
-Member. **60 min**. On the agenda C3 runs alongside C1 and the start of C2, so agree in your team who types C1 and who starts C3 at 09:00. If the Upgrade agent runs are slow, do the Arc review (task 2) while they run.
+Member. **60 min**. C3 starts at 10:15 on Day 1, while the platform lead vends in C2. If the Upgrade agent runs are slow, do the Arc review (task 2) while they run.
 
 ## Points
 
@@ -27,7 +27,7 @@ C0's first Arc migration assessment. C2's foundation doesn't need to be finished
 
 ## Your tasks
 
-1. Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks). Don't start task execution: that's C6. Done when `assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
+1. Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks), and commit and push `app: assess and plan` as the playbook's Step 1 says. This is the plan approval for the whole run; don't start task execution: that's C6. Done when `assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
 2. Review the Arc SQL migration assessment from C0 against the source SQL Server: in the Azure portal, open the instance under `vm-app01` (Azure Arc > SQL Server instances), then **Migration** > **Database migration** > **Assess source instance** > **View report**. Run the assessment again if there's no result.
 3. Triage every finding from both assessments: blocker, accepted risk, or fix, and what it means for the target state.
 4. Work through the trace-flag finding by hand, not just by ticking it: the assessment reports **"Trace flags not supported in Azure SQL Managed Instance"** (warning) for flags `1800` and `9567`. The kit set these on the source on purpose. Find out why in the MI link preparation article under Learn more, then decide what to do about the finding, and record your reason, its impact on the target state, and when the flags should be removed.

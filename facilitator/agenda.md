@@ -9,7 +9,7 @@ The challenge minutes are effort targets, not a serial schedule. On Day 1 the pl
 | T-30 to T-14 | Event-owner setup: draft roster, member indexes, platform lead and team-repo creator, tenant and subscription access, Privileged Role Administrator booking (see the [guide](guide.md#t-30-to-t-14-event-owner)) | Event owner |
 | T-14 | Preflight, access and Copilot-policy gate; confirm the draft roster and team subscriptions | Event owner, platform lead, members |
 | T-14 to T-3 | Resolve access and quota blockers; confirm the Privileged Role Administrator is booked for day one (the Graph grant for the SQL MI identity, run in C2 after ALZ-lite) | Platform lead, directory administrator |
-| T-3 | Deploy datacenters, validate them with `Test-Datacenter.ps1` while the VMs run, then Arc onboarding and the first migration assessment; a coach reviews every member's C0 output | Members, platform lead, coaches |
+| T-3 | Deploy datacenters, validate them with `Test-Datacenter.ps1` while the VMs run, then Arc onboarding, the first migration assessment and a check that Copilot works in VS Code on `vm-dev01` through Bastion; a coach reviews every member's C0 output | Members, platform lead, coaches |
 | Before Day 1 | Start both VMs of every datacenter (idle ones may have been stopped), check the room and projection, stage demo materials and publish this agenda | Event owner, coaches |
 
 ## Day 1
