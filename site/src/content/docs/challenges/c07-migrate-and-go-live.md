@@ -167,7 +167,7 @@ Then start the link again from task 1.
 </details>
 
 <details>
-<summary>`CREATE USER` fails</summary>
+<summary>CREATE USER fails</summary>
 
 Before cutover, the replica is read-only — the user creation step only works after cutover completes. If it still fails afterward with a permissions error on the server's Entra identity, ask your coach: the MI's primary identity needs Microsoft Graph read access, set up once per team in C2.
 </details>

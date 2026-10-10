@@ -64,7 +64,7 @@ Save screenshots and output as files in `evidence/c05/member-<n>/` in the team r
 ## Hints
 
 <details>
-<summary>`adapt-archetype` won't find a vended spoke</summary>
+<summary>adapt-archetype won't find a vended spoke</summary>
 
 It looks for `rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe` and `snet-sqlmi` by the naming convention in the [naming and IP plan](../../reference/naming-and-ip-plan/). Confirm C2's vending ran for your member index before retrying.
 </details>
@@ -76,13 +76,13 @@ Your vending ran without your object ID, so you don't have Managed Identity Oper
 </details>
 
 <details>
-<summary>Preflight says a SQL virtual cluster holds `snet-sqlmi`</summary>
+<summary>Preflight says a SQL virtual cluster holds snet-sqlmi</summary>
 
 A managed instance was deleted from your spoke earlier, and Azure releases its virtual cluster later (this can take hours). Wait and retry, and ask your coach before you delete anything.
 </details>
 
 <details>
-<summary>`azd provision --preview` looks incomplete</summary>
+<summary>azd provision --preview looks incomplete</summary>
 
 The preview only lists resource types `azd` has display names for — it's expected to omit the SQL Managed Instance, the managed identity, role assignments, diagnostic settings and the maintenance schedule even though they're all in the template and will be created.
 </details>
