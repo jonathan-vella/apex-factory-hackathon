@@ -8,8 +8,8 @@ This is the scoring single source of truth. The base contract is 80 team points 
 - Award team evidence once per team. Award member evidence separately for each member.
 - Base team score = team base points + the arithmetic mean of member base points. The maximum base score is 200.
 - Score each evidence row independently. Full points require the listed evidence. Award half the row value, rounded down, when evidence is present but one verifiable subcomponent is incomplete; award zero when evidence is absent, unverified or materially incorrect. Record the reason for partial credit. Never exceed a row's maximum or move unused points between rows.
-- Lifelines cap the affected challenge only; later challenges remain eligible. Record the branch or image in the scoreboard. C6 use of L1, L2, L3, L4 or the known-good image caps C6 at **15 of 30 member points**. C7 use of L5 caps C7 at **10 of 20 member points**. Ordinary hints and coach discussion do not trigger a cap.
-- Challenge bonus tasks and badges draw from one event-wide bonus pool capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. Award the pool in the order the bonuses appear in this rubric until the cap is reached. When the pool is exhausted, further eligible bonus evidence is recorded but adds no points.
+- Lifelines cap the affected challenge only; later challenges remain eligible. Record the branch or image in the scoreboard. C6 use of L1, L2, L3, L4 caps C6 at **15 of 30 member points**. C7 use of L5, or of the known-good image at go-live, caps C7 at **10 of 20 member points**. Ordinary hints and coach discussion do not trigger a cap.
+- Challenge bonus tasks and badges draw from one bonus allowance per team, capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. Award the bonuses in the order they appear in this rubric until the team reaches the cap. Once a team has reached it, further eligible bonus evidence is recorded but adds no points.
 - Rank teams by team score. Teams with the same score share the rank.
 - Team score = team base points + average member base points + awarded team bonus + average awarded member bonus, with combined bonus capped at 30. The scoreboard shows the components separately.
 - Coaches sign off evidence and the event owner resolves scoring disagreements against this rubric. Keep evidence in the team's repository; redact secrets and tenant, subscription and object IDs before sharing it publicly.
@@ -144,7 +144,7 @@ This is the scoring single source of truth. The base contract is 80 team points 
 
 ## Badges
 
-Each badge adds 5 team bonus points when its evidence is signed off. Badges share the event-wide 30-point bonus pool with challenge bonus tasks.
+Each badge adds 5 team bonus points when its evidence is signed off. Badges share the team's 30-point bonus cap with challenge bonus tasks.
 
 | Badge | Criteria | Evidence |
 |---|---|---|

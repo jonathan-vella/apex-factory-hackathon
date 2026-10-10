@@ -8,7 +8,7 @@ sidebar:
 This page links each factory challenge to Microsoft Learn content and to the credential that builds on it. It also shows which role takes which exam, and in what order. The event is hands-on first: you learn a little before it, build the factory, and take the exams afterwards.
 
 :::note
-This page is a plan, not a requirement of the event. Exam rules, outlines and Partner Center requirements change. The links go to the pages that are the source of truth. [Last validated](#last-validated) shows when each one was checked.
+This page is a plan. No exam is a gate for attending the event. Exam rules, outlines and Partner Center requirements change. The links go to the pages that are the source of truth. [Last validated](#last-validated) shows when each one was checked.
 :::
 
 ## Who it's for
@@ -27,9 +27,9 @@ The role tracks below are about certifications. For who does what during the eve
 | --- | --- | --- | --- | --- |
 | 0 Ready | T-30 to T-3 | Learning only. No exam gates. | The [AZ-104 course](https://learn.microsoft.com/training/courses/az-104t00) (start with its networking, identity and governance modules); [GitHub Copilot Fundamentals Part 1](https://learn.microsoft.com/training/paths/copilot/); the [Arc SQL migration assessment](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment) docs; the [GH-900 study guide](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-900) (optional); the Applied Skill [Accelerate AI-assisted development by using GitHub Copilot](https://learn.microsoft.com/credentials/applied-skills/accelerate-app-development-by-using-github-copilot/) (recommended) | The paths show as complete on your Learn profile |
 | 1 Hack | T-0 | Build the factory | The [challenges](../../challenges/), C0 to C10 | Your coach signs off each challenge's evidence |
-| 2 Certify core | Within 6 months after the event (T+0 to T+180 days) | Hold the three core certifications | [AZ-104](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-104), [GH-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-300) and [DP-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-300): all three for every infra role. Data and developer roles take their core exams from the [role tracks](#role-tracks) | Passed exams on your Learn profile |
+| 2 Certify core | Within 6 months after the event (T+0 to T+180 days) | Hold the core certifications | [AZ-104](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-104), [GH-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-300) and [DP-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-300): all three for every infra role. Data and developer roles take their core exams from the [role tracks](#role-tracks). Data roles also take [DP-800](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-800), which Infra and Database Migration requires | Passed exams on your Learn profile |
 | 3 Specialize | Months 6 to 9 after the event (T+180 to T+270 days) | Add depth in design, DevOps, security and networking | [AZ-305](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-305), [AZ-400](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-400), [SC-500](https://learn.microsoft.com/credentials/certifications/resources/study-guides/sc-500) and [AZ-700](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-700); [AI-200](https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-200) for the developer track; the [AKS (AZ-1001)](https://learn.microsoft.com/training/paths/deploy-manage-containers-azure-kubernetes-service/) and [Azure Container Apps (AZ-2003)](https://learn.microsoft.com/training/paths/deploy-cloud-native-applications-to-azure-container-apps/) learning paths | Passed exams on your Learn profile; both paths complete |
-| 4 Next (optional) | Within the 9 months | Prepare for the [Enable AI tomorrow](#next-enable-ai-tomorrow) follow-on | [DP-800](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-800), [GH-600](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-600) and [AI-103](https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-103) | Passed exams on your Learn profile |
+| 4 Next (optional) | Within the 9 months | Prepare for the [Enable AI tomorrow](#next-enable-ai-tomorrow) follow-on | [GH-600](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-600) and [AI-103](https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-103) | Passed exams on your Learn profile |
 
 Four things to know:
 
@@ -45,12 +45,12 @@ Four things to know:
 | Platform lead (infra) | AZ-104, GH-300, DP-300 | AZ-700, AZ-305, SC-500 | None | C2, C5, C8 |
 | Workload engineer (infra) | AZ-104, GH-300, DP-300 | AZ-400; AKS and Container Apps paths | GH-600 | C3, C5, C6, C7, C8, C9 |
 | Security engineer (infra) | AZ-104, GH-300, DP-300 | SC-500 | None | C2, C8 |
-| Data or database specialist | DP-300 | SC-500 or AZ-104 | DP-800 | C3, C4, C7, C9 |
+| Data or database specialist | DP-300, DP-800 | SC-500 or AZ-104 | None | C3, C4, C7, C9 |
 | App modernization developer | GH-300 | AI-200; AZ-400 (after AZ-104); AKS and Container Apps paths | GH-600, AI-103 | C6, C8 |
 | Coach or CoE lead | Recommended: GH-300 plus DP-300 or AZ-104 | AZ-305 | GH-600 | All, as coach |
 | Practice lead | No exam needed | AZ-305 (optional) | None | Runs the event |
 
-AI-200 is Python-oriented and covers Cosmos DB, PostgreSQL vectors and Redis, so it stays on the developer track.
+DP-800 is the extra group that Infra and Database Migration requires, so a team needs at least one DP-800 holder. The data specialist takes it. AI-200 is Python-oriented and covers Cosmos DB, PostgreSQL vectors and Redis, so it stays on the developer track.
 
 ## Challenge map
 
@@ -93,11 +93,7 @@ The factory supports two Partner Center specializations. Each one needs an activ
 | [Infra and Database Migration to Microsoft Azure](https://partner.microsoft.com/en-us/partnership/specialization/infra-and-database-migration) | Data & AI (Azure) or Infrastructure (Azure) | Four or more people, with at least one certification from each group: DevOps Engineer Expert (AZ-400); Azure Administrator Associate (AZ-104); Cloud and AI Security Engineer Associate (SC-500); Azure Database Administrator Associate (DP-300); SQL AI Developer Associate (DP-800) |
 | [App Modernization on Microsoft Azure](https://partner.microsoft.com/en-us/partnership/specialization/app-modernization-on-microsoft-azure) | Data & AI (Azure) or Digital & App Innovation (Azure) | Three or more people, with at least one certification from each group: DevOps Engineer Expert (AZ-400); Azure AI Cloud Developer Associate (AI-200) or the retired Azure Developer Associate; Azure Administrator Associate (AZ-104) |
 
-:::caution[Open question: DP-800 for Infra and Database Migration]
-
-The partner page lists SQL AI Developer Associate (DP-800) after the database administrator group, without "OR". It's not clear whether DP-800 is a fifth required group or an alternative to DP-300. The sample plan below holds both, so it works either way. Confirm in Partner Center before you rely on it.
-
-:::
+DP-800 is a required group for Infra and Database Migration, in addition to DP-300. The partner page lists SQL AI Developer Associate (DP-800) as a fifth group, and this plan treats it that way.
 
 ### Sample plan for five people
 
@@ -111,7 +107,7 @@ A team of five can cover both specializations:
 | Security | AZ-104, GH-300, DP-300, SC-500 |
 | Developer | AI-200 |
 
-The platform lead, DevOps, data and security people count toward Infra and Database Migration. The platform lead, DevOps, security and developer people count toward App Modernization. Every group in both tables has a holder.
+Infra and Database Migration needs four or more people across five groups. The platform lead, DevOps, data and security people cover them: AZ-400 (DevOps), AZ-104 (platform lead), SC-500 (security), DP-300 (platform lead) and DP-800 (data). App Modernization needs three or more people across three groups. The DevOps, developer and platform lead people cover them: AZ-400, AI-200 and AZ-104. Every group in both tables has a holder.
 
 ### Designation gates
 
@@ -136,7 +132,6 @@ This stage is optional. It prepares your people for the "Enable AI tomorrow" fol
 
 | Exam | Certification | Fits |
 | --- | --- | --- |
-| [DP-800](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-800) | SQL AI Developer Associate | Data specialists, after [C9](../../challenges/c09-optimize-the-db-with-ghcp/). Also listed for Infra and Database Migration |
 | [GH-600](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-600) | [GitHub Certified: Agentic AI Developer](https://learn.microsoft.com/credentials/certifications/agentic-ai-developer/) | Workload engineers, developers and coaches who work with the APEX agents |
 | [AI-103](https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-103) | Azure AI Apps and Agents Developer Associate | Developers. It replaces AI-102 |
 
@@ -162,6 +157,6 @@ This stage is optional. It prepares your people for the "Enable AI tomorrow" fol
 None of these exams is on the retirement page, and none is renamed. Where this page differs from the plan it was built from:
 
 - **AZ-400 prerequisite.** The DevOps Engineer Expert certification needs the Azure Administrator Associate or the Azure Developer Associate certification. AI-200 isn't listed, so a developer who holds only GH-300 and AI-200 can sit AZ-400 but should add AZ-104 to earn the certification.
-- **DP-800 on Infra and Database Migration.** It's listed as a separate group with no "OR", which leaves the open question above. The sample plan covers both readings.
+- **DP-800 on Infra and Database Migration.** The partner page lists it as a separate group with no "OR". The owner decided on October 10, 2026 to treat it as a required group, so the role tracks and the sample plan include it.
 - **Partner Center lag.** The Infrastructure designation still lists the Windows Server Hybrid Administrator certification, although AZ-800 and AZ-801 retired. The Digital & App Innovation designation page doesn't yet list AI-200 or GH-600, which the June 2026 partner announcement adds. Check Partner Center before you rely on either list.
 - **No outline date yet.** The SC-500, AI-200, GH-600 and GH-900 study guides show no skills outline date. The AI-200 and SC-500 practice assessments aren't available yet.

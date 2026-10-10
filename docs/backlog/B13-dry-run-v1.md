@@ -64,6 +64,22 @@ Push-Location site; npm run build; Pop-Location
 
 - Checks pass. After the merge, the owner checks `gh release view v1.0.0`.
 
+## Dry-run checklist
+
+Nobody could check these without Azure. Tick each one during the dry run and note the result in the report.
+
+- [ ] A member account with Reader on the hub (`infra/foundation/vending/modules/hub-reader.bicep`): `Test-Connectivity.ps1` and the C5 preflight work.
+- [ ] C9 checkpoint timings on a real 4-vCore SQL Managed Instance.
+- [ ] `azd provision` time for the archetype.
+- [ ] T-3 Copilot and VS Code sign-in on a real `vm-dev01`.
+- [ ] `Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints the wording that the C7 coach page and the facilitator guide quote ("already granted").
+- [ ] The sparse kit clone on a new `vm-dev01`, and the "Slim an existing clone" block on an older one.
+- [ ] `Remove-FactoryEnvironment.ps1` with team scope removes the Reader assignments.
+- [ ] The `Microsoft.Consumption` provider registers on a clean subscription (SC-28).
+- [ ] The `archetype/deploy.ps1` fallback timing.
+- [ ] The allow-list works behind a locked-down proxy (GS-19).
+- [ ] Day 1 pacing, 09:00 to 12:30.
+
 ## Done when
 
 - [ ] The dry run happened, and the report compares it with the success metrics.

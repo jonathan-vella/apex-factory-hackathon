@@ -46,4 +46,4 @@ Team score = team base + average member base + awarded bonus  (maximum 230)
 
 Rank teams by team score. Teams with the same score share the rank.
 
-Enter C4's team and member portions in their separate columns. Record lifeline caps in the affected member/challenge cell, for example `15/30 — L3-servicebus`. Store evidence in the team's repository and do not paste secrets or tenant, subscription or object IDs into this public scoreboard.
+Enter C4's team and member portions in their separate columns. Record lifeline caps in the affected member/challenge cell, for example `15/30 — L3-servicebus` for C6, or `10/20 — known-good image` or `10/20 — L5-cutover` for C7. Store evidence in the team's repository and do not paste secrets or tenant, subscription or object IDs into this public scoreboard.

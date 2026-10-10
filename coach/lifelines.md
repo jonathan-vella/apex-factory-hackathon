@@ -33,11 +33,11 @@ A lifeline is for a member who is blocked, not slow: they've tried the playbook'
 | C7 configuration on App Service | `lifeline/L5-cutover` |
 | The image won't build or push, and the clock is out | The known-good image |
 
-**Cost in points:** a lifeline caps that challenge's points, but later challenges stay eligible (PRD §5). The scoring rubric in `facilitator/` is the source of truth for the caps (today: C6 and C7), and you record every lifeline there. Student pages don't mention lifelines or caps: you decide, you apply, and you tell the member what it costs. Ordinary hints and coach discussion never trigger a cap.
+**Cost in points:** a lifeline caps that challenge's points, but later challenges stay eligible (PRD §5). The scoring rubric in `facilitator/` is the source of truth for the caps (today: C6 and C7), and you record every lifeline there. L1 to L4 cap C6 at 15 of 30 member points. L5 and the known-good image used at C7 go-live cap C7 at 10 of 20 member points. Student pages don't mention lifelines or caps: you decide, you apply, and you tell the member what it costs. Ordinary hints and coach discussion never trigger a cap.
 
 ## How to apply one
 
-The member's work lives in a clone of the public kit, so lifeline branches are already available from its `origin`. The clone on `vm-dev01` doesn't check out `coach/`, `facilitator/`, `docs/` or `site/` (new deployments), but that doesn't affect lifelines: the branches are fetched from `origin` and exist as git branches whatever the sparse checkout holds. On `vm-dev01`, in `C:\src\factory`, with the member. First check which branch they're on: `git branch -vv` shows `* vm-dev01-work` tracking `member/vm-dev01-work` (see the [upgrade guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight)). If the `member` remote is missing, add it first (guide, step 5).
+The member's work lives in a clone of the public kit, so lifeline branches are already available from its `origin`. The clone on `vm-dev01` doesn't check out `coach/`, `facilitator/`, `docs/` or `site/` (new deployments), but fetching and switching to a lifeline work unchanged in that sparse clone: the branches come from `origin` and exist as git branches whatever the sparse checkout holds. On `vm-dev01`, in `C:\src\factory`, with the member. First check which branch they're on: `git branch -vv` shows `* vm-dev01-work` tracking `member/vm-dev01-work` (see the [upgrade guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight)). If the `member` remote is missing, add it first (guide, step 5).
 
 1. Save the member's work, so nothing is lost. It stays on `vm-dev01-work` as a backup:
 
@@ -75,7 +75,7 @@ The member's work lives in a clone of the public kit, so lifeline branches are a
 az acr import --name cruniversity<suffix> --source ghcr.io/jonathan-vella/contoso-university:known-good --image contoso-university:known-good
 ```
 
-Then go live with the tag `known-good` in the playbook's step 5, C7 step 3. The Key Vault secret and the database user are still needed.
+Then go live with the tag `known-good` in the playbook's step 5, C7 step 3. This caps C7 at 10 of 20 member points, the same as L5. The Key Vault secret and the database user are still needed.
 
 ## Rebuild the lifelines
 
