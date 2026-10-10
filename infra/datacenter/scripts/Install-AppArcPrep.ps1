@@ -3,8 +3,8 @@
 Places the Arc prep script on vm-app01, without running it.
 .DESCRIPTION
 Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM. Downloads Prepare-ArcOnAzureVm.ps1 from
-the deployment's git ref to C:\LabTools\arc. Members run it themselves before Arc onboarding (C0),
-because it turns off the guest agent and so ends run commands.
+the deployment's git ref to C:\LabTools\arc. It doesn't run it: Connect-DatacenterArc.ps1 does, during Arc
+onboarding (C0). Don't run it by hand first, because it turns off the guest agent and so ends run commands.
 .PARAMETER PrepScriptUrl
 Download URL of Prepare-ArcOnAzureVm.ps1 at the deployment's git ref.
 .PARAMETER RunId
@@ -43,7 +43,7 @@ try {
     $download = "$target.download"
     Invoke-WebRequest -Uri $PrepScriptUrl -OutFile $download -UseBasicParsing
     Move-Item -Path $download -Destination $target -Force
-    Write-LabLog "Placed $target. It isn't run: members run it before Arc onboarding."
+    Write-LabLog "Placed $target. It isn't run here: Connect-DatacenterArc.ps1 runs it during Arc onboarding."
 }
 catch {
     Write-LabLog "ERROR: $($_.Exception.Message)"

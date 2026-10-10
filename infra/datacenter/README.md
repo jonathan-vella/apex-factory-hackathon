@@ -45,13 +45,13 @@ flowchart LR
 | Bastion | `bas-datacenter` | Standard SKU (never Developer), in `AzureBastionSubnet`, with native client support (`enableTunneling`). Several sessions at once, and works across the hub peering |
 | Public IP | `pip-bas-datacenter` | Standard, static, Bastion's endpoint. No `zones` set. With `pip-nat-datacenter`, the datacenter's only public IPs |
 | App VM | `vm-app01` | `10.10.n.4`. `MicrosoftSQLServer:sql2022-ws2022:sqldev-gen2:latest`. NIC `nic-vm-app01`, OS disk `osdisk-vm-app01` (image default size), data disk `disk-data-vm-app01` (P30, 1,024 GiB, LUN 0, `ReadOnly` caching) as `F:` |
-| Dev VM | `vm-dev01` | `10.10.n.5`. `MicrosoftWindowsDesktop:windows-11:win11-25h2-ent:latest`. NIC `nic-vm-dev01`, OS disk `osdisk-vm-dev01` (127 GiB) at performance tier P30. No data disk |
+| Dev VM | `vm-dev01` | `10.10.n.5`. `MicrosoftWindowsDesktop:windows-11:win11-25h2-ent:latest`. NIC `nic-vm-dev01`, OS disk `osdisk-vm-dev01` (127 GiB image default) at performance tier P30. No data disk |
 
 Both VMs are `Standard_D8as_v6` (AMD, 8 vCPU, 32 GiB) by default, Gen2 with Trusted Launch (Secure Boot and vTPM), the platform's default disk controller (NVMe on v6 and v7), Premium SSD disks, boot diagnostics with managed storage, no public IP, no zone and no auto-shutdown. The admin user is `labadmin` on both. `vm-app01` has no SQL IaaS Agent extension, because it conflicts with Arc onboarding later.
 
 ### What the VMs are configured with
 
-The deployment configures both VMs through run commands. Each downloads its script from `infra/datacenter/scripts/` in this repo at the `-ScriptsRef` git ref, logs to `C:\LabTools\logs`, and can be re-run safely.
+The deployment configures both VMs through run commands. Each downloads its script from `infra/datacenter/scripts/` in the public kit repository (`-Repository`, default `jonathan-vella/apex-factory-hackathon`) at the `-ScriptsRef` git ref, logs to `C:\LabTools\logs`, and can be re-run safely. The VMs read `raw.githubusercontent.com` without signing in, so edits in a private copy, such as your `factory/` folder, are never used. An event copy of the kit passes its own public `owner/name` as `-Repository`.
 
 | VM | Run command | Script | What it does |
 |---|---|---|---|
@@ -62,7 +62,7 @@ The deployment configures both VMs through run commands. Each downloads its scri
 | `vm-app01` | `app-04-web-features` | `Install-AppWebFeatures.ps1` | IIS with ASP.NET 4.8, and the MSMQ server feature |
 | `vm-app01` | `app-05-legacy-site` | `Install-AppLegacySite.ps1` | `ContosoUniversity-legacy.zip` from the `legacy-v1` release in `C:\inetpub\ContosoUniversity`; site and app pool `ContosoUniversity` on port 80 instead of the Default Web Site; `DefaultConnection` pointed at `10.10.n.4`; the private queue `.\Private$\ContosoUniversityNotifications`; firewall rules for TCP 80 and 1433 from `10.0.0.0/8`; a warm-up request that creates and seeds the database |
 | `vm-app01` | `app-06-perf-kit` | `Install-AppPerfKit.ps1` | The [DB perf kit](../../db/perf-kit/README.md): runs `db/perf-kit/sql/01`–`04` from the same `-ScriptsRef`, which add about 200,000 students and 2 million enrollments, plant the five performance issues, set compatibility level 110 and configure Query Store. Logs each script's time |
-| `vm-app01` | `app-07-arc-prep` | `Install-AppArcPrep.ps1` | Places the Arc prep script `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` from the same `-ScriptsRef`, without running it. Members run it before Arc onboarding (C0); see **Known traps** |
+| `vm-app01` | `app-07-arc-prep` | `Install-AppArcPrep.ps1` | Places the Arc prep script `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` from the same `-ScriptsRef`. Placed, not run: `Connect-DatacenterArc.ps1` runs it during Arc onboarding (C0). Don't run it yourself first: it turns off the guest agent, and then `Connect-DatacenterArc.ps1` refuses to run. See **Known traps** |
 | `vm-dev01` | `dev-00-admin-password` | `Set-LabAdminPassword.ps1` | Same as `app-00-admin-password` |
 | `vm-dev01` | `dev-01-tools` | `Install-DevTools.ps1` | `C:\src`, VS Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep, the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI. Clones the kit repo to `C:\src\factory` (skipped if it's already there; students run `git pull` to refresh it) |
 | `vm-dev01` | `dev-02-build-tools` | `Install-DevBuildTools.ps1` | Visual Studio Build Tools (current release) with the web build tools workload and its recommended components |
@@ -90,6 +90,7 @@ You need PowerShell 7.4 or later and the Azure CLI, signed in to the member's te
 | `VmSize` | `Standard_D8as_v6` | Any Gen2 size that supports Trusted Launch, for example a v7 size |
 | `DevImageSku` | `win11-25h2-ent` | Windows 11 Enterprise image SKU for `vm-dev01` |
 | `ScriptsRef` | `main` | Git ref the VMs download their scripts from |
+| `Repository` | `jonathan-vella/apex-factory-hackathon` | `owner/name` of the public repository the VMs download from. An event copy of the kit passes its own |
 | `NoHybridBenefit` | Off | Deploy `vm-app01` without Azure Hybrid Benefit |
 | `AdminPassword` | Lab password | Secure string. Overrides the `labadmin` password on both VMs |
 | `SqlAppPassword` | Lab password | Secure string. Overrides the `contosoapp` password |
@@ -102,7 +103,7 @@ The script:
 4. Sets the `vm-dev01` OS disk to performance tier P30. The VM's `osDisk` block has no tier property, so it's set on the disk. It changes without downtime.
 5. Prints how to connect, where the credentials are saved, and how to stop and start the VMs.
 
-Running it again converges: nothing is replaced, and the run commands skip work that's already done. It also brings an existing datacenter to the deployed credentials: `labadmin` on both VMs, the `contosoapp` login and the app's `DefaultConnection`.
+Running it again converges: nothing is replaced, and the run commands skip work that's already done. It also brings an existing datacenter to the deployed credentials: `labadmin` on both VMs, the `contosoapp` login and the app's `DefaultConnection`. It is safe before vending and Arc onboarding. After vending, a re-run resets `snet-servers` (dropping `rt-servers`) and the VNet's DNS servers, so run `Deploy-Vending.ps1` again, restart both VMs and record the policy exemptions again. After Arc onboarding the run commands can't run (see **Known traps**): to start over, delete `rg-datacenter` and deploy again. There is no `-Force`.
 
 ### Connect
 
@@ -126,7 +127,7 @@ From `vm-dev01`, browse to `http://10.10.n.4/` for the app, and connect SSMS to 
 
 ## Credentials
 
-The datacenter uses fixed, documented lab credentials, so attendees and coaches never have to look anything up:
+The datacenter uses fixed, documented lab credentials, which the script also saves in `.local/<subscription-id>/datacenter.json` (git-ignored, never committed):
 
 | Account | Where | Password |
 |---|---|---|
@@ -195,7 +196,7 @@ To turn it back on, use `--license-type Windows_Server`. Leave `vm-dev01` on `Wi
 - **No default outbound access.** All outbound traffic goes through `nat-datacenter`. Without it, the downloads in the run commands fail.
 - **NVMe disks.** v6 and v7 sizes are NVMe-only, so disk numbers inside Windows don't match LUNs. The data disk script finds the data disk as the only raw disk.
 - **Bastion Standard** takes several minutes to deploy and bills (about $0.29/hour) while it exists, even with the VMs stopped. Its public IP, `pip-bas-datacenter`, is the documented exception to the datacenter's "no public IPs" rule, next to the NAT gateway's. Native client RDP (`Connect-DatacenterVm.ps1`) needs Windows; use the portal from Cloud Shell, macOS or Linux.
-- **Subnets added later stay.** The subnets are child resources and the VNet doesn't list them, so re-running `Deploy-Datacenter.ps1` keeps subnets that later items add to `vnet-datacenter`.
+- **Subnets added later stay**, but `snet-servers` and the VNet's DNS don't. The subnets are child resources and the VNet doesn't list them, so re-running `Deploy-Datacenter.ps1` keeps subnets that later items add to `vnet-datacenter`. It does reset `snet-servers`' route table and the VNet's DNS servers that vending sets: run `Deploy-Vending.ps1` again after a datacenter re-run.
 - **Connection strings use the IP**, `10.10.n.4`, not the VM name, because name resolution changes once the datacenter uses the hub's DNS.
 - **Run commands stop working after Arc onboarding**, which turns off the Azure guest agent. Anything that needs a run command, including `Test-Datacenter.ps1`'s in-VM checks, has to happen before that. Onboard with `scripts/Connect-DatacenterArc.ps1`, which runs the prep script in `C:\LabTools\arc` and connects the agent; Arc on an Azure VM is a lab-only pattern.
 - **Always On without a cluster.** SQL Server 2022 enables the availability groups feature without a Windows failover cluster, which is all MI link needs.

@@ -2,12 +2,13 @@
 
 <#
 .SYNOPSIS
-Checks that the member's datacenter is ready: attendees run it at T-3.
+Checks that the member's datacenter is ready. Run it after Deploy-Datacenter.ps1 and before Connect-DatacenterArc.ps1.
 .DESCRIPTION
 Checks rg-datacenter in Azure (VM state, size, licence type, Trusted Launch, zones, IPs, disks, public
 IPs, Bastion SKU and native client support), then runs read-only checks inside vm-app01 and vm-dev01 through az vm run-command invoke. Prints
 PASS or FAIL per check, then an overall verdict. Exits 0 when every check passes, 1 otherwise.
-Changes nothing.
+Changes nothing. Both VMs must be running. The in-VM check for vm-app01 uses a run command, which stops working
+after Arc onboarding, so the row fails from then on: keep the output you saved before Arc.
 .PARAMETER SubscriptionId
 The member's workload subscription.
 .PARAMETER MemberIndex
@@ -108,7 +109,8 @@ function Invoke-VmCheck {
         }
     }
     catch {
-        Add-Result -Check "${Name}: in-VM checks" -Pass $false -Detail $_.Exception.Message
+        $arcHint = if ($Name -eq 'vm-app01') { " If vm-app01 is already Arc-enabled, run commands no longer work: run this test before Arc onboarding." } else { '' }
+        Add-Result -Check "${Name}: in-VM checks" -Pass $false -Detail "$($_.Exception.Message)$arcHint"
     }
 }
 
