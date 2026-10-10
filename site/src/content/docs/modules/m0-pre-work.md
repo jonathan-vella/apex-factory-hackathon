@@ -17,11 +17,11 @@ The dev container of your own repo, from `factory/`. M0 needs no shared services
 
 ## Bootstrap (standalone)
 
-Follow the C0 tasks in order: preflight, deploy the datacenter, `Test-Datacenter.ps1` while both VMs run, Arc onboarding, then the first Arc assessment. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` needs.
+Follow the C0 tasks in order: preflight, deploy the datacenter, `Test-Datacenter.ps1` while both VMs run, Arc onboarding, the first Arc assessment, then the first sign-in to `vm-dev01` and Copilot. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` needs.
 
 ## Exit evidence
 
-The items in [C0's Evidence](../../challenges/c00-ready-to-hack/#evidence): the preflight output, the `Test-Datacenter.ps1` output from before Arc, the Arc resource with the SQL Server extension, and the first assessment.
+The items in [C0's Evidence](../../challenges/c00-ready-to-hack/#evidence): the preflight output, the `Test-Datacenter.ps1` output from before Arc, the Arc resource with the SQL Server extension, the first assessment, and Copilot answering in VS Code on `vm-dev01`.
 
 ## Reset
 

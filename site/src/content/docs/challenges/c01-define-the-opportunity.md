@@ -9,7 +9,7 @@ Agree, as a team, what "modernized" means for Contoso University and write it do
 
 ## Scope and time box
 
-Team. **45 min**. The platform lead starts ALZ-lite at the start of day one and it deploys unattended while you work on C1 (see [C2](../c02-secure-ai-ready-foundation/), task 3), so don't wait for it. Members also start C3 in this slot (see [C3](../c03-assess-the-source/)): agree in the team who types C1 and who starts C3.
+Team. **45 min**. The platform lead starts ALZ-lite at 09:00, so it deploys during C1 (see [C2](../c02-secure-ai-ready-foundation/), task 3); C1 needs no Azure access, so don't wait for it. Members start C3 later, at 10:15 (see [C3](../c03-assess-the-source/)).
 
 The one-time repo setup below takes about 10 minutes and tasks 2 to 5 add up to 35, so the 45 minutes leave no slack. Do the setup while teammates read the canvas template, and keep to the times given.
 

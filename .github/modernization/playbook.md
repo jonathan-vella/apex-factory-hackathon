@@ -58,7 +58,7 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
    gh auth setup-git
    ```
 
-3. Make `DefaultAzureCredential` use your Azure CLI sign-in. `vm-dev01` has its own managed identity with no data roles, and without this the app gets 403 from Blob, Service Bus and Key Vault. Then restart VS Code and every terminal:
+3. Make `DefaultAzureCredential` use your Azure CLI sign-in. Your own identity holds the data roles, and without this the app gets 403 from Blob, Service Bus and Key Vault. Then restart VS Code and every terminal:
 
    ```powershell
    [Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')

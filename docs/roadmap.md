@@ -11,7 +11,7 @@ There's no event date yet, so the phases have no dates. Event gates are relative
 | P1 Skeleton and datacenter | Kit repo in place; the "on-premises" starting point deploys unattended | B00–B05 | Template repo public, site builds and lint passes. Build subscriptions ready and preflight script works. Legacy package published. Datacenter deploys unattended and runs the legacy app. Perf kit reproduces the planted issues |
 | P2 Spikes | Prove the riskiest app and data paths | B06, B07 | GHCP golden path recorded on Contoso University. MI link seeds and cuts over to a General Purpose MI, or LRS is promoted |
 | P3 Build | Build the reusable assets | B08–B10 | ALZ-lite, vending, probes and exemptions work across the two subscriptions. Archetype deploys from only tenant ID, subscription ID and suffix. Playbook, skills and lifelines published |
-| P4 Content | Write what attendees and coaches use | B11, B12, B15 | C0–C10 with module contracts and attendee templates. Facilitator kit complete. Partner learning path published |
+| P4 Content | Write what attendees and coaches use | B11, B12, B15 | C0–C10 with module contracts and attendee templates. Facilitator kit complete. Partner learning path (B15) written and published on the site; it isn't on `main` yet |
 | P5 Pilot and v1.0 | Validate end to end in partner-like conditions | B13 | Dry run meets the PRD success metrics. Time boxes and points tuned. `versions.md` validated. v1.0 release notes ready |
 
 ## Later

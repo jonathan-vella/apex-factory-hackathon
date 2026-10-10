@@ -20,7 +20,7 @@ for points.
 Attendees need the answers below before they can run preflight at T-14, so settle them first.
 
 - Choose the event dates, team size (three to five members per team) and region (`swedencentral`; `germanywestcentral` is the fallback).
-- Plan one Entra tenant per team, with one shared services subscription per team plus one workload subscription per member. The platform lead is also a member, so a team of five needs six subscriptions.
+- Plan one Entra tenant per team, with one shared services subscription per team plus one workload subscription per member. The platform lead is also a member, so a team of five needs six subscriptions. Every subscription must be paid and pass `Test-Preflight.ps1`; trial, Azure Pass and sponsorship subscriptions are not supported. Each member needs an unconditional Owner assignment on their workload subscription: preflight fails without it, and there is no Contributor fallback.
 - Build the roster, kept in your private event channel and never in this public kit:
 
   | Name | GitHub handle | Team | Role | Member index | Workload subscription ID | Entra object ID | Budget email |
@@ -79,7 +79,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 ## Lifeline handout and scoring
 
-Lifelines are coach-only. Students do not fetch branches or copy checkpoints themselves. Give a lifeline when a member has tried the documented hot-spot fixes and is blocked with the time box at risk; choose the earliest checkpoint that unblocks them. Save the member's work, fetch and apply the branch with them, and confirm the member can continue from the next task. The [lifeline index](../coach/lifelines.md) has the exact fetch steps.
+Lifelines are coach-only. Students do not fetch branches or copy checkpoints themselves. Give a lifeline when a member has tried the documented hot-spot fixes and is blocked with the time box at risk; choose the earliest checkpoint that unblocks them. Save the member's work, fetch and apply the branch with them, and confirm the member can continue from the next task. The [lifeline index](../coach/lifelines.md) has the exact fetch steps. The clone on `vm-dev01` leaves out `coach/`, `facilitator/`, `docs/` and `site/` on newly deployed VMs, so members can't browse the answer keys there. Lifeline branches still work: they are fetched from `origin` and exist as git branches regardless of the sparse checkout.
 
 Record the branch or image used in the member's scoreboard row. Apply the challenge-specific cap in the rubric; later challenges remain fully eligible. Do not cap a challenge merely because the member asked for help or used ordinary hints.
 
@@ -90,7 +90,7 @@ For sign-off, compare the submitted evidence with the matching rubric row, ask t
 | Blocker | First response | Escalate to |
 |---|---|---|
 | Quota, provider registration or region availability | Check the preflight output, region and member subscription; do not change the golden-path region silently | Platform lead, then the event owner or CSP |
-| Missing CSP or Tenant Root permissions | Confirm the role and scope; vending is run by the platform lead | Event owner and the partner's CSP administrator |
+| Missing CSP or Tenant Root permissions | Confirm the role and scope; Owner on the workload subscription is required, with no fallback; vending is run by the platform lead | Event owner and the partner's CSP administrator |
 | Copilot feature or model blocked by policy | Verify the approved client and organization policy; do not bypass controls | Event owner and the organization's Copilot administrator |
 | SQL MI cannot create the web app's database user | Confirm cutover is complete and the MI's primary identity is `id-sqlmi-directory` with its event-prep Graph grant | Platform lead and the Privileged Role Administrator |
 | Private DNS, firewall or connectivity failure | Capture the failing probe and resource name; check vending and the private endpoint DNS registration | Platform lead |

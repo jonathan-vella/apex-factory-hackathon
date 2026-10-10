@@ -98,7 +98,7 @@ From `vm-dev01`, connected to the MI's private host name as the Entra admin (a V
 
 ### Cutover and smoke test (requirement 23)
 
-**Complete cutover** made the MI database `ONLINE`, `READ_WRITE` and primary, with identical data ([evidence](evidence/replica-and-cutover-checks.md#after-cutover-1400-1402)). The owner then ran `db/perf-kit/Start-Workload.ps1 -Server <mi-host-name> -Authentication ActiveDirectoryInteractive -DurationMinutes 5` on `vm-dev01`: 146 calls in 5.9 minutes, **0 errors**. Compared with B05's baseline on the source (from [coach/c9-db-optimization.md](../../../coach/c9-db-optimization.md), 15 minutes, same concurrency of 8):
+**Complete cutover** made the MI database `ONLINE`, `READ_WRITE` and primary, with identical data ([evidence](evidence/replica-and-cutover-checks.md#after-cutover-1400-1402)). The owner then ran `db/perf-kit/Start-Workload.ps1 -Server <mi-host-name> -Authentication ActiveDirectoryInteractive -DurationMinutes 5` on `vm-dev01`: 146 calls in 5.9 minutes, **0 errors**. Compared with B05's baseline on the source (from [coach/c09-optimize-the-db-with-ghcp.md](../../../coach/c09-optimize-the-db-with-ghcp.md), 15 minutes, same concurrency of 8):
 
 | Query | MI, avg / P95 ms | Source (B05), avg / P95 ms | MI vs source, avg |
 |---|---|---|---|

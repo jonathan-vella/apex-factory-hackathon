@@ -22,7 +22,7 @@ Step 1 runs in your dev container. Everything after it runs on `vm-dev01`.
    ```
 
    The user name is `labadmin`. The file is in your repo folder (git-ignored), so it survives a dev container rebuild. The same password opens `vm-app01`.
-2. **Connect through Bastion.** In the Azure portal open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**, enter `labadmin` and the password, and open the session. There's no public IP and no other way in.
+2. **Connect through Bastion.** In the Azure portal open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**, enter `labadmin` and the password, and open the session. There's no public IP and no other way in. If you work from a Windows computer with the Azure CLI and its `bastion` extension, `./scripts/Connect-DatacenterVm.ps1 -SubscriptionId '<workload-subscription-id>'` (PowerShell 7, from the `factory/` folder of your repo on that computer, not in the dev container) opens a Remote Desktop session through Bastion instead. That's optional; the portal path needs nothing extra.
 3. **Sign in to GitHub.** In PowerShell on the VM:
 
    ```powershell
@@ -65,7 +65,7 @@ Step 1 runs in your dev container. Everything after it runs on `vm-dev01`.
    code C:\src\factory
    ```
 
-The modernization files are at `C:\src\factory\.github\modernization\`. The app is at `C:\src\factory\app\ContosoUniversity`.
+The modernization files are at `C:\src\factory\.github\modernization\`. The app is at `C:\src\factory\app\ContosoUniversity`. On newly deployed VMs the clone doesn't include the event's `coach/`, `facilitator/`, `docs/` and `site/` folders; the playbook, the skills and `app/` are all there. Read the challenge pages on the published site, in the VM's browser.
 
 ## Save your work and keep the branches straight
 
@@ -124,11 +124,11 @@ After the password lookup in step 1, every command on this page runs on `vm-dev0
 
 ## Setup
 
-The playbook's **Step 0: Set up** (`.github/modernization/playbook.md`) is the single source for the VM setup, so follow it rather than this page: the Azure CLI sign-in, `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` (the VM's own managed identity has no data-plane roles, so every Azure SDK call in the app needs your own identity instead), a clean legacy tree, and the Upgrade extension in the **Local** harness. Don't use the Copilot coding agent harness: it runs remotely and can't reach the dev VM's local SQL Server or the datacenter's private network.
+The playbook's **Step 0: Set up** (`.github/modernization/playbook.md`) is the single source for the VM setup, so follow it rather than this page: the Azure CLI sign-in, `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` (your own identity holds the data-plane roles, so every Azure SDK call in the app has to use your Azure CLI sign-in), a clean legacy tree, and the Upgrade extension in the **Local** harness. Don't use the Copilot coding agent harness: it runs remotely and can't reach the dev VM's local SQL Server or the datacenter's private network. Two setup items trip people up, and Step 0 covers both: if **GitHub Copilot modernization** is installed, disable it for the workspace, and give the Upgrade server model access once (**MCP: List Servers** > **Upgrade** > **Configure Model Access**), or the agent can't call a model.
 
 ## Assess and plan
 
-Start a new chat, select the Upgrade agent, and send the exact text in `.github/modernization/plan-prompt.txt`. Review the assessment and the proposed seven-task plan before approving it — this is the gate [C3](../../challenges/c03-assess-the-source/) is about.
+Start a new chat, select the Upgrade agent, and send the exact text in `.github/modernization/plan-prompt.txt` (the playbook's Step 1 shows how to copy it with its characters intact). Review the assessment at the assessment gate, approve planning, then check the plan gate: the agent stops with `plan.md`, the seven-task plan. That's the end of [C3](../../challenges/c03-assess-the-source/): the plan is approved there, and commit `app: assess and plan` is your baseline. Task execution starts in C6.
 
 ## Run the tasks
 

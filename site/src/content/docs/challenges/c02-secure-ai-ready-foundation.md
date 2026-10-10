@@ -49,7 +49,7 @@ Task 2 is a demo; there's nothing to run.
 
    The last line prints the ID you just saved. The platform lead already has it; run the same command once to record it.
 2. Watch the coach's live demo of a full portal-based Azure Landing Zone, and note what ALZ-lite deliberately leaves out (it's a comparison table in the [ALZ-lite guide](../../guides/alz-lite/), not a gap to fix).
-3. **Platform lead: deploy ALZ-lite.** Start this at the start of day one, while the team works on C1 (see Scope). In the same terminal (dev container, `factory/`), against the **shared services** subscription:
+3. **Platform lead: deploy ALZ-lite.** On Day 1 the platform lead starts this at 09:00, before joining C1, so it's finished by the demo in task 2 (09:45). In the same terminal (dev container, `factory/`), against the **shared services** subscription:
 
    ```powershell
    az account set --subscription $s.sharedSubscriptionId
@@ -72,7 +72,7 @@ Task 2 is a demo; there's nothing to run.
    ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -WhatIf
    ```
 
-   Re-run without `-WhatIf` once the plan looks right. Each run connects that workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget. It takes about 4 minutes per member. Done when each run prints "is vended". The output names subscription IDs, so redact them before you save it as evidence.
+   Re-run without `-WhatIf` once the plan looks right. Each run connects that workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget. It takes about 4 minutes per member. Done when each run prints "is vended". `Deploy-Vending.ps1` masks subscription IDs in its own summary, but the `-WhatIf` text that comes from Azure doesn't, so remove subscription IDs from anything you save before committing.
 6. **Every member (including the platform lead): record your datacenter's exemptions.** After you've been vended, run this from your own `factory/` folder against your workload subscription. Each exemption needs an owner, a reason and an expiry (the default is 14 days). Policy changes can take up to 30 minutes to take effect after ALZ-lite, so if the output says "nothing to do", wait and run it again; check `az policy assignment list --scope /providers/Microsoft.Management/managementGroups/mg-factory-corp -o table` for the `ALZ-lite:` assignments first:
 
    ```powershell

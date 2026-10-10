@@ -30,11 +30,14 @@ and `suffix` from it and show them for confirmation instead of asking:
   the user to ask their platform lead to run `scripts/Deploy-Vending.ps1` for their
   subscription (only the platform lead can; members can't) — this prompt never creates
   the spoke.
+- `azd auth status` shows you're signed in. `azd` keeps its own sign-in, separate from
+  `az login`; if it isn't signed in, run `azd auth login --use-device-code` and follow the
+  prompt, and stop to tell the user if sign-in fails.
 - `az account show --subscription <subscription-id> --query user.name -o tsv` is signed
   in interactively (not a service principal), because the SQL Managed Instance's Entra
   admin is the deploying user.
 
-## Lightweight governance check before adapting (owner decision, 2026-10-08)
+## Lightweight governance check before adapting
 
 The packaged `agent-output/university/04-governance-constraints.json` and
 `04-policy-property-map.json` are the CoE's own review evidence from the build
@@ -85,12 +88,12 @@ Once the governance check and the prerequisites pass:
    This step is required: `azd provision --preview` compiles `main.bicepparam`'s
    `readEnvironmentVariable()` calls for these same five values *before* the
    `preprovision` hook that would otherwise derive them runs, so skipping this step
-   fails with `BCP427` on a fresh azd environment (confirmed on the owner's
-   requirement 18 run; worked around the night before by running `azd hooks run
+   fails with `BCP427` on a fresh azd environment (seen on the kit's validation run;
+   it was worked around by running `azd hooks run
    preprovision` first — this step replaces that workaround with a documented one).
 5. Run `azd provision --preview` **in that same shell session** and show the user the
    full output. Tell the user: this preview only lists resource types azd has display
-   names for — on the owner's requirement 18 run it showed 12 creates and omitted the
+   names for — on the kit's validation run it showed 12 creates and omitted the
    SQL Managed Instance, the UAMI, role assignments, diagnostic settings and the
    maintenance schedule, even though they are all in the template and will be created.
    Missing from the preview list is expected, not a sign the MI won't deploy.
@@ -114,5 +117,5 @@ their next step is **As-Built** (agent `08-As-Built`, workflow step 7).
 Tell the user: this adapts the CoE archetype platform only (App Service, ACR, SQL MI,
 Storage, Service Bus, Key Vault, Application Insights) into the existing spoke. It does
 not deploy or modernize the Contoso University app itself (that's a separate
-modernization workstream, B06/B10/C6), and the SQL MI takes several minutes to
+modernization workstream, C6), and the SQL MI takes several minutes to
 provision in the background once `azd provision` runs.

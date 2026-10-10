@@ -11,7 +11,8 @@ C0 is pre-work: members do it before the event, on their own time, against their
 - `Test-Datacenter.ps1` output from before Arc onboarding: all green, including the perf kit's planted objects and data present on `vm-app01`'s SQL Server (this is what C9 depends on later — if it's missing now, the perf kit needs resetting before C9). It can't pass after Arc onboarding, so don't ask for a re-run.
 - The Arc resource for `vm-app01` showing Connected, with the SQL Server extension installed and the instance listed.
 - A screenshot or export of the first Arc migration assessment. They don't need to have acted on it — C3 is where that happens.
-- A note that Azure Hybrid Benefit is on (or why not) and the VM power state (2 of the member's 10 C0 points with the preflight output).
+- A note that Azure Hybrid Benefit is on (or why not), confirmed by the member, and the VM power state (2 of the member's 10 C0 points with the preflight output).
+- A screenshot of Copilot Chat answering in VS Code on `vm-dev01`, signed in to GitHub. It has no points row of its own. If it's missing or Copilot is blocked, it's a T-3 readiness blocker: C3 and C6 depend on it, so fix the access before the event.
 
 ## Model answer
 
@@ -22,7 +23,8 @@ Parameters come from the member's `.local/settings.json` (`$s`). `-WorkloadSubsc
 3. `./scripts/Test-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex`, with both VMs running. It must come before Arc onboarding: after it, run commands on `vm-app01` stop working and the in-VM checks fail.
 4. `./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location` — this is the kit's only Arc onboarding path; there's no portal fallback, by design (owner decision 2026-10-02).
 5. In the Arc resource's SQL Server blade, start (or review) the migration assessment.
-6. Before the event, the member may stop both VMs (`vm-app01`, `vm-dev01`) when not working, and must start them again before day one. During the event, never stop `vm-dev01`.
+6. The member connects to `vm-dev01` through Bastion, opens VS Code, signs in to GitHub and sends a message in Copilot Chat.
+7. Before the event, the member may stop both VMs (`vm-app01`, `vm-dev01`) when not working, and must start them again before day one. During the event, never stop `vm-dev01`.
 
 ## Common mistakes
 

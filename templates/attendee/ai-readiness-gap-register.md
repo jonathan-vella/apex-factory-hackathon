@@ -6,8 +6,8 @@ Filled in during C10. Be honest: where did GitHub Copilot's agents need a human 
 
 | Where | What needed a human | Why | Implication for AI readiness |
 |---|---|---|---|
-| <!-- example --> C3 | Triage of the trace-flag finding | The assessment reports a warning without the context of why it's there | Assessment output still needs an expert read, not blind automation |
-| <!-- example --> C7 | Go/no-go decision before cutover | Data-loss risk if a human doesn't confirm replication lag and source writes stopped | Migration cutover should stay a human-approved step, even in a mature pipeline |
+| <!-- example --> C2 | Deciding whether to exempt or fix a policy finding | The policy result doesn't say whether the exception is safe | Governance findings still need an expert decision, not blind automation |
+| <!-- example --> C8 | Reading a failed acceptance check | A failing check says what failed, not whether it matters for this workload | Acceptance results still need a human sign-off before handover |
 
 ## Known platform gaps (carried over, not yours to fix)
 

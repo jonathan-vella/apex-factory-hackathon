@@ -17,7 +17,7 @@ Member. **180 min**.
 
 ## Inputs
 
-C3's reviewed assessment and plan. C5's deployed archetype (for the registry and the App Service identity you'll check against, not deploy to).
+C3's reviewed assessment and approved plan (`plan.md`, committed as `app: assess and plan`; no task has started). C5's deployed archetype (for the registry and the App Service identity you'll check against, not deploy to).
 
 ## Where to run
 
