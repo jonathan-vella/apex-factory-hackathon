@@ -28,7 +28,7 @@ Scope: `app/ContosoUniversity` only.
 2. **Sign in to the registry.** The registry has no admin user and no public access, so use a token from your Azure CLI sign-in, on `vm-dev01`, where the registry name resolves to its private endpoint. The archetype gives you **AcrPush**.
 
    ```powershell
-   Set-Location C:\src\<your-repo>\app\ContosoUniversity
+   Set-Location C:\src\factory\app\ContosoUniversity
    $token = az acr login --name cruniversity<suffix> --expose-token --only-show-errors | ConvertFrom-Json
    $env:DOTNET_CONTAINER_REGISTRY_UNAME = $token.username
    $env:DOTNET_CONTAINER_REGISTRY_PWORD = $token.accessToken

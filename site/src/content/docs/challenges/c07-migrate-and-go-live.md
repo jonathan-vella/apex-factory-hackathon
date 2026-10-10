@@ -26,7 +26,7 @@ C5's deployed SQL Managed Instance. C6's modernized, packaged app, not yet point
 | 1, 2 (link, replica check) | The Azure portal (Azure Arc > SQL Server instances), in your browser. Run the replica spot-check queries in SSMS on `vm-dev01`. |
 | 3 (stop the writers) | `vm-app01` (the legacy IIS and SQL Server VM), through Bastion. Plus a check on `vm-dev01`. |
 | 4, 5 (user, secret, App Service) | `vm-dev01`, in SSMS and PowerShell. It's inside the private network, so it reaches the managed instance and Key Vault. |
-| 7 (runbook) | The team repo on your computer. |
+| 7 (runbook) | The team repo, on `vm-dev01` (copy the runbook to `evidence/c07/member-<n>/` as in [Copy your evidence to the team repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-the-team-repo)), or on your own computer. |
 
 Connect to a VM through Bastion in the portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. Get the password in your dev container, from `factory/`:
 
@@ -85,7 +85,7 @@ Never stop or deallocate `vm-dev01`: it's your workstation for the whole event.
 - The maintenance-window output from `vm-app01`: site and pool `Stopped`, an empty session list, and the lag at 0 in the Monitor and cutover pane just before you completed the cutover.
 - `https://app-university-<suffix>.azurewebsites.net/` loading, with the five pages showing the migrated data.
 - The contained database user created, and the `CREATE USER` statement used (no `WITH SID`, no `TYPE = E` — SQL MI doesn't support them).
-- The source's trace flags removed, and the cutover/rollback runbook committed.
+- The source's trace flags removed, and the cutover/rollback runbook committed to the team repo.
 
 ## Evidence note: how the cutover actually ran
 

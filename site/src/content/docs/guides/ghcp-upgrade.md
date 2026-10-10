@@ -7,7 +7,7 @@ This guide covers the mechanics of running GitHub Copilot's Upgrade agent agains
 
 ## Switching to vm-dev01
 
-From C6 you leave the dev container and work on `vm-dev01`, because the Upgrade agent's Local harness has to run next to the app and the datacenter's private network. The VM has Git, `gh`, VS Code and the Upgrade extension preinstalled.
+From C3 you leave the dev container and work on `vm-dev01`, because the Upgrade agent's Local harness has to run next to the app and the datacenter's private network. The VM has Git, `gh`, VS Code and the Upgrade extension preinstalled.
 
 1. **Get the password.** In your dev container, open a terminal, start `pwsh` and go to `factory/`:
 
@@ -23,32 +23,106 @@ From C6 you leave the dev container and work on `vm-dev01`, because the Upgrade 
 
    ```powershell
    gh auth login --web
+   gh auth setup-git
    $u = gh api user | ConvertFrom-Json
    git config --global user.name $u.login
    git config --global user.email "$($u.id)+$($u.login)@users.noreply.github.com"
    ```
 
-   Follow the device-code prompt in the VM's browser.
-4. **Open the kit.** The deployment already cloned the kit repo to `C:\src\factory`; you don't need your accelerator repo on the VM. Refresh it and open the app:
+   Follow the device-code prompt in the VM's browser. `gh auth setup-git` lets `git push` use that sign-in, so you don't type a password.
+4. **Refresh the kit clone, once.** The deployment already cloned the public kit repo to `C:\src\factory`. It's a separate copy from your own repo: the kit sits at its root, not in a `factory/` folder, and you don't need your accelerator repo on the VM. Refresh it now, before you create your work branch (step 5), and never again after that:
 
    ```powershell
-   git -C C:\src\factory pull
-   code C:\src\factory\app\ContosoUniversity
+   cd C:\src\factory
+   git switch main
+   git pull
    ```
 
    If `C:\src\factory` is missing, clone it: `git clone https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\factory`.
+5. **Connect the clone to your own repo and start your work branch, once.** The clone's `origin` is the public kit repo, and you can't push to it. Add your own repo as a second remote, named `member`, and put your work on its own branch. Replace the placeholders with your GitHub organization and the repo you created in Prerequisites:
 
-The modernization files are at `C:\src\factory\.github\modernization\`. Your work stays in this local clone: commit after each task, but there is nothing to push.
+   ```powershell
+   cd C:\src\factory
+   git remote add member https://github.com/<your-org>/<your-repo>.git
+   git switch -c vm-dev01-work
+   git push -u member vm-dev01-work
+   ```
+
+   Check it. `git remote -v` must list `origin` (the public kit) and `member` (your repo). `git branch -vv` must show `* vm-dev01-work` tracking `member/vm-dev01-work`:
+
+   ```powershell
+   git remote -v
+   git branch -vv
+   ```
+
+6. **Open the kit clone's root in VS Code**, not the `app` folder, so the Upgrade agent finds `.github/skills/` and `.github/modernization/`:
+
+   ```powershell
+   code C:\src\factory
+   ```
+
+The modernization files are at `C:\src\factory\.github\modernization\`. The app is at `C:\src\factory\app\ContosoUniversity`.
+
+## Save your work and keep the branches straight
+
+You work in **two repos**, and each has its own branch. Keep this table in mind; most confusion comes from mixing them up.
+
+| Where | Repo | Branch | What's there |
+| --- | --- | --- | --- |
+| Your dev container (C0 to C2, C5) | Your own repo | `main` | The accelerator, plus the kit in `factory/` |
+| `vm-dev01`, `C:\src\factory` (C3, C6, C7, C9) | The public kit (`origin`), connected to your repo (`member`) | `vm-dev01-work` | The kit at the repo root: the app and your changes |
+| The team repo (C1 onward) | Your team's evidence repo | `main` | Evidence only |
+
+After each task, commit and push to your branch. Because step 5 set the upstream, a plain `git push` goes to `member/vm-dev01-work`:
+
+```powershell
+cd C:\src\factory
+git add -A
+git commit -m "app: task 0N <name>"
+git push
+```
+
+Your own repo now has the `vm-dev01-work` branch next to `main`. The two branches have nothing in common (different folder layout), and that's expected.
+
+:::caution[Don't mix up the branches]
+
+- **Stay on `vm-dev01-work`** in `C:\src\factory`. Check with `git branch -vv` before you commit. Don't commit on `main` there.
+- **Don't run `git pull`** after step 4. Pulling the public kit's `main` into your work branch causes conflicts. If a coach tells you to, they'll give the exact command.
+- **Never push to `origin`.** It's the public kit and the push is refused. Push with a plain `git push`, or `git push member vm-dev01-work`.
+- **Never merge `vm-dev01-work` into your repo's `main`, or open a pull request from it.** It would put the kit at the repo root next to the accelerator and break the dev container setup. GitHub shows a "Compare & pull request" banner for the branch: ignore it. Don't delete the branch either.
+- **If `git push` says "no upstream branch"**, run `git push -u member vm-dev01-work`. **If it says permission denied** for the public kit repo, you pushed to `origin`: run `git branch -vv`, then `git push -u member vm-dev01-work`.
+- **After a coach gives you a lifeline**, you're on a `lifeline/...` branch pushed to `member`. Keep working and pushing on that branch. Your earlier `vm-dev01-work` branch stays as a backup. Don't switch back to it.
+
+:::
+
+### Copy your evidence to the team repo
+
+Your assessors read the team repo, not your work branch. After a challenge, copy its evidence there (clone the team repo once, then repeat the rest). You need write access to it, from C1. Replace `<n>` with your member index and `c03` with the challenge:
+
+```powershell
+git clone https://github.com/<your-org>/<team-repo>.git C:\src\team-repo
+cd C:\src\team-repo
+git pull
+$dest = "evidence\c03\member-<n>"
+New-Item -ItemType Directory -Force $dest | Out-Null
+Copy-Item C:\src\factory\.github\upgrades\scenarios\dotnet-version-upgrade\assessment.md $dest
+git add $dest
+git commit -m "C3: member <n> assessment"
+git pull --rebase
+git push
+```
+
+The team repo is a different repo with its own `main`: this is the only place where you `git pull`. Don't commit tenant IDs, subscription IDs or secrets. Screenshots and exported reports go in the same folder.
 
 ## Where to run
 
-Every command on this page runs on `vm-dev01`: the deployment cloned the kit to `C:\src\factory`, and the Upgrade agent works in the kit clone's `app\ContosoUniversity`. Connect through Bastion first: see [Switching to vm-dev01](#switching-to-vm-dev01). Don't run these in the dev container.
+Every command on this page runs on `vm-dev01`: the deployment cloned the kit to `C:\src\factory`, and the Upgrade agent works in that clone, on your `vm-dev01-work` branch. Connect through Bastion first: see [Switching to vm-dev01](#switching-to-vm-dev01). Don't run these in the dev container.
 
 ## Setup
 
-On your dev VM, after the steps above: sign in to Azure with device-code flow (`az login --use-device-code`), set the user-level environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` (the VM's own managed identity has no data-plane roles — every Azure SDK call in the app needs your own identity instead), and work from your clone's `app/ContosoUniversity`.
+On your dev VM, after the steps above: sign in to Azure with device-code flow (`az login --use-device-code`), set the user-level environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` (the VM's own managed identity has no data-plane roles — every Azure SDK call in the app needs your own identity instead), and work from `C:\src\factory`, on your `vm-dev01-work` branch.
 
-Open the repo in VS Code with the GitHub Copilot Upgrade extension installed. Use the **Local** harness and the **Upgrade** agent — not the Copilot coding agent harness, which runs remotely and can't reach the dev VM's local SQL Server or the datacenter's private network.
+Open `C:\src\factory` in VS Code with the GitHub Copilot Upgrade extension installed. Use the **Local** harness and the **Upgrade** agent — not the Copilot coding agent harness, which runs remotely and can't reach the dev VM's local SQL Server or the datacenter's private network.
 
 ## Assess and plan
 
