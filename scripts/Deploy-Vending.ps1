@@ -15,11 +15,12 @@ log-management) and prints what it found. Then it:
   firewall, snet-sqlmi sends the datacenter range, snet-servers sends the spoke range and keeps internet
   egress on the NAT gateway;
 - adds rule collection group rcg-member-n to afwp-hub;
-- gives the member Owner on the workload subscription and Managed Identity Operator on id-sqlmi-directory
-  (if -MemberPrincipalId is set), adds a monthly
+- gives the member Owner on the workload subscription, Reader on the shared services subscription (so
+  Test-Connectivity.ps1 and the archetype preflight can read the hub with their own sign-in) and Managed
+  Identity Operator on id-sqlmi-directory (all three only if -MemberPrincipalId is set), adds a monthly
   budget with an alert at 80%, and sets Defender for Cloud to Foundational CSPM only (unless -SkipDefender).
 The platform lead runs it for every member, because it writes to the shared services subscription;
-members need no other role there. It needs Owner at the Tenant Root management group. Run it after the
+members get only the Reader and Managed Identity Operator grants above. It needs Owner at the Tenant Root management group. Run it after the
 datacenter exists, and again after any datacenter redeploy, which resets the datacenter's DNS servers
 and route table. A re-run converges. Use -WhatIf to see the changes without deploying.
 .PARAMETER WorkloadSubscriptionId
@@ -33,8 +34,9 @@ The Azure region. Fallback: germanywestcentral.
 .PARAMETER MgPrefix
 Prefix of the kit's management groups, as passed to Deploy-AlzLite.ps1.
 .PARAMETER MemberPrincipalId
-Object ID of the member (user or group), who gets Owner on the workload subscription and Managed Identity
-Operator on id-sqlmi-directory, so the archetype can attach it to their SQL Managed Instance. Optional.
+Object ID of the member (user or group), who gets Owner on the workload subscription, Reader on the shared
+services subscription and Managed Identity Operator on id-sqlmi-directory, so the archetype can attach it
+to their SQL Managed Instance. Optional.
 .PARAMETER BudgetAmount
 Monthly budget on the workload subscription, in the billing currency.
 .PARAMETER BudgetEmail
@@ -174,6 +176,7 @@ Vending member $MemberIndex to ${Location}:
   Datacenter         $(if ($connectDatacenter) { 'vnet-datacenter peered with the hub, DNS and rt-servers set' } else { 'not found: not connected. Re-run after deploying it.' })
   Firewall rules     rcg-member-$MemberIndex in afwp-hub
   Owner              $(if ($MemberPrincipalId) { $MemberPrincipalId } else { 'skipped (no -MemberPrincipalId)' })
+  Hub Reader         $(if ($MemberPrincipalId) { 'the member, on the shared services subscription' } else { 'skipped (no -MemberPrincipalId)' })
   Budget             $BudgetAmount a month from $budgetStart, alert at 80% to $BudgetEmail
   Defender for Cloud $(if ($SkipDefender) { 'left as it is (-SkipDefender)' } else { 'Foundational CSPM only on the workload subscription' })
 Cost: no hourly cost. Peering traffic is billed per GB, and the hub's firewall processes it.

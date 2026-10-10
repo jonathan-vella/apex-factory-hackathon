@@ -40,7 +40,7 @@ param dnsZoneResourceGroupId string
 @description('Resource ID of log-management.')
 param logAnalyticsWorkspaceId string
 
-@description('Object ID of the member, who gets Owner on the workload subscription and Managed Identity Operator on id-sqlmi-directory. Empty: skipped.')
+@description('Object ID of the member, who gets Owner on the workload subscription, Reader on the shared services subscription and Managed Identity Operator on id-sqlmi-directory. Empty: skipped.')
 param memberPrincipalId string = ''
 
 @description('Monthly budget on the workload subscription, in the billing currency.')
@@ -123,6 +123,14 @@ module firewallRules 'modules/firewall-rules.bicep' = {
 module sqlMiIdentityOperator 'modules/sqlmi-identity-operator.bicep' = if (!empty(memberPrincipalId)) {
   scope: resourceGroup(sharedSubscriptionId, 'rg-management')
   name: 'vending-sqlmi-identity-${memberIndex}'
+  params: {
+    memberPrincipalId: memberPrincipalId
+  }
+}
+
+module hubReader 'modules/hub-reader.bicep' = if (!empty(memberPrincipalId)) {
+  scope: subscription(sharedSubscriptionId)
+  name: 'vending-hub-reader-${memberIndex}'
   params: {
     memberPrincipalId: memberPrincipalId
   }

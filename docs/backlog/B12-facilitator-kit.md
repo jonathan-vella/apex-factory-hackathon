@@ -46,7 +46,7 @@
 ### APEX demo
 
 10. `facilitator/apex-demo.md`: a 30-minute demo script for the event deliverer: what APEX is, how the archetype was built (steps 1–5 with the challenger reviews), and a live Deploy of the archetype. Timings per section and what to say.
-11. 🧑 HUMAN: the owner records the demo as the fallback video, and gives the executor the link to put in the script.
+11. The coach gives the demo live. There is no recorded fallback.
 
 ### Cost
 
@@ -78,7 +78,7 @@ npm run check
 - [ ] Every facilitator file exists and matches the B11 contract.
 - [ ] The rubric totals are enforced by the content checks.
 - [ ] The cleanup script exists and passes static checks.
-- [ ] The demo recording link is in the demo script.
+- [ ] The demo script is for a live demo by a coach (no recording).
 
 ## Commit message
 

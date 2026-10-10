@@ -46,7 +46,7 @@ If the event owner wants the subscriptions returned to a management group other 
 ./scripts/Remove-FactoryEnvironment.ps1 -Scope Team -SharedSubscriptionId $s.sharedSubscriptionId -MgPrefix mg-factory
 ```
 
-Team cleanup removes the named kit policy assignments and datacenter exemptions, vending budgets, kit firewall rule groups and peerings, policy-created diagnostic role assignments and vending's Managed Identity Operator grants. It deletes `rg-hub` and the `log-management` workspace. It preserves `rg-management`, `id-sqlmi-directory` and that identity's Microsoft Graph grant, then moves the kit subscriptions back and deletes only `<prefix>-corp`, `<prefix>-platform` and `<prefix>`.
+Team cleanup removes the named kit policy assignments and datacenter exemptions, vending budgets, kit firewall rule groups and peerings, policy-created diagnostic role assignments and vending's Managed Identity Operator and Reader grants. It deletes `rg-hub` and the `log-management` workspace. It preserves `rg-management`, `id-sqlmi-directory` and that identity's Microsoft Graph grant, then moves the kit subscriptions back and deletes only `<prefix>-corp`, `<prefix>-platform` and `<prefix>`.
 
 ## Post-event access
 
@@ -60,7 +60,7 @@ Also remove access that was only needed for the event: the platform lead's Owner
 - Confirm the Arc machine `vm-app01` and its SQL Server instance are absent; the exact soft-deleted archetype Key Vault has been purged.
 - Confirm the shared `rg-hub`, `log-management`, `budget-factory-workload`, `rcg-member-<n>`, `alzl-*` policy assignments and kit exemptions are absent.
 - Confirm every workload and shared-services subscription is under the event owner's return management group, and the kit management groups are absent.
-- Confirm `rg-management/id-sqlmi-directory` and its Graph grant remain. Only vending-created Managed Identity Operator and diagnostic policy role assignments are removed.
+- Confirm `rg-management/id-sqlmi-directory` and its Graph grant remain. Only vending-created Managed Identity Operator and Reader assignments and diagnostic policy role assignments are removed.
 - Confirm no billable kit resources remain. Do not interpret an empty resource-group query alone as proof: check the Arc resources, budgets, policy artifacts and management-group placement too. The challenges create nothing outside the kit's named groups: the Arc assessment is on the Arc SQL Server instance, the C6 image is in the registry in `rg-university-<suffix>`, and the C7 secret is in that group's Key Vault.
 
 If an MI subnet association has not released, the member cleanup stops before deleting the VNet and reports the timeout. Wait for the provider to release the subnet and rerun the same member cleanup; do not force-delete the VNet or manually remove its service association.

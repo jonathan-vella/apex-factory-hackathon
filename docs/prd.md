@@ -34,7 +34,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | Messaging | MSMQ → Service Bus Premium (1 MU) with a private endpoint, deployed by the archetype |
 | Compute | App Service for Linux (containers) only. AKS is a future archetype that teams can argue for in a C4 ADR |
 | Archetype | Pre-built by the CoE with APEX (steps 1–5 done) and demoed by a coach. Members adapt it with an agent and deploy it with `azd` (APEX's IaC is built for `azd`), supplying tenant ID, subscription ID and a unique suffix; the As-Built agent then documents what's live. Agents never change Azure for members: `azd` does (owner decision 2026-10-07) |
-| Data migration | Arc portal migration with **MI link** (online, read-only replica, planned cutover). Rollback means aborting before cutover; a clean reseed-after-abort is the bonus. Log Replay Service (LRS) is the fallback |
+| Data migration | Arc portal migration with **MI link** (online, read-only replica, planned cutover). Rollback means aborting before cutover; a clean reseed after a real, unplanned abort is the bonus (the coach-staged abort earns none). Log Replay Service (LRS) is the fallback |
 | AI | AI-readiness review only. No AI services are deployed |
 | Copilot models | Dated guidance from the B06 golden path, recorded in `versions.md`: Claude Opus 5.5 at Medium to assess and plan, Claude Sonnet 5.5 at Medium to execute each task. Re-validate when models change |
 | Learning path | A site page maps each challenge to Microsoft Learn content and credentials, for Microsoft partners on any qualification track. Hands-on first: exams follow the event and finish within 9 months. Core: AZ-104, GH-300 and DP-300, all three mandatory for everyone in an infra role, within 6 months. Then AZ-305, AZ-400, SC-500, AZ-700, AI-200, plus AKS and Container Apps learning. Optional "next" stage: DP-800, GH-600, AI-103. It targets the Infra and Database Migration and App Modernization specializations. Applied Skills are stepping stones, not gates. Coach certifications are recommended, not required. No exam offers (owner decision 2026-10-06) |
@@ -151,7 +151,7 @@ flowchart LR
 - **Migration:**
   - Arc portal MI link, with hub firewall and NSG rules for 5022 and 11000–11999, plus certificates.
   - Validate the read-only replica with the admin login. The replica stays read-only until cutover, so the DB user for the App Service identity is created only after cutover removes the link. Then switch the app over.
-  - Rollback means aborting before cutover (the app stays on the source). Bonus: a clean reseed-after-abort, with the MI copy cleaned up.
+  - Rollback means aborting before cutover (the app stays on the source). Bonus: a clean reseed after a real, unplanned abort, with the MI copy cleaned up. The coach-staged abort earns no bonus.
   - SQL Agent jobs and logins move separately (a teaching point).
   - LRS is the fallback. It's promoted to the golden path if the MI link spike fails.
 - **DB optimization:** planted issues live in DB objects and the workload, so they survive the app upgrade. The schema has real targets: TPH `Person`, many-to-many course assignments, a `LIKE '%x%'` student search, multi-Include instructor queries and enrollment statistics. A workload generator runs the load, and Query Store provides the before/after evidence.
