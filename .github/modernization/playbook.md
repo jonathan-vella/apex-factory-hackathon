@@ -30,7 +30,7 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
 
 - **Scope.** Only `app/ContosoUniversity` and `.github/upgrades/` change. Before every commit, `git status --short -- . ':!app' ':!.github/upgrades'` must print nothing. If it prints anything, restore it with `git restore` before you commit.
 - **Run the app after every task.** The agent's own validation can pass without the app ever starting. Build, `dotnet run`, open the pages, then commit.
-- **Commit and push after every task**, before the next one starts: `git add -A`, `git commit -m "app: task 0N <name>"`, `git push`. The scenario uses manual commits, so the agent doesn't commit for you.
+- **Commit and push after every task**, before the next one starts, on your `vm-dev01-work` branch: `git add -A`, `git commit -m "app: task 0N <name>"`, `git push`. The push goes to your own repo (the `member` remote), not the public kit. Check `git branch -vv` before you commit, and don't run `git pull`: the [guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) lists the branch rules. The scenario uses manual commits, so the agent doesn't commit for you.
 - **Local runs** need `ASPNETCORE_ENVIRONMENT=Development`. `dotnet run` sets it from the launch profile; `dotnet run --no-launch-profile` starts in Production, which refuses the on-premises SQL login.
 - **Names.** `<suffix>` is your archetype suffix and `<n>` your member number. The archetype's resources are in `rg-university-<suffix>`: `stuniversity<suffix>`, `sbns-university-<suffix>`, `kv-university-<suffix>`, `cruniversity<suffix>`, `appi-university-<suffix>`, `sqlmi-university-<suffix>`, `id-university-<suffix>` and `app-university-<suffix>`.
 - **Stuck?** After two attempts at a step, ask your coach.
@@ -66,17 +66,17 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
 
    Set it only on `vm-dev01`. On App Service the app uses its managed identity.
 
-4. Clone your repo to `C:\src`, then make the tree pure legacy. Leftover plans, skills and build output from an earlier attempt steer the agent:
+4. Use the kit clone and your work branch, then make the tree pure legacy. The deployment cloned the kit to `C:\src\factory`; the [GHCP upgrade guide](https://factory.apexops.pro/guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 4 and 5) connects it to your own repo as the `member` remote and creates your work branch `vm-dev01-work`. Do those steps first. Leftover plans, skills and build output from an earlier attempt steer the agent:
 
    ```powershell
-   git clone https://github.com/<your-org>/<your-repo>.git C:\src\<your-repo>
-   Set-Location C:\src\<your-repo>
+   Set-Location C:\src\factory
+   git branch -vv                       # must show * vm-dev01-work tracking member/vm-dev01-work
    git clean -ndx -- app .github        # dry run: read the list
    git clean -fdx -- app .github
    git status --short --ignored -- app .github   # must print nothing
    ```
 
-5. Open the folder in VS Code (`code .`). Check that **GitHub Copilot upgrade** is installed and enabled. If **GitHub Copilot modernization** is installed, disable it for the workspace (**Extensions** > **GitHub Copilot modernization** > **Disable (Workspace)**).
+5. Open the clone's root in VS Code (`code C:\src\factory`), so the agent finds `.github/skills/` and `.github/modernization/`. Check that **GitHub Copilot upgrade** is installed and enabled. If **GitHub Copilot modernization** is installed, disable it for the workspace (**Extensions** > **GitHub Copilot modernization** > **Disable (Workspace)**).
 6. In the Chat panel, set the harness (**Session Target**) to **Local**. Give the Upgrade server model access once: **MCP: List Servers** > **Upgrade** > **Configure Model Access**, and allow the models you'll use.
 
 **Check:** `az account show` names your workload subscription, `git status --short` prints nothing, and the agent picker lists **Upgrade**.
@@ -137,7 +137,7 @@ For each task, in order:
 Task 01 gives the project a new `UserSecretsId`, so set your user secrets **after** task 01, and again whenever the `UserSecretsId` changes:
 
 ```powershell
-Set-Location C:\src\<your-repo>\app\ContosoUniversity
+Set-Location C:\src\factory\app\ContosoUniversity
 dotnet user-secrets set 'ConnectionStrings:DefaultConnection' 'Server=10.10.<n>.4;Database=ContosoUniversity;User Id=contosoapp;Password=FactoryLab-2026-Pw;TrustServerCertificate=True;MultipleActiveResultSets=True'
 dotnet user-secrets set 'Storage:BlobServiceUri' 'https://stuniversity<suffix>.blob.core.windows.net'
 dotnet user-secrets set 'Storage:ContainerName' 'teaching-materials'
@@ -162,7 +162,7 @@ User secrets live outside the repo, so nothing here is committed. The SQL login 
 Task 05's checks. The Production runs read `KeyVault:VaultUri` from the environment, because user secrets load only in Development:
 
 ```powershell
-Set-Location C:\src\<your-repo>\app\ContosoUniversity
+Set-Location C:\src\factory\app\ContosoUniversity
 dotnet run                                       # A: Development, no vault: pages work
 $env:ASPNETCORE_ENVIRONMENT = 'Production'
 dotnet run --no-launch-profile                   # B: refuses to start, KeyVault:VaultUri is missing
@@ -211,7 +211,7 @@ To use a skill, ask in a new chat with agent **Upgrade** or **Agent**: `Use the 
 **Goal:** the image in your private registry, built without Docker. The `sdk-container-publish` skill has the details.
 
 ```powershell
-Set-Location C:\src\<your-repo>\app\ContosoUniversity
+Set-Location C:\src\factory\app\ContosoUniversity
 $token = az acr login --name cruniversity<suffix> --expose-token --only-show-errors | ConvertFrom-Json
 $env:DOTNET_CONTAINER_REGISTRY_UNAME = $token.username
 $env:DOTNET_CONTAINER_REGISTRY_PWORD = $token.accessToken

@@ -21,7 +21,7 @@ C7's app, live against SQL MI. The perf kit's planted workload and data (200k st
 
 ## Where to run
 
-Everything runs on `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)), in PowerShell 7 and SSMS on the VM, in your kit clone at `C:\src\factory`. Use your own identity (not the VM's managed identity: it has no data access), so the workload signs you in with a browser prompt. Never stop the VM during C9.
+Everything runs on `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)), in PowerShell 7 and SSMS on the VM, in your kit clone at `C:\src\factory`, on your `vm-dev01-work` branch (check with `git branch -vv`; see the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight)). Use your own identity (not the VM's managed identity: it has no data access), so the workload signs you in with a browser prompt. Never stop the VM during C9.
 
 Set up once per PowerShell window:
 
@@ -59,7 +59,7 @@ $mi
 
 - Before and after Query Store screenshots or exported reports for each of the five fixes.
 - The snapshot script's output for the baseline and after each fix, labelled with its window.
-- The five fix scripts you ran, committed.
+- The five fix scripts you ran, committed and pushed to `vm-dev01-work` in your own repo, and copied to the team repo's `evidence/c09/member-<n>/` as in [Copy your evidence to the team repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-the-team-repo).
 - A one-line summary of what each fix changed and by how much.
 
 ## Hints

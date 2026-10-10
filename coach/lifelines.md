@@ -37,9 +37,9 @@ A lifeline is for a member who is blocked, not slow: they've tried the playbook'
 
 ## How to apply one
 
-Template copies don't include non-default branches, so fetch the lifeline from the upstream repo into the member's repo. On `vm-dev01`, in the member's clone, with the member:
+The member's work lives in a clone of the public kit, so lifeline branches are already available from its `origin`. On `vm-dev01`, in `C:\src\factory`, with the member. First check which branch they're on: `git branch -vv` shows `* vm-dev01-work` tracking `member/vm-dev01-work` (see the [upgrade guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight)). If the `member` remote is missing, add it first (guide, step 5).
 
-1. Save the member's work, so nothing is lost:
+1. Save the member's work, so nothing is lost. It stays on `vm-dev01-work` as a backup:
 
    ```powershell
    git add -A
@@ -47,13 +47,15 @@ Template copies don't include non-default branches, so fetch the lifeline from t
    git push
    ```
 
-2. Fetch the lifeline, switch to it and push it to the member's repo:
+2. Fetch the lifeline from the public kit, switch to it and push it to the member's repo as a branch with the same name:
 
    ```powershell
-   git fetch https://github.com/jonathan-vella/apex-factory-hackathon.git lifeline/L3-servicebus:lifeline/L3-servicebus
+   git fetch origin lifeline/L3-servicebus:lifeline/L3-servicebus
    git switch lifeline/L3-servicebus
-   git push -u origin lifeline/L3-servicebus
+   git push -u member lifeline/L3-servicebus
    ```
+
+   From now on the member commits and pushes on the lifeline branch with a plain `git push`. Tell them not to switch back to `vm-dev01-work`.
 
    If GitHub refuses the push because the token lacks the `workflow` scope (the lifeline carries the kit's workflow files), run `gh auth refresh -h github.com -s workflow` and push again.
 

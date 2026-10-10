@@ -21,9 +21,9 @@ C0's first Arc migration assessment. C2's foundation doesn't need to be finished
 
 ## Where to run
 
-- **Upgrade agent assessment (task 1):** on `vm-dev01`, in VS Code opened on `C:\src\factory\app\ContosoUniversity`. Connect through Bastion as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01). Don't use the dev container: the Local harness has to run next to the app.
+- **Upgrade agent assessment (task 1):** on `vm-dev01`, in VS Code opened on `C:\src\factory`, on your `vm-dev01-work` branch. Connect through Bastion and set up the branch as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 1 to 6). Don't use the dev container: the Local harness has to run next to the app.
 - **Arc assessment (task 2):** the Azure portal, in your browser.
-- **Triage record (tasks 3 to 6):** the team repo, in `evidence/c03/member-<n>/` on your computer (see [the team repo](../c01-define-the-opportunity/#the-team-repo-what-it-is-and-how-to-set-it-up)).
+- **Triage record (tasks 3 to 6):** the team repo, in `evidence/c03/member-<n>/`. Copy `assessment.md` there from the VM, as in [Copy your evidence to the team repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-the-team-repo), and write the triage table in the same folder (see [the team repo](../c01-define-the-opportunity/#the-team-repo-what-it-is-and-how-to-set-it-up)).
 
 ## Your tasks
 

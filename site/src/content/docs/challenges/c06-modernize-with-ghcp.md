@@ -21,11 +21,11 @@ C3's reviewed assessment and plan. C5's deployed archetype (for the registry and
 
 ## Where to run
 
-Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShell on the VM, in your clone of the kit at `C:\src\factory`. Connect through Bastion first: see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01). The only exceptions are the portal checks in task 5, which you can do in any browser.
+Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShell on the VM, in your clone of the kit at `C:\src\factory`, on your `vm-dev01-work` branch. Connect through Bastion and set up the branch first: see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01). The only exceptions are the portal checks in task 5, which you can do in any browser.
 
 ## Your tasks
 
-1. Switch to `vm-dev01` as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01), then follow the [GHCP upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone: harness **Local**, agent **Upgrade**, one task per new chat, build and run the app after every task, commit before the next.
+1. Switch to `vm-dev01` as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (you did most of this in C3), then follow the [GHCP upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone: harness **Local**, agent **Upgrade**, one task per new chat, build and run the app after every task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once.
 2. Run all seven tasks in order: .NET 10 and ASP.NET Core MVC; SQL Managed Instance; Blob; Service Bus; Key Vault; OpenTelemetry; CVE audit. Each task's check is in the playbook's task table — don't skip a check to save time.
 3. Close the gaps the tasks don't fully cover, using the three skills in `.github/skills/` if a check fails.
 4. Package the app with .NET SDK container publishing (no Dockerfile) and push it to your archetype's private registry.
@@ -33,7 +33,7 @@ Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShe
 
 ## Evidence
 
-- Seven task commits (`app: task 0N <name>`), each preceded by a passing build and a local run.
+- Seven task commits (`app: task 0N <name>`), each preceded by a passing build and a local run, pushed to `vm-dev01-work` in your own repo. Copy your screenshots and notes to the team repo as in [Copy your evidence to the team repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-the-team-repo), in `evidence/c06/member-<n>/`.
 - The app running on `vm-dev01` against the source database, with uploads landing in Blob, a notification toast appearing within 5 seconds of an edit, and telemetry reaching Application Insights.
 - `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` reporting nothing, or a documented remediation.
 - The image tag in your registry (`az acr repository show-tags`).
