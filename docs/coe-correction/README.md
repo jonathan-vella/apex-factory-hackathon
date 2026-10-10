@@ -38,7 +38,8 @@ These stay on the old device. Plan for each one.
 
 | Item | Where | What to do |
 |---|---|---|
-| Signing private keys | `%USERPROFILE%\.apex-risk\private\` (3 files) | Copy them over a secure channel (password manager or encrypted transfer). Never commit them or paste them into chat. See [Keys](#keys) if they are lost. |
+| Signing private keys | `~/.apex-risk/private/` (`%USERPROFILE%\.apex-risk\private\` on Windows), 3 files | Copy them over a secure channel, then run `risk.mjs restore`. See [Keys](#keys). Never commit them or paste them into chat. |
+| Kit settings | `.local/settings.json` in the kit repo (gitignored) | Copy it to the same place on the new device. It holds tenant and subscription values, so never commit or print it. |
 | Trust file and pins | Inside the dev container, `~/.apex-risk/risk-trust.json`, plus two `export` lines in `~/.bashrc` | Regenerate with `risk.mjs trust` and pin again. |
 | The working copy | A Docker volume on the old machine | Clone the branch again. Everything is pushed. |
 | Copilot app sessions and their history | The old device | Not needed. This folder and the issues carry the state. |
@@ -50,16 +51,40 @@ These stay on the old device. Plan for each one.
 2. Clone the CoE repo and check out `fix/university-52-60-wip`. On Windows, use **Dev Containers: Clone Repository in Container Volume**. A plain bind mount of a Windows checkout failed earlier because the Git pointer and file ownership are wrong inside Linux. On Linux or macOS a normal open should work, but this is unverified.
 3. Let the repo's dev container finish its post-create steps. They install `apex-recall` and the tools. Check `apex-recall --help` works.
 4. Add the Azure MCP mapping to `.vscode/settings.json` under `chat.mcp.serverSampling`. The key includes the workspace folder name, for example `"<folder-name>/.vscode/mcp.json: azure-mcp"`, so it differs from the old device's `coe-linux-source`.
-5. Restore the signing keys (see below), then create the trust file and pins.
-6. Send `resume-prompt.md` to the default Agent chat. It does read-only checks and stops.
+5. Restore the signing keys (see [Keys](#keys)), then create the trust file and pins.
+6. Send the prompt for the repo you are working in from [prompts.md](prompts.md). Each one first checks you are on the right branch and fixes it safely, then does read-only checks and stops.
 
 ## Keys
 
-Three keys exist: `lab-kit-owner`, `lab-eligibility-reviewer` and `lab-rule-authority`. All are held by the owner, so the records show separate keys and principals, not separation of duties.
+Three keys exist: `lab-kit-owner`, `lab-eligibility-reviewer` and `lab-rule-authority`. All are held by the owner, so the records show separate keys and principals, not separation of duties. Their public fingerprints are recorded in `risk-signing/settings.json` and in the signed records:
 
-- **Preferred:** copy the three files in `%USERPROFILE%\.apex-risk\private\` (and the `public\` folder) to the same place on the new device. Then everything signed so far stays valid.
-- **If the keys are lost:** key IDs are fixed, so new keys under the same IDs cannot verify the existing signatures. Step 4's stored authorization would then fail revalidation. Do not improvise. Ask in the upstream repo how to re-issue records, and expect to re-sign everything at a new revision. This path is untested.
-- **Expiry:** the trust file, authorization and approval are valid until 2026-11-09. After that, re-sign at a new revision (see the runbook).
+| Key | Public fingerprint |
+|---|---|
+| `lab-kit-owner` | `abb903b2b140163b` |
+| `lab-eligibility-reviewer` | `af4b931d085ef615` |
+| `lab-rule-authority` | `668346513c4aca95` |
+
+### Restore the keys on the new device
+
+1. On the old device, put a copy of the folder that contains `private\` and `public\` (the `.apex-risk` folder) in a place you can reach from the new device. Cloud-synced storage works as a temporary transfer point. Never put it in a Git repo, an issue, a PR or a chat.
+2. On the new device, from the root of the kit repo (Node 24 required):
+
+   ```powershell
+   node docs/coe-correction/risk-signing/risk.mjs restore --from "<folder that contains private and public>"
+   ```
+
+   It checks that each private key matches its public key and the fingerprint above, refuses to overwrite a different existing key, and locks the private files to your account. Expect three lines ending in `restored and verified`. If it reports a fingerprint mismatch, these are not the keys that signed the records. Stop and do not generate new keys.
+3. Delete the transfer copy, then empty the recycle bin of the sync service and of the device. Keep the keys only in `~/.apex-risk` (`%USERPROFILE%\.apex-risk` on Windows).
+4. Create the trust file and pins for the container: `node docs/coe-correction/risk-signing/risk.mjs trust` prints the new `APEX_RISK_TRUST_SHA256`. Copy `out/risk-trust.json` into the container as `~/.apex-risk/risk-trust.json` (mode 600) and set the two `APEX_RISK_*` variables in `~/.bashrc`. The runbook has the exact commands. The trust file embeds timestamps, so its hash is new each time; pin the one you installed.
+5. Check from a new container terminal: `env | grep -c APEX_RISK` prints `2`, then `apex-recall check-gate university --action codegen --json` reports `exception-authorized`.
+
+### If the keys are lost
+
+Key IDs are fixed, so new keys under the same IDs cannot verify the existing signatures, and Step 4's stored authorization would then fail revalidation. Do not improvise. Ask in the upstream repo how to re-issue records, and expect to re-sign everything at a new revision. This path is untested.
+
+### Expiry and rotation
+
+The trust file, authorization and approval are valid until 2026-11-09. After that, re-sign at a new revision (see the runbook). That is also a good moment to generate fresh keys and update the fingerprints in `settings.json`, because new records signed by new keys replace the old ones.
 
 ## Finish the correction
 

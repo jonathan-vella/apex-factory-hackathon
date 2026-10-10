@@ -11,7 +11,7 @@ Replace `<container>` with the dev container's name (`docker ps`). Commands use 
 | File | Purpose |
 |---|---|
 | `settings.json` | The drafts to review and own: classifications, rationale, residual impact, exception text, actions, validity. |
-| `risk.mjs` | `keygen`, `evidence`, `trust`, `sign eligibility`, `sign exception`, `sign authorization`, `sign approval`. |
+| `risk.mjs` | `keygen`, `restore --from <folder>`, `evidence`, `trust`, `sign eligibility`, `sign exception`, `sign authorization`, `sign approval`. |
 | `collect-facts.mjs` | Read-only. Run in the container to print review hashes and metadata. |
 | `test-e2e.mjs` | End-to-end test against the real evaluator. |
 
@@ -20,7 +20,7 @@ Replace `<container>` with the dev container's name (`docker ps`). Commands use 
 Revision 1 authorized `plan-complete` and `codegen`. These are the steps, for reference or a repeat.
 
 1. **Read `settings.json`.** You are the signer. Edit anything that is not true.
-2. **Keys, once:** `node risk.mjs keygen`. It refuses to overwrite existing keys.
+2. **Keys, once:** `node risk.mjs keygen`. It refuses to overwrite existing keys. On a new device, use `node risk.mjs restore --from <folder>` instead, so the existing signatures stay valid. It checks the public fingerprints recorded in `settings.json`.
 3. **Facts from the container:**
 
    ```powershell
