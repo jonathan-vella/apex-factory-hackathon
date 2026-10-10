@@ -3,7 +3,7 @@
 The DB perf kit gives the `ContosoUniversity` database realistic volume and five planted performance issues, for C9 (Optimize the DB with GHCP). The datacenter deployment installs it on `vm-app01`, and a workload generator on `vm-dev01` makes the issues show up in Query Store, against the source SQL Server before migration and against SQL MI after it.
 
 > [!WARNING]
-> The answers, with the fixes and the before and after numbers, are in [`coach/c9-db-optimization.md`](../../coach/c9-db-optimization.md). Coach material is public, on the honor system: attendees shouldn't read it.
+> The answers, with the fixes and the before and after numbers, are in [`coach/c09-optimize-the-db-with-ghcp.md`](../../coach/c09-optimize-the-db-with-ghcp.md). Coach material is public, on the honor system: attendees shouldn't read it.
 
 ## What's planted
 
@@ -67,7 +67,7 @@ After cutover, against SQL MI, which is Entra-only. On `vm-dev01`, use `ActiveDi
 |---|---|---|
 | `Server` | `10.10.n.4` | The source SQL Server, from `MemberIndex`. After cutover, the SQL MI host name |
 | `MemberIndex` | `1` | 1–20 |
-| `Authentication` | `SqlPassword` | `SqlPassword` connects as `contosoapp`, with the password from `$HOME/.apex-factory/<subscription-id>/datacenter.json` if it's on the machine, or the documented lab password. `ActiveDirectoryDefault` uses the signed-in Entra identity (`az login`, or Visual Studio Code), for SQL MI. `ActiveDirectoryInteractive` signs you in in a browser, once per run. Use it on `vm-dev01`: the VM has a managed identity, so `ActiveDirectoryDefault` signs in as the VM, not as you, and the MI refuses the login |
+| `Authentication` | `SqlPassword` | `SqlPassword` connects as `contosoapp`, with the `-SqlPassword` you pass, else the password in `.local/<subscription-id>/datacenter.json` in the kit folder if it's there, else the documented lab password. The VM's clone of the kit has no `.local` folder: if you deployed the datacenter with `-SqlAppPassword`, pass that password as `-SqlPassword` on `vm-dev01`. `ActiveDirectoryDefault` uses the signed-in Entra identity (`az login`, or Visual Studio Code), for SQL MI. `ActiveDirectoryInteractive` signs you in in a browser, once per run. Use it on `vm-dev01`: it signs in as you, and doesn't depend on `az login` or on what the VM itself holds |
 | `DurationMinutes` | `15` | |
 | `Concurrency` | `8` | Connections running queries at the same time |
 
@@ -75,7 +75,7 @@ It needs only the `SqlServer` module, and installs it for the current user if it
 
 ## Capture before and after numbers
 
-[`Get-QueryStoreSnapshot.sql`](Get-QueryStoreSnapshot.sql) is a read-only report for C9's evidence. Run it in SSMS against `ContosoUniversity` after each workload run, with the run's UTC window and a label such as `baseline` or `after-P1`. For each query and plan it gives the executions and the average duration, CPU and logical reads, weighted by execution count, using only the whole 5-minute Query Store intervals inside the window. It changes nothing. Don't run `Reset-PerfKit.ps1` between a baseline and its re-runs: it clears Query Store.
+[`Get-QueryStoreSnapshot.sql`](Get-QueryStoreSnapshot.sql) is a read-only report for C9's evidence. Run it in SSMS against `ContosoUniversity` after each measured workload run (a baseline, then a run after each group of fixes), with the run's UTC window and a label such as `baseline` or `after-checkpoint-1`. For each query and plan it gives the executions and the average duration, CPU and logical reads, weighted by execution count, using only the whole 5-minute Query Store intervals inside the window, plus the executions per interval so you can see that the window holds only your run. It changes nothing. Start each run at least five minutes after the previous one finished, so two runs never share an interval, and don't run `Reset-PerfKit.ps1` between a baseline and its re-runs: it clears Query Store.
 
 ## Reset
 
@@ -86,10 +86,11 @@ To re-run C9, or run it standalone, put the issues back:
 ./db/perf-kit/Reset-PerfKit.ps1 -Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive
 ```
 
-It takes the same `Server`, `MemberIndex` and `Authentication` parameters as the workload, and runs `02`, `03`, `04` and then `90-reset.sql`, which drops every index added to the app's tables since `EnsureCreated()`, whatever its name, and clears Query Store. It doesn't touch the data. The login needs `db_owner`: `contosoapp` on the source, the MI Entra admin on MI. While MI link is running, the replica on MI is read-only: reset the source instead, and the link replicates it.
+It takes the same `Server`, `MemberIndex`, `Authentication` and `SqlPassword` parameters as the workload, and runs `02`, `03`, `04` and then `90-reset.sql`, which drops every index added to the app's tables since `EnsureCreated()`, whatever its name, and clears Query Store. It doesn't touch the data. The login needs `db_owner`: `contosoapp` on the source, the MI Entra admin on MI. While MI link is running, the replica on MI is read-only: reset the source instead, and the link replicates it.
 
 ## Traps
 
 - **Compatibility level 110** also turns off scalar UDF inlining and batch mode on rowstore, so it makes P4 worse. That's intended: fixing P5 partly helps P4.
 - **Run commands stop working after Arc onboarding** (B07), so the deployment's install and `Test-Datacenter.ps1`'s in-VM checks have to happen before it. The workload and the reset don't use run commands.
 - **The data is small.** 200,000 students and 2 million enrollments use about 120 MB. The issues come from plan shapes, not size, and a small database seeds MI link quickly.
+- **The `contosoapp` password is fixed.** When there's no secrets file, the scripts use the documented lab password, which is a lab-only exception to the kit's rule against hard-coded secrets: the datacenter is reachable only through Bastion, and `contosoapp` works only on the source SQL Server. See the datacenter README, **Credentials**.

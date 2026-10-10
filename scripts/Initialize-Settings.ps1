@@ -7,9 +7,11 @@ Creates or updates .local/settings.json, the file the other kit scripts read.
 Prompts for the tenant ID, your workload subscription ID, your member index and the location, checks
 each value, and writes factory/.local/settings.json (git-ignored). Run it from anywhere inside the
 kit folder. If you're signed in with az login, the tenant and subscription default to the current
-az account. Re-running keeps the existing values as defaults, so the same script adds the shared
-services subscription ID later (C2) and never changes your suffix. Pass any parameter to skip its
-prompt.
+az account. Re-running keeps the existing values and never changes your suffix. When settings.json
+already holds all four core values, passing any parameter, for example -SharedSubscriptionId, updates only
+that value without prompting for the others. With no parameters, it prompts for each value and offers the
+stored one as the default (press Enter to keep it). The shared services subscription ID can be added in C0,
+if you are the platform lead, or when your platform lead shares it, in C2.
 .PARAMETER TenantId
 The Entra tenant ID.
 .PARAMETER SubscriptionId
@@ -20,6 +22,10 @@ Your member number, 1 to 20, assigned by your coach.
 The Azure region. Defaults to swedencentral.
 .PARAMETER SharedSubscriptionId
 The team's shared services subscription ID. Optional until C2; the platform lead shares it with the team.
+.PARAMETER Suffix
+Restores your resource-name suffix (4 to 6 lowercase letters or digits) on a machine that has lost
+.local/settings.json, for example a deleted Codespace. Use the suffix you were given the first time.
+It is refused when settings.json already holds a different suffix: the suffix is never changed.
 .EXAMPLE
 ./scripts/Initialize-Settings.ps1
 .EXAMPLE
@@ -32,7 +38,9 @@ param(
     [string] $SubscriptionId,
     [int] $MemberIndex,
     [string] $Location,
-    [string] $SharedSubscriptionId
+    [string] $SharedSubscriptionId,
+    [ValidatePattern('^[a-z0-9]{4,6}$')]
+    [string] $Suffix
 )
 
 $ErrorActionPreference = 'Stop'
@@ -43,6 +51,20 @@ $settingsPath = Join-Path $settingsDir 'settings.json'
 $current = [ordered]@{}
 if (Test-Path $settingsPath) {
     (Get-Content $settingsPath -Raw | ConvertFrom-Json).PSObject.Properties | ForEach-Object { $current[$_.Name] = $_.Value }
+}
+
+# With every core value already stored, passing any parameter changes only that value and skips the prompts.
+$storedCore = @('tenantId', 'subscriptionId', 'memberIndex', 'location')
+if (@($storedCore | Where-Object { -not $current[$_] }).Count -eq 0 -and $PSBoundParameters.Count -gt 0) {
+    if (-not $TenantId) { $TenantId = [string] $current['tenantId'] }
+    if (-not $SubscriptionId) { $SubscriptionId = [string] $current['subscriptionId'] }
+    if (-not $MemberIndex) { $MemberIndex = [int] $current['memberIndex'] }
+    if (-not $Location) { $Location = [string] $current['location'] }
+    if (-not $SharedSubscriptionId -and $current['sharedSubscriptionId']) { $SharedSubscriptionId = [string] $current['sharedSubscriptionId'] }
+}
+
+if ($Suffix -and $current['suffix'] -and $current['suffix'] -ne $Suffix) {
+    throw "settings.json already holds the suffix '$($current['suffix'])'. The suffix is never changed; delete .local/settings.json only if you are starting over."
 }
 
 $account = $null
@@ -93,7 +115,7 @@ if ($SharedSubscriptionId -and $SharedSubscriptionId -eq $SubscriptionId) {
 }
 
 # A stable 6-character suffix (letter first) for resource names; generated once, never changed.
-$suffix = $current['suffix']
+$suffix = if ($Suffix) { $Suffix } else { $current['suffix'] }
 if (-not $suffix) {
     $chars = [char[]]'abcdefghijklmnopqrstuvwxyz0123456789'
     $suffix = (Get-Random -InputObject ([char[]]'abcdefghijklmnopqrstuvwxyz')) + (-join (1..5 | ForEach-Object { Get-Random -InputObject $chars }))

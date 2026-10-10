@@ -17,10 +17,13 @@ The SQL Server to load. Defaults to the source, 10.10.n.4. After cutover, the SQ
 .PARAMETER MemberIndex
 The member index n, 1-20, which sets the default Server.
 .PARAMETER Authentication
-SqlPassword connects as contosoapp with the password from the datacenter secrets file (source only).
+SqlPassword connects as contosoapp (source only), with -SqlPassword, else the password in the kit folder's .local/<subscription-id>/datacenter.json, else the documented lab password.
 ActiveDirectoryDefault uses the signed-in Entra identity, which SQL MI needs after cutover.
-ActiveDirectoryInteractive signs in as you in a browser. Use it on vm-dev01: its managed identity makes
-ActiveDirectoryDefault sign in as the VM.
+ActiveDirectoryInteractive signs in as you in a browser. Use it on vm-dev01: it doesn't depend on az login
+or on what the VM itself holds.
+.PARAMETER SqlPassword
+The contosoapp password, if you deployed the datacenter with -SqlAppPassword. The VM's clone of the kit has no
+.local folder, so it can't find the password itself.
 .PARAMETER DurationMinutes
 How long to run.
 .PARAMETER Concurrency
@@ -38,6 +41,7 @@ param(
     [int] $MemberIndex = 1,
     [ValidateSet('SqlPassword', 'ActiveDirectoryDefault', 'ActiveDirectoryInteractive')]
     [string] $Authentication = 'SqlPassword',
+    [securestring] $SqlPassword,
     [ValidateRange(1, 1440)]
     [int] $DurationMinutes = 15,
     [ValidateRange(1, 64)]
@@ -51,7 +55,7 @@ if (-not $Server) {
 }
 Import-Module (Join-Path -Path $PSScriptRoot -ChildPath 'PerfKit.psm1') -Force
 Import-PerfKitSqlServer
-$connectionString = Get-PerfKitConnectionString -Server $Server -Authentication $Authentication
+$connectionString = Get-PerfKitConnectionString -Server $Server -Authentication $Authentication -SqlPassword $SqlPassword
 
 # Query mix. Parameter says which random value a call gets. The app-like texts follow what EF Core 3.1 sends.
 $queries = @(

@@ -5,11 +5,13 @@
 Shared helpers for the DB perf kit scripts: loads the SqlServer module and builds the connection string.
 .DESCRIPTION
 Imported by Start-Workload.ps1 and Reset-PerfKit.ps1. SqlPassword connects as contosoapp with the password
-from the datacenter secrets file ($HOME/.apex-factory/<subscription-id>/datacenter.json), or the
-documented lab password when the file isn't on this machine. ActiveDirectoryDefault connects as the
-signed-in Entra identity, which SQL MI needs after cutover because it's Entra-only. On vm-dev01, which
-has a managed identity, ActiveDirectoryDefault signs in as the VM; use ActiveDirectoryInteractive there,
-which signs in as you in a browser.
+from -SqlPassword; else from the newest .local/<subscription-id>/datacenter.json in the kit folder (the
+file Deploy-Datacenter.ps1 writes, in the dev container's factory/ folder); else the documented lab password.
+The VM's clone of the kit (C:\src\factory) has no .local folder, so if you deployed the datacenter with
+-SqlAppPassword, pass it as -SqlPassword there. ActiveDirectoryDefault connects as the signed-in Entra
+identity, which SQL MI needs after cutover because it's Entra-only. On vm-dev01 use
+ActiveDirectoryInteractive, which signs in as you in a browser and doesn't depend on what az login or
+the VM itself holds.
 #>
 
 $ErrorActionPreference = 'Stop'
@@ -42,7 +44,9 @@ function Get-PerfKitConnectionString {
     The source SQL Server (10.10.n.4) or the SQL MI host name.
     .PARAMETER Authentication
     SqlPassword (contosoapp, source only), ActiveDirectoryDefault (Entra, MI after cutover) or
-    ActiveDirectoryInteractive (Entra with a browser sign-in, for machines with a managed identity).
+    ActiveDirectoryInteractive (Entra with a browser sign-in, for vm-dev01).
+    .PARAMETER SqlPassword
+    The contosoapp password, for SqlPassword. Optional: see the module description for the fallbacks.
     .EXAMPLE
     Get-PerfKitConnectionString -Server 10.10.1.4 -Authentication SqlPassword
     #>
@@ -53,7 +57,8 @@ function Get-PerfKitConnectionString {
         [string] $Server,
         [Parameter(Mandatory)]
         [ValidateSet('SqlPassword', 'ActiveDirectoryDefault', 'ActiveDirectoryInteractive')]
-        [string] $Authentication
+        [string] $Authentication,
+        [securestring] $SqlPassword
     )
     $builder = [Microsoft.Data.SqlClient.SqlConnectionStringBuilder]::new()
     $builder['Data Source'] = $Server
@@ -62,16 +67,21 @@ function Get-PerfKitConnectionString {
     $builder['Encrypt'] = $true
     $builder['Connect Timeout'] = 30
     if ($Authentication -eq 'SqlPassword') {
-        $secretsFile = Get-ChildItem -Path (Join-Path -Path $HOME -ChildPath '.apex-factory') -Filter 'datacenter.json' -Recurse -ErrorAction SilentlyContinue |
+        $localDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '..', '.local'
+        $secretsFile = Get-ChildItem -Path $localDir -Filter 'datacenter.json' -Recurse -ErrorAction SilentlyContinue |
             Sort-Object LastWriteTime -Descending | Select-Object -First 1
-        if ($secretsFile) {
+        if ($SqlPassword) {
+            $login = 'contosoapp'
+            $password = [System.Net.NetworkCredential]::new('', $SqlPassword).Password
+        }
+        elseif ($secretsFile) {
             $secrets = Get-Content -Path $secretsFile.FullName -Raw | ConvertFrom-Json
             $login = $secrets.sqlAppLogin
             $password = $secrets.sqlAppPassword
         }
         else {
             # Fixed, documented lab password: see docs/backlog/README.md, Secrets.
-            Write-Information 'No datacenter secrets file on this machine: using contosoapp with the documented lab password.'
+            Write-Information 'No -SqlPassword and no .local datacenter.json in the kit folder: using contosoapp with the documented lab password.'
             $login = 'contosoapp'
             $password = 'FactoryLab-2026-Pw'
         }

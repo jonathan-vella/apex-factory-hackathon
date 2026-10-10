@@ -16,6 +16,11 @@ and are reachable only through Bastion, so a documented lab password is acceptab
 The script saves the values it deploys in .local/<subscription-id>/datacenter.json (git-ignored, in the repo folder so it survives a dev container rebuild).
 Re-runs converge an existing datacenter to those values.
 
+A re-run is safe before vending (Deploy-Vending.ps1) and Arc onboarding (Connect-DatacenterArc.ps1). It resets
+snet-servers (dropping rt-servers) and the VNet's DNS servers, so after vending run Deploy-Vending.ps1 again
+and restart the VMs. After Arc onboarding the guest agent is off, so the run commands can't run again: to
+start over, delete rg-datacenter and deploy again. There is no -Force.
+
 Azure Hybrid Benefit is on by default for vm-app01 (licenseType Windows_Server). It assumes you hold
 eligible Windows Server licences with Software Assurance or subscriptions. Use -NoHybridBenefit to
 deploy without it. vm-dev01 always uses Windows_Client (multitenant hosting rights), which Windows 11
@@ -31,7 +36,11 @@ The size of both VMs.
 .PARAMETER DevImageSku
 The Windows 11 Enterprise image SKU for vm-dev01.
 .PARAMETER ScriptsRef
-The git ref of this repo that the VMs download their configuration scripts from.
+The git ref (branch or commit) of the repository that the VMs download their configuration scripts from.
+Defaults to main. The VMs read raw.githubusercontent.com without signing in, so the repository must be public.
+.PARAMETER Repository
+The GitHub repository (owner/name) that holds infra/datacenter/scripts and db/perf-kit/sql. Defaults to the
+upstream kit. An event copy of the kit passes its own owner/name here, if it's public.
 .PARAMETER NoHybridBenefit
 Deploy vm-app01 without Azure Hybrid Benefit.
 .PARAMETER AdminPassword
@@ -57,6 +66,8 @@ param(
     [string] $DevImageSku = 'win11-25h2-ent',
     [ValidatePattern('^[A-Za-z0-9._/-]+$')]
     [string] $ScriptsRef = 'main',
+    [ValidatePattern('^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$')]
+    [string] $Repository = 'jonathan-vella/apex-factory-hackathon',
     [switch] $NoHybridBenefit,
     [securestring] $AdminPassword,
     [securestring] $SqlAppPassword
@@ -65,7 +76,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 $resourceGroup = 'rg-datacenter'
-$repository = 'jonathan-vella/apex-factory-hackathon'
+$repository = $Repository
 $template = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'datacenter', 'main.bicep'
 $secretsDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', $SubscriptionId
 $secretsFile = Join-Path -Path $secretsDir -ChildPath 'datacenter.json'
@@ -110,7 +121,7 @@ function Save-DatacenterSecret {
         [System.IO.File]::SetUnixFileMode($secretsFile, [System.IO.UnixFileMode]::UserRead -bor [System.IO.UnixFileMode]::UserWrite)
     }
     $source = if ($adminPasswordOverride -or $sqlAppPasswordOverride) { 'with your overrides' } else { 'the documented lab password' }
-    Write-Information "Credentials ($source) saved in $secretsFile."
+    Write-Information "Credentials ($source) saved in .local/<subscription-id>/datacenter.json in the kit folder."
     return [pscustomobject] $secrets
 }
 
@@ -198,15 +209,15 @@ The datacenter is deployed ($([int] $elapsed.TotalMinutes) minutes).
   $($outputs.devVmName.value)  $($outputs.devVmPrivateIp.value)
   Bastion   $($outputs.bastionName.value)
 
-Connect with your local Remote Desktop client (Windows, with az login and the Azure CLI bastion extension:
+Connect with your local Remote Desktop client (a Windows host only, not the dev container; needs az login and the Azure CLI bastion extension:
   az extension add --name bastion). Your account needs Reader on the VM, its NIC and bas-datacenter:
   ./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName vm-dev01
   Or in the Azure portal (also from Cloud Shell, macOS or Linux): open $resourceGroup > vm-dev01 >
   Connect > Bastion. Sign in as labadmin. Bastion Standard allows several sessions at once, so you can
   connect to both VMs. VS Code extensions install at first logon.
 Credentials: labadmin and the SQL login contosoapp use the documented lab password unless you overrode it.
-  They're saved in $secretsFile
-Test:  ./scripts/Test-Datacenter.ps1 -SubscriptionId <subscription-id> -MemberIndex $MemberIndex
+  They're saved in .local/<subscription-id>/datacenter.json in the kit folder (git-ignored; never commit it).
+Test (before Arc onboarding, which stops run commands):  ./scripts/Test-Datacenter.ps1 -SubscriptionId <subscription-id> -MemberIndex $MemberIndex
 Stop when idle (you still pay for disks, the NAT gateway and Bastion, about `$0.78/hour):
   az vm deallocate --subscription <subscription-id> -g $resourceGroup -n vm-app01 --no-wait
   az vm deallocate --subscription <subscription-id> -g $resourceGroup -n vm-dev01 --no-wait
