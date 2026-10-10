@@ -1,6 +1,6 @@
 # Modernization playbook
 
-Last updated 2026-10-08. Built from the golden path the kit validated end to end. The tools and models change often: if this date is more than a few weeks old, check with your coach before you start.
+Last updated 2026-10-10. Built from the golden path the kit validated end to end. The tools and models change often: if this date is more than a few weeks old, check with your coach before you start.
 
 The playbook takes Contoso University in `app/ContosoUniversity` from ASP.NET MVC 5 on .NET Framework 4.8 to .NET 10 and ASP.NET Core MVC, with uploads on Blob, notifications on Service Bus, secrets in Key Vault and telemetry in Application Insights. Then it packages the app as an image in your private registry and runs it on App Service against SQL Managed Instance. Everything runs on `vm-dev01`.
 
@@ -103,7 +103,7 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
    - `git status --short -- app` prints nothing.
 
    If a check fails, tell the agent which one, in the same chat. The Upgrade agent can revise its own plan.
-6. Commit and push: `app: assess and plan`.
+6. Commit and push: `app: assess and plan`. This commit is your baseline: if you ever have to restart the seven tasks, `git reset --hard` to it (it discards uncommitted work, and your next push needs `git push --force-with-lease`), then check the tree is clean again with Step 0's last command.
 
 **Hot spots**
 
@@ -156,8 +156,14 @@ User secrets live outside the repo, so nothing here is committed. The SQL login 
 | 03 Blob | On **Courses** > **Edit**, upload an image. It shows on the course and lands in the container: `az storage blob list --account-name stuniversity<suffix> -c teaching-materials --auth-mode login -o table`. Replace it and delete it. A non-image and a file over 5 MB are rejected. The page never links to a `blob.core.windows.net` URL | 403: `AZURE_TOKEN_CREDENTIALS` isn't set in this terminal. Restart the terminal |
 | 04 Service Bus | Create or edit a student. A toast appears at the top right within 5 seconds, and `/Notifications/GetNotifications` returns `"success":true`. The **Notifications** page is only information | A receive path that always fails and is hidden by the controller. If receive fails, ask the agent to use a positive wait time and to log exceptions with `ILogger` |
 | 05 Key Vault | A: Development without `KeyVault:VaultUri` runs. B: Production without it refuses to start. C: Production with `KeyVault__VaultUri` set opens the vault, then stops because the vault has no `ConnectionStrings--DefaultConnection` yet (C7 writes it). A 403 or a name resolution error instead means the vault wasn't reached (commands below) | Key Vault answers 403: `AZURE_TOKEN_CREDENTIALS` isn't set in this terminal, or you lack a Key Vault data role. The archetype gives its deployer **Key Vault Secrets Officer** |
-| 06 OpenTelemetry | With no connection string the app starts normally. With one (below), requests, SQL dependencies and traces from a local run show in Application Insights within 5 minutes. `git grep -n -E "Trace\.\|Debug\.Write" -- app/ContosoUniversity` prints nothing | A connection string that's set but invalid crashes the app at startup. Service Bus never shows as a dependency: prove messaging with task 04's check. A `TaskCanceledException` (499) when you leave a page during a notification poll is harmless |
+| 06 OpenTelemetry | With no connection string the app starts normally. With one (below), requests, SQL dependencies and traces from a local run show in Application Insights within 5 minutes. The `Trace` and `Debug` search below prints nothing | A connection string that's set but invalid crashes the app at startup. Service Bus never shows as a dependency: prove messaging with task 04's check. A `TaskCanceledException` (499) when you leave a page during a notification poll is harmless |
 | 07 CVE audit | `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` finds nothing. A no-op task is a valid result | — |
+
+Task 06's search for leftover `Trace` and `Debug` calls:
+
+```powershell
+git grep -n -E "Trace\.|Debug\.Write" -- app/ContosoUniversity
+```
 
 Task 05's checks. The Production runs read `KeyVault:VaultUri` from the environment, because user secrets load only in Development:
 
@@ -171,7 +177,7 @@ dotnet run --no-launch-profile                   # C: opens the vault, then refu
 Remove-Item Env:ASPNETCORE_ENVIRONMENT, Env:KeyVault__VaultUri
 ```
 
-Task 06's check. Application Insights has local authentication off, so your own sign-in needs **Monitoring Metrics Publisher** on it. Grant it once; you're Owner of your workload subscription:
+Task 06's check. Application Insights has local authentication off, so your own sign-in needs **Monitoring Metrics Publisher** on it. Grant it once; you're Owner of your workload subscription. This grant is the one Azure change C6 asks of you besides the image push: you run it yourself, the agent doesn't:
 
 ```powershell
 $appi = az monitor app-insights component show -g rg-university-<suffix> -a appi-university-<suffix> --query id -o tsv --only-show-errors
@@ -201,14 +207,19 @@ The tasks cover these gaps, but check them. Each skill in `.github/skills/` chec
 | Check | Skill if it fails |
 |---|---|
 | `Global.asax`, `App_Start` and `Web.config` are gone; `Program.cs` maps the default route and serves `wwwroot` | `aspnet-startup-migration` |
-| Controllers get the notification service through their constructor; `git grep -n "new NotificationService" -- app` prints nothing | `notification-service-di` |
-| `git grep -n -i -E "System\.Web\|System\.Messaging\|MessageQueue\|Trace\.\|Debug\.Write" -- app/ContosoUniversity` prints nothing | `trace-to-opentelemetry` for `Trace` and `Debug`; `aspnet-startup-migration` for `System.Web` |
+| Controllers get the notification service through their constructor; the first search below prints nothing | `notification-service-di` |
+| The second search below prints nothing | `trace-to-opentelemetry` for `Trace` and `Debug`; `aspnet-startup-migration` for `System.Web` |
+
+```powershell
+git grep -n "new NotificationService" -- app
+git grep -n -i -E "System\.Web|System\.Messaging|MessageQueue|Trace\.|Debug\.Write" -- app/ContosoUniversity
+```
 
 To use a skill, ask in a new chat with agent **Upgrade** or **Agent**: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Then run the app, commit and push: `app: gaps`.
 
 ## Step 4: Package (C6)
 
-**Goal:** the image in your private registry, built without Docker. The `sdk-container-publish` skill has the details.
+**Goal:** the image in your private registry, built without Docker. The `sdk-container-publish` skill has the details. The push writes to Azure, so you run these commands in your own terminal; the agent explains and checks, it doesn't run them.
 
 ```powershell
 Set-Location C:\src\factory\app\ContosoUniversity
@@ -230,6 +241,8 @@ az acr repository show-tags --name cruniversity<suffix> --repository contoso-uni
 
 > [!IMPORTANT]
 > Don't point the web app at your image in C6. The modernized app reads its database at startup, so on App Service it exits until C7 has migrated the database, written the Key Vault secret and created its database user. That's expected: the app first runs on App Service at the end of C7.
+
+C6 only checks: use the `list` and `show` commands. The commands under C7 change Azure, so you run them yourself in C7, after the cutover; the agent never runs them.
 
 ### C6: check the configuration
 

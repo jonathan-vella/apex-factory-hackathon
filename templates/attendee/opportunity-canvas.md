@@ -21,27 +21,45 @@ This canvas is used in C1: Define the opportunity.
 
 ### Application
 
-<!-- Where is it today? Where are you taking it? -->
+<!-- Where is it today? Where are you taking it? Complete both lines below and delete this comment. -->
+
+- Today:
+- Target:
 
 ### Data
 
-<!-- Where is it today? Where are you taking it? -->
+<!-- Where is it today? Where are you taking it? Complete both lines below and delete this comment. -->
+
+- Today:
+- Target:
 
 ### Platform
 
-<!-- Where is it today? Where are you taking it? -->
+<!-- Where is it today? Where are you taking it? Complete both lines below and delete this comment. -->
+
+- Today:
+- Target:
 
 ### Security
 
-<!-- Where is it today? Where are you taking it? -->
+<!-- Where is it today? Where are you taking it? Complete both lines below and delete this comment. -->
+
+- Today:
+- Target:
 
 ### Operations
 
-<!-- Where is it today? Where are you taking it? -->
+<!-- Where is it today? Where are you taking it? Complete both lines below and delete this comment. -->
+
+- Today:
+- Target:
 
 ### Cost
 
-<!-- Where is it today? Where are you taking it? -->
+<!-- Where is it today? Where are you taking it? Complete both lines below and delete this comment. -->
+
+- Today:
+- Target:
 
 ## Open questions
 

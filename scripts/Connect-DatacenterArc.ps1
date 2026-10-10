@@ -21,8 +21,9 @@ The script:
 4. Waits up to 20 minutes for the Arc machine to be Connected, then up to 20 minutes for the
    SQL Server extension to report the SQL Server instance, and prints the next steps.
 
-After it, run commands and VM extensions don't work on vm-app01 any more. Run anything that needs
-a run command, such as Test-Datacenter.ps1's in-VM checks, before this script.
+Expect 10 to 20 minutes. Both VMs must be running. After it, run commands and VM extensions don't work on
+vm-app01 any more, and a datacenter re-deploy can't recover it. Run anything that needs a run command,
+such as Test-Datacenter.ps1's in-VM checks, before this script: they can't pass afterwards.
 .PARAMETER SubscriptionId
 The member's workload subscription, which holds rg-datacenter.
 .PARAMETER MemberIndex
@@ -55,8 +56,8 @@ $apiVersion = '2025-11-01'
 $stageScript = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'datacenter', 'scripts', 'Connect-AppArc.ps1'
 $timeout = [TimeSpan]::FromMinutes(20)
 $logHelp = @"
-Connect to vm-app01 through Bastion (./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName vm-app01,
-  or the portal: $resourceGroup > $vmName > Connect > Bastion) and read C:\LabTools\logs\Connect-AppArc.log.
+Connect to vm-app01 through Bastion (the portal: $resourceGroup > $vmName > Connect > Bastion, or from a Windows host
+  ./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName vm-app01) and read C:\LabTools\logs\Connect-AppArc.log.
   The agent's own logs are in C:\ProgramData\AzureConnectedMachineAgent\Log, and azcmagent show prints its status.
 "@
 
@@ -110,7 +111,7 @@ $agentStatus = (Invoke-AzureCli -Arguments @('vm', 'get-instance-view', '--subsc
 if ($agentStatus -ne 'Ready') {
     throw @"
 The guest agent on $vmName is '$agentStatus', so run commands don't work: an earlier run probably got as far as the prep script.
-Read C:\LabTools\logs\Connect-AppArc.log on $vmName through Bastion. If the onboarding didn't finish, redeploy $vmName and run this script again.
+Read C:\LabTools\logs\Connect-AppArc.log on $vmName through Bastion. If the onboarding didn't finish, a re-run of Deploy-Datacenter.ps1 can't recover it, because run commands no longer work on $vmName. Start over: delete $resourceGroup (with the Arc machine, if one exists), run Deploy-Datacenter.ps1 and Test-Datacenter.ps1 again, then this script.
 "@
 }
 

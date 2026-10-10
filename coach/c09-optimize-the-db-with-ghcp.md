@@ -3,9 +3,11 @@
 > [!WARNING]
 > Coach material. This page has the answers to C9. Attendees work it out with GitHub Copilot, Query Store and the execution plans.
 
-The DB perf kit ([`db/perf-kit`](../db/perf-kit/README.md)) plants five issues in `ContosoUniversity`. They live in database objects and settings, so they're there on the source SQL Server and, after cutover, on SQL MI. Attendees run the workload, find the issues in Query Store, fix them with GitHub Copilot's help (the MSSQL extension in VS Code, or Copilot in SSMS 22), and show Query Store before and after.
+The DB perf kit ([`db/perf-kit`](../db/perf-kit/README.md)) plants five issues in `ContosoUniversity`. They live in database objects and settings, so they're there on the source SQL Server and, after cutover, on SQL MI. Attendees run the workload, find the issues in Query Store, fix them with GitHub Copilot's help (Copilot Chat in VS Code with the MSSQL extension, or Copilot in SSMS if it's installed), and show Query Store before and after.
 
-The numbers on this page were measured in the workload subscription on 2026-09-25: `vm-app01` on `Standard_D8as_v6` with SQL Server 2022 Developer, and one default workload run (15 minutes, 8 connections) from `vm-dev01` before the fixes and one after. Expect other numbers on other sizes and on SQL MI, but the same order of magnitude and the same ranking.
+The numbers on this page were measured in the workload subscription on 2026-09-25: `vm-app01` on `Standard_D8as_v6` with SQL Server 2022 Developer, and one default workload run (15 minutes, 8 connections) from `vm-dev01` before the fixes and one after. Attendees run 5 minutes, at 8 connections, against a 4-vCore General Purpose SQL MI, so their absolute numbers differ a lot. The kit's smoke run on a General Purpose MI (5 minutes, 8 connections, before any fix) made 146 calls, with the view at about 114 seconds a call and every other query 4 to 6 times slower than the source figures below (B07 spike report, finding 16). Compare ratios and the ranking of the queries, not the figures. A run can finish later than its set duration, because the slow view finishes the call it's in: the student's window ends at the `Finished at` time, not the `until` time.
+
+Attendees measure three times, not six: a baseline, a checkpoint after P5, P1, P2 and P3, and a checkpoint after P4. The [challenge page](../site/src/content/docs/challenges/c09-optimize-the-db-with-ghcp.md) has the pacing.
 
 ## Set up
 
@@ -164,22 +166,25 @@ After the fixes, the top of Query Store is the app's own search, which C9 doesn'
 
 ## A 1-hour C9
 
-Expected order of work:
+Expected order of work. Attendees measure three times, not six, so the hour fits. Each fix still gets its own before and after, because the issues hit different queries:
 
 | Time | Step |
 |---|---|
-| 0–10 min | Reset if needed, start the workload, and open Query Store while it runs. Record the "before" top queries, as a screenshot or an export |
-| 10–15 min | P5: find the compatibility level and plan the change. Raising it at the end, after the baseline, is the right order |
-| 15–30 min | P4: the top query. Read the plan, find the scalar UDF, rewrite the view |
-| 30–40 min | P1 and P3: the missing index and the conversion. P3 needs its own fix even after the P1 index |
-| 40–45 min | P2: the search. Discuss "starts with" against "contains" |
-| 45–60 min | Raise the compatibility level, run the workload again and show Query Store before and after |
+| 0–5 min | Set up and start the baseline run (5 minutes, 8 connections). They open Query Store while it runs |
+| 5–12 min | Baseline captured: the Top Resource Consuming Queries screenshot, and the snapshot script with label `baseline` |
+| 12–30 min | Checkpoint 1: P5 (compatibility level), P1 (index), P2 (search), P3 (the `sql_variant` parameter). Each fix is its own saved script |
+| 30–40 min | Run, then capture `after-checkpoint-1`. Expect the view to be far faster from P5 alone (scalar UDF inlining), the per-student queries to read about 25 pages, and `usp_SearchStudents` to be much faster |
+| 40–45 min | Checkpoint 2: P4, the view rewrite |
+| 45–55 min | Run, then capture `after-checkpoint-2`. The view may not move much, because P5 already inlined the function. That's the lesson: the rewrite no longer depends on the level |
+| 55–60 min | Summary, one line per fix, pushed with the scripts and numbers to the team repo |
+
+The page's order, P4 after P5, is on purpose: it isolates P5's effect on the view at checkpoint 1. If a member does P4 first, accept it, as long as the summary says which fix caused which change.
 
 ## Partial credit
 
-- Score what's proven in Query Store, not what's claimed: every fix needs a before and after for the query it targets.
+- Score what's proven in Query Store, not what's claimed: every fix needs a before and after for the query it targets, from the baseline and the checkpoint that contains it. Don't ask for one run per fix: the page groups them on purpose to fit 60 minutes.
 - A fix that changes results without saying so, such as P2's "starts with", gets partial credit. Full credit needs the trade-off stated.
-- P4 fixed only by raising the compatibility level gets partial credit for P4 and full credit for P5. Full P4 credit needs the view rewritten, or a clear explanation of why inlining is enough.
+- P4 fixed only by raising the compatibility level gets partial credit for P4 and full credit for P5. Full P4 credit needs the view rewritten, or a clear explanation of why inlining is enough. With the checkpoint order, a rewrite that shows little change at checkpoint 2 is expected: credit it when the view no longer calls `ufn_GradePoint` and the summary says why.
 - P3 "fixed" by the P1 index alone isn't fixed: the plan still converts the column.
 - Every AI change is reviewed and tested before it's applied, for the "trust but verify" badge. A fix pasted from Copilot without looking at the plan doesn't count.
 - Running the reset and the workload again to prove the fixes, on the source or on SQL MI after cutover, is worth a bonus.

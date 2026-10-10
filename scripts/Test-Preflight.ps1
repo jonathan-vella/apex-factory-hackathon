@@ -5,13 +5,18 @@
 Checks an attendee's Azure prerequisites without deploying resources.
 .DESCRIPTION
 Reports automated and manual C0 checks. Only -Fix changes Azure: it registers
-missing resource providers and polls for up to 15 minutes per subscription.
-Warnings and manual checks do not block GO. Quota is deliberately not checked.
+missing resource providers and polls for up to 15 minutes per subscription, so run it once and wait.
+-Fix does nothing while an earlier check (tools, sign-in, role, region) has a FAIL or the VM size is
+restricted; unregistered providers don't block it. The role check needs an unconditional Owner
+assignment: Contributor isn't accepted. Warnings and manual checks do not block GO, so read every WARN
+row: GO means no FAIL, not no WARN. The MANUAL rows are MFA, GitHub Copilot, GitHub repositories, APEX and
+Azure Hybrid Benefit. Quota is deliberately not checked.
 The kit uses non-zonal VMs. germanywestcentral is the documented fallback region.
 .PARAMETER WorkloadSubscriptionId
 The member's workload subscription.
 .PARAMETER SharedSubscriptionId
-The team's shared services subscription. Only the platform lead passes this.
+The team's shared services subscription. Only the platform lead passes this: it adds the shared
+subscription's tenant, Owner and resource provider checks, and with -Fix registers its providers.
 .PARAMETER Location
 The target Azure region, defaulting to swedencentral.
 .PARAMETER Fix
@@ -276,7 +281,7 @@ Add-Result -Check 'MFA' -Status MANUAL -Reason 'Confirm MFA is registered for th
 Add-Result -Check 'GitHub Copilot' -Status MANUAL -Reason "Confirm a Copilot seat and org policies allowing agent mode, MCP servers and Copilot CLI."
 Add-Result -Check 'GitHub repositories' -Status MANUAL -Reason "Confirm the account can create private repos in the partner's GitHub org."
 Add-Result -Check 'APEX' -Status MANUAL -Reason 'Confirm Docker Desktop is available, or the account can use Codespaces.'
-Add-Result -Check 'Azure Hybrid Benefit' -Status MANUAL -Reason 'Confirm eligible partner licences, or acknowledge AHB is on by default and know how to turn it off.'
+Add-Result -Check 'Azure Hybrid Benefit' -Status MANUAL -Reason 'Confirm you hold eligible Windows Server licences with Software Assurance. Azure Hybrid Benefit is on by default for vm-app01; without eligible licences, deploy the datacenter with -NoHybridBenefit.'
 
 $failures = @($results | Where-Object { $_.Status -eq 'FAIL' }).Count
 if ($OutFile) {

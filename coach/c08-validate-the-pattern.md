@@ -7,27 +7,37 @@ C8 is a fixed checklist, so grading is mostly about completeness and evidence qu
 
 ## Expected evidence
 
-- Smoke checks: all five pages (home, Students, Courses, Instructors, Departments) load with migrated data.
-- Upload round-trip: an image uploaded on **Courses > Edit** shows on the course and lands in `teaching-materials`; replace and delete both work; a non-image and an over-size file are both rejected with a clear error, not a 500.
+- Smoke checks: all five pages (home, Students, Courses, Instructors, Departments) load with migrated data, and the row counts on the source and on the managed instance match.
+- Upload round-trip: an image uploaded on **Courses > Edit** shows on the course and lands in `teaching-materials` (checked with `az storage blob list` on `vm-dev01`: the storage account is private-only); replace and delete both work; a non-image and a file over 5 MB are both rejected with a clear error, not a 500.
 - Notification round-trip: a toast within 5 seconds of a student edit, and `/Notifications/GetNotifications` returning success.
 - A light load check (10–20 concurrent page loads) with no errors.
-- Security check: public network access disabled on SQL MI, Blob, Service Bus, Key Vault and ACR; web app HTTPS-only with TLS 1.2 minimum.
-- Application Insights showing requests and dependencies from this session's checks.
+- Security check: `scripts/Test-Acceptance.ps1` output (or `acceptance.json`) ending in `ACCEPT`: the five pages and the HTTP-to-HTTPS redirect, web app HTTPS-only with TLS 1.2 minimum, and public network access off with an approved private endpoint on Storage, Service Bus, Key Vault and ACR, plus SQL MI's public data endpoint off.
+- Application Insights **Transaction search** (last 30 minutes) showing requests and dependencies from this session's checks.
+- A filled-in acceptance and handover document with the member index.
 
 ## Model answer
 
-Commands useful for the security check:
+The member runs the read-only checker from the dev container, in `factory/`:
 
 ```powershell
-az sql mi show --name <mi-name> --resource-group <rg> --query publicDataEndpointEnabled
-az storage account show --name <storage-name> --query publicNetworkAccess
-az servicebus namespace show --name <sb-name> --resource-group <rg> --query publicNetworkAccess
-az keyvault show --name <kv-name> --query properties.publicNetworkAccess
-az acr show --name <acr-name> --query publicNetworkAccess
-az webapp show --name <app-name> --resource-group <rg> --query "{httpsOnly:httpsOnly, minTlsVersion:siteConfig.minTlsVersion}"
+./scripts/Test-Acceptance.ps1 -SubscriptionId $s.subscriptionId -ResourceGroup $rg -OutFile .local/acceptance.json
 ```
 
-All of the above should report disabled/`Disabled`/`false` for public access, and `httpsOnly: true`, `minTlsVersion: '1.2'` for the web app.
+A clean run has no FAIL and no UNKNOWN, and ends with `ACCEPT`. A FAIL names the setting to change. An UNKNOWN means the check couldn't decide, for example a resource in another resource group or an account that can't read it: the member explains it with the portal view that settles it (the resource's **Networking** > **Private endpoint connections**, with an **Approved** connection). The checker doesn't replace the browser flows or the row-count comparison.
+
+To check one setting by hand:
+
+```powershell
+az sql mi show --resource-group $rg --name <mi-name> --query publicDataEndpointEnabled
+az storage account show --resource-group $rg --name <storage-name> --query publicNetworkAccess
+az servicebus namespace show --resource-group $rg --name <sb-name> --query publicNetworkAccess
+az keyvault show --resource-group $rg --name <kv-name> --query properties.publicNetworkAccess
+az acr show --resource-group $rg --name <acr-name> --query publicNetworkAccess
+az webapp show --resource-group $rg --name <app-name> --query httpsOnly
+az webapp config show --resource-group $rg --name <app-name> --query minTlsVersion
+```
+
+All of the above should report disabled/`Disabled`/`false` for public access, `true` for `httpsOnly` and `1.2` for the minimum TLS version. The checker's own commands are `az webapp show` for `httpsOnly` and `az webapp config show` for the TLS version.
 
 ## Common mistakes
 

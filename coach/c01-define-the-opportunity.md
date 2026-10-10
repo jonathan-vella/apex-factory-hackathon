@@ -14,7 +14,7 @@ C1 is directional, not a technical challenge — your job is to confirm the team
 
 A credible C1 canvas for Contoso University looks like:
 
-- **Business case:** reduce the cost and risk of running Contoso University on out-of-support infrastructure, while preparing it to run reliably in Azure.
+- **Business case:** reduce the cost and risk of running Contoso University on aging infrastructure, while preparing it to run reliably in Azure.
 - **Current pain:** .NET Framework 4.8 and IIS on a VM are a growing support and security burden; the SQL Server instance has no HA story; uploads and notifications have no cloud-native equivalent yet.
 - **Target outcome:** Contoso University runs on .NET 10 and ASP.NET Core MVC, on App Service, against SQL Managed Instance, with Blob-backed uploads, Service Bus notifications, Key Vault secrets and Application Insights telemetry — provisioned through the CoE archetype.
 - **Six dimensions**, one or two sentences each: Application (framework upgrade via the Upgrade agent), Data (online migration via MI link, no offline backup/restore), Platform (the CoE archetype's existing App Service/SQL MI/Blob/Service Bus shape, not a bespoke design), Security (managed identity everywhere, no secrets in app settings), Operations (OpenTelemetry to Application Insights replacing `Trace`/`Debug`), Cost (Azure Hybrid Benefit on, archetype resources sized for a lab, not production).

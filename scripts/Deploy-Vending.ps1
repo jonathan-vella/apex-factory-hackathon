@@ -39,6 +39,9 @@ Operator on id-sqlmi-directory, so the archetype can attach it to their SQL Mana
 Monthly budget on the workload subscription, in the billing currency.
 .PARAMETER BudgetEmail
 Email address for the budget alert at 80%.
+.PARAMETER ShowIds
+Print the hub's resource IDs in full. By default the summary masks the subscription ID in them, so the output
+can go into the team repo as evidence.
 .PARAMETER SkipDefender
 Leave the subscription's Defender for Cloud plans as they are. Without it, every paid plan is turned off
 subscription-wide (Foundational CSPM only), including for resources the kit didn't create. Use it only in
@@ -70,7 +73,8 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[^@\s]+@[^@\s]+$')]
     [string] $BudgetEmail,
-    [switch] $SkipDefender
+    [switch] $SkipDefender,
+    [switch] $ShowIds
 )
 
 $ErrorActionPreference = 'Stop'
@@ -91,6 +95,12 @@ function Invoke-AzureCli {
     if ($text.Trim()) {
         return $text | ConvertFrom-Json
     }
+}
+
+function Format-ResourceId {
+    param([string] $Id)
+    if ($ShowIds) { return $Id }
+    return $Id -replace '(?i)(/subscriptions/)[0-9a-f-]{36}', '$1<subscription-id>'
 }
 
 function Get-OptionalResource {
@@ -153,11 +163,11 @@ $budgetStart = if ($budget) { ([datetime] $budget.properties.timePeriod.startDat
 Write-Information @"
 
 Hub found in the shared services subscription:
-  Hub VNet           $($hubVnet.id)
+  Hub VNet           $(Format-ResourceId $hubVnet.id)
   Firewall           afw-hub, private IP $firewallIp
-  Firewall policy    $firewallPolicyId
-  DNS zones in       $hubRgId
-  Workspace          $($workspace.id)
+  Firewall policy    $(Format-ResourceId $firewallPolicyId)
+  DNS zones in       $(Format-ResourceId $hubRgId)
+  Workspace          $(Format-ResourceId $workspace.id)
 Vending member $MemberIndex to ${Location}:
   Placement          workload subscription into $MgPrefix-corp
   Spoke              rg-spoke, vnet-spoke 10.20.$MemberIndex.0/24: snet-app .0/26, snet-pe .64/26, snet-sqlmi .128/26

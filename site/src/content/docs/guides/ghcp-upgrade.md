@@ -1,13 +1,17 @@
 ---
 title: GitHub Copilot upgrade
-description: Running the Upgrade agent in VS Code, following the B06 golden path.
+description: Working on vm-dev01 and running the Upgrade agent in VS Code, following the golden path the kit validated.
+sidebar:
+  order: 3
 ---
 
-This guide covers the mechanics of running GitHub Copilot's Upgrade agent against Contoso University. It's the how; [C6](../../challenges/c06-modernize-with-ghcp/) is the what and the acceptance bar.
+This guide covers the mechanics of working on `vm-dev01` and running GitHub Copilot's Upgrade agent against Contoso University. It's the how; [C3](../../challenges/c03-assess-the-source/) and [C6](../../challenges/c06-modernize-with-ghcp/) are the what and the acceptance bar.
 
 ## Switching to vm-dev01
 
-From C3 you leave the dev container and work on `vm-dev01`, because the Upgrade agent's Local harness has to run next to the app and the datacenter's private network. The VM has Git, `gh`, VS Code and the Upgrade extension preinstalled.
+From C3 you leave the dev container and work on `vm-dev01`, because the Upgrade agent's Local harness has to run next to the app and the datacenter's private network. The VM has Git, `gh` and VS Code preinstalled. VS Code's extensions, including the Upgrade extension, install per user at your first sign-in, so that first sign-in takes a minute or two longer: wait for it to finish before you open VS Code. Never stop or deallocate `vm-dev01` during the event: it's your workstation for the rest of the event.
+
+Step 1 runs in your dev container. Everything after it runs on `vm-dev01`.
 
 1. **Get the password.** In your dev container, open a terminal, start `pwsh` and go to `factory/`:
 
@@ -91,7 +95,7 @@ Your own repo now has the `vm-dev01-work` branch next to `main`. The two branche
 - **Never push to `origin`.** It's the public kit and the push is refused. Push with a plain `git push`, or `git push member vm-dev01-work`.
 - **Never merge `vm-dev01-work` into your repo's `main`, or open a pull request from it.** It would put the kit at the repo root next to the accelerator and break the dev container setup. GitHub shows a "Compare & pull request" banner for the branch: ignore it. Don't delete the branch either.
 - **If `git push` says "no upstream branch"**, run `git push -u member vm-dev01-work`. **If it says permission denied** for the public kit repo, you pushed to `origin`: run `git branch -vv`, then `git push -u member vm-dev01-work`.
-- **After a coach gives you a lifeline**, you're on a `lifeline/...` branch pushed to `member`. Keep working and pushing on that branch. Your earlier `vm-dev01-work` branch stays as a backup. Don't switch back to it.
+- **If a coach moves you to another branch**, keep working and pushing on that branch with the coach's commands. Your earlier `vm-dev01-work` branch stays as a backup. Don't switch back to it.
 
 :::
 
@@ -116,13 +120,11 @@ The team repo is a different repo with its own `main`: this is the only place wh
 
 ## Where to run
 
-Every command on this page runs on `vm-dev01`: the deployment cloned the kit to `C:\src\factory`, and the Upgrade agent works in that clone, on your `vm-dev01-work` branch. Connect through Bastion first: see [Switching to vm-dev01](#switching-to-vm-dev01). Don't run these in the dev container.
+After the password lookup in step 1, every command on this page runs on `vm-dev01`: the deployment cloned the kit to `C:\src\factory`, and the Upgrade agent works in that clone, on your `vm-dev01-work` branch. Connect through Bastion first: see [Switching to vm-dev01](#switching-to-vm-dev01). Don't run these in the dev container.
 
 ## Setup
 
-On your dev VM, after the steps above: sign in to Azure with device-code flow (`az login --use-device-code`), set the user-level environment variable `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` (the VM's own managed identity has no data-plane roles — every Azure SDK call in the app needs your own identity instead), and work from `C:\src\factory`, on your `vm-dev01-work` branch.
-
-Open `C:\src\factory` in VS Code with the GitHub Copilot Upgrade extension installed. Use the **Local** harness and the **Upgrade** agent — not the Copilot coding agent harness, which runs remotely and can't reach the dev VM's local SQL Server or the datacenter's private network.
+The playbook's **Step 0: Set up** (`.github/modernization/playbook.md`) is the single source for the VM setup, so follow it rather than this page: the Azure CLI sign-in, `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` (the VM's own managed identity has no data-plane roles, so every Azure SDK call in the app needs your own identity instead), a clean legacy tree, and the Upgrade extension in the **Local** harness. Don't use the Copilot coding agent harness: it runs remotely and can't reach the dev VM's local SQL Server or the datacenter's private network.
 
 ## Assess and plan
 
@@ -143,3 +145,5 @@ Task 01 (the .NET 10 / ASP.NET Core MVC conversion) resets the project's `UserSe
 ## Where this hands off
 
 The playbook's step 3 (closing gaps the tasks don't fully cover) uses three skills built for this app: `aspnet-startup-migration`, `notification-service-di` and `trace-to-opentelemetry`. If a task's own validation doesn't pass, check whether one of those skills' symptoms matches before escalating.
+
+C6 continues past the seven tasks with the playbook's step 4 (package the app with .NET SDK container publishing and push it to your registry, skill `sdk-container-publish`) and step 5 (check the App Service configuration, skill `app-service-configuration`). Step 5 only checks in C6. Its commands that change Azure (the Key Vault secret, the web app's image) belong to C7, after the data is migrated.

@@ -17,6 +17,9 @@ and its Microsoft Graph grant, moves the discovered subscriptions to the return 
 deletes only <MgPrefix>-corp, <MgPrefix>-platform and <MgPrefix>. It refuses to delete those groups
 if unexpected children remain. The active Azure CLI tenant must match the shared-services subscription.
 
+Each member runs the member scope from their own factory/ folder, with Owner on their own workload subscription.
+The platform lead, with Owner at Tenant Root, runs the team scope once, after every member has finished.
+
 The script prints its exact plan and prompts once before changes. -WhatIf prints the plan without
 changing Azure. -Force skips the confirmation prompt, but does not override -WhatIf. It never deletes
 a subscription, an unrelated management group or a resource group outside the kit's explicit names.
@@ -540,7 +543,7 @@ if ($Scope -eq 'Member') {
     Invoke-ResourceGroupDeletionAndWait -TargetSubscription $SubscriptionId -Name 'rg-spoke'
     Invoke-ResourceGroupDeletionAndWait -TargetSubscription $SubscriptionId -Name 'rg-datacenter'
     Invoke-KitBudgetDeletionIfPresent -TargetSubscription $SubscriptionId
-    Write-Output 'Member cleanup completed. Run the verification queries in facilitator/cleanup.md.'
+    Write-Output 'Member cleanup completed. Then work through the verification checklist in facilitator/cleanup.md in the kit repository (it is not copied into factory/); your facilitator has it.'
     return
 }
 
@@ -636,4 +639,4 @@ if ($managementGroupNames -contains $rootGroupName) {
     $null = Invoke-AzureCli -Arguments @('account', 'management-group', 'delete', '--name', $rootGroupName)
 }
 
-Write-Output 'Team cleanup completed. rg-management and id-sqlmi-directory were preserved. Run the verification queries in facilitator/cleanup.md.'
+Write-Output 'Team cleanup completed. rg-management and id-sqlmi-directory were preserved. Work through the verification checklist in facilitator/cleanup.md in the kit repository (it is not copied into factory/).'

@@ -3,11 +3,11 @@
 > [!WARNING]
 > Coach material. This page has the answers to C3. Attendees triage the Upgrade agent's and Arc's assessments themselves.
 
-The challenge page requires the trace-flag finding specifically — this is the one piece of evidence to check closely, since it's easy to just tick it without understanding it.
+The challenge page requires the trace-flag finding specifically — this is the one piece of evidence to check closely, since it's easy to just tick it without understanding it. The student page deliberately doesn't spell out the decision or the reasons; the member has to derive them from the MI link preparation article.
 
 ## Expected evidence
 
-- The Upgrade agent's `assessment.md` reviewed (plan not yet approved — that's fine, and expected at this point).
+- The Upgrade agent's `assessment.md` reviewed, and the `plan.md` it produced at the plan gate (planning is approved in C3, as the playbook's Step 1 says; task execution starts in C6).
 - The Arc migration assessment reviewed, with a triage table: finding, source, triage (blocker / accepted risk / fix), target-state impact.
 - The trace-flag finding (`1800`, `9567`, "Trace flags not supported in Azure SQL Managed Instance") specifically called out, with the correct reasoning: these are set deliberately on the source to prepare for the MI link (`1800` aligns log I/O across differing sector sizes; `9567` compresses automatic seeding), apply only to the source side of the link, aren't needed on the managed instance, and don't block migration. Decision: accept for the link; remove from the source after cutover (this becomes a C7 task and a deferred-work register entry).
 - Nothing changed in `app/` yet.
@@ -28,12 +28,12 @@ Other findings from the Upgrade agent's assessment (framework APIs retired in .N
 
 - Ticking the trace-flag finding as "fix: remove the trace flags now" — this breaks MI link prep before it's even started. The correct answer is to leave them until after cutover.
 - Treating every Arc assessment warning as a blocker — most warnings in this environment are expected/self-inflicted; a true blocker needs an actual unsupported feature in use by the application, not a setting the kit itself introduced.
-- Starting to apply the Upgrade agent's plan during C3 — the challenge explicitly stops at "review the assessment," not "approve planning." Planning and execution are C6's job.
+- Starting to run the Upgrade agent's tasks during C3 — the challenge stops at the assessment and the approved plan. Task execution is C6's job.
 
 ## Partial credit
 
-- All findings triaged except the trace-flag one is superficial ("accepted, no explanation"): partial credit — ask the member to re-read the challenge page's reasoning and redo that one entry.
-- Triage table complete but informal (not using the deferred-work register template yet): accept, as long as the content is there; formalize the template usage by C4.
+- All findings triaged except the trace-flag one is superficial ("accepted, no explanation"): partial credit — ask the member to re-read the MI link preparation article and redo that one entry.
+- Triage table complete but informal (not using the deferred-work register template yet): accept, as long as the content is there; the register comes in C4.
 
 ## Bonus
 
