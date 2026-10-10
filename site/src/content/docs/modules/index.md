@@ -6,7 +6,7 @@ sidebar:
   order: 0
 ---
 
-This section describes what each module takes in and hands on. Modules let a team run part of the kit standalone, outside the two-day event, with its own bootstrap, exit evidence and reset steps.
+This section describes what each module takes in and hands on. A module maps to one or two challenges and carries what the challenge page doesn't: what to have in place first, where to run, and how to redo it safely. The tasks, commands, time boxes and evidence live on the challenge pages, which win if the two ever differ. Running a module on its own still needs the earlier modules' results, and your coach for blockers.
 
 | Module | Covers | Scope | Time box |
 |---|---|---|---|

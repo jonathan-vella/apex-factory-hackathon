@@ -11,7 +11,7 @@ description: Check the CoE archetype's App Service settings for Contoso Universi
 - In C7, after cutover, to write the Key Vault connection secret, create the database user and switch the web app to your image.
 - When the web app doesn't start, can't pull its image, or can't reach a backend.
 
-The archetype owns the infrastructure: don't create or change Azure resources, and don't change the app's code to fit the hosting. The modernized app needs its database at startup, so it runs on App Service only once C7 has migrated the database.
+The archetype owns the infrastructure: don't create Azure resources, and don't change the app's code to fit the hosting. In C6 only run the read commands (`list`, `show`) and report what you find. The commands in the C7 section change Azure (a Key Vault secret, a database user, the web app's image): the member runs them in their own terminal in C7, after cutover. Explain them and check the result, but don't run them yourself. The modernized app needs its database at startup, so it runs on App Service only once C7 has migrated the database.
 
 ## What the archetype provides
 
@@ -40,7 +40,7 @@ App settings use `__` where the code reads `:`: `ServiceBus__QueueName` is `Serv
 
 ### C7: connect to the migrated database and go live
 
-After cutover removes the link, the database is writable:
+These steps change Azure. The member runs them in C7, after cutover removes the link and the database is writable. Never run them in C6, and don't run them for the member.
 
 1. **Write the connection secret.** It uses Microsoft Entra authentication and has no password:
 
@@ -92,7 +92,7 @@ After cutover removes the link, the database is writable:
 Before, the legacy app's `Web.config`, with a password in the file:
 
 ```xml
-<add name="DefaultConnection" connectionString="Server=10.10.1.4;Database=ContosoUniversity;User Id=contosoapp;Password=..." />
+<add name="DefaultConnection" connectionString="Server=10.10.1.4;Database=ContosoUniversity;User Id=contosoapp;Password=<lab SQL password>" />
 ```
 
 After, nothing in the repo. On App Service the Key Vault secret `ConnectionStrings--DefaultConnection` holds:

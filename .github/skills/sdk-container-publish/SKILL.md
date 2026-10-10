@@ -11,7 +11,7 @@ description: Build Contoso University's container image with .NET SDK container 
 - When `dotnet publish /t:PublishContainer` or the push fails.
 - When an agent proposes a `Dockerfile` or Docker Desktop: the kit uses neither, and `vm-dev01` has no Docker.
 
-Scope: `app/ContosoUniversity` only.
+Scope: `app/ContosoUniversity` only. The registry sign-in and the push write to Azure: the member runs them in their own terminal on `vm-dev01`. Explain them and check the result, but don't run them yourself.
 
 ## Steps
 
