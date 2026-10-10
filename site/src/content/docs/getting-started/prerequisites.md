@@ -59,7 +59,7 @@ Your team also has **one shared team repo**, where the team's evidence lives. It
 | Azure subscription | One workload subscription per member. Azure Pass is not supported. The kit is built and validated for CSP subscriptions and preflight doesn't check the offer type, so ask your coach before you use any other offer. |
 | Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group; activate it first if it's eligible through Privileged Identity Management). Preflight fails without it, and vending and the Arc script assume it. Contributor plus Resource Policy Contributor doesn't pass preflight: if your organization blocks Owner, raise it with your coach well before T-14, because it needs an owner decision. |
 | MFA | Registered for your Azure identity. |
-| Region quota | Enough regional vCPU quota in `swedencentral` for a Standard_D8as_v6 VM (8 vCPUs, ×2: `vm-app01` and `vm-dev01`), and quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. |
+| Region quota | Enough regional vCPU quota in `swedencentral` for a Standard_D8as_v6 VM (8 vCPU each, two VMs: `vm-app01` and `vm-dev01`), and quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. |
 | Platform lead only | A **second** subscription (shared services) plus Owner at Tenant Root. The platform lead is also a member: they still need their own workload subscription, and do C0 on it like everyone else. |
 
 Check your subscription and quota from any terminal that has the Azure CLI:
