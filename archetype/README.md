@@ -1,23 +1,22 @@
 # The CoE archetype: Contoso University platform
 
-> **Status: packaged, not yet deployed.** `agent-output/university/` and `infra/bicep/university/`
-> are the owner's real APEX output (requirement 9), copied in at requirement 11 with the two
-> governance files redacted as described below. Requirements 16-20 (deploy, validate, tear down)
-> are still pending; the Validation record table below fills in once those run.
+> **Status: deployed and validated.** `agent-output/university/` and `infra/bicep/university/` are
+> real APEX output from a build tenant, with the two governance files redacted as described below.
+> Both deploy paths (`azd` and the `deploy.ps1` fallback) were run end to end there, then torn down.
 
 ## What this is
 
 An [APEX](https://github.com/jonathan-vella/apex-accelerator) project that designs and deploys the
 private-by-default Azure platform for the modernized Contoso University web app: App Service, a
 container registry, a SQL Managed Instance, Blob storage, Service Bus, Key Vault and Application
-Insights, in a Corp landing zone spoke that already exists (B08). It does not deploy or modernize
-the app itself -- that is the separate app- and database-modernization work (B06, B10, B11).
+Insights, in a Corp landing zone spoke that already exists (vended in C2). It does not deploy or
+modernize the app itself -- that is the separate app- and database-modernization work (C6 to C9).
 
-APEX release/commit this project is pinned to: `apex-accelerator` has no tagged releases as of
-2026-10-05, so this records the commit SHA the owner's APEX session actually used. `BRIEF.md`'s
-Notes section names `bc96b7284eb116ab5c2ee71b9ba9510f4c22d99a` as the commit current at
-brief-authoring time, but the owner's `apex-factory-coe` repo was synced to upstream APEX
-`c209d8b` before running steps 1-5 -- `c209d8b` is the commit actually pinned, not `bc96b72`.
+APEX release/commit this project is pinned to: `apex-accelerator` has no tagged releases, so this
+records the commit SHA the archetype was generated with, `c209d8b`. `BRIEF.md`'s Notes section
+names `bc96b7284eb116ab5c2ee71b9ba9510f4c22d99a`, the commit that was current when the brief was
+written; the build tenant's repo was synced to `c209d8b` before the APEX steps ran, so `c209d8b` is
+the one that counts.
 
 **App Service plan `P0v3` VNet integration:** confirmed supported (regional VNet integration is a
 Premium-tier App Service Plan feature, and P0v3 is a Premium v3 SKU); the Bicep wires
@@ -27,13 +26,14 @@ Premium-tier App Service Plan feature, and P0v3 is a Premium v3 SKU); the Bicep 
 
 ```text
 archetype/
-  BRIEF.md                           the brief pasted into APEX step 1 (requirement 1)
+  BRIEF.md                           the brief pasted into APEX step 1
   README.md                          this file
-  deploy.ps1                         no-agent fallback deploy (requirement 14)
+  deploy.ps1                         no-agent fallback deploy
   .github/prompts/
-    adapt-archetype.prompt.md        adapt prompt; ends at `azd provision --preview` (requirement 13)
-  agent-output/university/           APEX's artifacts (92 files), copied in with 04-governance-
-                                      constraints.json and 04-policy-property-map.json redacted
+    adapt-archetype.prompt.md        adapt prompt; ends at `azd provision --preview`
+  agent-output/university/           APEX's artifacts (about 95 files), copied in with
+                                      04-governance-constraints.json and
+                                      04-policy-property-map.json redacted
   infra/bicep/university/            APEX's generated Bicep, copied in as-is (main.bicep,
                                       main.bicepparam, azure.yaml, modules/, scripts/)
 ```
@@ -44,7 +44,7 @@ repo and continue from there.
 
 ## Deploy it
 
-### With APEX + azd (primary, owner decision 2026-10-07)
+### With APEX + azd (primary)
 
 1. Create your repo from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator)
    template, as described on the site's Prerequisites page. There's no pinned tag or release: the
@@ -76,8 +76,11 @@ repo and continue from there.
 
    Or copy the three paths by hand if you'd rather not run a script from the kit repo.
 3. Run the `adapt-archetype` prompt in VS Code's **built-in agent mode** (not `01-Orchestrator`,
-   which would route on to APEX Deploy). It's self-contained: it asks for tenant ID, subscription
-   ID and suffix, checks that a spoke is already vended, runs a lightweight governance check
+   which would route on to APEX Deploy), after signing in to azd with `azd auth login
+   --use-device-code` (azd keeps its own sign-in, separate from `az login`). It's self-contained:
+   it reads the tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks
+   you to confirm them (it asks for them if the file is missing), checks that a spoke is already
+   vended (your platform lead vends it in C2), runs a lightweight governance check
    (live Deny-effect discovery, compared against the packaged policy set by policy definition and
    resource type -- stopping only on a genuinely new deny; never overwriting the tracked
    `04-governance-*` files or running drift routing/Step 4-5 re-emission), creates the `azd`
@@ -116,12 +119,16 @@ the packaged `infra/bicep/university/` tree hash no longer matches the APEX hand
 bugs (cmd.exe escaping in `preflight.ps1`, an ACR NIC match in `postdeploy-tests.ps1`) and the new
 `write-deployment-summary.ps1` were hand-patched into this APEX-output tree instead of being
 re-emitted by APEX step `06b`. This only matters for **APEX Deploy** above, which checks the tree
-hash; `azd provision` does not check it and is unaffected. The drift clears once the owner ports
-the fixes into `apex-factory-coe` and this item re-packages from the new handoff (#52).
+hash; `azd provision` does not check it and is unaffected. The drift clears once the fixes are ported
+into the upstream APEX project (`apex-factory-coe`) and this folder is re-packaged from the new
+handoff (#52).
 
 ### Fallback (no agent, no azd)
 
+Run it from the `factory/` folder of your repo (in the dev container), so the script and `.local/settings.json` resolve. In the kit repo itself, run it from the repo root.
+
 ```powershell
+cd factory
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 ./archetype/deploy.ps1 -TenantId $s.tenantId -SubscriptionId $s.subscriptionId -Suffix $s.suffix -WhatIf
 ./archetype/deploy.ps1 -TenantId $s.tenantId -SubscriptionId $s.subscriptionId -Suffix $s.suffix
@@ -141,12 +148,12 @@ path and the fallback script, by the backlog's naming conventions.
 
 ## Cost
 
-The archetype adds about **$1.83/hour** while deployed: SQL MI General Purpose 4 vCores with AHB
-about $0.68, Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR Premium about
-$0.07, private endpoints about $0.05. The foundation it runs on (ALZ-lite about $1.30 plus the
-datacenter about $1.55) is about **$2.85/hour** on its own, so the kit total while both the
+The archetype adds about **$1.83/hour** while deployed: SQL MI General Purpose Standard-series (Gen5)
+4 vCores with AHB about $0.68, Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR
+Premium about $0.07, private endpoints about $0.05. The foundation it runs on (ALZ-lite about $1.30
+plus the datacenter about $1.55) is about **$2.85/hour** on its own, so the kit total while both the
 foundation and the archetype are deployed is about **$4.63-$4.66/hour**. The SQL MI can't be
-stopped while an MI link is active (B07).
+stopped while an MI link is active.
 
 ## Public-endpoint exceptions
 
@@ -159,7 +166,7 @@ app to function:
 
 Separately, the container registry allows **trusted Azure services** to bypass its network rules
 (while `publicNetworkAccess` stays off and no other public access is granted), so `az acr import`
-of the known-good image works in B10. This is a deliberate, documented exception to "private
+of the placeholder image works after the deploy. This is a deliberate, documented exception to "private
 backends," not a public endpoint -- it does not open the registry to the internet.
 
 ## Governance files and APEX's hash chain
@@ -200,13 +207,13 @@ APEX step (Step 6 re-emits `05-iac-handoff.json`; a fresh Step 3.5 Challenger pa
 sidecar), and this kit never hand-edits a hash to force a check to pass. **These files, and APEX's
 whole hash chain, are the CoE's own review evidence** -- proof that this archetype's plan and Bicep
 passed a real governance review in the build tenant. They are not, and never become, a per-member
-deployment gate (owner decision, 2026-10-08). A member's `adapt-archetype` run does a lighter check
+deployment gate (a design choice of this kit). A member's `adapt-archetype` run does a lighter check
 instead: live Deny-effect discovery in the member's own tenant, written only to a gitignored
 scratch folder, diffed against the packaged policy set by policy definition and resource type. It
 stops only if the member's tenant has a genuinely new deny on a resource type this archetype
 deploys; it never overwrites these tracked files and never re-emits `05-iac-handoff.json`. The real
 gate for a member's deployment is that check plus `preflight.ps1` (read-only) and
-`azd provision --preview`. See the PR for the exact command output.
+`azd provision --preview`.
 
 ### ID scan
 
@@ -235,12 +242,8 @@ default (see `docs/backlog/README.md`). To turn AHB off and pay full license-inc
 instead, change `licenseType` to `'LicenseIncludedPrice'` in `infra/bicep/university/main.bicep`
 (or override it as a deployment parameter) before deploying.
 
-## Validation record
+## Validation
 
-| Path | Time to ready (excl. MI) | MI provisioning time | Notes |
-|---|---|---|---|
-| APEX Deploy + As-Built | `TODO (post-deploy)` | `TODO (post-deploy)` | requirement 18, fresh repo |
-| `deploy.ps1` fallback | `TODO (post-deploy)` | `TODO (post-deploy)` | requirement 17 |
-
-Requirement-19 checks (public-endpoint audit, policy compliance, private DNS resolution, image
-push/pull/restart, telemetry reaching Application Insights): `TODO (post-deploy)`.
+Both deploy paths and the post-deploy checks (public-endpoint audit, policy compliance, private DNS
+resolution, image push, pull and restart, telemetry reaching Application Insights) were run in a
+build tenant. The result is recorded in `docs/backlog/B09-archetype.md` in the kit repo.

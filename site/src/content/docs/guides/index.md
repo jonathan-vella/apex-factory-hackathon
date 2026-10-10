@@ -1,14 +1,14 @@
 ---
 title: Guides
-description: GitHub Copilot, APEX and Azure Arc guides.
+description: ALZ-lite, APEX, GitHub Copilot and Azure Arc guides.
 sidebar:
   label: Overview
   order: 0
 ---
 
-This section collects guides for GitHub Copilot, APEX and Azure Arc.
+This section collects the mechanics behind the challenges: ALZ-lite, APEX, the GitHub Copilot Upgrade agent and Azure Arc. Each guide is the how; the challenge page is the what and the acceptance bar.
 
-- [GitHub Copilot upgrade](./ghcp-upgrade/): the Upgrade agent in VS Code, the B06 golden path.
-- [APEX](./apex/): adapting and deploying the CoE archetype.
-- [Azure Arc and the MI link](./arc-mi-link/): onboarding, assessment, seeding, cutover.
-- [ALZ-lite](./alz-lite/): the two-subscription model and what it leaves out of a full ALZ.
+- [ALZ-lite](./alz-lite/): the two-subscription model, what the deploy creates and what it leaves out of a full ALZ (C2).
+- [APEX](./apex/): adapting and deploying the CoE archetype (C5).
+- [GitHub Copilot upgrade](./ghcp-upgrade/): working on `vm-dev01`, and the Upgrade agent in VS Code (C3, C6).
+- [Azure Arc and the MI link](./arc-mi-link/): onboarding, assessment, seeding, cutover (C0, C3, C7).
