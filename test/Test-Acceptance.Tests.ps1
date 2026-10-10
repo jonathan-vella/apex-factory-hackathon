@@ -74,9 +74,13 @@ function global:az {
     throw "Unexpected Azure CLI command: $command"
 }
 function global:Invoke-WebRequest {
+    # Like PowerShell 7: a 3xx with -MaximumRedirection 0 throws unless the error is silenced.
+    [CmdletBinding()]
     param([string] $Uri, [int] $TimeoutSec, [switch] $SkipHttpErrorCheck, [int] $MaximumRedirection)
+    if ($scenario -eq 'no-connection') { Write-Error 'The connection could not be established.'; return }
     if ($Uri -like 'http://*') {
         if ($scenario -eq 'no-redirect') { return [pscustomobject]@{ StatusCode = 200; Content = ''; Headers = @{} } }
+        if ($PSBoundParameters['ErrorAction'] -ne 'SilentlyContinue') { throw [System.InvalidOperationException]::new('Operation is not valid due to the current state of the object.') }
         return [pscustomobject]@{ StatusCode = 301; Content = ''; Headers = @{ Location = @('https://app1.example.test/') } }
     }
     if ($scenario -eq 'page-500' -and $Uri -like '*/Courses') { return [pscustomobject]@{ StatusCode = 500; Content = 'error'; Headers = @{} } }
@@ -102,6 +106,7 @@ $scenarios = @(
     @{ Name = 'page-500'; Exit = 1; Check = 'GET /Courses'; Status = 'FAIL' }
     @{ Name = 'no-rows'; Exit = 1; Check = 'GET /Students'; Status = 'FAIL' }
     @{ Name = 'no-redirect'; Exit = 1; Check = 'HTTP redirects to HTTPS'; Status = 'FAIL' }
+    @{ Name = 'no-connection'; Exit = 1; Check = 'GET /'; Status = 'UNKNOWN' }
     @{ Name = 'no-webapp'; Exit = 1; Error = 'exactly one web app' }
     @{ Name = 'cli-error'; Exit = 1; Error = 'Azure CLI' }
     @{ Name = 'output-error'; Exit = 1; Error = "write the JSON" }

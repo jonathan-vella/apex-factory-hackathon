@@ -108,7 +108,7 @@ Allow outbound HTTPS to `github.com`, `api.github.com`, `*.githubusercontent.com
    rm Import-Kit.ps1
    ```
 
-   This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`.
+   This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`. `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
 5. Commit the result:
 
    ```bash
