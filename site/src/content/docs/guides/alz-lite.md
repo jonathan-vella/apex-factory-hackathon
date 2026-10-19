@@ -43,7 +43,7 @@ Vending then connects each member's workload subscription and datacenter to the 
 
 ## One step that needs a directory role
 
-ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up the web app's identity in C7. Once per team, right after `Deploy-AlzLite.ps1`, someone with the **Privileged Role Administrator** (or Global Administrator) directory role grants it Microsoft Graph read permissions with `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <id>`. The platform lead usually doesn't hold that role, so arrange it before the event. [C2](../../challenges/c02-secure-ai-ready-foundation/) has the exact step.
+ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up the web app's identity in C7. Once per team, right after `Deploy-AlzLite.ps1`, someone with the **Privileged Role Administrator** (or Global Administrator) directory role grants it Microsoft Graph read permissions with `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <id>`. The platform lead usually doesn't hold that role, so arrange it before the event. The grant is tenant-wide and read-only, and members can attach the identity to other resources during the event, so the tenant owner approves it first and someone is named to delete the identity afterwards ([details](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)). [C2](../../challenges/c02-secure-ai-ready-foundation/) has the exact step.
 
 ## Fixed values
 
