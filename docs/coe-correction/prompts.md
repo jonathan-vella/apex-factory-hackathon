@@ -52,13 +52,25 @@ Step 0, before anything else: make sure we are on the right branch.
 - If the working tree is clean and we are on another branch: run `git switch fix/university-52-60-wip` (if it does not exist
   locally, `git switch -c fix/university-52-60-wip --track origin/fix/university-52-60-wip`), then `git merge --ff-only
   origin/fix/university-52-60-wip`. If the fast-forward is refused, stop and tell me.
-- Expected, harmless leftovers: a modified tools/scripts/_data/avm-module-cache.json and an untracked
-  agent-output/university/00-session-state.json.lock. Report them, do not touch them. Any other change: stop and show me.
+- Expected, harmless leftovers: a modified tools/scripts/_data/avm-module-cache.json, an untracked
+  agent-output/university/00-session-state.json.lock, and (after Step 0.5) a modified .vscode/settings.json. Report them, do not
+  touch them. Any other change: stop and show me.
 - If 778d8d2 is not an ancestor of HEAD, or origin/main has moved on, stop and tell me. Do not merge main yourself.
 - Never use reset --hard, clean, checkout -- , stash drop, force-push or --no-verify.
 - Report the branch and `git log --oneline -3` before continuing.
 
-Then read-only. Change nothing, run no state-changing apex-recall command, no signing, no review, no commit and no Azure operation.
+Step 0.5: Azure MCP mapping. I explicitly authorize this one edit and nothing else in settings.
+- Folder name: `basename "$(git rev-parse --show-toplevel)"`. Required key: `"<folder>/.vscode/mcp.json: azure-mcp"`.
+- Check `.vscode/mcp.json` exists and defines a server named `azure-mcp`. If not, skip this step and tell me.
+- Open `.vscode/settings.json`. If `chat.mcp.serverSampling` already has the required key, do nothing. Otherwise add exactly that one
+  key with `{ "allowedDuringChat": true }` next to the existing entries. Keep every other entry and all formatting, and keep the
+  file valid JSON (check with `node -e "JSON.parse(require('fs').readFileSync('.vscode/settings.json','utf8'))"`; if the file
+  has comments and the check fails, say so and stop).
+- Show me `git diff .vscode/settings.json`. Do not commit it: upstream syncs overwrite this file, so it stays a local change.
+  It is an expected modification from now on.
+- Tell me if the window needs a reload for the setting to take effect.
+
+Then read-only (apart from the Step 0.5 settings entry). Change nothing else, run no state-changing apex-recall command, no signing, no review, no commit and no Azure operation.
 Context: project university. Step 4 is complete with plan_status EXCEPTION_AUTHORIZED under a signed lab risk authorization (kit
 scope: plan-complete and codegen only). Step 5 is in_progress. The review challenge-findings-plan-pass10.json carries two accepted
 must_fix findings: risk acceptance, not remediation. The code for #52 and #60 is committed. What is left needs a live lab
