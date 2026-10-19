@@ -6,6 +6,10 @@
 > handoff aren't validated yet ([#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52)).
 > The deployer doesn't get Monitoring Metrics Publisher on Application Insights yet
 > ([#60](https://github.com/jonathan-vella/apex-factory-hackathon/issues/60)).
+>
+> **Read before you deploy:** an independent APEX review still reports two `must_fix` findings on
+> this archetype. The kit's maintainer accepted both as risks for a non-production lab. They are not
+> fixed. See [Accepted lab risks and adopter obligations](#accepted-lab-risks-and-adopter-obligations).
 
 ## What this is
 
@@ -171,6 +175,63 @@ Separately, the container registry allows **trusted Azure services** to bypass i
 (while `publicNetworkAccess` stays off and no other public access is granted), so `az acr import`
 of the placeholder image works after the deploy. This is a deliberate, documented exception to "private
 backends," not a public endpoint -- it does not open the registry to the internet.
+
+## Accepted lab risks and adopter obligations
+
+An independent APEX review of this archetype's plan reports two `must_fix` findings. They are
+**accepted risks, not fixes**: the kit's maintainer chose to keep the design (including SQL Managed
+Instance and the shared identity) and accepted both for a **non-production lab**. The review still
+reports them as unresolved. Read this section before you deploy the archetype in a tenant.
+
+### The two risks
+
+1. **The shared identity can be attached to other resources.** `id-sqlmi-directory` is a
+   user-assigned managed identity in `rg-management` that every member's SQL Managed Instance uses.
+   It holds the Microsoft Graph application permissions `User.Read.All`, `GroupMember.Read.All` and
+   `Application.Read.All`, granted once per team. Each member is Owner of their workload
+   subscription and holds Managed Identity Operator on this identity. That role doesn't limit which
+   kind of resource the identity is attached to, so a member can attach it to another resource they
+   control, request a Graph token and read user, group and application data across the tenant.
+   - The permissions are read-only. On their own they don't allow directory changes or access to
+     mailboxes, files or SQL data.
+   - The access isn't limited to the member's subscription, and the identity stays in place after
+     the event unless someone deletes it (team cleanup keeps it by default).
+   - Removing the grant or the identity doesn't cancel tokens that were already issued. The effect
+     can take hours.
+2. **The public web app has no end-user authentication.** The web app's front end is the one public
+   inbound endpoint (see above). It has no App Service authentication and no IP restrictions, and an
+   owner decision left end-user sign-in to the application. Its managed identity holds
+   Storage Blob Data Contributor, Service Bus Data Sender and Receiver, and Key Vault Secrets User.
+   If the application you deploy exposes an operation that uses those roles, anyone on the Internet
+   can call it. The archetype deploys a placeholder image, so the exposure depends on the
+   application the team puts on it.
+
+These risks come from the design, so a modernized app on this archetype doesn't remove them. For
+the second one, the adopting team decides how to protect the app (for example, sign-in in the
+application or App Service authentication) and tests that a caller who isn't signed in can't reach
+an operation that uses the identity.
+
+### What the kit's acceptance does and doesn't cover
+
+- It covers the maintainer building and publishing the archetype for a lab.
+- It does **not** authorize a deployment in your tenant, and it does not cover production use.
+- Reusing the archetype in production needs its own security review.
+
+### Obligations of the adopting team
+
+The adopting team is the partner or event owner who runs the kit in their own tenant. These belong
+to them, not to the kit:
+
+- **Before you deploy:** the tenant owner approves the Graph grant and the deployment, and the team
+  names the event expiry date, the person who owns cleanup and the teardown deadline.
+- **After the event:** remove every SQL Managed Instance that uses the identity, delete
+  `id-sqlmi-directory` (deleting `rg-management` also removes its Graph grant, see
+  `scripts/Grant-SqlMiDirectoryRead.ps1`) and remove the public web app. Then check that each one
+  is gone. Collect that evidence after teardown, not before. The steps are in the facilitator's
+  [cleanup guide](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/facilitator/cleanup.md#post-event-access).
+
+The options considered for removing the first risk are in
+[the SQL MI identity research](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/docs/coe-correction/research/sqlmi-identity-options.md).
 
 ## Governance files and APEX's hash chain
 
