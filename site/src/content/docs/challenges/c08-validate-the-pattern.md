@@ -23,9 +23,14 @@ C7's app, live on App Service against SQL MI.
 
 | Tasks | Where |
 | --- | --- |
-| 1 (pages), 2, 3 (browser flows) | A browser, on any computer. Use `vm-dev01` if your own network can't reach the web app. The row counts in task 1 and the blob listing in task 2 use `vm-dev01` (SSMS and PowerShell), because the databases and storage are private-only. |
+| 1 (pages), 3 (browser flows) | A browser, on any computer. Use `vm-dev01` if the web app's page times out from your own computer. |
+| 1 (row counts), 2 (blob listing) | `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)): SSMS and PowerShell there. The databases and storage are private-only. |
 | 4, 5 (load and security checks) | The dev container of your own repo, from `factory/`. |
-| 6 (record) | Your own repo, in `factory/evidence/c08/`. |
+| 6 (record) | Both. Evidence made on `vm-dev01` goes in `C:\src\<your-repo>\factory\evidence\c08\` (the plain clone of your own repo) on `main`; run `git pull --rebase` first. Evidence made in the dev container goes in `factory/evidence/c08/` on `main`; run `git pull` first. |
+
+The acceptance pack is your filled-in `acceptance-handover.md` together with the evidence files beside it.
+
+### Values from the dev container
 
 In the dev container, open `pwsh` and set up the values the checks use:
 
@@ -39,16 +44,42 @@ $s = Get-Content .local/settings.json | ConvertFrom-Json
 az account set --subscription $s.subscriptionId
 $rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
 $app = az webapp list --resource-group $rg --query "[0].defaultHostName" --output tsv
+$suffix = $rg -replace '^rg-university-', ''
 $rg; $app
+"Member index <n>: $($s.memberIndex)   Suffix <suffix>: $suffix"
 ```
 
-The last line prints your archetype's resource group and the web app's host name. If either is empty, C5 didn't finish.
+The output is your archetype's resource group, the web app's host name, your member index (`<n>`) and your suffix (`<suffix>`). If the resource group or host name is empty, C5 didn't finish. If `az` says "Please run 'az login'", run `az login --use-device-code` and start again.
+
+Task 1 also needs the source database's password. It's in the dev container too, so print it here and type it on the VM yourself (the VM has no `.local` folder):
+
+```powershell
+(Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).sqlAppPassword
+```
+
+### Values on `vm-dev01`
+
+On the VM, in PowerShell, set the same values once per window. Replace `<n>` with your member index:
+
+```powershell
+az login --use-device-code
+az account show --query name --output tsv   # your workload subscription
+$n = <n>
+$rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
+$suffix = $rg -replace '^rg-university-', ''
+$mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query fullyQualifiedDomainName --output tsv
+$mi
+```
+
+`$mi` is your SQL Managed Instance's host name. If the subscription name is wrong, run `az account set --subscription <name>` and repeat.
+
+The first time you connect SSMS to the source, tick **Trust server certificate** in the Connect dialog: the source has a self-signed certificate, and without it the connection fails with "certificate chain was issued by an authority that is not trusted". The managed instance doesn't need it.
 
 If a check fails and you want help diagnosing it, there's a prompt for that in the [prompt library](../../prompts/vscode/06-acceptance-pack/). The checks themselves are on this page.
 
 ## Your tasks
 
-1. **Smoke checks.** Open `https://<your web app host name>/` in a browser, then each of **Students**, **Courses**, **Instructors** and **Departments** from the menu. Every page must load with no error page, and the four list pages must show rows. Then confirm the data is the migrated data: on `vm-dev01`, open SSMS and run this query against the source (`10.10.<n>.4`, SQL authentication as `contosoapp`; the password is `sqlAppPassword` in the same `datacenter.json` file as the Bastion password, see C7) and against your SQL Managed Instance (Microsoft Entra authentication). The counts must match, and the source stays running after cutover, so both queries work:
+1. **Smoke checks.** Open `https://<your web app host name>/` in a browser, then each of **Students**, **Courses**, **Instructors** and **Departments** from the menu. Every page must load with no error page, and the four list pages must show rows. Then confirm the data is the migrated data: on `vm-dev01`, open SSMS and run the query below twice. First connect to the source: **Server name** `10.10.<n>.4`, **Authentication** **SQL Server Authentication**, **Login** `contosoapp`, **Password** the `sqlAppPassword` you printed in the dev container, and tick **Trust server certificate**. Then connect to your SQL Managed Instance: paste `$mi` into **Server name**, set **Authentication** to **Microsoft Entra MFA**, and sign in with the account that deployed the archetype. Select the `ContosoUniversity` database in both (the database list in SSMS's toolbar). The counts must match, and the source stays running after cutover, so both queries work. Screenshot both results:
 
    ```sql
    SELECT
@@ -59,7 +90,9 @@ If a check fails and you want help diagnosing it, there's a prompt for that in t
      (SELECT COUNT(*) FROM Enrollment) AS Enrollments;
    ```
 
-2. **Upload round-trip.** On **Courses > Edit** for any course, choose a small PNG as the teaching material and save. The image must show on the course's page. Then check it landed in Blob. The storage account is private-only, so the portal's blob browser won't work from your own computer: on `vm-dev01`, in PowerShell, after `az login --use-device-code`, run `az storage blob list --account-name stuniversity<suffix> --container-name teaching-materials --auth-mode login --output table` (your suffix is in `.local/settings.json`), and see the new blob. Replace the image with another one, then delete it, and list again to confirm the blob changes and then goes. Last, try to upload a text file (switch the file dialog from "Image files" to "All files") and a file larger than 5 MB (the app's limit); both must be rejected with a message. The storage account has public access disabled, so a working upload proves the app reaches it privately.
+2. **Upload round-trip.** Use a throwaway course so you never touch the seeded data: on **Courses > Create New**, enter a course ID that isn't used (`9901`), a title, credits and a department, choose a small PNG (any PNG under 5 MB, a screenshot works) as the teaching material, and save. The image must show on the course's page (**Details**). Then check it landed in Blob. The storage account is private-only, so the portal's blob browser won't work from your own computer: on `vm-dev01`, in PowerShell, with the values set above, run `az storage blob list --account-name "stuniversity$suffix" --container-name teaching-materials --auth-mode login --output table` and see the new blob. Open **Courses > Edit** on the throwaway course, choose a different image and save, and list again: the blob must have changed. The app has no separate "delete image" control, so to remove the image, delete the course: **Courses > Delete** on the throwaway course only, then list once more and confirm its blob is gone. Never delete a seeded course: it changes the counts task 1 compared and the data C9's workload reads.
+
+   Last, on **Courses > Create New**, try to upload a text file (a `.txt` file; switch the file dialog from "Image files" to "All files") and then a file larger than 5 MB (the app's limit); both must be rejected with a message, and no course is created. The app checks the file name's extension and the size, not the content, so a 6 MB dummy file named `.png` does for the size test. If you don't have a big image, create one in PowerShell on the computer you browse from: `[IO.File]::WriteAllBytes("$HOME\big.png", [byte[]]::new(6MB))`. If the message names the file type instead of the size, use a real photo over 5 MB. The storage account has public access disabled, so a working upload proves the app reaches it privately.
 3. **Notification round-trip.** Open the browser's developer tools (`F12`) > **Network**, filter for `GetNotifications`, and leave it open. The page asks `/Notifications/GetNotifications` every 5 seconds. Edit a student (**Students > Edit**, change the first name, save). Within 5 seconds a toast must appear on screen, and the next `GetNotifications` request in the Network panel must show status `200` and a response with `success` set to `true` and a `count` of 1 or more. Then edit the student back. Don't open the `/Notifications/GetNotifications` address in another tab yourself: each call takes the queued messages, so the page would never show the toast. Service Bus has public access disabled, so a working toast proves the app reaches it privately.
 4. **Load check.** A light burst of concurrent page loads against the live app. In the dev container:
 
@@ -76,14 +109,18 @@ If a check fails and you want help diagnosing it, there's a prompt for that in t
    ./scripts/Test-Acceptance.ps1 -SubscriptionId $s.subscriptionId -ResourceGroup $rg -OutFile .local/acceptance.json
    ```
 
-   It reports PASS, FAIL or UNKNOWN for: the five pages and the HTTP-to-HTTPS redirect; the web app's HTTPS-only and minimum TLS 1.2; public network access off and an approved private endpoint for Storage, Service Bus, Key Vault and Container Registry; and SQL Managed Instance's public data endpoint off. It must end with `ACCEPT`. Fix every FAIL, and explain every UNKNOWN with the portal view that settles it. It doesn't replace tasks 1 to 3, and it doesn't prove the data is right. If you have time, check **Azure Policy > Compliance** (filter on your resource group) and **Microsoft Defender for Cloud > Recommendations** for findings on the same resources as a second view; they can lag the live settings by many minutes, so treat them as corroboration only, and skip them if you're short of time.
-6. **Record every result** against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`). Save it in `factory/evidence/c08/` in your own repo. Your `acceptance.json` is in `factory/.local/`: copy it from there into `factory/evidence/c08/`, then commit (a conventional message, for example `docs: C8 acceptance pack`) and push `main`.
+   It reports PASS, FAIL or UNKNOWN for: the five pages and the HTTP-to-HTTPS redirect; the web app's HTTPS-only and minimum TLS 1.2; public network access off and an approved private endpoint for Storage, Service Bus, Key Vault and Container Registry; and SQL Managed Instance's public data endpoint off. It must end with `ACCEPT`: any FAIL or UNKNOWN keeps the verdict at `NOT ACCEPTED` and the exit code at 1. A FAIL is a setting that is wrong. These settings come from the archetype's infrastructure code, so ask your coach before you change a resource by hand; don't leave it unrecorded. An UNKNOWN is a check the script couldn't decide: settle each one in the portal (see the hints for the view) and screenshot it, and record the row and its screenshot in the pack beside the verdict. It doesn't replace tasks 1 to 3, and it doesn't prove the data is right. If you have time, check **Azure Policy > Compliance** (filter on your resource group) and **Microsoft Defender for Cloud > Recommendations** for findings on the same resources as a second view; they can lag the live settings by many minutes, so treat them as corroboration only, and skip them if you're short of time.
+6. **Record every result.** First capture the telemetry: in the portal open `appi-university-<suffix>` > **Investigate** > **Transaction search**, set the time range to the last 30 minutes, and screenshot the requests and dependencies from your checks. Then record every result against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`).
+
+   1. On `vm-dev01`, save the SSMS count screenshots and the blob listing in `C:\src\<your-repo>\factory\evidence\c08\`. Run `git pull --rebase` there, commit (a conventional message, for example `docs: C8 vm evidence`) and `git push`, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
+   2. In the dev container, in your own repo, run `git pull`, then copy `factory/templates/attendee/acceptance-handover.md` to `factory/evidence/c08/` and fill it in. Copy `factory/.local/acceptance.json` and your browser screenshots there too.
+   3. Commit (for example `docs: C8 acceptance pack`) and push `main`.
 
 ## Evidence
 
-- A filled-in [acceptance and handover](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md) document: every check, its result and its evidence.
-- Telemetry (requests, dependencies) from this session's checks visible in Application Insights: open the resource > **Investigate** > **Transaction search**, set the time range to the last 30 minutes, and screenshot the requests from your checks.
-- `Test-Acceptance.ps1`'s output (or `acceptance.json`) ending in `ACCEPT`, which shows public network access off for every backend.
+- A filled-in acceptance and handover document, copied from `factory/templates/attendee/acceptance-handover.md` (the [template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md)) into `factory/evidence/c08/`: every check, its result and its evidence.
+- Telemetry (requests, dependencies) from this session's checks visible in Application Insights: the screenshot from task 6.
+- `Test-Acceptance.ps1`'s output (`acceptance.json`) ending in `ACCEPT`, which shows public network access off for every backend. If a check stayed UNKNOWN, the portal screenshot that settles it, noted in the pack.
 
 ## Hints
 
@@ -102,7 +139,7 @@ Run `Test-Acceptance.ps1` (task 5). To check one resource by hand, `az resource 
 <details>
 <summary>The pages return errors, or the app is slow to answer</summary>
 
-The managed instance starts and stops on a schedule the facilitator sets (by default weekdays 07:30 to 18:30, W. Europe time). If it's stopped, the app returns errors: tell your coach.
+The managed instance may be stopped. Check on `vm-dev01`: `az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query state --output tsv` prints `Ready` when it runs. If it prints `Stopped`, open the managed instance in the portal and select **Start** on **Overview** (it takes several minutes), or ask your coach. The facilitator can set a schedule for it (by default it runs weekdays 07:30 to 18:30, W. Europe time, once the MI link is removed).
 </details>
 
 <details>
@@ -112,9 +149,15 @@ Plan about 10 minutes each for tasks 1 to 3, 5 for task 4, 5 for the checker and
 </details>
 
 <details>
-<summary>The checker reports UNKNOWN for a private endpoint</summary>
+<summary>The checker reports UNKNOWN</summary>
 
-It only looks in your archetype's resource group. If the private endpoint lives elsewhere, open the backend in the portal > **Networking** > **Private endpoint connections**, and screenshot an **Approved** connection instead.
+An UNKNOWN means the script couldn't read the setting. Settle it in the portal and screenshot it:
+
+- **Private endpoint:** it only looks in your archetype's resource group. If the private endpoint lives elsewhere, open the backend > **Networking** > **Private endpoint connections**, and screenshot an **Approved** connection instead.
+- **Public network access:** open the backend > **Networking** and screenshot the public access setting (disabled).
+- **HTTPS only or TLS version:** open the web app > **Configuration** > **General settings** and screenshot **HTTPS Only** and the minimum TLS version.
+- **Page checks:** open the page in a browser and screenshot it.
+
 </details>
 
 <details>
@@ -122,6 +165,10 @@ It only looks in your archetype's resource group. If the private endpoint lives 
 
 Check the Network panel first. A `GetNotifications` response with `success: false` means the app couldn't reach Service Bus: check the app's `ServiceBus` settings and its identity's roles, and that the private endpoint is approved. If the response is fine but empty, someone or something else consumed the message: edit the student again.
 </details>
+
+## If you need to start over
+
+C8's checks are read-only (the throwaway course is the only change: delete it if the test stopped halfway), so there is nothing to reset. To redo C8, run the checks again and overwrite your files in `factory/evidence/c08/`. If you see `NOT ACCEPTED`, fix the cause (ask your coach) and run `Test-Acceptance.ps1` again; it changes nothing.
 
 ## Bonus
 

@@ -17,19 +17,24 @@ Check (don't change) the web app's configuration: its app settings, its managed 
 
 ## Or run the commands yourself
 
+`<suffix>` is the suffix in your resource group's name, `rg-university-<suffix>`. The first two lines read
+it from Azure, so you don't type it:
+
 ```powershell
-az webapp config appsettings list -g rg-university-<suffix> -n app-university-<suffix> --query "[].name" -o tsv
-$id = az identity show -g rg-university-<suffix> -n id-university-<suffix> --query principalId -o tsv
-az role assignment list --assignee $id --all --query "[].{role:roleDefinitionName, scope:scope}" -o table
-az acr repository show-tags -n cruniversity<suffix> --repository contoso-university -o table
+$rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
+$suffix = $rg -replace '^rg-university-', ''
+az webapp config appsettings list --resource-group $rg --name "app-university-$suffix" --query "[].name" --output tsv
+$id = az identity show --resource-group $rg --name "id-university-$suffix" --query principalId --output tsv
+az role assignment list --assignee $id --all --query "[].{role:roleDefinitionName, scope:scope}" --output table
+az acr repository show-tags --name "cruniversity$suffix" --repository contoso-university --output table
 ```
 
 Use the `app-service-configuration` skill if you want the agent to drive this directly.
 
 ## Check
 
-- App settings list `KeyVault:VaultUri` and non-secret endpoints — no connection strings or secrets in plain
-  app settings.
+- App settings list `KeyVault__VaultUri` (App Service writes the `:` in `KeyVault:VaultUri` as `__`) and non-secret
+  endpoints — no connection strings or secrets in plain app settings.
 - The identity's role assignments include **Key Vault Secrets User** on `kv-university-<suffix>`.
 - Your `c6`-tagged image is in the registry.
 - The web app is **not** yet pointed at that image — it would exit on every start, because the database isn't

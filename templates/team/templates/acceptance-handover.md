@@ -1,10 +1,10 @@
 # Acceptance and handover
 
 <!--
-Used in C8 (per member, against the acceptance pack) and C10 (rolled up for the whole team). Record every check's actual result (pass, fail or not applicable), not an expected one.
+Used in C8 (per member, against the acceptance pack) and C10 (rolled up for the whole team). Record every check's actual result (pass, fail or not applicable), not an expected one. The acceptance pack is this filled-in document plus the evidence files beside it.
 -->
 
-Member index: <!-- your member number, 1 to 20 -->
+Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use the table in the handover summary -->
 
 ## Smoke checks
 
@@ -21,13 +21,15 @@ Member index: <!-- your member number, 1 to 20 -->
 
 ## Upload round-trip (private endpoint)
 
+<!-- C8 task 2: use a throwaway course (Courses > Create New, course ID 9901). The app has no separate "delete image" control, so the image is removed by deleting that course. Never delete a seeded course. -->
+
 | Check | Result | Evidence |
 |---|---|---|
-| Upload an image on Courses > Edit | | |
+| Create a throwaway course with an image | | |
 | Image shows on the course | | |
 | Blob appears in `teaching-materials` (`az storage blob list` on vm-dev01) | | |
-| Replace the image | | |
-| Delete the image | | |
+| Replace the image on the course's Edit page; the blob changes | | |
+| Delete the throwaway course; its blob is gone | | |
 | Non-image file rejected | | |
 | File over 5 MB rejected | | |
 
@@ -49,11 +51,11 @@ Member index: <!-- your member number, 1 to 20 -->
 
 ## Security check
 
-<!-- C8 task 5: attach Test-Acceptance.ps1's output (acceptance.json). Policy and Defender views are corroboration only. -->
+<!-- C8 task 5: attach Test-Acceptance.ps1's output (acceptance.json). Policy and Defender views are corroboration only. An UNKNOWN keeps the verdict at NOT ACCEPTED: settle it in the portal, add the screenshot as evidence, and note it in the row. -->
 
 | Check | Result | Evidence |
 |---|---|---|
-| `Test-Acceptance.ps1` verdict is ACCEPT | | |
+| `Test-Acceptance.ps1` verdict is ACCEPT (or each UNKNOWN is settled in the portal) | | |
 | HTTP redirects to HTTPS | | |
 | Web app HTTPS-only | | |
 | Web app minimum TLS 1.2 | | |
@@ -65,7 +67,7 @@ Member index: <!-- your member number, 1 to 20 -->
 
 ## Telemetry
 
-<!-- C8 evidence: Application Insights > Investigate > Transaction search, time range the last 30 minutes, with the requests and dependencies from your checks. -->
+<!-- C8 task 6: Application Insights (appi-university-<suffix>) > Investigate > Transaction search, time range the last 30 minutes, with the requests and dependencies from your checks. -->
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -73,4 +75,12 @@ Member index: <!-- your member number, 1 to 20 -->
 
 ## Handover summary (C10)
 
-<!-- What's being handed over, to whom, and what they need to know to operate it without the team in the room. Cover every member: list each member index and link to their C8 pack in factory/evidence/c08/ of their own repo. -->
+<!-- C10 only. What's being handed over, to whom, and what they need to know to operate it without the team in the room. Copy each member's C8 pack into factory/evidence/c10/member-packs/ and link it here. -->
+
+| Member | Member index | C8 pack | Result (ACCEPT or NOT ACCEPTED) |
+|---|---|---|---|
+| | | | |
+
+Handed over to:
+
+How to operate it:

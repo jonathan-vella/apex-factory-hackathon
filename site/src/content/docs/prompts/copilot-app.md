@@ -5,8 +5,9 @@ sidebar:
   order: 9
 ---
 
-The kit validated VS Code, not the Copilot app, and it doesn't install the app on `vm-dev01`. Use VS Code unless
-you specifically want to try the app. If the Upgrade agent's tools don't attach after the checks below, switch
+The kit validated VS Code, not the Copilot app, and `vm-dev01` doesn't have the app. Use VS Code unless
+you specifically want to try the app: to try it, install it on `vm-dev01` yourself first, because the work runs
+there and the app has to run where your Azure sign-in and the source database are. If the Upgrade agent's tools don't attach after the checks below, switch
 to the [VS Code prompts](../vscode/00-prerequisites/) and keep going. That's the documented fallback, not a sign
 you did something wrong.
 
@@ -39,6 +40,7 @@ available, don't keep retrying in the same chat:
 
 ## Differences from VS Code
 
-- There's no harness to choose and no Local or Copilot split. Run it on `vm-dev01`, against the source database.
+- There's no harness to choose and no Local or Copilot split. Run it on `vm-dev01` (install the app there first, as
+  above), against the source database.
 - The Upgrade dashboard opens as a canvas if the agent's plugin registered it. Otherwise ask the agent to open it,
   or read `plan.md` and `tasks.md` in `.github/upgrades/scenarios/dotnet-version-upgrade/`.

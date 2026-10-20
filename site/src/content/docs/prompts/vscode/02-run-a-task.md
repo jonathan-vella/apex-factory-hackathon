@@ -35,7 +35,9 @@ Approve builds and file edits as they come up; if the agent stops halfway, reply
      grants it when you deploy it. Only for a deployment from before 2026-10-20 do you run the grant yourself; the
      command is in the same playbook section.
 3. Check you stayed in scope: `git status --short -- . ':!app' ':!.github/upgrades'` must print nothing.
-4. Commit and push `app: task 0N <name>` to your work branch before you start the next task's chat.
+4. Commit and push `app: task 0N <name>` to your work branch before you start the next task's chat. Check
+   `git branch -vv` first, and keep the branches straight as in
+   [Save your work and keep the branches straight](../../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight).
 
 ## Local configuration
 
