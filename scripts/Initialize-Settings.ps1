@@ -5,13 +5,15 @@
 Creates or updates .local/settings.json, the file the other kit scripts read.
 .DESCRIPTION
 Prompts for the tenant ID, your workload subscription ID, your member index and the location, checks
-each value, and writes factory/.local/settings.json (git-ignored). Run it from anywhere inside the
+the format of each value, and writes factory/.local/settings.json (git-ignored). Run it from anywhere inside the
 kit folder. If you're signed in with az login, the tenant and subscription default to the current
-az account. Re-running keeps the existing values and never changes your suffix. When settings.json
+az account. Before it writes anything, it prints the subscription name and tenant it will save, and when
+those came from the defaults it asks you to confirm. It can't tell a mistyped but valid ID from a real one,
+so read the name. Re-running keeps the existing values and never changes your suffix. When settings.json
 already holds all four core values, passing any parameter, for example -SharedSubscriptionId, updates only
 that value without prompting for the others. With no parameters, it prompts for each value and offers the
-stored one as the default (press Enter to keep it). The shared services subscription ID can be added in C0,
-if you are the platform lead, or when your platform lead shares it, in C2.
+stored one as the default (press Enter to keep it). The shared services subscription ID is optional: the platform lead
+can enter it in C0, and members add it in C2 when the platform lead shares it.
 .PARAMETER TenantId
 The Entra tenant ID.
 .PARAMETER SubscriptionId
@@ -107,11 +109,34 @@ $MemberIndex = [int](Read-Setting -Name 'memberIndex' -Prompt 'Your member index
     -Default $memberDefault -Validate { param($v) $v -match '^\d+$' -and [int]$v -ge 1 -and [int]$v -le 20 } -Hint 'Expected a whole number from 1 to 20.')
 $Location = Read-Setting -Name 'location' -Prompt 'Location' -Value $Location `
     -Default ($current['location'] ?? 'swedencentral') -Validate { param($v) $v -match '^[a-z0-9]+$' } -Hint 'Expected a region name like swedencentral.'
-$SharedSubscriptionId = Read-Setting -Name 'sharedSubscriptionId' -Prompt 'Shared services subscription ID (from your platform lead, needed in C2)' -Value $SharedSubscriptionId `
+$SharedSubscriptionId = Read-Setting -Name 'sharedSubscriptionId' -Prompt 'Shared services subscription ID (platform lead: yours; members: press Enter, you add it in C2)' -Value $SharedSubscriptionId `
     -Default $current['sharedSubscriptionId'] -Validate $isGuid -Hint 'Expected a GUID.' -Optional
 
 if ($SharedSubscriptionId -and $SharedSubscriptionId -eq $SubscriptionId) {
     throw 'The shared services subscription must be different from your workload subscription.'
+}
+
+# Show which subscription and tenant these IDs belong to, and confirm when they came from the az defaults.
+if ($account) {
+    $subscriptionJson = & az account show --subscription $SubscriptionId --output json 2>$null
+    if ($LASTEXITCODE -eq 0 -and $subscriptionJson) {
+        $subscription = $subscriptionJson | ConvertFrom-Json
+        Write-Host "Subscription: $($subscription.name) ($SubscriptionId)"
+        Write-Host "Tenant:       $TenantId"
+        if ($subscription.tenantId -and $subscription.tenantId -ne $TenantId) {
+            Write-Warning "Subscription '$($subscription.name)' belongs to tenant $($subscription.tenantId), not $TenantId."
+        }
+    }
+    else {
+        Write-Warning "Your az login can't see subscription $SubscriptionId. Check the ID, or run: az login --tenant <tenant-id>, then az account set --subscription <subscription-id>."
+    }
+
+    $fromAzDefaults = -not $current['subscriptionId'] -and
+        -not $PSBoundParameters.ContainsKey('SubscriptionId') -and -not $PSBoundParameters.ContainsKey('TenantId') -and
+        ($SubscriptionId -eq $account.id -or $TenantId -eq $account.tenantId)
+    if ($fromAzDefaults -and "$(Read-Host 'Save these values? [Y/n]')".Trim() -match '^n') {
+        throw 'Nothing was saved. Run: az login --tenant <tenant-id>, then az account set --subscription <subscription-id>, then run this script again.'
+    }
 }
 
 # A stable 6-character suffix (letter first) for resource names; generated once, never changed.

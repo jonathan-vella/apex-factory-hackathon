@@ -31,7 +31,7 @@ DECLARE @ToUtc datetimeoffset = SYSDATETIMEOFFSET();
 DECLARE @Top int = 30;
 
 -- Query Store keeps recent data in memory and flushes it every minute. Run this once after a workload
--- run, wait a few seconds, then run the rest, so the last interval is on disk. It changes no data.
+-- run, wait a minute, then run the rest, so the last interval is on disk. It changes no data.
 -- EXEC sys.sp_query_store_flush_db;
 
 SELECT

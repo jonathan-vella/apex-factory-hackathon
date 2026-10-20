@@ -1,6 +1,6 @@
 ---
 title: Prompt library
-description: Copy-paste prompts for the Upgrade agent workflow in C3, C6, C7 and C8.
+description: Copy-paste prompts for the Upgrade agent workflow in C3, C6 and C8.
 sidebar:
   order: 1
 ---

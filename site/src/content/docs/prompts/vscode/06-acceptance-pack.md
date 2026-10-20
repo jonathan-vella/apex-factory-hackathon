@@ -7,7 +7,7 @@ sidebar:
 
 C8's acceptance pack is the checklist. This page only adds the prompt for interpreting a failure. The tasks, the
 commands and where each one runs are in [C8](../../../challenges/c08-validate-the-pattern/), and the read-only
-`Test-Acceptance.ps1` check is its task 5. Don't copy the checklist from here: C8 is the source.
+`Test-Acceptance.ps1` check is its task 5.
 
 ## Where to run
 
@@ -28,4 +28,4 @@ check itself.
 
 - Every C8 task has a result (pass, fail or not applicable) with evidence, in the
   [acceptance and handover template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md).
-- `Test-Acceptance.ps1` ends `ACCEPT`.
+- `Test-Acceptance.ps1` ends `ACCEPT`, or each UNKNOWN is settled in the portal as C8 describes.
