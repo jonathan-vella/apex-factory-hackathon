@@ -1,0 +1,151 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 10,
+  "challenge_summary": "The plan maps the discovered Deny policies and documents deferred cost monitoring, but it leaves two material identity exposure paths, does not demonstrate complete diagnostic metrics coverage, and uses one non-resumable deployment for a large resource set.",
+  "compact_for_parent": "Pass 10 (comprehensive) | HIGH | 2 must_fix, 2 should_fix | Key: Public app exposes workload identity; Shared Graph identity is reattachable",
+  "risk_level": "high",
+  "must_fix_count": 2,
+  "should_fix_count": 2,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "bc629836",
+      "severity": "must_fix",
+      "category": "architectural_weakness",
+      "claim": "Unauthenticated public ingress can exercise the workload identity",
+      "evidence": "Task 10 enables public network access for the web app and explicitly disables App Service Authentication and IP restrictions; the Security Configuration repeats public_edge_auth=none. The same app is wired to id-web, which receives Storage Blob Data Contributor, Service Bus Data Sender and Receiver, and Key Vault Secrets User. Any anonymous caller able to invoke an application operation that uses those bindings can cause the app to access workload data or messaging without an authenticated user boundary. The plan does not define an equivalent application-layer authorization control.",
+      "impact": "After deployment, an Internet caller can invoke exposed routes and use the app's managed identity indirectly to read or modify blobs, receive or send Service Bus messages, or access Key Vault secrets. This is an unauthorized data-access path, not merely public HTTPS reachability.",
+      "artifact_section": "Implementation Tasks -> Task 10: modules/web.bicep; Code-Generation Contract; Security Configuration",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [
+          512,
+          528
+        ],
+        "proposed_edit": "Require Entra authentication at App Service or equivalent enforced application-layer authentication and authorization before any operation using id-web. Keep public ingress only for explicitly approved anonymous routes, narrow the app identity's data-plane roles to the operations it needs, and add a post-deploy negative test proving unauthenticated callers cannot reach protected operations. Replace the explicit no-App-Service-Authentication/public_edge_auth=none statements with this enforced boundary."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Implementation Tasks -> Task 10: publicNetworkAccess='Enabled' (line 512) and no App Service Authentication / ipSecurityRestrictions (line 528)",
+        "Code-Generation Contract -> Microsoft.Web/sites:app (line 795)",
+        "Code-Generation Contract -> Microsoft.Storage/storageAccounts:st: id-web Storage Blob Data Contributor (line 762)",
+        "Code-Generation Contract -> Microsoft.ServiceBus/namespaces:sbns: id-web Data Sender and Data Receiver (line 768)",
+        "Code-Generation Contract -> Microsoft.KeyVault/vaults:kv: id-web Key Vault Secrets User (line 776)",
+        "Security Configuration -> Web app: public_edge_auth=none and no App Service Authentication (line 1081)"
+      ]
+    },
+    {
+      "id": "a749666a",
+      "severity": "must_fix",
+      "category": "scope_risk",
+      "claim": "The shared Graph-reader identity can be attached outside SQL MI",
+      "evidence": "The plan grants the deploying member Managed Identity Operator on the B08-owned id-sqlmi-directory in the shared-services subscription. It explicitly acknowledges that this permission does not constrain resource type, that the member can attach the Graph-enabled identity outside SQL MI, and that the identity carries User.Read.All, GroupMember.Read.All, and Application.Read.All. The preflight checks only identity existence and assign/action; the plan confirms those are not attachment or lifecycle controls. Historical risk acceptance is not a technical restriction and does not remove this current exposure.",
+      "impact": "A member who owns another workload resource can attach id-sqlmi-directory to it, obtain its Graph-scoped token, and read tenant-wide user, group, and application directory data beyond the member's normal workload-subscription permissions.",
+      "artifact_section": "Overview -> SQL MI directory identity; Implementation Tasks -> Task 12 steps 7 and 10; Code-Generation Contract -> SQL MI",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [
+          589,
+          637
+        ],
+        "proposed_edit": "Replace the attachable shared Graph-reader UAMI with a SQL-MI-bound identity design (for example, grant the required Graph app roles to the SQL MI system-assigned identity), or define and verify an enforceable control that prevents workload members from attaching the Graph-enabled UAMI to other resources. Do not treat identity existence, assign/action permission, or historical risk acceptance as proof of containment. Update preflight and the SQL MI contract to verify the selected restriction."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Overview -> SQL MI directory identity: shared Graph permissions and B08-owned identity (line 495)",
+        "Implementation Tasks -> Task 12 step 7: workload Owner and cross-subscription Managed Identity Operator scope (line 590)",
+        "Implementation Tasks -> Task 12 step 10: identity existence and assign/action checks (line 622)",
+        "Implementation Tasks -> Task 12 step 10: accepted risk permits attachment outside SQL MI and names Graph permissions (lines 631-637)",
+        "Code-Generation Contract -> Microsoft.Sql/managedInstances:sqlmi uses id-sqlmi-directory (line 779)",
+        "04-iac-contract.json -> capability_checks[id=sqlmi-directory-identity]"
+      ]
+    },
+    {
+      "id": "b51b7d66",
+      "severity": "should_fix",
+      "category": "waf_blind_spot",
+      "claim": "Diagnostics readiness does not prove required metrics coverage",
+      "evidence": "The Plan's six archetype diagnostic settings are metrics-only (Storage account, four private endpoints, and App Service plan). The governance JSON's DINE diagnostic definitions configure log category groups (including audit) but have no metrics configuration; the Plan's Task 13 check verifies only that a setting targeting log-management exists. Consequently, the plan does not establish metrics coverage for DINE-owned App Service, ACR, Service Bus, Key Vault, SQL MI, App Insights, and Blob service resources, or verify that diagnostic settings carry the required categories and destination. This falls short of the security baseline's logs-and-metrics coverage requirement.",
+      "impact": "An operator can receive a passing readiness result while key service metrics are absent from Log Analytics, reducing detection and diagnosis of resource exhaustion, access anomalies, failed requests, and service degradation.",
+      "artifact_section": "Governance Compliance Matrix -> DINE resource logs; Implementation Tasks -> Tasks 3-10 and Task 13; Security Configuration -> Diagnostics",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "For each DINE-owned resource family, verify that the policy deployment supplies both the required service log categories and AllMetrics (or explicitly assign the missing metrics through IaC without duplicating policy-owned logs). Extend Task 13 to verify destination, categories, and metrics rather than setting presence alone; enumerate the six plan-owned metric settings and the seven DINE-owned diagnostic targets in the contract."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Governance Compliance Matrix -> DeployIfNotExists assignments -> Resource logs list and setting-presence evidence (line 181)",
+        "Implementation Tasks -> Task 3: Application Insights is DINE-owned for logs; no metric setting specified (line 322)",
+        "Implementation Tasks -> Task 4: ACR is DINE-owned for logs; no metric setting specified (line 341)",
+        "Implementation Tasks -> Task 5: storage account diagnostic setting specifies metrics only; Blob service logs are DINE-owned (lines 369-377)",
+        "Implementation Tasks -> Task 6: Service Bus is DINE-owned for logs; no metric setting specified (line 388)",
+        "Implementation Tasks -> Task 7: Key Vault is DINE-owned for logs; no metric setting specified (line 404)",
+        "Implementation Tasks -> Task 8: all four private endpoint settings specify metrics only and no logs (lines 420-434)",
+        "Implementation Tasks -> Task 9: SQL MI diagnostics are DINE-owned for logs; no metric setting specified (line 446)",
+        "Implementation Tasks -> Task 10: App Service plan has metrics setting; web app logs are DINE-owned (line 499)",
+        "Implementation Tasks -> Task 13 step 6: readiness checks setting existence only (lines 665-667)",
+        "Security Configuration -> All diagnostics summary (line 1092)",
+        "04-governance-constraints.json -> applicable diagnostics DINE policy records: categoryGroup audit where specified; no metrics configuration"
+      ]
+    },
+    {
+      "id": "edb73a6a",
+      "severity": "should_fix",
+      "category": "missing_failure_mode",
+      "claim": "Deployment phases are labels, not independent recovery boundaries",
+      "evidence": "The plan declares a single azd provision and one subscription-scope ARM deployment for 36 resources, then notes that ARM does not roll back resources after failure. The three named phases remain within that one deployment, independent modules can run concurrently, and recovery requires rerunning the full deployment. SQL MI is the longest-running branch and continues billing after a partial failure. The scale and resource mix exceed the checklist's phased-deployment trigger, but no phase can be validated, resumed, or stopped independently.",
+      "impact": "A failure late in provisioning leaves a partially deployed stack and a billable SQL MI; the operator must diagnose and rerun the complete deployment rather than resume at a validated phase, increasing recovery time and repeat-failure cost.",
+      "artifact_section": "Deployment Phases; Failure and recovery",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [
+          966,
+          1007
+        ],
+        "proposed_edit": "Define independent deployment boundaries for foundation, data/security, and compute/verification, with explicit outputs, preconditions, validation gates, and retry/resume behavior between stages. If one ARM deployment remains required, replace the phase claims with a documented risk justification and an explicit bounded recovery procedure that addresses partial SQL MI provisioning and cost."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "Deployment Phases -> deployment strategy Single and one azd provision / one ARM deployment (lines 968-971)",
+        "Deployment Phases -> phases 1-3 execute within the same deployment (lines 973-998)",
+        "Failure and recovery -> resources persist after failure and recovery reruns azd provision (lines 1000-1004)",
+        "Failure and recovery -> partially created SQL MI remains billable (line 1007)"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "68d26acfc345b570bbc0bbd677c59f77dd9224f5fa8501a756414ac58ce867e2",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "e3538fc4f5271ee0928a18048637392877fc42f57897824351940f06241cd091",
+    "subagent_sha": "c6b9c87f3ae8ca7019d9a2401a6798b0fb34374a1ee7c9c8c5f66a3344b071e1",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "8f40664822b189cbb0dabd89780e9c8104119f67e85023eb09800b9f4d8401b4"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/04-iac-contract.json",
+      "sha256": "01cc1d85a0109ec10ee55c611a7208b4a8d6bc987f93c32902748a825b129a2f"
+    },
+    {
+      "path": "agent-output/university/04-policy-property-map.json",
+      "sha256": "7735a31195aacb0b77c9605298631b5698d0efed5e04b4f5635bf9739637cef2"
+    },
+    {
+      "path": "agent-output/university/04-environment-manifest.json",
+      "sha256": "f02cac2a63740b018b1b38b975c9ed9705542fab7118df1ed1535c86d562db42"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    }
+  ]
+}

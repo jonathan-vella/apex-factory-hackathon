@@ -13,6 +13,9 @@ param logAnalyticsWorkspaceId string
 @description('Principal ID of the web app identity that publishes telemetry.')
 param uamiPrincipalId string
 
+@description('Object ID of the signed-in deploying user, who publishes telemetry with Entra authentication.')
+param deployerObjectId string
+
 var monitoringMetricsPublisherRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
   '3913510d-42f4-4e42-8a64-420c390055eb'
@@ -36,6 +39,11 @@ module appInsights 'br/public:avm/res/insights/component:0.8.0' = {
         roleDefinitionIdOrName: monitoringMetricsPublisherRoleId
         principalId: uamiPrincipalId
         principalType: 'ServicePrincipal'
+      }
+      {
+        roleDefinitionIdOrName: monitoringMetricsPublisherRoleId
+        principalId: deployerObjectId
+        principalType: 'User'
       }
     ]
   }

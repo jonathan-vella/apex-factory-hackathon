@@ -1,6 +1,6 @@
 {
   "project": "university",
-  "operation": "author reusable lab kit (Plan approval and CodeGen only)",
+  "operation": "author reusable lab kit (Plan approval, CodeGen and code-complete only)",
   "authorization_id": "university-kit-lab-risk-1",
   "actions": ["plan-complete", "codegen"],
   "validity_days": 30,
@@ -46,7 +46,7 @@
       "rationale": "End-user authentication and a WAF were explicitly excluded from the B09 archetype by the owner (session decisions 2026-10-06: no Easy Auth, public_edge_auth=none; requirements: end-user authentication is handled by the application in B06/B10). Remediation needs application code, an Entra app registration, or reopened requirements, none of which is in scope for this kit change. The deployed image is a placeholder and the exposure depends on the application the adopting team deploys. This is risk acceptance, not technical closure.",
       "residual_impact": "If the deployed application exposes operations that use the app identity, an anonymous Internet caller could cause it to read or write blobs, send or receive Service Bus messages, or read Key Vault secrets through id-web's Storage Blob Data Contributor, Service Bus Data Sender and Receiver, and Key Vault Secrets User roles. The exposure depends on the application deployed by the adopter and is limited to the lab resources.",
       "assessment": "The baseline states that public HTTPS ingress is permitted but that authentication and other security controls still apply. The reviewer treats this as a mandatory baseline requirement, not as optional guidance, so a rule-authority exception is required. No applicable law is identified. Deployment is technically possible.",
-      "exception_text": "As maintainer and rule authority of the APEX IaC security baseline, the owner grants an exception to the 'authentication still applies' requirement for the public-facing web application of this kit only, for non-production lab authoring (Plan approval and CodeGen). The exception does not extend to deployment, production, or any other project, and each adopting team must separately authorize any deployment."
+      "exception_text": "As maintainer and rule authority of the APEX IaC security baseline, the owner grants an exception to the 'authentication still applies' requirement for the public-facing web application of this kit only, for non-production lab authoring (Plan approval, CodeGen and code-complete). The exception does not extend to deployment, production, or any other project, and each adopting team must separately authorize any deployment."
     }
   },
   "obligations": [

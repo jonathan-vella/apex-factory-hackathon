@@ -177,11 +177,11 @@ dotnet run --no-launch-profile                   # C: opens the vault, then refu
 Remove-Item Env:ASPNETCORE_ENVIRONMENT, Env:KeyVault__VaultUri
 ```
 
-Task 06's check. Application Insights has local authentication off, so your own sign-in needs **Monitoring Metrics Publisher** on it. Grant it once; you're Owner of your workload subscription. This grant is the one Azure change C6 asks of you besides the image push: you run it yourself, the agent doesn't:
+Task 06's check. Application Insights has local authentication off, so your own sign-in needs **Monitoring Metrics Publisher** on it. The archetype grants it to the member who deploys it (since 2026-10-20), so with a current package C6 asks for no Azure change besides the image push. If you deployed an earlier package, grant it once yourself (you're Owner of your workload subscription); the agent doesn't run it. The command is safe to repeat:
 
 ```powershell
 $appi = az monitor app-insights component show -g rg-university-<suffix> -a appi-university-<suffix> --query id -o tsv --only-show-errors
-az role assignment create --assignee (az ad signed-in-user show --query id -o tsv) --role 'Monitoring Metrics Publisher' --scope $appi --output none
+az role assignment create --assignee (az ad signed-in-user show --query id -o tsv) --role 'Monitoring Metrics Publisher' --scope $appi --output none   # only for a deployment from before 2026-10-20
 az extension add -n application-insights --only-show-errors   # install first: an install mid-command garbles the value
 $cs = az monitor app-insights component show -g rg-university-<suffix> -a appi-university-<suffix> --query connectionString -o tsv --only-show-errors
 if ($cs -notmatch '^InstrumentationKey=') { throw 'Bad connection string' }

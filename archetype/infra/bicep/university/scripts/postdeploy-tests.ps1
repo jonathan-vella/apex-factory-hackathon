@@ -142,6 +142,14 @@ function Get-DiagnosticWorkspaceIds {
     return @($items | ForEach-Object { $_.PSObject.Properties['workspaceId']?.Value } | Where-Object { $_ })
 }
 
+function Get-IpConfigurationFqdn {
+    # FQDNs a private endpoint NIC IP configuration declares for itself (empty when the metadata is absent).
+    param([Parameter(Mandatory)]$IpConfiguration)
+    $properties = $IpConfiguration.PSObject.Properties['privateLinkConnectionProperties']?.Value
+    if (-not $properties) { return @() }
+    return @($properties.PSObject.Properties['fqdns']?.Value | Where-Object { $_ })
+}
+
 function Resolve-InKudu {
     # Resolves a name from the app's own network path through the Kudu command API (Entra token, no basic credentials).
     param(
@@ -203,10 +211,15 @@ function Invoke-UniversityPostDeploy {
         if (-not $zoneGroup) { Add-Result -Name "DNS $endpointName" -Status Failed -Detail 'no private DNS zone group appeared; the ALZ-lite DeployIfNotExists remediation did not run'; continue }
         $endpoint = Invoke-AzJson -Arguments @('network', 'private-endpoint', 'show', '--resource-group', $ResourceGroupName, '--name', $endpointName)
         $nic = Invoke-AzJson -Arguments @('network', 'nic', 'show', '--ids', $endpoint.networkInterfaces[0].id)
-        # ACR private endpoints carry two ipConfigurations (registry + regional data endpoint); match the one
-        # whose fqdns include the target name instead of assuming index 0 is the registry endpoint.
-        $matchedIpConfig = $nic.ipConfigurations | Where-Object { $_.privateLinkConnectionProperties.fqdns -contains $target.Fqdn } | Select-Object -First 1
-        $expected = if ($matchedIpConfig) { $matchedIpConfig.privateIPAddress } else { $nic.ipConfigurations[0].privateIPAddress }
+        # ACR private endpoints carry separate registry and regional data-endpoint IP configurations, so index zero is not
+        # reliable. Match the configuration whose fqdns contain the target name. A first-IP fallback is allowed only for a
+        # single-IP endpoint that declares no FQDN metadata at all; any other ambiguity fails readiness.
+        $ipConfigurations = @($nic.ipConfigurations)
+        $matchedConfigurations = @($ipConfigurations | Where-Object { (Get-IpConfigurationFqdn -IpConfiguration $_) -contains $target.Fqdn })
+        $declaresFqdns = @($ipConfigurations | Where-Object { @(Get-IpConfigurationFqdn -IpConfiguration $_).Count -gt 0 }).Count -gt 0
+        if ($matchedConfigurations.Count -eq 1) { $expected = $matchedConfigurations[0].privateIPAddress }
+        elseif ($matchedConfigurations.Count -eq 0 -and $ipConfigurations.Count -eq 1 -and -not $declaresFqdns) { $expected = $ipConfigurations[0].privateIPAddress }
+        else { Add-Result -Name "DNS $endpointName" -Status Failed -Detail "the endpoint NIC does not identify exactly one address for $($target.Fqdn) (ambiguous private endpoint evidence)"; continue }
         $resolved = Resolve-InKudu -ScmHost $scmHost -Token $token -Fqdn $target.Fqdn
         if ($resolved -contains $expected) { Add-Result -Name "DNS $endpointName" -Status Passed -Detail "$($target.Fqdn) resolves to the private endpoint address from the snet-app path" }
         else { Add-Result -Name "DNS $endpointName" -Status Failed -Detail "$($target.Fqdn) did not resolve to the private endpoint address from the snet-app path (hub DNS or zone link)" }
@@ -230,20 +243,23 @@ function Invoke-UniversityPostDeploy {
         else { Add-Result -Name 'ACR ARM audience tokens' -Status Passed -Detail 'authentication-as-arm is enabled on the registry' }
     }
     if ($importPassed) {
-        # `linuxFxVersion` must contain a literal '|' (DOCKER|image). On Windows, az.cmd runs through cmd.exe, which
-        # treats an unescaped '|' in a CLI argument as a shell pipe, so this PATCHes the ARM REST API directly instead.
+        # `linuxFxVersion` needs a literal '|' (DOCKER|image). On Windows, az.cmd runs through cmd.exe, which treats an
+        # unescaped '|' in an argument as a pipe, so the web config is PATCHed through the ARM REST API with the
+        # process-local token. A failed PATCH is recorded as a failed result and nothing is restarted.
         $switched = $false
+        $switchFailure = $null
         try {
             $webConfigBody = @{ properties = @{ linuxFxVersion = "DOCKER|$containerImage"; acrUseManagedIdentityCreds = $true; acrUserManagedIdentityID = $UamiClientId } } | ConvertTo-Json -Compress
             Invoke-RestMethod -Uri "https://management.azure.com$siteId/config/web?api-version=2025-03-01" -Headers @{ Authorization = "Bearer $token" } -Method Patch -Body $webConfigBody -ContentType 'application/json' | Out-Null
             $switched = $true
         }
         catch {
-            Write-Host "  web app config PATCH failed: $($_.Exception.Message)"
+            $switchFailure = "the web app config PATCH failed, so the image was not switched: $($_.Exception.Message)"
         }
         if ($switched) { & az webapp restart --resource-group $ResourceGroupName --name $WebAppName --only-show-errors --output none; $switched = $LASTEXITCODE -eq 0 }
         $pullUp = $switched -and (Wait-Until -TimeoutSeconds 600 -Probe { Test-HttpOk -Uri "https://$appHost/" })
         if ($pullUp) { Add-Result -Name 'ACR private pull' -Status Passed -Detail 'the web app runs the registry copy pulled over the private path with AcrPull' }
+        elseif ($switchFailure) { Add-Result -Name 'ACR private pull' -Status Failed -Detail $switchFailure }
         else { Add-Result -Name 'ACR private pull' -Status Failed -Detail 'no HTTP 200 from the registry copy; check AcrPull, the pe-acr DNS result and imagePullTraffic' }
     }
     else {

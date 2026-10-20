@@ -1,0 +1,191 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 11,
+  "overall_assessment": "NEEDS_REVISION",
+  "risk_level": "high",
+  "findings": [
+    {
+      "severity": "must_fix",
+      "category": "architectural_weakness",
+      "claim": "Unauthenticated public ingress can exercise the workload identity",
+      "evidence": "Task 10 still enables public network access and explicitly specifies no App Service Authentication or IP restrictions. Security Configuration repeats public_edge_auth=none. The same app receives id-web, with Storage Blob Data Contributor, Service Bus Data Sender and Receiver, and Key Vault Secrets User permissions. Requirements assigns end-user authentication to B06/B10, but the current plan does not make an enforced application-layer authorization boundary a prerequisite for deploying the real image or claiming its readiness. Task 13 tests anonymous HTTP 200 responses, not rejection of unauthenticated requests to protected operations. The initial placeholder does not itself demonstrate unauthorized data access; the unresolved exposure is the planned public application boundary when identity-backed operations are introduced.",
+      "impact": "Once the application exposes operations using these bindings, anonymous Internet callers could invoke those operations with the application's data-plane privileges. Private endpoints and managed-identity authentication protect the app-to-service connection, not authorization of the originating caller.",
+      "artifact_section": "Implementation Tasks -> Task 10: modules/web.bicep; Code-Generation Contract; Security Configuration",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Require App Service authentication or an explicitly contracted and enforced B06/B10 application-layer authentication and authorization boundary before identity-backed operations become reachable. Specify which routes may remain anonymous, narrow data-plane grants to required operations, and add negative readiness tests proving anonymous callers cannot invoke protected operations. If the placeholder remains anonymous, distinguish its limited startup test from authorization readiness of the real application. Update Task 10, the app and role-binding contracts, Task 13, and Security Configuration consistently."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "04-implementation-plan.md -> Task 10 -> publicNetworkAccess: 'Enabled'; no App Service Authentication, no ipSecurityRestrictions",
+        "04-implementation-plan.md -> Task 10 -> UAMI configuration and data-service app settings",
+        "04-implementation-plan.md -> Task 13 steps 1 and 5 -> HTTP 200 tests without protected-operation negative tests",
+        "04-implementation-plan.md -> Code-Generation Contract -> Microsoft.Web/sites:app",
+        "04-implementation-plan.md -> Code-Generation Contract -> Microsoft.Storage/storageAccounts:st and ra-web-blob",
+        "04-implementation-plan.md -> Code-Generation Contract -> Microsoft.ServiceBus/namespaces:sbns, ra-web-sb-sender and ra-web-sb-receiver",
+        "04-implementation-plan.md -> Code-Generation Contract -> Microsoft.KeyVault/vaults:kv and ra-web-kv-secrets-user",
+        "04-implementation-plan.md -> Security Configuration -> Web app authentication, identity and public-access rows",
+        "04-iac-contract.json -> resources[logical_name=app] and the id-web data-plane role assignments",
+        "01-requirements.md -> User Types and Non-Functional Requirements -> end-user authentication assigned to B06/B10"
+      ],
+      "id": "bc629836"
+    },
+    {
+      "severity": "must_fix",
+      "category": "scope_risk",
+      "claim": "The shared Graph-reader identity can be attached outside SQL MI",
+      "evidence": "The Overview and Task 9 retain the shared B08-owned id-sqlmi-directory as SQL MI's primary user-assigned identity. Task 12 steps 7 and 10 retain Managed Identity Operator for the deploying member on that identity, alongside Owner on the workload subscription. Step 10 explicitly acknowledges that attachment is not restricted to SQL MI and that the identity has User.Read.All, GroupMember.Read.All and Application.Read.All. Its existence and assign/action checks establish attachability, not containment. The updated lifecycle explanation and historical acceptance expressly do not claim implemented attachment controls. The supplied IaC contract preserves this same binding and permission model.",
+      "impact": "A member controlling another compatible workload resource can attach the shared identity and obtain application-permission Graph access outside SQL MI. This exposes tenant directory data through a reusable, non-SQL workload identity rather than a SQL-MI-bound permission boundary.",
+      "artifact_section": "Overview -> SQL MI directory identity; Implementation Tasks -> Task 12 steps 7 and 10; Code-Generation Contract -> SQL MI",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Select a SQL-MI-bound directory identity design, such as granting the necessary Graph permissions to the MI's system-assigned identity through the responsible platform owner, or specify an enforceable and verified restriction preventing members from attaching the Graph-enabled UAMI elsewhere. Update the Overview, Task 9 identity configuration, Task 12 permission checks, SQL MI contract, Security Configuration and machine-readable capability contract together. Do not substitute historical acceptance, identity existence, assign/action permission or unimplemented lifecycle obligations for containment evidence."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "04-implementation-plan.md -> Overview -> derived SQL MI directory identity and Carried items -> SQL MI directory identity",
+        "04-implementation-plan.md -> Task 1 -> sqlMiDirectoryIdentityId parameter",
+        "04-implementation-plan.md -> Task 9 -> SystemAssigned,UserAssigned and primaryUserAssignedIdentityId",
+        "04-implementation-plan.md -> Task 11 -> SQLMI_DIRECTORY_IDENTITY_ID binding",
+        "04-implementation-plan.md -> Task 12 step 7 -> workload Owner and shared-identity Managed Identity Operator",
+        "04-implementation-plan.md -> Task 12 step 10 -> existence/assign-action checks, lifecycle clarification and unrestricted-attachment acceptance",
+        "04-implementation-plan.md -> Code-Generation Contract -> Microsoft.Sql/managedInstances:sqlmi",
+        "04-implementation-plan.md -> Deployment Phases -> Phase 2 SQL MI primary identity",
+        "04-implementation-plan.md -> Security Configuration -> SQL MI identity row",
+        "04-iac-contract.json -> resources[logical_name=sqlmi], params[name=sqlMiDirectoryIdentityId] and capability_checks[id=sqlmi-directory-identity]"
+      ],
+      "id": "a749666a"
+    },
+    {
+      "severity": "should_fix",
+      "category": "waf_blind_spot",
+      "claim": "Diagnostics readiness does not prove required metrics coverage",
+      "evidence": "The six archetype-owned settings remain metrics-only on the storage account, four private endpoints and App Service plan. The plan delegates diagnostics for App Service, ACR, Service Bus, Key Vault, SQL MI, Application Insights and Blob service to DINE, while Task 13 step 6 checks setting presence and workspace targeting rather than enabled categories and metrics. The supplied governance records contain assignment parameters, not deployment templates proving complete coverage. Several assignments specify categoryGroup=audit without demonstrating metrics coverage. Importantly, the Blob service assignment does specify metricsEnabled=true and logsEnabled=true, so the prior assertion that none of the seven policies configures metrics is not supported. Nevertheless, the six other service targets lack demonstrated metrics coverage, and the readiness test does not validate the Blob setting's actual contents either. The contract's generic metric_categories=[AllMetrics] is not a per-target implementation mapping.",
+      "impact": "Readiness can pass despite missing service metrics or required log categories, reducing visibility into failed requests, resource exhaustion and service degradation. A setting's existence does not establish compliance with the logs-and-metrics baseline.",
+      "artifact_section": "Governance Compliance Matrix -> DINE resource logs; Implementation Tasks -> Tasks 3-10 and Task 13; Security Configuration -> Diagnostics",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Enumerate supported required logs and metrics for all thirteen diagnostic targets. Establish which categories policy actually supplies, including Blob's metricsEnabled setting, and explicitly provide missing metrics without duplicating policy-owned logs. Extend readiness checks to inspect the expected destination, enabled log categories/category groups and metric categories for each target. Replace the generic contract declaration with an unambiguous per-target ownership and coverage mapping."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "04-implementation-plan.md -> Resource Inventory -> six service diagnostic settings",
+        "04-implementation-plan.md -> Governance Compliance Matrix -> DeployIfNotExists assignments -> Resource logs",
+        "04-implementation-plan.md -> Task 3 -> Application Insights diagnostics ownership",
+        "04-implementation-plan.md -> Task 4 -> ACR diagnostics ownership",
+        "04-implementation-plan.md -> Task 5 -> storage-account metrics and DINE-owned Blob diagnostics",
+        "04-implementation-plan.md -> Task 6 -> Service Bus diagnostics ownership",
+        "04-implementation-plan.md -> Task 7 -> Key Vault diagnostics ownership",
+        "04-implementation-plan.md -> Task 8 -> all four private-endpoint metrics settings",
+        "04-implementation-plan.md -> Task 9 -> SQL MI diagnostics ownership",
+        "04-implementation-plan.md -> Task 10 -> App Service plan metrics and web-app diagnostics ownership",
+        "04-implementation-plan.md -> Task 13 step 6 -> thirteen-target setting-presence readiness test",
+        "04-implementation-plan.md -> Code-Generation Contract -> appi, cr, st, sbns, kv, sqlmi, app, asp and the six diag-* blocks",
+        "04-implementation-plan.md -> Security Configuration -> All Diagnostics row",
+        "04-iac-contract.json -> diagnostics and resources[logical_name=diag-pe-cr|diag-pe-st-blob|diag-pe-sbns|diag-pe-kv|diag-asp|diag-st]",
+        "04-governance-constraints.json -> policies[source indices 56,57,58,59,60,62,64], inspected through governance-reading-aid.jsonl lines 75-83; Blob source index 58 explicitly enables metrics and logs"
+      ],
+      "id": "b51b7d66"
+    },
+    {
+      "severity": "should_fix",
+      "category": "missing_failure_mode",
+      "claim": "Deployment phases are labels, not independent recovery boundaries",
+      "evidence": "Deployment Phases still mandates one azd provision and one subscription-scope ARM deployment, with no phase parameter or independent split. Its foundation, security/data and compute phases have no intermediate deployment gates; Task 1 allows independent branches to run concurrently. Failure and recovery correctly acknowledges that ARM does not roll back and that a partially created SQL MI remains billable, but recovery remains fixing the cause and rerunning the full deployment. There is no bounded retry/escalation procedure or explicit disposition of a still-running SQL MI branch. The owner instruction to use one deployment is a constraint, not evidence that this recovery risk has been technically addressed.",
+      "impact": "A late or repeated provisioning failure can leave a partially deployed, billable stack without an independently validated resume point. Repeated full-deployment attempts increase diagnosis time and unresolved SQL MI cost.",
+      "artifact_section": "Deployment Phases; Failure and recovery",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Prefer independently validated deployment boundaries with defined outputs, prerequisites and resume behavior. If the one-deployment constraint remains, describe these sections as dependency stages rather than recovery boundaries and document the risk justification plus a bounded recovery procedure: inspect nested operations and SQL MI state, distinguish in-progress from failed operations, define when to wait or retry, cap retries and name the escalation/stop condition. Preserve separate human authorization for cancellation or cleanup and explicitly account for SQL MI billing while blocked."
+      },
+      "traces_to": [],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "04-implementation-plan.md -> Overview -> one subscription-scope deployment",
+        "04-implementation-plan.md -> Task 1 -> single entry point, deployment: single and parallel independent branches",
+        "04-implementation-plan.md -> Deployment Phases -> single azd provision / ARM deployment and Phases 1-3",
+        "04-implementation-plan.md -> Failure and recovery -> full rerun, persistent resources, SQL MI billing and manual cleanup",
+        "04-implementation-plan.md -> Phase Summary -> validation/approval labels without independent recovery gates"
+      ],
+      "id": "edb73a6a"
+    },
+    {
+      "severity": "should_fix",
+      "category": "scope_risk",
+      "claim": "Current governance compliance is supported by an expired discovery snapshot",
+      "evidence": "The supplied governance metadata records discovery at 2026-10-06T10:16:59Z with ttl_days=7. That evidence exceeded its declared freshness period on 2026-10-13, before this 2026-10-20 confirmation. The plan retains the L0 envelope's fresh result and states that all Deny policies are satisfied. Task 12 step 9 rechecks eleven DNS/diagnostics assignments, but it does not refresh the complete effective policy set, Deny mappings or the unresolved effective effect of the ACR ARM-audience policy. No newer complete governance evidence is supplied. This is a current evidence gap, not proof that policy has changed.",
+      "impact": "The review can verify consistency with the saved snapshot, but cannot establish current effective-policy compliance. Changed inherited Deny, Modify or authentication constraints could invalidate the planned properties or cause deployment failure.",
+      "artifact_section": "Overview -> Live validation; Governance Compliance Matrix; Implementation Tasks -> Task 12 step 9; Approval Gate",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Mark the October 6 checks as historical rather than currently fresh. Make renewed plan readiness conditional on a current complete governance discovery and reconciliation through the governance owner, including the ACR ARM-audience authentication policy's effective effect. Reconcile affected plan and property-map entries against that evidence before asserting current compliance; do not treat the limited DINE preflight or unchanged file hashes as a freshness extension."
+      },
+      "traces_to": [],
+      "requires_step": "step-3.5",
+      "verification_anchors": [
+        "04-implementation-plan.md -> Overview -> Live validation -> L0 COMPLETE, discovered 2026-10-06, TTL 7 days, fresh result",
+        "04-implementation-plan.md -> Carried items -> ACR ARM audience tokens -> effective Audit versus Disabled unresolved",
+        "04-implementation-plan.md -> Governance Compliance Matrix -> all 19 Deny entries satisfied",
+        "04-implementation-plan.md -> Task 12 step 9 -> limited DNS/diagnostics assignment recheck",
+        "04-implementation-plan.md -> Approval Gate -> current plan-readiness evidence",
+        "04-governance-constraints.json -> discovered_at and discovery_metadata.discovered_at/ttl_days, inspected through governance-reading-aid.jsonl lines 6 and 13",
+        "04-policy-property-map.json -> constraints_ref -> supplied October 6 governance snapshot"
+      ],
+      "id": "4547cb67"
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "68d26acfc345b570bbc0bbd677c59f77dd9224f5fa8501a756414ac58ce867e2",
+    "checklists_sha": "edf3077a1c99d3025891542c6158c5ff529bd7f7e35a9cff61968d84a5bc14e1",
+    "protocol_sha": "3c635dcb9e228c14ec8cc65d716506829d20f15f17ce64f1396b8b4544ce6f1f",
+    "reviewer": "challenger-review-subagent",
+    "reviewer_contract": ".github/skills/apex-azure-defaults/references/one-shot-review.md",
+    "reviewer_contract_sha": "a1e63584a00fdb1ca13d1529b436e2b2a25f5e8503e34b96bea4b6562f6181ee",
+    "reviewer_definition": ".github/agents/_subagents/challenger-review-subagent.agent.md",
+    "reviewer_definition_sha": "28735de5f6c5abb397b095fe341a4cd71bbd36207309eb24851abe454b45dac7",
+    "model_policy": "runtime-managed",
+    "artifact_hash": "6ff08f7041a046595c54e26d71e346a3dd7a1162f39d63618f22c70e7f2455af"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/04-iac-contract.json",
+      "sha256": "01cc1d85a0109ec10ee55c611a7208b4a8d6bc987f93c32902748a825b129a2f"
+    },
+    {
+      "path": "agent-output/university/04-policy-property-map.json",
+      "sha256": "7735a31195aacb0b77c9605298631b5698d0efed5e04b4f5635bf9739637cef2"
+    },
+    {
+      "path": "agent-output/university/04-environment-manifest.json",
+      "sha256": "f02cac2a63740b018b1b38b975c9ed9705542fab7118df1ed1535c86d562db42"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.md",
+      "sha256": "aef176e6ab1c3c4c208b5232f7bb506a7e2bc4a36c926418337d0f414d664bbf"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    }
+  ],
+  "must_fix_count": 2,
+  "should_fix_count": 3,
+  "suggestion_count": 0,
+  "review_execution": {
+    "reviewer": "challenger-review-subagent",
+    "worker_id": "6b3b7273-d94c-4bc0-9a97-36d410f1b6ce",
+    "parent_id": "root",
+    "tool_call_id": "call_MbSpRwiSzOFFCTnUXSFifBu6",
+    "completed_at": "2026-10-20T12:12:06.870Z",
+    "request_id": "university-step4-pass11-20261020-a4-review",
+    "step": "4",
+    "review_depth": "default",
+    "project_name": "university"
+  }
+}

@@ -31,9 +31,9 @@ Approve builds and file edits as they come up; if the agent stops halfway, reply
    says that people miss:
    - Task 05 runs the app three ways (Development, Production without a vault, Production with one). The
      playbook has the command block.
-   - Task 06 needs a one-time **Monitoring Metrics Publisher** grant on Application Insights for your own
-     sign-in. You run it yourself; the command is in the same playbook section. It's the one Azure change C6 asks
-     of you besides the image push.
+   - Task 06 needs **Monitoring Metrics Publisher** on Application Insights for your own sign-in. The archetype
+     grants it when you deploy it. Only for a deployment from before 2026-10-20 do you run the grant yourself; the
+     command is in the same playbook section.
 3. Check you stayed in scope: `git status --short -- . ':!app' ':!.github/upgrades'` must print nothing.
 4. Commit and push `app: task 0N <name>` to your work branch before you start the next task's chat.
 

@@ -33,7 +33,7 @@ Start with Step 0 of the playbook (`.github/modernization/playbook.md`) if you h
 
 Locally, the app uses the `contosoapp` SQL login against the source database on `vm-app01`. It's the lab-only login the datacenter creates, with a documented lab password (the playbook's user-secrets command already has it). It's reachable only from inside the private network, and the app accepts it only in `Development`: outside `Development` the app refuses a user name or password.
 
-The one change C6 asks of you in Azure, besides pushing the image, is a Monitoring Metrics Publisher grant on Application Insights for your own sign-in (the playbook's task 06 check has the command). The archetype doesn't give it to you yet; the fix is tracked in [issue #60](https://github.com/jonathan-vella/apex-factory-hackathon/issues/60).
+C6 asks for no Azure change besides pushing the image: the archetype gives your sign-in Monitoring Metrics Publisher on Application Insights when you deploy it. If you deployed it before 2026-10-20, grant that role once yourself (the playbook's task 06 check has the command).
 
 ## Your tasks
 

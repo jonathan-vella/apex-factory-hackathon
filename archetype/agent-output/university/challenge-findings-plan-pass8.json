@@ -1,0 +1,185 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "The #52 hook requirements are coherent with the inspected source correction, and #60 is consistently wired at the App Insights component scope while retaining local-auth disablement and the app UAMI role. The inherited DINE atScope query issue is verified corrected. Four historical findings remain technically unresolved despite their accepted or deferred dispositions: unrestricted deployer role assignment, shared Graph-enabled UAMI attachment, shared identity lifecycle recovery, and the ACR policy effect claim. The dependency graph should clarify the second MMP principal; no Azure topology or runtime-flow change is required.",
+  "compact_for_parent": "Pass 1 (comprehensive) | HIGH | 1 must_fix, 3 should_fix | Key: Shared Graph-enabled UAMI is not restricted to SQL MI consumers",
+  "risk_level": "high",
+  "must_fix_count": 1,
+  "should_fix_count": 3,
+  "suggestion_count": 1,
+  "findings": [
+    {
+      "id": "569fbf8e",
+      "severity": "must_fix",
+      "category": "governance_gap",
+      "claim": "Shared Graph-enabled UAMI is not restricted to SQL MI consumers.",
+      "evidence": "The plan still grants each member deployer Managed Identity Operator on the shared id-sqlmi-directory and explicitly states this does not limit the resource type to which the identity can be attached. The identity holds User.Read.All, GroupMember.Read.All, and Application.Read.All. Preflight verifies the identity exists and that assign/action is effective, but it verifies no attachment boundary. This is the same unresolved exposure recorded as 569fbf8e; the owner's accepted-risk disposition is not technical remediation.",
+      "impact": "A deployer with Owner on its workload subscription can attach the shared identity to another UAMI-capable resource in that subscription. That resource can request tokens for the Graph-enabled identity and read directory data outside the SQL MI C7 user-creation path, expanding the blast radius across members sharing the identity.",
+      "artifact_section": "Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1 — Deployer accepted risk / SQL MI directory identity",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [622, 626],
+        "proposed_edit": "Keep the B08-owned id-sqlmi-directory and its existing Graph grants. Do not treat the existence and assign/action preflight as an attachment boundary. Require a B08-owned, effective restriction preventing attachment to non-SQL-MI resources and verify it before proceeding; if no such control exists, retain this as an unresolved must-fix and do not claim the accepted-risk note is technical closure."
+      },
+      "traces_to": ["569fbf8e"],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Overview -> Carried items -> SQL MI directory identity (shared B08-owned identity and Graph grants)",
+        "Task 9 -> modules/sql-mi.bicep: userAssignedIdentities and primaryUserAssignedIdentityId",
+        "Task 12 -> step 7: workload Owner and Managed Identity Operator scope",
+        "Task 12 -> step 10: identity existence and assign/action check; explicit no-attachment-boundary risk",
+        "Code-Generation Contract -> Microsoft.Sql/managedInstances:sqlmi identity binding and B08 dependency",
+        "04-iac-contract.json -> capability_checks[id=sqlmi-directory-identity]",
+        "04-dependency-diagram.py -> shared identity edge to SQL MI",
+        "04-runtime-diagram.py -> SQL MI Graph lookup edge to shared identity"
+      ]
+    },
+    {
+      "id": "57f85f8d",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "Deployer role-assignment rights are not constrained to the approved role set",
+      "evidence": "Task 12 step 7 checks generic roleAssignments/write. The same section records that B08 grants the deployer Owner on the dedicated workload subscription and that the archetype's fixed role list and lack of a role-definition parameter do not constrain the deployer's independent RBAC authority. This matches the prior finding 57f85f8d and remains an explicitly accepted risk, not a permission boundary.",
+      "impact": "A mistaken or compromised deploying user can assign roles beyond the seven fixed assignments in this template. The plan's fixed role IDs constrain only what this deployment declares, not what the Owner principal can assign independently.",
+      "artifact_section": "Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1 — Deployer; Code-Generation Contract — deployer role assignments",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [588, 593],
+        "proposed_edit": "Keep the owner-approved B08 grant and fixed template roles. In the accepted-risk record, explicitly state that subscription Owner permits independent role assignment and that roleAssignments/write preflight is not a role-set restriction. Carry this as residual accepted risk at the current Step 4 gate; do not describe the template's fixed role list as a least-privilege boundary."
+      },
+      "traces_to": ["57f85f8d"],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Task 12 -> step 7 Deployer effective-permissions check and accepted risk",
+        "Code-Generation Contract -> ra-dep-acrpush",
+        "Code-Generation Contract -> ra-dep-acr-importer",
+        "Code-Generation Contract -> ra-dep-blob",
+        "Code-Generation Contract -> ra-dep-sb-sender",
+        "Code-Generation Contract -> ra-dep-sb-receiver",
+        "Code-Generation Contract -> ra-dep-kv-secrets-officer",
+        "Code-Generation Contract -> ra-dep-mmp",
+        "01-requirements.md -> Deploying member (control plane)",
+        "02-architecture-assessment.md -> Security Assessment -> Recommendation 2"
+      ]
+    },
+    {
+      "id": "92079f7c",
+      "severity": "should_fix",
+      "category": "missing_failure_mode",
+      "claim": "No lifecycle protection is defined for the shared SQL MI identity.",
+      "evidence": "The plan identifies id-sqlmi-directory and its Graph grants as B08-owned, but Task 12 step 10 only checks identity existence and deployer assign/action. It gives a rerun instruction for a missing identity, not a recovery contract for SQL MI instances already bound to a deleted or recreated identity. The 92079f7c lifecycle finding was deferred and remains unresolved.",
+      "impact": "If B08 deletes or recreates the shared identity, existing SQL MI consumers can lose the identity reference or its Graph app-role grants. C7 CREATE USER operations can then fail across consumers, while the preflight check only blocks a later deployment and does not restore existing bindings or grants.",
+      "artifact_section": "Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1 — SQL MI directory identity",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [616, 626],
+        "proposed_edit": "Keep the current B08 identity and Graph grants. Add a lifecycle contract naming B08 as owner and requiring the identity to remain stable while any SQL MI consumes it. If recreation is unavoidable, require B08 to rebind every consumer and restore the Graph app-role grants before declaring the dependency ready."
+      },
+      "traces_to": ["92079f7c"],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Overview -> Carried items -> SQL MI directory identity",
+        "Task 9 -> modules/sql-mi.bicep: existing shared identity binding",
+        "Task 12 -> step 10: identity existence and assign/action checks; Graph grants are not checked",
+        "Code-Generation Contract -> Microsoft.Sql/managedInstances:sqlmi external dependency",
+        "04-iac-contract.json -> capability_checks[id=sqlmi-directory-identity]"
+      ]
+    },
+    {
+      "id": "3fd577cf",
+      "severity": "should_fix",
+      "category": "governance_gap",
+      "claim": "The governance note asserts an Audit outcome not proven by the saved discovery",
+      "evidence": "The plan says to expect an Audit non-compliance result because policy 42781ec6-6127-4c30-bdfa-fb423a0047d3 is in member_policy_index but not among the 19 Deny entries. The current saved governance JSON contains the policy definition ID in member_policy_index, but has no matching effect-specific record in policies[]. That snapshot establishes no Deny finding for this policy; it does not distinguish an effective Audit assignment from Disabled. No live query was performed, consistent with the review constraint. This is the same unresolved deferred finding 3fd577cf.",
+      "impact": "If the effective assignment is Disabled, the promised Audit non-compliance result will not occur. If an effective Deny is later discovered, enabling ARM audience tokens could block deployment and must return to governance reconciliation. The saved snapshot alone proves neither outcome.",
+      "artifact_section": "Overview > Carried items > ACR ARM audience tokens (owner revision 2026-10-07)",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "line_range": [86, 86],
+        "proposed_edit": "Qualify the expected result: the current governance snapshot has no Deny finding for policy 42781ec6-6127-4c30-bdfa-fb423a0047d3, but does not record its effective Audit or Disabled effect. Do not claim an Audit non-compliance result until owner-run discovery resolves it; if the effect is Deny, return the conflict to governance reconciliation before deployment."
+      },
+      "traces_to": ["3fd577cf"],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "Overview -> Carried items -> ACR ARM audience token policy note",
+        "04-governance-constraints.json -> member_policy_index contains policy 42781ec6-6127-4c30-bdfa-fb423a0047d3 without an effect",
+        "04-governance-constraints.json -> policies[] has no matching effect-specific entry"
+      ]
+    },
+    {
+      "id": "555d14a4",
+      "severity": "suggestion",
+      "category": "hidden_dependency",
+      "claim": "Dependency diagram does not distinguish both App Insights publisher principals",
+      "evidence": "Task 3 and the Code-Generation Contract specify Monitoring Metrics Publisher for both id-web and the signed-in deployer, scoped to the App Insights component. The dependency diagram labels the node 'appi + MMP role' and shows only the UAMI principalId edge into App Insights; the deployerObjectId is grouped on the preflight-to-deployment edge. The plan text and contract are correct, so this is a diagram-clarity gap rather than an additional resource or runtime dependency.",
+      "impact": "A reader using only the dependency diagram could miss that the deployer is a second component-scoped publisher principal. The detailed Task 3 and contract prevent this from blocking implementation, but the diagram is less precise than the revised plan.",
+      "artifact_section": "Dependency Graph -> Task 3 monitoring module",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-dependency-diagram.py",
+        "line_range": [52, 64],
+        "proposed_edit": "Clarify the App Insights node as 'MMP roles: UAMI + deployer' and show the deployerObjectId input to the monitoring module at component scope. Regenerate only this dependency diagram's PNG/SVG siblings; leave the runtime diagram and Azure topology unchanged."
+      },
+      "traces_to": [],
+      "verification_anchors": [
+        "04-implementation-plan.md -> Task 3: modules/monitoring.bicep",
+        "04-implementation-plan.md -> Code-Generation Contract -> ra-web-mmp",
+        "04-implementation-plan.md -> Code-Generation Contract -> ra-dep-mmp",
+        "04-dependency-diagram.py -> App Insights node and UAMI principalId edge",
+        "04-runtime-diagram.py -> app runtime telemetry path remains UAMI-to-App Insights"
+      ]
+    }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "5c9dab36eade72e743dff784e43f0b4491dd082507fc6ce1d52650a694bf747f",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "b5141e22a283f2de92bd89c2e82da682e1a1a9fe109306fd992d648569b8576d"
+  },
+  "supporting_inputs": [
+    {
+      "path": "agent-output/university/04-iac-contract.json",
+      "sha256": "944c44a109a8445bab836c48857c37fdb2c20f263410858ed545c89ddccc51a6"
+    },
+    {
+      "path": "agent-output/university/04-policy-property-map.json",
+      "sha256": "7735a31195aacb0b77c9605298631b5698d0efed5e04b4f5635bf9739637cef2"
+    },
+    {
+      "path": "agent-output/university/04-environment-manifest.json",
+      "sha256": "f02cac2a63740b018b1b38b975c9ed9705542fab7118df1ed1535c86d562db42"
+    },
+    {
+      "path": "agent-output/university/04-governance-constraints.json",
+      "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b"
+    },
+    {
+      "path": "agent-output/university/sku-manifest.json",
+      "sha256": "23cad96b37fa553522f922a33af1df5878f9d5fec276615d18cefc3bda5f1b83"
+    },
+    {
+      "path": "agent-output/university/02-architecture-assessment.md",
+      "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b"
+    },
+    {
+      "path": "agent-output/university/02-cost-estimate.json",
+      "sha256": "713ff80f98bb4da4f66cf28477b33fcdbe704884b3e59b000f87e934d1abf8a0"
+    },
+    {
+      "path": "agent-output/university/03-des-cost-estimate.md",
+      "sha256": "0971f805999e717f4b2ad2f84a4879cd31321ae8336b83bad155dfcfbf9078e7"
+    },
+    {
+      "path": "agent-output/university/04-dependency-diagram.py",
+      "sha256": "84d00bfb5bc1a010fb1b7357f021425eebfc91b9c3a4573ac7c843f7067e0023"
+    },
+    {
+      "path": "agent-output/university/04-runtime-diagram.py",
+      "sha256": "06043e4abdeb89deee68f6c1c96b6f3b26e0e82021c0bcf02713188a3ef4cd15"
+    }
+  ]
+}

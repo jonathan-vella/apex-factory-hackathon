@@ -2,10 +2,10 @@
 
 > **Status:** APEX output from a build tenant, deployed with both `azd` and the `deploy.ps1` fallback
 > and torn down there. `agent-output/university/` and `infra/bicep/university/` are that output, with
-> the two governance files redacted as described below. The APEX Deploy path and the re-emitted
-> handoff aren't validated yet ([#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52)).
-> The deployer doesn't get Monitoring Metrics Publisher on Application Insights yet
-> ([#60](https://github.com/jonathan-vella/apex-factory-hackathon/issues/60)).
+> the two governance files redacted as described below. The output was regenerated on 2026-10-20 from
+> `apex-factory-coe` commit `db65758` (APEX Step 5 complete): the deployer now gets Monitoring Metrics
+> Publisher on Application Insights ([#60](https://github.com/jonathan-vella/apex-factory-hackathon/issues/60)),
+> and the handoff matches the packaged tree ([#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52)).
 >
 > **Read before you deploy:** an independent APEX review still reports two `must_fix` findings on
 > this archetype. The kit's maintainer accepted both as risks for a non-production lab. They are not
@@ -23,7 +23,8 @@ APEX release/commit this project is pinned to: `apex-accelerator` has no tagged 
 records the commit SHA the archetype was generated with, `c209d8b`. `BRIEF.md`'s Notes section
 names `bc96b7284eb116ab5c2ee71b9ba9510f4c22d99a`, the commit that was current when the brief was
 written; the build tenant's repo was synced to `c209d8b` before the APEX steps ran, so `c209d8b` is
-the one that counts.
+the one that counts for the original generation. The 2026-10-20 correction (#52, #60) ran in `apex-factory-coe`,
+synced to `jonathan-vella/apex` `c1755e1` (Copilot harness); the project is pinned to `apex-factory-coe` `db65758`.
 
 **App Service plan `P0v3` VNet integration:** confirmed supported (regional VNet integration is a
 Premium-tier App Service Plan feature, and P0v3 is a Premium v3 SKU); the Bicep wires
@@ -72,9 +73,8 @@ repo and continue from there.
    `weekly-upstream-sync.yml` so the weekly upstream sync doesn't delete it (`.github/skills/` is
    otherwise synced wholesale from upstream). It refuses to overwrite an existing `university`
    project unless you pass `-Force`, which loses your changes to it. It prints a file count and
-   content hash for `infra/bicep/university/` so you can sanity-check the copy -- a mismatch
-   against the packaged tree hash below is the already-documented drift, not something the script
-   resolves. Without a repo checked out (for example, to import into another folder), download the
+   content hash for `infra/bicep/university/` so you can sanity-check the copy (the script's own byte
+   check, not APEX's `tree_hash`). Without a repo checked out (for example, to import into another folder), download the
    script first:
 
    ```powershell
@@ -121,14 +121,10 @@ A member who prefers APEX to drive the deployment itself, instead of azd, can ha
 after the governance refresh, the same way the `/apex-adapt-archetype` skill used to. This still works,
 but isn't the path the skill or this README walks through by default.
 
-**Known tree hash drift (tracked, [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52)):**
-the packaged `infra/bicep/university/` tree hash no longer matches the APEX handoff, because two
-bugs (cmd.exe escaping in `preflight.ps1`, an ACR NIC match in `postdeploy-tests.ps1`) and the new
-`write-deployment-summary.ps1` were hand-patched into this APEX-output tree instead of being
-re-emitted by APEX step `06b`. This only matters for **APEX Deploy** above, which checks the tree
-hash; `azd provision` does not check it and is unaffected. The drift clears once the fixes are ported
-into the upstream APEX project (`apex-factory-coe`) and this folder is re-packaged from the new
-handoff (#52).
+**Tree hash ([#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52), closed):** the
+packaged `infra/bicep/university/` tree hash matches the handoff APEX step `06b` re-emitted on 2026-10-20
+(`node tools/scripts/validate-iac-handoff.mjs --tree-hash infra/bicep/university`: 19 files). The earlier
+hand-patched scripts are now APEX output. A deploy through `07b` hasn't been run on this tree.
 
 ### Fallback (no agent, no azd)
 
@@ -319,5 +315,7 @@ row with no evidence in the repo.
 | Post-deploy checks (public endpoints, policy compliance, private DNS, MI name resolution, image push, pull and restart, telemetry) | Pass, with two non-blocking gaps: the `alzl-diag-appinsights` compliance-reporting gap and a false negative on the SQL MI port-11000 check | B09, "Done when" |
 | Web app on the archetype, after the B10 cutover test | 13 of 13 front-end checks passed with the L5 image and again with the known-good image | #53 |
 | Teardown | Done on 2026-10-08 and checked with fresh queries; `rg-management` kept | B09, "Done when"; #53 |
-| APEX Deploy (`07b`) against the packaged tree | Not validated: the tree hash no longer matches the handoff | [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |
-| `write-deployment-summary.ps1` recording Step 6 to 7 in `apex-recall` | TODO: `apex-recall` wasn't installed in the test, so only the manual-command fallback ran | B09; [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |
+| Previous package, on the Copilot harness (2026-10-20): `/apex-adapt-archetype`, then `azd provision` | Provisioned 12 resource types in 20m 2s, first run in a fresh repo | Owner's run |
+| Re-emitted handoff (2026-10-20) | `az deployment sub validate` at provider level against a live spoke: exit 0. Both handoff validators pass and the tree hash matches | CoE PR 19; [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |
+| APEX Deploy (`07b`) against the packaged tree | TODO: not run | B09 |
+| `write-deployment-summary.ps1` (re-emitted version) recording Step 6 to 7 in `apex-recall` | TODO: not run live yet. The earlier hand-patched version ran in the B10 `azd provision` | B10; [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |
