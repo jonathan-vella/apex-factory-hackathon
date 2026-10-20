@@ -2,9 +2,6 @@
 
 The DB perf kit gives the `ContosoUniversity` database realistic volume and five planted performance issues, for C9 (Optimize the DB with GHCP). The datacenter deployment installs it on `vm-app01`, and a workload generator on `vm-dev01` makes the issues show up in Query Store, against the source SQL Server before migration and against SQL MI after it.
 
-> [!WARNING]
-> The answers, with the fixes and the before and after numbers, are in [`coach/c09-optimize-the-db-with-ghcp.md`](../../coach/c09-optimize-the-db-with-ghcp.md). Coach material is public, on the honor system: attendees shouldn't read it.
-
 ## What's planted
 
 The issues live in database objects and settings, not in the app, so they survive the app's modernization and the migration. The app doesn't use the planted objects, and its own EF Core queries work at compatibility level 110.
@@ -91,6 +88,6 @@ It takes the same `Server`, `MemberIndex`, `Authentication` and `SqlPassword` pa
 ## Traps
 
 - **Compatibility level 110** also turns off scalar UDF inlining and batch mode on rowstore, so it makes P4 worse. That's intended: fixing P5 partly helps P4.
-- **Run commands stop working after Arc onboarding** (B07), so the deployment's install and `Test-Datacenter.ps1`'s in-VM checks have to happen before it. The workload and the reset don't use run commands.
+- **Run commands stop working after Arc onboarding**, so the deployment's install and `Test-Datacenter.ps1`'s in-VM checks have to happen before it. The workload and the reset don't use run commands.
 - **The data is small.** 200,000 students and 2 million enrollments use about 120 MB. The issues come from plan shapes, not size, and a small database seeds MI link quickly.
 - **The `contosoapp` password is fixed.** When there's no secrets file, the scripts use the documented lab password, which is a lab-only exception to the kit's rule against hard-coded secrets: the datacenter is reachable only through Bastion, and `contosoapp` works only on the source SQL Server. See the datacenter README, **Credentials**.

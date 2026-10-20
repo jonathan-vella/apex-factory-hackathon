@@ -10,7 +10,10 @@ so CREATE USER ... FROM EXTERNAL PROVIDER can look up Microsoft Entra principals
 identity in C7. This script gives it the three Microsoft Graph application permissions Microsoft Learn lists
 for that: User.Read.All, GroupMember.Read.All and Application.Read.All.
 Run it once per team, after scripts/Deploy-AlzLite.ps1, signed in (az login) as a Privileged Role
-Administrator or Global Administrator of the tenant. It's event prep, not an attendee step. A re-run
+Administrator or Global Administrator of the tenant. It's a platform lead task done with a role holder (C2, task 4):
+the platform lead usually doesn't hold that role, so the coach brings someone who does. That person runs
+this script from their own computer, in the kit's factory/ folder, signed in as themselves, not in the
+platform lead's signed-in terminal (a second az login there would replace the lead's). A re-run
 skips permissions that are already granted. Use -WhatIf to see what it would grant.
 Removing rg-management (teardown) deletes the identity and its permissions with it.
 .PARAMETER SharedSubscriptionId

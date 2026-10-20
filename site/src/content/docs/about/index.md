@@ -6,24 +6,24 @@ sidebar:
   order: 0
 ---
 
-The Partner Modernization Factory is a two-day hackathon, with pre-work, in which partner teams modernize one legacy app and its database on Azure with GitHub Copilot, Azure Arc and a CoE archetype built with APEX.
+The Partner Modernization Factory is a two-day hackathon, with pre-work, in which partner teams modernize one legacy app and its database on Azure with GitHub Copilot, Azure Arc and a CoE archetype built with APEX. The archetype is a Center of Excellence's reference design for the target platform, and APEX is the agent-driven tooling that built it. The [glossary](../reference/glossary/) explains the other terms.
 
 ## Audience
 
 - Partner infrastructure architects and engineers. The application and database work is GitHub Copilot-assisted, so you don't need to be a .NET or SQL Server specialist.
-- Teams of three to five. Each team has its own Microsoft Entra tenant and one platform lead, who is also a student. Each member has their own Azure workload subscription.
-- Partners bring their own paid Azure subscriptions and their own GitHub Copilot. Any paid subscription that passes `Test-Preflight.ps1` is supported; trial, Azure Pass and sponsorship subscriptions are not.
+- Teams of three to five. Each team has its own Microsoft Entra tenant and one platform lead, who is also a student. Each member has their own Azure workload subscription in that tenant.
+- Partners bring their own paid Azure subscriptions and their own GitHub Copilot. Any paid subscription is supported; trial, Azure Pass and sponsorship subscriptions are not. Preflight doesn't check the offer type, so confirm in the Azure portal that yours is a paid subscription.
 - Coaches are partner CoE leads or Microsoft partner solution architects. The event owner is the partner practice lead who runs the event.
 
 See [Roles](../getting-started/roles/) for who does what, and [Prerequisites](../getting-started/prerequisites/) for what to have ready.
 
 ## Certifications
 
-The hands-on event comes first, and the exams follow it. Infra roles hold AZ-104, GH-300 and DP-300 within six months after the event. No exam is a gate for attending the event. The [Partner learning path](../guides/learning-path/) has the details.
+The event is hands-on first, and the exams come after it: infra roles hold AZ-104, GH-300 and DP-300 within six months after the event. No exam is a gate for attending the event. The [Partner learning path](../guides/learning-path/) has the details.
 
 ## Agenda
 
-Pre-work comes first: [Prerequisites](../getting-started/prerequisites/) and C0's preflight by T-14, then the datacenter, `Test-Datacenter.ps1` and Azure Arc onboarding by T-3. The times below are the plan; your event owner may adjust them.
+Pre-work comes first: [Prerequisites](../getting-started/prerequisites/) and C0's preflight by T-14 (14 days before day one), then by T-3 (3 days before day one) the datacenter is deployed, `Test-Datacenter.ps1` passes for you (run before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code. The [event overview](../getting-started/event-overview/#pre-work) has both gates. The times below are the plan; your event owner may adjust them.
 
 | Day 1 | Activity |
 |---|---|
@@ -52,3 +52,7 @@ Challenge time boxes overlap in places, so they don't add up to the clock. Each 
 ## Feedback
 
 Tell your coach or the event owner what worked and what didn't during the event. To report a problem with the kit or suggest a change, open an issue in the [GitHub repository](https://github.com/jonathan-vella/apex-factory-hackathon/issues).
+
+## Where to go next
+
+Read [Roles](../getting-started/roles/), then start [Prerequisites](../getting-started/prerequisites/).

@@ -18,11 +18,11 @@ Re-runs converge an existing datacenter to those values.
 
 A re-run is safe before vending (Deploy-Vending.ps1) and Arc onboarding (Connect-DatacenterArc.ps1). It resets
 snet-servers (dropping rt-servers) and the VNet's DNS servers, so after vending run Deploy-Vending.ps1 again
-and restart the VMs. After Arc onboarding the guest agent is off, so the run commands can't run again: to
-start over, delete rg-datacenter and deploy again. There is no -Force.
+and restart the VMs. After Arc onboarding the guest agent is off, so the run commands can't run again and a re-run can't recover vm-app01: to
+start over, delete rg-datacenter and deploy again. There is no -Force. That also deletes vm-dev01.
 
 Azure Hybrid Benefit is on by default for vm-app01 (licenseType Windows_Server). It assumes you hold
-eligible Windows Server licences with Software Assurance or subscriptions. Use -NoHybridBenefit to
+eligible Windows Server licenses with Software Assurance or subscriptions. Use -NoHybridBenefit to
 deploy without it. vm-dev01 always uses Windows_Client (multitenant hosting rights), which Windows 11
 on Azure needs. Quota is deliberately not checked.
 .PARAMETER SubscriptionId
@@ -129,7 +129,7 @@ $null = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $Subsc
 $secrets = Save-DatacenterSecret
 
 $ahbText = if ($hybridBenefit) {
-    'ON for vm-app01 (Windows_Server). This assumes you hold eligible Windows Server licences with Software Assurance or subscriptions. Deploy with -NoHybridBenefit if you do not.'
+    'ON for vm-app01 (Windows_Server). This assumes you hold eligible Windows Server licenses with Software Assurance or subscriptions. Deploy with -NoHybridBenefit if you do not.'
 }
 else {
     'OFF for vm-app01 (-NoHybridBenefit). Windows Server is billed at the pay-as-you-go rate.'

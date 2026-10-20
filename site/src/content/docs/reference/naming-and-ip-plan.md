@@ -19,15 +19,22 @@ sidebar:
 | Firewall policy | `afwp-hub` | — |
 | User-assigned managed identity | `id-<purpose>` | `id-sqlmi-directory` |
 | Log Analytics workspace | `log-management` | — |
+| Firewall rule collection group (one per member) | `rcg-member-<n>` | `rcg-member-3` in `afwp-hub` |
+| App Service plan and web app | `asp-university-<suffix>`, `app-university-<suffix>` | C5 archetype |
+| Container registry | `cruniversity<suffix>` | C5 archetype |
+| SQL Managed Instance | `sqlmi-university-<suffix>` | C5 archetype |
+| Storage account | `stuniversity<suffix>` | C5 archetype, container `teaching-materials` |
+| Service Bus namespace | `sbns-university-<suffix>` | C5 archetype, queue `notifications` |
+| Key Vault | `kv-university-<suffix>` | C5 archetype |
+| Application Insights | `appi-university-<suffix>` | C5 archetype |
+| Web app identity | `id-university-<suffix>` | C5 archetype |
 
 ## Member index and suffix
 
-Two different values name member-scoped things:
+Two different values name member-scoped things. Both are saved in `factory/.local/settings.json`, and later pages show them as `$s.memberIndex` and `$s.suffix`:
 
-- The **member index** `n` (1 to 20) is a number your coach assigns. It sets your IP ranges and appears in names such as `rcg-member-<n>`. It is unique within a team.
+- The **member index** `n` (1 to 20) is a number your coach assigns. It sets your IP ranges and appears in names such as `rcg-member-<n>`, your firewall rule collection group in the hub. It is unique within a team.
 - The **suffix** is a random six-character string that `Initialize-Settings.ps1` generates once and never changes. It names your archetype resources, for example `rg-university-<suffix>`.
-
-Both are saved in `factory/.local/settings.json`.
 
 ## IP address plan
 
@@ -44,3 +51,7 @@ Both are saved in `factory/.local/settings.json`.
 `snet-servers` belongs to the datacenter, not the spoke. The datacenter and the spoke aren't peered with each other: traffic between them goes through the hub firewall.
 
 `snet-sqlmi` has the network security group `nsg-sqlmi` and the route table `rt-sqlmi`. Vending creates both once, empty, and SQL MI's network intent policy then adds its own rules and routes. Don't redeploy them inline, because that would remove the MI's rules. The kit adds its MI link rules as separate child resources.
+
+## Where to go next
+
+See the [glossary](../glossary/) for the terms used here, or go back to [Prerequisites](../../getting-started/prerequisites/).
