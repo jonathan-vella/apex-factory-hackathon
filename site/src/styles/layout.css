@@ -1,0 +1,98 @@
+/*
+ * Layout refinements for half-width laptop windows (about 800 to 1150 px, side by side with
+ * VS Code and the Azure portal). Loaded after custom.css, so these rules win on equal specificity.
+ */
+
+/* Content: tighter vertical rhythm on every width (not the landing page). */
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper.level-h2 {
+  margin-top: 2.25rem;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper.level-h3 {
+  margin-top: 1.75rem;
+}
+
+body:not(:has(.landing-hero))
+  .sl-markdown-content
+  .sl-heading-wrapper:has(:is(#scope-and-time-box, #points)) {
+  margin-top: 1.25rem;
+}
+
+/* The goal heading sits right under the task bar when there is one. */
+.sl-markdown-content > .task-bar + .sl-heading-wrapper {
+  margin-top: 0;
+}
+
+/* Half-width: a narrower sidebar and a smaller type scale give the content more room. */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  :root {
+    --sl-sidebar-width: 16.5rem;
+    --sl-content-width: 50rem;
+    --sl-text-h2: var(--sl-text-3xl);
+    --sl-text-h3: var(--sl-text-2xl);
+    --sl-text-h4: var(--sl-text-xl);
+  }
+
+  .sidebar-content {
+    font-size: var(--sl-text-sm);
+  }
+}
+
+/* Task cards: less dead space, and nested lists and code get the width back. */
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li {
+  padding-block: 0.75rem;
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li :is(ol, ul) {
+  padding-inline-start: 1.4rem;
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li > :last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 71.99rem) {
+  .sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li {
+    padding-left: 3.1rem;
+    padding-right: 0.8rem;
+  }
+
+  .sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li::before {
+    left: 0.7rem;
+  }
+}
+
+/* Tables scroll inside their own box instead of widening the page. */
+.sl-markdown-content table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Code: on terminal blocks the copy button sits in the title bar and stays visible; EC shows it only on hover. */
+.expressive-code .frame.is-terminal .copy {
+  inset-block-start: calc(var(--ec-brdWd) + 0.05rem);
+}
+
+.expressive-code .frame.is-terminal .copy button {
+  opacity: 0.7;
+}
+
+.expressive-code .frame.is-terminal .copy button:is(:hover, :focus-visible) {
+  opacity: 1;
+}
+
+/* Asides and details: even padding and a larger click target. */
+.starlight-aside {
+  padding: 0.85rem 1rem;
+}
+
+.sl-markdown-content details summary {
+  padding-block: 0.4rem;
+}
+
+@media (max-width: 50rem) {
+  .sl-markdown-content details {
+    padding-inline: 0.75rem;
+  }
+}

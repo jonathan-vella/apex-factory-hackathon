@@ -1,0 +1,340 @@
+/*
+ * Tick-off tasks, the sticky task bar and the sidebar "done" flags on challenge pages.
+ * The markup comes from src/scripts/progress.js. Colours are chosen for 4.5:1 text contrast
+ * in both themes.
+ */
+
+:root {
+  --task-done: #1a7f37;
+  --task-done-text: #3fb950;
+
+  /* Starlight's mobile table of contents is about 1rem taller than --sl-mobile-toc-height. */
+  --task-bar-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + 1rem);
+}
+
+@media (min-width: 72rem) {
+  :root {
+    --task-bar-top: calc(var(--sl-nav-height) + 0.4rem);
+  }
+}
+
+:root[data-theme="light"] {
+  --task-done-text: #1a7f37;
+}
+
+.task-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Checkbox shared by tasks and evidence items. */
+.task-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.task-check:has(.task-check__input:focus-visible) {
+  outline: 2px solid var(--sl-color-accent-high);
+  outline-offset: 2px;
+}
+
+.task-check__input {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  border: 2px solid var(--sl-color-gray-2);
+  border-radius: 0.3rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.task-check__input:focus-visible {
+  outline: none;
+}
+
+.task-check__input:checked {
+  border-color: var(--task-done);
+  background: var(--task-done)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+    center / 80% no-repeat;
+}
+
+@media (forced-colors: active) {
+  .task-check__input {
+    appearance: auto;
+  }
+}
+
+/* Tasks: a pill at the top right of each numbered card. */
+.task-check--task {
+  float: right;
+  margin: 0 0 0.35rem 0.75rem;
+  padding: 0.2rem 0.65rem 0.2rem 0.45rem;
+  border: 1px solid var(--sl-color-gray-3);
+  border-radius: 999px;
+  background: var(--sl-color-black);
+  color: var(--sl-color-gray-1);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.task-check--task:hover {
+  border-color: var(--sl-color-accent-high);
+}
+
+.task-check--task:has(.task-check__input:checked) {
+  border-color: var(--task-done);
+  background: var(--task-done);
+  color: #fff;
+}
+
+.task-check--task .task-check__input:checked {
+  border-color: #fff;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%231a7f37' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.sl-markdown-content li.task-item > .task-check + * {
+  margin-top: 0;
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li.is-done {
+  border-color: var(--task-done);
+}
+
+.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li.is-done::before {
+  background: var(--task-done);
+}
+
+/* Evidence: the box replaces the bullet. */
+.sl-markdown-content ul:has(> li.evidence-item),
+.sl-markdown-content .sl-heading-wrapper:has(#evidence) + ul:has(> li.evidence-item) {
+  padding-left: 0.9rem;
+}
+
+.sl-markdown-content li.evidence-item {
+  position: relative;
+  padding-left: 1.9rem;
+  list-style: none;
+}
+
+.task-check--evidence {
+  position: absolute;
+  top: 0.15rem;
+  left: -0.3rem;
+  padding: 0.3rem;
+}
+
+/* Sticky task bar, pinned under the header (and under Starlight's mobile table of contents). */
+.task-bar {
+  position: sticky;
+  top: var(--task-bar-top);
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.85rem;
+  margin: 0 0 1rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.75rem;
+  background: var(--sl-color-gray-6);
+  /* The first shadow fills the gap above the bar so scrolling content doesn't show through. */
+  box-shadow:
+    0 -0.4rem 0 var(--sl-color-black),
+    0 3px 10px rgba(0, 0, 0, 0.18);
+  color: var(--sl-color-gray-1);
+  font-size: var(--sl-text-sm);
+}
+
+html:has(.task-bar) {
+  scroll-padding-top: calc(var(--task-bar-top) + 3.6rem);
+}
+
+.task-bar__count {
+  margin: 0;
+  color: var(--sl-color-white);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.task-bar__meter {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 6rem;
+  height: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sl-color-gray-5);
+  overflow: hidden;
+}
+
+.task-bar__meter::-webkit-progress-bar {
+  background: var(--sl-color-gray-5);
+}
+
+.task-bar__meter::-webkit-progress-value {
+  background: var(--sl-color-accent-high);
+  border-radius: 999px;
+}
+
+.task-bar__meter::-moz-progress-bar {
+  background: var(--sl-color-accent-high);
+  border-radius: 999px;
+}
+
+.task-bar.is-complete .task-bar__meter::-webkit-progress-value {
+  background: var(--task-done-text);
+}
+
+.task-bar.is-complete .task-bar__meter::-moz-progress-bar {
+  background: var(--task-done-text);
+}
+
+.task-bar__panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  min-width: 0;
+}
+
+.task-bar__jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.task-bar__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding: 0 0.45rem;
+  border: 1px solid var(--sl-color-gray-3);
+  border-radius: 999px;
+  background: var(--sl-color-black);
+  color: var(--sl-color-white);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.task-bar__chip:hover {
+  border-color: var(--sl-color-accent-high);
+}
+
+.task-bar__chip[data-done="true"] {
+  border-color: var(--task-done);
+  background: var(--task-done);
+  color: #fff;
+}
+
+.task-bar__chip[data-done="true"]::after {
+  content: "\2713";
+  margin-left: 0.2rem;
+  font-size: 0.7rem;
+}
+
+.task-bar__reset,
+.task-bar__toggle {
+  min-height: 1.75rem;
+  padding: 0 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--sl-color-gray-2);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.task-bar__reset {
+  margin-left: auto;
+  text-decoration: underline;
+}
+
+.task-bar__reset:hover,
+.task-bar__toggle:hover {
+  color: var(--sl-color-white);
+}
+
+.task-bar__reset[data-confirm="true"] {
+  border-color: var(--sl-color-red-high);
+  color: var(--sl-color-red-high);
+  text-decoration: none;
+}
+
+.task-bar__toggle {
+  display: none;
+  border-color: var(--sl-color-gray-3);
+  color: var(--sl-color-white);
+}
+
+.task-bar__toggle::after {
+  content: "\25BE";
+  margin-left: 0.35rem;
+}
+
+.task-bar__toggle[aria-expanded="true"]::after {
+  content: "\25B4";
+}
+
+@media (max-width: 43.75rem) {
+  .task-bar__meter {
+    flex: 1 1 4rem;
+  }
+
+  .task-bar__toggle {
+    display: inline-block;
+  }
+
+  .task-bar__panel {
+    display: none;
+    flex-basis: 100%;
+  }
+
+  .task-bar.is-open .task-bar__panel {
+    display: flex;
+  }
+
+  html:has(.task-bar.is-open) {
+    scroll-padding-top: calc(var(--task-bar-top) + 6.6rem);
+  }
+}
+
+/* Sidebar and overview flags for finished challenges. */
+.progress-flag {
+  margin-inline-start: 0.4rem;
+  color: var(--task-done-text);
+  font-weight: 700;
+}
+
+a[aria-current="page"] > .progress-flag {
+  color: inherit;
+}
+
+@media print {
+  .task-bar,
+  .task-check {
+    display: none;
+  }
+}

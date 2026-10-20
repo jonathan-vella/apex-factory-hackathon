@@ -1,6 +1,7 @@
 ---
 import Default from "@astrojs/starlight/components/PageTitle.astro";
 import { getCollection } from "astro:content";
+import ProgressTracker from "./ProgressTracker.astro";
 
 const match = Astro.locals.starlightRoute.entry.id.match(/^challenges\/c(\d+)-/);
 let position;
@@ -27,3 +28,4 @@ if (match) {
 <Default {...Astro.props}>
   <slot />
 </Default>
+<ProgressTracker />

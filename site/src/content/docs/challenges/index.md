@@ -26,4 +26,6 @@ This section introduces the challenges in order, with their time boxes and point
 
 Time boxes are pacing, not hard stops. Coaches flex on the day. The event's real gates are T-14 and T-3 (pre-work) and the end of each day.
 
+On a challenge page, tick **Done** on each task card as you finish it. The bar under the header shows how many tasks are done and jumps to each one. Ticks stay in this browser only: they aren't shared with your team, and clearing site data or switching browsers starts you from zero. **Reset** clears the page.
+
 If you're blocked, try the hints on the page and the guide it links to first, then ask your coach. Your coach decides how to help and records it; the page doesn't promise any particular help.
