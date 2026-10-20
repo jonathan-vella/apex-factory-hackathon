@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-Try these in order. Each is read-only diagnosis first — none of them changes anything until you ask for a fix.
+Try these in order. Steps 1 and 3 diagnose first and change nothing; step 2 asks the agent to apply a fix.
 
 ## 1. Name the exact symptom, don't just say "it failed"
 
@@ -16,7 +16,12 @@ Task <task-id>'s check is failing: <paste the exact error, failing check, or une
 ## 2. Check the three known gap areas
 
 If the symptom involves startup wiring, notifications, or logging/telemetry, name the matching skill — this
-is faster than general diagnosis:
+is faster than general diagnosis. First run these searches, so you know which skill applies:
+
+```powershell
+git grep -n "new NotificationService" -- app
+git grep -n -i -E "System\.Web|System\.Messaging|MessageQueue|Trace\.|Debug\.Write" -- app/ContosoUniversity
+```
 
 | Symptom | Skill |
 | --- | --- |
@@ -26,13 +31,6 @@ is faster than general diagnosis:
 
 ```text
 Use the <skill-name> skill. Scope: app/ContosoUniversity only.
-```
-
-Check with these searches first, so you know which skill applies:
-
-```powershell
-git grep -n "new NotificationService" -- app
-git grep -n -i -E "System\.Web|System\.Messaging|MessageQueue|Trace\.|Debug\.Write" -- app/ContosoUniversity
 ```
 
 ## 3. Check you're not in the wrong scope

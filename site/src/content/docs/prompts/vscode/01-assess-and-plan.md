@@ -30,13 +30,15 @@ says: target `net10.0`, **Guided**, stay on the current branch, commit strategy 
   `dependencies-health.json`.
 - The Upgrade dashboard's **Assessment** tab shows data.
 
-Switch to the most capable model (Opus- or Sol-class, Medium reasoning), then approve planning. Check the plan
+Switch to the most capable model (Opus- or Sol-class, Medium reasoning; see the playbook's
+[Models](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#models)
+table for the picker names), then approve planning. Check the plan
 gate:
 
 - `plan.md`, `scenario-instructions.md` and `scenario.json` exist.
 - Exactly seven tasks, in a strict chain: .NET 10, SQL Managed Instance, Blob, Service Bus, Key Vault,
   OpenTelemetry, CVE audit.
-- All 9 rows of the rules table are met.
+- All 9 rows of the rules table (at the end of `plan-prompt.txt`) are met.
 - No task mentions `#skill:migrating-webapi-odata`.
 - `git status --short -- app` prints nothing.
 
@@ -52,4 +54,4 @@ confirm the tree is clean again with [Prerequisites](../00-prerequisites/)' last
 | The agent picks the `azure-migrate` scenario, or asks for GitHub Copilot modernization | The prompt wasn't sent whole — start a new chat and paste it again |
 | The prompt arrives garbled | Copy it with the UTF-8 block above |
 | "The Upgrade workflow tools aren't available", or no `assessment.json` | Reload the window (**Developer: Reload Window**) and start a new chat. Don't accept a hand-written assessment |
-| The plan includes Entra ID user sign-in, Azure SQL Database or Azure Files | Point the agent at the rules table and ask it to revise the plan |
+| The plan includes Entra ID user sign-in, Azure SQL Database or Azure Files | Point the agent at the rules table at the end of `plan-prompt.txt` and ask it to revise the plan |
