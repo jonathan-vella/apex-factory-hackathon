@@ -11,7 +11,7 @@ Get the CoE archetype — App Service, ACR, SQL MI, Blob, Service Bus, Key Vault
 
 ## Scope and time box
 
-Member. **90 min** (30 min demo + 60 min hands-on).
+Member. **90 min** (30 min demo + 60 min hands-on). The 60 minutes are your hands-on time. The waits aren't: `azd provision` takes about 20 minutes (22 min 59 s on 2026-10-08 and 20 min 2 s on 2026-10-20 in the build tenant) and As-Built about 30 minutes (17:11 to 17:41 UTC on 2026-10-08). Use both waits to start C6.
 
 ## Points
 
@@ -19,7 +19,7 @@ Member. **90 min** (30 min demo + 60 min hands-on).
 
 ## Inputs
 
-C2's vended spoke (vended with your object ID, so `-MemberPrincipalId` was set). C4's platform ADR. The APEX repo you created and imported the kit into during Prerequisites.
+C2's vended spoke: your platform lead vended it for you with your Entra object ID. C4's platform ADR. Your own repo, created in [Prerequisites](../../getting-started/prerequisites/) with the kit imported.
 
 ## Where to run
 
@@ -27,11 +27,18 @@ Open your own repo in its dev container (VS Code, **Reopen in Container**), then
 
 ```bash
 pwsh
+```
+
+```powershell
 cd factory
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 ```
 
-The `/apex-adapt-archetype` skill runs from the repo root (not `factory/`). `azd` runs in `infra/bicep/university/`, in the same terminal session in which the skill ran its `./scripts/preflight.ps1` (the skill takes you there; `azure.yaml` is in that folder). Every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
+`$s` holds your settings: `$s.tenantId`, `$s.subscriptionId`, `$s.memberIndex` and `$s.suffix`. If you aren't sure you're in the dev container, run `uname`: it prints `Linux` there, and the skill needs that.
+
+The `/apex-adapt-archetype` skill runs from the repo root (not `factory/`). `azd` is the Azure Developer CLI, already installed in the dev container: it deploys the Bicep template in `infra/bicep/university/` (`azure.yaml` is in that folder). Every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
+
+When the skill runs its commands, Copilot opens a terminal in VS Code's **Terminal** panel (use the dropdown there to find it). `azd provision` must run in a PowerShell terminal where `./scripts/preflight.ps1` has just run, because preflight sets the values the deployment needs for that terminal only. Task 4 says how to get one if you closed the skill's terminal.
 
 ## What this deploys
 
@@ -43,9 +50,22 @@ The highlighted parts are what C5 adds to the spoke that C2 vended: the resource
 
 1. Watch the coach's demo of the archetype's shape and the `/apex-adapt-archetype` flow.
 2. Open your own repo (created from the `apex-accelerator` template in [Prerequisites](../../getting-started/prerequisites/)) in its dev container or Codespaces, and confirm the archetype is already there: `agent-output/university/`, `infra/bicep/university/` and `.github/skills/apex-adapt-archetype/` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1` from the repo root (or the `Import-Kit.ps1` step from Prerequisites if `factory/` doesn't exist).
-3. Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode, in the dev container or Codespaces (not natively on Windows): open Copilot Chat, switch to agent mode and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` (the `$s.tenantId`, `$s.subscriptionId` and `$s.suffix` values from your terminal) and asks you to confirm them; it asks for them if the file is missing. It checks a spoke is already vended, runs a lightweight live governance check, and stops at `azd provision --preview`. If it says the spoke is missing, your platform lead has to vend your subscription (C2); members can't. Done when the skill shows the preview. If your Codespace or dev container was deleted, `factory/.local/` is gone: restore your suffix first with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` (use the suffix you were first given), then reload `$s`.
-4. Review the preview, then run `azd provision` yourself from `infra/bicep/university/` to deploy for real. It waits until the SQL Managed Instance is created, which can take a long time, so keep that terminal open. No provisioning time has been measured for this kit yet. You can start C6 on `vm-dev01` while it runs. Done when `azd provision` returns without an error and `rg-university-<suffix>` exists.
-5. When `azd provision` returns, run **As-Built** (agent `08-As-Built`): in Copilot Chat in your repo, pick the `08-As-Built` agent from the agent picker and ask it to document the deployed state. If `azd`'s post-provision output says to run an `apex-recall` command first, run it. Done when `agent-output/university/07-as-built.md` exists.
+3. Run the `/apex-adapt-archetype` skill, in the dev container or Codespaces (not natively on Windows):
+
+   1. Sign in to `azd` first, in the terminal: `azd auth login --use-device-code`. `azd` keeps its own sign-in, separate from `az login`, and the skill stops without it. Skip this only if `azd` already says you're signed in.
+   2. Open Copilot Chat, set the mode to **Agent** (the built-in one, not `01-Orchestrator`) and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` (the `$s.tenantId`, `$s.subscriptionId` and `$s.suffix` values from your terminal) and asks you to confirm them. It checks that a spoke is already vended, runs a lightweight live governance check and creates an `azd` environment named after your suffix (that's expected). Then it stops at `azd provision --preview`.
+
+   Done when the skill shows the preview: its output ends with a list of the resources `azd` would create, and no error.
+4. Review the preview, then deploy for real. In the terminal where the skill ran, run `azd provision` from `infra/bicep/university/`. If you can't find that terminal, open a new one in the dev container (type `pwsh` if it's a bash prompt) and run these lines (`./scripts/preflight.ps1` only reads Azure):
+
+   ```powershell
+   cd infra/bicep/university
+   ./scripts/preflight.ps1
+   azd provision
+   ```
+
+   Review the preview by scanning for resource names that contain your suffix. It waits until the SQL Managed Instance is created: about 20 minutes, so keep that terminal open. You can start C6 on `vm-dev01` while it runs. Done when `azd provision` returns without an error and `rg-university-<suffix>` exists.
+5. When `azd provision` returns, run **As-Built**: in Copilot Chat in your repo, pick the `08-As-Built` agent in the chat input area and send `Document the deployed state of the university project.` If `azd`'s output printed an `apex-recall ...` command to run first, run that line in the terminal where `azd` ran. It takes about 30 minutes: start C6 meanwhile. Done when `agent-output/university/07-as-built.md` exists.
 6. Confirm the deployment, from `factory/`, with your suffix:
 
    ```powershell
@@ -58,29 +78,35 @@ The highlighted parts are what C5 adds to the spoke that C2 vended: the resource
    az role assignment list --assignee $id --all -o table
    ```
 
-   Done when there are no public endpoints other than the web app's front end and Application Insights ingestion (the four `publicNetworkAccess` values are `Disabled`), every resource name follows the convention, and the web app's managed identity has the roles it needs.
+   Done when there are no public endpoints other than the web app's front end and Application Insights ingestion (the four `publicNetworkAccess` values are `Disabled`), every resource name follows the convention in the [naming and IP plan](../../reference/naming-and-ip-plan/), and the web app's managed identity (`id-university-<suffix>`) holds five roles: AcrPull, Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, Key Vault Secrets User and Monitoring Metrics Publisher.
 
 ## Evidence
 
-Save screenshots and output as files in `factory/evidence/c05/` in your own repo, and commit (for example `docs: C5 evidence`) and push them to `main`. Redact subscription, tenant and object IDs first.
+Save screenshots and output as files in `factory/evidence/c05/` of your own repo, on `main`, and redact subscription, tenant and object IDs first. In the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\c05\` (the plain clone of your own repo) and run `git pull --rebase` first. Commit with a conventional message (for example `docs: C5 evidence`) and run `git push`.
 
-- Your own repo, with `/apex-adapt-archetype`'s outputs and `azd provision`'s deployment record.
+- Your own repo on `main`, with `/apex-adapt-archetype`'s outputs and `azd provision`'s deployment summary, `agent-output/university/06-deployment-summary.md`. Check `agent-output/` for IDs before you commit it, then commit and push it too.
 - `agent-output/university/07-as-built.md` from the As-Built agent.
 - `az resource list -g rg-university-<suffix> -o table` showing every expected resource.
-- A note of any policy-compliance finding the governance check surfaced, and how you resolved it.
+- A short note in `factory/evidence/c05/governance-note.md` of any policy-compliance finding the governance check surfaced, and how you resolved it (write "none" if it found nothing).
 
 ## Hints
 
 <details>
 <summary>/apex-adapt-archetype won't find a vended spoke</summary>
 
-It looks for `rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe` and `snet-sqlmi` by the naming convention in the [naming and IP plan](../../reference/naming-and-ip-plan/). Confirm C2's vending ran for your member index before retrying.
+It looks for `rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe` and `snet-sqlmi` by the naming convention in the [naming and IP plan](../../reference/naming-and-ip-plan/). Confirm C2's vending ran for your member index before retrying. If the skill says the spoke is missing, your platform lead has to vend your subscription (C2); members can't.
+</details>
+
+<details>
+<summary>My dev container or Codespace was deleted</summary>
+
+`factory/.local/` went with it. Restore your suffix first with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` (use the suffix you were first given), then reload `$s` with the command in Where to run.
 </details>
 
 <details>
 <summary>Preflight says the managed identity "cannot be read" or lacks the assign permission</summary>
 
-Your vending ran without your object ID, so you don't have Managed Identity Operator on `id-sqlmi-directory`. Only the platform lead can fix it: ask them to re-run `Deploy-Vending.ps1` for you with `-MemberPrincipalId` (C2, task 5).
+Your vending ran without your Entra object ID, so you don't have Managed Identity Operator on `id-sqlmi-directory`. Only the platform lead can fix it: ask them to run the vending again for you (C2, task 5). This message comes from the archetype's own `./scripts/preflight.ps1`, not from C0's preflight.
 </details>
 
 <details>
@@ -92,14 +118,24 @@ A managed instance was deleted from your spoke earlier, and Azure releases its v
 <details>
 <summary>`azd provision --preview` looks incomplete</summary>
 
-The preview only lists resource types `azd` has display names for — it's expected to omit the SQL Managed Instance, the managed identity, role assignments, diagnostic settings and the maintenance schedule even though they're all in the template and will be created.
+The preview only lists resource types `azd` has display names for: it's expected to omit the SQL Managed Instance, the managed identity, role assignments, diagnostic settings and the maintenance schedule even though they're all in the template and will be created.
 </details>
 
 <details>
 <summary>I'd rather run this natively on Windows</summary>
 
-Don't: APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a native Windows checkout turns `main.bicepparam` to CRLF, which breaks the tree hash. Use the dev container or Codespaces.
+Don't: APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a native Windows checkout turns `main.bicepparam` into CRLF line endings, which makes APEX's governance check fail. Use the dev container or Codespaces.
 </details>
+
+## If you need to start over
+
+:::danger[Starting over deletes the SQL Managed Instance]
+
+`azd down --purge` deletes `rg-university-<suffix>` and everything in it, including the SQL Managed Instance and, after C7, the migrated database, the Key Vault secrets and your registry image. Re-provisioning a SQL Managed Instance takes hours. Never run it after C7, and ask your coach first at any time.
+
+:::
+
+To redeploy, run `/apex-adapt-archetype` and then `azd provision` again, as in tasks 3 and 4. The `deploy.ps1` fallback works without the agent or `azd`: see the [APEX guide](../../guides/apex/#if-youd-rather-skip-the-agents).
 
 ## Bonus
 

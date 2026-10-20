@@ -24,7 +24,7 @@ The skill needs three values:
 1. **Tenant ID**: the Entra tenant the workload subscription lives in.
 2. **Subscription ID**: the workload subscription. It is already vended: it has `rg-spoke` with `vnet-spoke`,
    `snet-app`, `snet-pe` and `snet-sqlmi`.
-3. **Suffix**: the member's 4 to 6 lowercase letters or digits, unique per member.
+3. **Suffix**: the member's resource-name suffix, 4 to 6 lowercase letters or digits (`Initialize-Settings.ps1` generated six), unique per member.
 
 Get them in this order, and never ask for a value you already have:
 
@@ -93,7 +93,7 @@ This check is part of the skill. The contract stays three inputs.
 
 This skill never runs `azd provision`, `azd down` or agent `07b-Bicep Deploy`, and nothing else that writes to Azure
 beyond the preview above. Deployment is the member's own decision. Explain the preview, the cost while deployed
-(see `archetype/README.md`) and the accepted lab risks in
+(see `factory/archetype/README.md` in the member's repo) and the accepted lab risks in
 [Accepted lab risks and adopter obligations](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations),
 then tell the user to run `azd provision` themselves when ready. azd stores the tenant and subscription IDs in the
 gitignored `.azure/<env>/.env`. That is expected.
@@ -105,4 +105,4 @@ Step 6 complete with `apex-recall`, because azd bypasses APEX Deploy (`07b`). Th
 
 Tell the user this adapts the archetype platform only (App Service, ACR, SQL MI, Storage, Service Bus, Key Vault and
 Application Insights) into the existing spoke. It does not deploy or modernize the Contoso University app (that is
-C6), and the SQL MI takes several minutes to provision once `azd provision` runs.
+C6), and `azd provision` takes about 20 minutes once it runs, most of it the SQL MI (the build tenant measured 20 to 23 minutes).

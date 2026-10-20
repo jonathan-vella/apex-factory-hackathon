@@ -1,6 +1,6 @@
 # Modernization playbook
 
-Last updated 2026-10-10. Built from the golden path the kit validated end to end. The tools and models change often: if this date is more than a few weeks old, check with your coach before you start.
+Last updated 2026-10-20. Built from the golden path the kit validated end to end. The tools and models change often: if this date is more than a few weeks old, check with your coach before you start.
 
 The playbook takes Contoso University in `app/ContosoUniversity` from ASP.NET MVC 5 on .NET Framework 4.8 to .NET 10 and ASP.NET Core MVC, with uploads on Blob, notifications on Service Bus, secrets in Key Vault and telemetry in Application Insights. Then it packages the app as an image in your private registry and runs it on App Service against SQL Managed Instance. Everything runs on `vm-dev01`.
 
@@ -32,7 +32,8 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
 - **Run the app after every task.** The agent's own validation can pass without the app ever starting. Build, `dotnet run`, open the pages, then commit.
 - **Commit and push after every task**, before the next one starts, on your `vm-dev01-work` branch: `git add -A`, `git commit -m "app: task 0N <name>"`, `git push`. The push goes to your own repo (the `member` remote), not the public kit. Check `git branch -vv` before you commit, and don't run `git pull`: the [guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) lists the branch rules. The scenario uses manual commits, so the agent doesn't commit for you.
 - **Local runs** need `ASPNETCORE_ENVIRONMENT=Development`. `dotnet run` sets it from the launch profile; `dotnet run --no-launch-profile` starts in Production, which refuses the on-premises SQL login.
-- **Names.** `<suffix>` is your archetype suffix and `<n>` your member number. The archetype's resources are in `rg-university-<suffix>`: `stuniversity<suffix>`, `sbns-university-<suffix>`, `kv-university-<suffix>`, `cruniversity<suffix>`, `appi-university-<suffix>`, `sqlmi-university-<suffix>`, `id-university-<suffix>` and `app-university-<suffix>`.
+- **Names.** Replace `<suffix>` (your archetype suffix) and `<n>` (your member index) with your values, angle brackets included. Read them from `factory/.local/settings.json` in your dev container (`$s.suffix`, `$s.memberIndex`); on `vm-dev01`, the suffix is in the name of the resource group `rg-university-<suffix>`. The archetype's resources are in `rg-university-<suffix>`: `stuniversity<suffix>`, `sbns-university-<suffix>`, `kv-university-<suffix>`, `cruniversity<suffix>`, `appi-university-<suffix>`, `sqlmi-university-<suffix>`, `id-university-<suffix>` and `app-university-<suffix>`.
+- **Three kinds of numbers.** A **Step** is a section of this playbook (Step 0 to 5). A **task** here is one of the Upgrade agent's seven tasks (01 to 07, the `app: task 0N <name>` commits); the challenge pages call them agent tasks. The challenge pages' own numbered items are "task 1" to "task 5" and so on.
 - **Stuck?** After two attempts at a step, ask your coach.
 
 ## Step 0: Set up
@@ -98,7 +99,7 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
 5. Check the plan gate:
    - `plan.md`, `scenario-instructions.md` and `scenario.json` exist;
    - exactly seven tasks, in a strict chain: .NET 10, SQL Managed Instance, Blob, Service Bus, Key Vault, OpenTelemetry, CVE audit;
-   - all 9 rows of the rules table are met;
+   - all 9 rows of the **Required Review Output** table at the end of `plan-prompt.txt` are met;
    - no task mentions `#skill:migrating-webapi-odata`;
    - `git status --short -- app` prints nothing.
 
@@ -112,7 +113,7 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
 | The agent picks the `azure-migrate` scenario or asks for GitHub Copilot modernization | The prompt wasn't sent whole. Start a new chat and paste it again |
 | The prompt arrives with garbled characters | Copy it with the UTF-8 block above |
 | "The Upgrade workflow tools aren't available", or no `assessment.json` | The extension's tools didn't load. Reload the window (**Developer: Reload Window**) and start a new chat. Don't accept a hand-written assessment |
-| The plan includes Entra ID user sign-in, Azure SQL Database or Azure Files | Point the agent at the rules table and ask it to revise the plan |
+| The plan includes Entra ID user sign-in, Azure SQL Database or Azure Files | Point the agent at the **Required Review Output** table at the end of `plan-prompt.txt` and ask it to revise the plan |
 
 ## Step 2: Run the tasks (C6)
 
@@ -180,6 +181,7 @@ Remove-Item Env:ASPNETCORE_ENVIRONMENT, Env:KeyVault__VaultUri
 Task 06's check. Application Insights has local authentication off, so your own sign-in needs **Monitoring Metrics Publisher** on it. The archetype grants it to the member who deploys it (since 2026-10-20), so with a current package C6 asks for no Azure change besides the image push. If you deployed an earlier package, grant it once yourself (you're Owner of your workload subscription); the agent doesn't run it. The command is safe to repeat:
 
 ```powershell
+Set-Location C:\src\factory\app\ContosoUniversity
 $appi = az monitor app-insights component show -g rg-university-<suffix> -a appi-university-<suffix> --query id -o tsv --only-show-errors
 az role assignment create --assignee (az ad signed-in-user show --query id -o tsv) --role 'Monitoring Metrics Publisher' --scope $appi --output none   # only for a deployment from before 2026-10-20
 az extension add -n application-insights --only-show-errors   # install first: an install mid-command garbles the value
@@ -293,7 +295,7 @@ After the MI link cutover, the database on the Managed Instance is writable:
 | Symptom | Fix |
 |---|---|
 | The container never starts, with `ACRTokenRetrievalFailure` in the log | The registry must accept ARM-audience tokens: `az acr config authentication-as-arm show -r cruniversity<suffix>` must print `enabled`. The archetype sets it; ask your coach if it doesn't |
-| The app stops at startup with "KeyVault:VaultUri is not configured" or "DefaultConnection is not configured" | An app setting is missing or uses `:`, or the Key Vault secret wasn't written (C7 step 1) |
+| The app stops at startup with "KeyVault:VaultUri is not configured" or "DefaultConnection is not configured" | An app setting is missing or uses `:`, or the Key Vault secret wasn't written (C7 task 5) |
 | `CREATE USER` fails with "Server identity does not have Azure Active Directory Readers permission" | The Managed Instance's primary identity must be the team's `id-sqlmi-directory`. Ask your coach |
 | Pages fail with "Login failed for user '<token-identified principal>'" | The database user doesn't exist yet, or its name isn't the identity's name |
 
