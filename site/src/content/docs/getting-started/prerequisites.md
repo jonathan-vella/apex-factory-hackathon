@@ -6,80 +6,65 @@ sidebar:
 ---
 
 :::danger[C0 is mandatory pre-work: finish it before the event]
-This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not** event-day tasks. Every attendee, including the platform lead, completes both **before the event starts**:
+This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not** event-day tasks. Every attendee, including the platform lead, completes both **before the event starts**. The two deadlines count back from day one of the event: **T-14** is 14 days before it and **T-3** is 3 days before it.
 
 - **By T-14:** this page, plus C0's preflight.
-- **By T-3:** C0's datacenter deployment, a passing `Test-Datacenter.ps1` run (before Arc onboarding), and Azure Arc onboarding.
+- **By T-3:** the datacenter is deployed, `Test-Datacenter.ps1` passes for you (run before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code.
 
-If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, and the deployments run unattended for part of that. Raise any blocker with your coach now.
+If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, and the deployments run unattended for part of that. Raise any blocker with your coach now. The [event overview](../event-overview/#pre-work) has the full T-14 and T-3 gates.
 :::
 
 ```mermaid
 flowchart TB
   subgraph S1["1. This page, by T-14"]
     direction LR
-    A[Accounts and access] --> B[Install tools] --> C[Create repo from apex-accelerator] --> D[Open dev container] --> E[Import kit]
+    A[Accounts and access] --> B[Install tools] --> C[Create repo from apex-accelerator] --> D[Open dev container] --> E[Import kit] --> F[Sign in and write settings.json] --> G[Manual checks] --> H[Merge the import into main]
   end
-  subgraph S2["2. C0, preflight by T-14, datacenter by T-3"]
+  subgraph S2["2. C0"]
     direction LR
-    F[Write settings.json] --> G[Manual checks] --> H[Preflight] --> I[Datacenter, test, then Arc] --> J[Ready for the event]
+    I[Preflight, by T-14] --> J[Datacenter, test, then Arc, by T-3] --> K[Set up vm-dev01, by T-3] --> L[Ready for the event]
   end
   S1 --> S2
 ```
 
-Complete this page by **T-14**, then continue with [C0: Ready to hack](../../challenges/c00-ready-to-hack/). You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS (run before Arc onboarding), `vm-app01` Connected in Azure Arc, and Copilot answering in VS Code on `vm-dev01`. If any blocker below applies to you, raise it with your coach now; don't leave it for event day.
+The order is: accounts, tools, repo, dev container, import, sign in and settings, manual checks, merge, then C0. You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS (run before Arc onboarding), `vm-app01` Connected in Azure Arc, and Copilot answering in VS Code on `vm-dev01`. If any row in the Accounts table or the Manual checks fails, tell your coach now; don't leave it for event day. The page takes about 60 to 90 minutes, most of it downloads and the first dev container build.
+
+New terms on this page (dev container, APEX agent, PIM, Tenant Root, member index and suffix) are in the [glossary](../../reference/glossary/).
 
 ## Who this is for
 
 The event is built for partner infrastructure architects and engineers, in teams of three to five. Each team has its own Microsoft Entra tenant and a platform lead. You don't need to be a .NET or SQL Server specialist: the application and database work is GitHub Copilot-assisted. Day-to-day Azure administration with the portal, the Azure CLI and PowerShell is the assumed background.
 
-The event is hands-on first. Infra roles hold AZ-104, GH-300 and DP-300 within six months after the event, so the exams follow it. No exam is a gate for attending the event. The [Partner learning path](../../guides/learning-path/) has the stages, the role tracks and the optional learning before the event.
-
-## Blockers that mean you are not ready
-
-- GitHub Copilot Chat or agent mode doesn't work in VS Code with your account.
-- The models the APEX agents use are blocked by your account or organization policy.
-- You have no Azure workload subscription, or you share one with another member.
-- You can't register an MFA method for your Azure identity.
-- The dev container doesn't open on your machine.
-- You can't create private repos in the partner's GitHub org.
-- You have no Owner assignment on your workload subscription.
+The event is hands-on first. The exams come after it: infra roles hold AZ-104, GH-300 and DP-300 within six months after the event. No exam is a gate for attending. The [Partner learning path](../../guides/learning-path/) has the stages, the role tracks and the optional learning before the event.
 
 ## How you work with one repo and one dev container
 
-You work in **one repo of your own**: a private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. It brings the dev container (Azure CLI, PowerShell 7, Git, `azd`, Bicep) and the APEX agents. A single import command then copies the kit into a `factory/` folder at the root of that repo. From then on you run the kit's deployment and Azure scripts from `factory/` inside the dev container, and the archetype for C5 is already in place. From C3 the app work happens on `vm-dev01` (`vm-dev01` has its own clone of the kit at `C:\src\factory`, which you connect to your repo on its own branch, `vm-dev01-work`; the [upgrade guide](../../guides/ghcp-upgrade/#switching-to-vm-dev01) has the commands); most challenge pages have a **Where to run** block that says which one to use.
+You work in **one repo of your own**: a private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. A **dev container** is a ready-made Linux workspace that VS Code opens inside Docker, so every member has the same tools (Azure CLI, PowerShell 7, Git, `azd`, Bicep). The template also brings the **APEX agents**: Copilot custom agents that ship in the repo and appear in Copilot Chat's agent picker. A single import command then copies the kit into a `factory/` folder at the root of that repo. From then on you run the kit's deployment and Azure scripts from `factory/` inside the dev container, and the archetype for C5 is already in place.
 
-Your evidence also lives in your own repo, under `factory/evidence/`; you set that up in [C1](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes).
+Until C3, everything runs in the dev container. From C3 the app work happens on `vm-dev01`, which C0 sets up for you. Each challenge page has a **Where to run** block that says which one to use.
+
+Your evidence lives in your own repo, under `factory/evidence/`; you set that up in [C1](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes). Each member keeps evidence in their own repo; there is no shared team repo. After you merge the import on this page, all your work is on `main`, with one exception: the `vm-dev01-work` branch of the clone on `vm-dev01`, which you never merge.
 
 ## Accounts and access
 
 | What | Requirement |
 | --- | --- |
 | GitHub | A personal account in the partner's GitHub org, with GitHub Copilot enabled (agent mode and the Upgrade agent allowed by policy). |
-| Azure subscription | One paid workload subscription per member, which must pass `Test-Preflight.ps1`. Trial, Azure Pass and sponsorship subscriptions are not supported. Preflight doesn't check the offer type, so confirm yours is a paid subscription before you start. |
-| Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group; activate it first if it's eligible through Privileged Identity Management). Preflight fails without it, and vending and the Arc script assume it. There is no fallback: Contributor, with or without Resource Policy Contributor, doesn't pass. If your organization blocks Owner, raise it with your coach well before T-14. |
-| MFA | Registered for your Azure identity. |
-| Region quota | Enough regional vCPU quota in `swedencentral` for a Standard_D8as_v6 VM (8 vCPU each, two VMs: `vm-app01` and `vm-dev01`), and quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. |
-| Platform lead only | A **second** subscription (shared services) plus Owner at Tenant Root. The platform lead is also a member: they still need their own workload subscription, and do C0 on it like everyone else. |
-
-Check your subscription and quota from any terminal that has the Azure CLI:
-
-```powershell
-az login
-az account show --output table
-az vm list-usage --location swedencentral --output table
-```
+| Azure subscription | One paid workload subscription per member, in your team's Microsoft Entra tenant. Your partner organization supplies it; ask your coach if you aren't sure which tenant is yours. It must pass `Test-Preflight.ps1`. Trial, Azure Pass and sponsorship subscriptions are not supported. Preflight doesn't check the offer type, so confirm yours is a paid subscription before you start. |
+| Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group). If it's eligible through Privileged Identity Management (PIM, which grants a role for a limited time after you activate it), [activate it first](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles). Preflight fails without it, and vending and the Arc script assume it. There is no fallback: Contributor, with or without Resource Policy Contributor, doesn't pass. If your organization blocks Owner, raise it with your coach well before T-14. |
+| MFA | Registered for your Azure identity. Set it up at [aka.ms/mysecurityinfo](https://aka.ms/mysecurityinfo) if it isn't. |
+| Region quota | Enough regional vCPU quota in `swedencentral` for two Standard_D8as_v6 VMs (8 vCPU each: `vm-app01` and `vm-dev01`), and quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. You check the vCPUs later on this page; for the other two, open your subscription in the Azure portal, choose **Usage + quotas** and filter by `swedencentral`. |
+| Platform lead only | A **second** subscription (shared services) plus Owner at Tenant Root, which is the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for the Owner assignment to be possible, so ask for it early. The platform lead is also a member: they still need their own workload subscription, and do C0 on it like everyone else. |
 
 ## Install on your machine
 
-You only need the host tools to open the dev container; everything else is inside it.
+You only need these host tools to open the dev container. Everything else, including the Azure CLI, is inside it.
 
 | Tool | Why | Verify |
 | --- | --- | --- |
-| [VS Code](https://code.visualstudio.com/) 1.100 or newer | The editor and agent mode | `code --version` |
-| [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) with its `bastion` extension (optional) | Only for the native-client shortcut `Connect-DatacenterVm.ps1` on Windows. The portal path needs neither | `az extension show --name bastion` |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or another Docker-compatible runtime) | Runs the dev container | `docker version` |
-| [Git](https://git-scm.com/downloads) | Clone your repo | `git --version` |
+| [VS Code](https://code.visualstudio.com/) 1.100 or newer | The editor, agent mode, and **Git: Clone** | `code --version` |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Runs the dev container | `docker version` |
+| [Git](https://git-scm.com/downloads) | VS Code's **Git: Clone** needs it | `git --version` |
 | VS Code extensions: Dev Containers (`ms-vscode-remote.remote-containers`), GitHub Copilot Chat (`github.copilot-chat`) | Open the container; Copilot sign-in | `code --list-extensions` |
 
 ```powershell
@@ -89,28 +74,26 @@ code --install-extension github.copilot-chat
 
 ### Windows 11 from scratch
 
-1. Install [WSL](https://learn.microsoft.com/windows/wsl/install) with Ubuntu (`wsl --install`), then restart.
-2. Install Docker Desktop and turn on **Use the WSL 2 based engine**.
-3. Install VS Code and the **WSL** extension (`ms-vscode-remote.remote-wsl`) as well as the two above.
-4. In Ubuntu, create a folder for your repos: `mkdir -p ~/repos`.
-5. Clone your repo (below) into `~/repos`, not into a Windows folder: the dev container is much faster, and line endings stay correct.
+1. Install [WSL](https://learn.microsoft.com/windows/wsl/install) with Ubuntu (`wsl --install`), then restart. Open **Ubuntu** from the Start menu once: the first launch asks you to create a Linux user name and password.
+2. Install Docker Desktop and turn on **Use the WSL 2 based engine**. Then open Docker Desktop **Settings** > **Resources** > **WSL integration** and switch on **Ubuntu**. Without this, the dev container can't find Docker from Ubuntu.
+3. Install VS Code, the Dev Containers and GitHub Copilot Chat extensions above, and the **WSL** extension (`ms-vscode-remote.remote-wsl`).
+4. You clone your repo from inside Ubuntu (below), not into a Windows folder: the dev container is much faster that way, and line endings stay correct.
 
 ### Network
 
-Allow outbound HTTPS to `github.com`, `api.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `api.githubcopilot.com`, `*.azure.com`, `*.microsoft.com`, `login.microsoftonline.com`, `learn.microsoft.com`, `docker.io` and `registry-1.docker.io`. The dev container also needs `ghcr.io` (its features come from there), `mcr.microsoft.com` (its base image, covered by `*.microsoft.com`) and `packagefeedproxy.microsoft.io` (its npm and Python package proxy), and VS Code needs `marketplace.visualstudio.com` for extensions.
+Allow outbound HTTPS to these hosts:
+
+- **GitHub and Copilot:** `github.com`, `api.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `api.githubcopilot.com`.
+- **Azure and Microsoft:** `*.azure.com`, `*.microsoft.com`, `login.microsoftonline.com`, `learn.microsoft.com`.
+- **Docker Hub:** `docker.io`, `registry-1.docker.io`.
+- **The dev container:** `ghcr.io` (its features come from there), `mcr.microsoft.com` (its base image, covered by `*.microsoft.com`) and `packagefeedproxy.microsoft.io` (its npm and Python package proxy).
+- **VS Code:** `marketplace.visualstudio.com` for extensions.
 
 ## Create your repo and import the kit
 
-1. Open the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template, choose **Use this template** > **Create a new repository**, set the owner to your partner org, and make it **Private**.
-2. Clone it (replace the placeholders) and open it in VS Code:
-
-   ```bash
-   cd ~/repos
-   git clone https://github.com/<your-org>/<your-repo>.git
-   code <your-repo>
-   ```
-
-3. When VS Code offers it, choose **Reopen in Container** (or press `F1` > `Dev Containers: Reopen in Container`). Wait for the build to finish.
+1. Open the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template, choose **Use this template** > **Create a new repository**, set the owner to your partner org, and make it **Private**. Then add your coach as a collaborator (**Settings** > **Collaborators**), so they can read your evidence. That also confirms you can create private repos in the partner's org (manual check 9).
+2. Clone it with VS Code. On Windows 11, press `F1` > `WSL: Connect to WSL` first, so VS Code runs inside Ubuntu. Then press `F1` > `Git: Clone`, choose **Clone from GitHub**, sign in when VS Code asks, pick your repo and a folder in your home folder, and choose **Open** when VS Code offers it. VS Code signs you in to GitHub for you; there is no password prompt.
+3. When VS Code offers it, choose **Reopen in Container** (or press `F1` > `Dev Containers: Reopen in Container`). The first build takes about 10 minutes. It's done when a terminal prompt appears in the dev container. If the build fails, see [Troubleshooting](../../reference/troubleshooting/#prerequisites).
 4. In the dev container terminal, at the repo root, import the kit. Paste these three lines as they are:
 
    ```bash
@@ -119,8 +102,8 @@ Allow outbound HTTPS to `github.com`, `api.github.com`, `codeload.github.com`, `
    rm Import-Kit.ps1
    ```
 
-   This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`. `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
-5. Commit the result to a new branch. Don't use `/apex-git-commit` for this: it skips `agent-output/` and `infra/`, which hold the imported archetype, and it won't commit on `main`. Paste this prompt into Copilot Chat in Agent mode instead:
+   This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`. If a run fails, the third line has already deleted the script, so repeat all three lines and put `-Force` on the second one (`pwsh ./Import-Kit.ps1 -Force`). `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
+5. Commit the result to a new branch. Don't use `/apex-git-commit` for this: it skips `agent-output/` and `infra/`, which hold the imported archetype, and it won't commit on `main`. If Copilot Chat asks you to sign in, do it from the Accounts menu at the bottom left of VS Code. Then paste this prompt into Copilot Chat in Agent mode:
 
    ```text
    Commit and push all my changes to a new branch. Do not use the apex-git-commit skill or its path exclusions: I want every change committed, including agent-output/, infra/ and factory/.
@@ -128,15 +111,17 @@ Allow outbound HTTPS to `github.com`, `api.github.com`, `codeload.github.com`, `
    1. Run `git status --short`. If the current branch is main, create and switch to a new branch named feat/<two or three words describing the changes>. Otherwise stay on the current branch.
    2. Stage everything with `git add -A`.
    3. Commit with a conventional message, type: Subject (types: feat, fix, docs, chore), for example `chore: Import the factory kit`. The repo's hooks run on commit.
-   4. If a hook fails, read its output and fix the cause if it is in a file you changed, then commit again. The one exception: if the only failing hook is iac-security-baseline and it reports exactly these two lines, retry once with `LEFTHOOK_EXCLUDE=iac-security-baseline git commit ...`:
-      - infra/bicep/university/modules/keyvault.bicep:37 purge protection must be enabled
-      - infra/bicep/university/modules/web-app.bicep:64 public network access
+   4. If a hook fails, read its output and fix the cause if it is in a file you changed, then commit again. The one exception: if the only failing hook is iac-security-baseline and it reports only these two findings, retry once with `LEFTHOOK_EXCLUDE=iac-security-baseline git commit ...`:
+      - keyvault.bicep: purge protection must be enabled
+      - web-app.bicep: public network access
       Those two are accepted lab risks in the archetype (purge protection stays off so the lab can be torn down, and the web app is public on purpose). Do not edit the Bicep to silence them. For any other failure, stop and show me the output.
    5. Never use --no-verify, never force-push, and never commit to main.
    6. Push with `git push -u origin <branch>`, then show me the commit hash, the branch name and the number of files committed.
    ```
 
-   The import keeps `factory/` out of the repo's linters and formatters (ESLint, Prettier, markdownlint) and out of the weekly upstream sync, so the commit hook doesn't check the kit's files. Later commits that touch the Bicep hit the same two `iac-security-baseline` lines; the prompt handles them the same way.
+   The import keeps `factory/` out of the repo's linters and formatters (ESLint, Prettier, markdownlint) and out of the weekly upstream sync, so the commit hook doesn't check the kit's files. Later commits that touch the Bicep hit the same two `iac-security-baseline` findings; the prompt handles them the same way.
+
+Done when `ls factory` in the dev container lists `scripts`, `infra`, `app`, `db`, `templates` and `archetype`, and your `feat/...` branch and its commit are on GitHub.
 
 The archetype was built against APEX commit `c209d8b` (recorded in `archetype/README.md`). If the APEX agents in your repo behave differently from the C5 instructions, tell your coach.
 
@@ -148,40 +133,85 @@ In the dev container terminal (it starts in bash), start PowerShell:
 pwsh
 ```
 
-Then, in PowerShell:
+Find two values first. Your **tenant ID** is in the Azure portal under **Microsoft Entra ID** > **Overview**. Your **subscription ID** is under **Subscriptions**. Then, in PowerShell, sign in to your own tenant and pick your own subscription. `az login` prints a code: enter it at `microsoft.com/devicelogin` in a browser on your own computer, and keep that tab open, because you use it again. Replace the placeholders:
 
 ```powershell
-az login --use-device-code
-gh auth login
+az login --tenant '<tenant-id>' --use-device-code
+az account list --output table
+az account set --subscription '<subscription-id>'
+az account show --output table
+```
+
+If `--use-device-code` is blocked in your tenant, run `az login --tenant '<tenant-id>'` and finish the sign-in in the browser window that opens. Check that `az account show` prints your workload subscription: `Initialize-Settings.ps1` offers whatever is selected, and a wrong choice only shows up in C0.
+
+Then sign in to GitHub so `git push` and `gh` commands work in the container. Choose **GitHub.com**, **HTTPS** and **Login with a web browser**: `gh` prints a one-time code, which you enter at `github.com/login/device` on your own computer. The `gh auth login` flags answer those questions for you:
+
+```powershell
+gh auth login --hostname github.com --git-protocol https --web
+gh auth setup-git
 cd factory
 ./scripts/Initialize-Settings.ps1
 ```
 
-The script asks for your tenant ID and workload subscription ID (it offers the ones from your `az login`), your member index and your location (press Enter for `swedencentral`). It checks each value and writes `factory/.local/settings.json`.
+The script asks for five things: your tenant ID and workload subscription ID (it offers the ones from your `az login`), your member index, your location (press Enter for `swedencentral`) and the shared services subscription (optional, see below). It checks the format of each value, shows the subscription name and tenant it is about to save, and writes `factory/.local/settings.json`. It can't tell a mistyped but valid ID from a real one, so read the name it shows.
 
-**Member index:** your coach assigns you a number from 1 to 20 from the event roster, unique within your team. Ask your coach if you don't have one; don't pick your own. It isn't the same as the six-character suffix the script generates for you.
+**Member index:** your coach assigns you a number from 1 to 20 from the event roster, unique within your team. Ask your coach if you don't have one; don't pick your own. It isn't the same as the six-character suffix the script generates for you. Later pages show these two values as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
 
-**Shared services subscription (members):** press Enter to skip it for now. The platform lead shares its ID in the team channel at the start of C2, and you add it then by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId <id>`. Re-running never changes your other values.
+**Shared services subscription (members):** press Enter to skip it for now. The platform lead shares its ID in the team channel at the start of C2, and you add it then by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`. Re-running never changes your other values.
 
-**Shared services subscription (platform lead):** enter it now. C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not on day one.
+**Shared services subscription (platform lead):** enter it now (**Subscriptions** in the portal has the ID). C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not on day one.
 
 `factory/.local/` is git-ignored: your IDs never go to GitHub. Run every script from the `factory/` folder.
 
+Now check your vCPU quota in the same terminal:
+
+```powershell
+az vm list-usage --location swedencentral --output table
+```
+
+In the table, find the rows `Total Regional vCPUs` and `Standard Dasv6 Family vCPUs`. For each, `CurrentValue + 16` must be no larger than `Limit`. If not, ask for a quota increase in the Azure portal under **Usage + quotas**, and tell your coach.
+
+Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`, `location`, `memberIndex` and `suffix`, and the quota check passes.
+
 ## Manual checks
 
-`Test-Preflight.ps1` (C0, task 1) can't verify these; confirm them yourself before T-14:
+`Test-Preflight.ps1` (C0, task 1) prints five MANUAL rows because it can't verify these. Confirm them yourself before T-14. The **Preflight row** column shows which MANUAL row each check belongs to.
 
-| # | Check | How to verify |
-| --- | --- | --- |
-| 1 | Copilot Chat responds in VS Code | Open Copilot Chat, send "hello". |
-| 2 | The APEX custom agents appear | In Copilot Chat's agent picker, `01-Orchestrator` and `08-As-Built` are listed. |
-| 3 | The agents' models are permitted | The picker lets you select and run them (no policy block message). |
-| 4 | The MCP servers in `.mcp.json` (repo root) load | VS Code shows them started and authenticated. Your organization's Copilot policy must also allow MCP servers and Copilot CLI. |
-| 5 | Dev container opens | You can run `az version` and `pwsh --version` in its terminal. Docker Desktop is available, or your account can use Codespaces. |
-| 6 | One subscription per member | Confirm with your coach. |
-| 7 | Your roles match your kit role | Platform lead: Tenant Root Owner and a separate shared services subscription. Members: Owner on your own workload subscription. |
-| 8 | MFA is registered | Sign in to the Azure portal and confirm your MFA method works. |
-| 9 | You can create private repos in the partner's GitHub org | Try it when you create your repo below. |
-| 10 | Azure Hybrid Benefit | You hold eligible partner licenses, or you accept that the kit turns it on by default and know how to turn it off (see [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/)). |
+| # | Check | How to verify | Preflight row |
+| --- | --- | --- | --- |
+| 1 | Copilot Chat responds in VS Code | Open Copilot Chat, send "hello". | GitHub Copilot |
+| 2 | The APEX custom agents appear | In Copilot Chat's agent picker, `01-Orchestrator` and `08-As-Built` are listed. | GitHub Copilot |
+| 3 | The agents' models are permitted | The picker lets you select and run them (no policy block message). | GitHub Copilot |
+| 4 | The MCP servers in `.mcp.json` (repo root) load | VS Code shows them started and authenticated. Your organization's Copilot policy must also allow MCP servers and Copilot CLI. | GitHub Copilot |
+| 5 | Dev container opens | You can run `az version` and `pwsh --version` in its terminal. | APEX |
+| 6 | One subscription per member | Ask your coach to confirm that no other member uses yours. | Not a MANUAL row |
+| 7 | Your roles match your kit role | Platform lead: Tenant Root Owner and a separate shared services subscription. Members: Owner on your own workload subscription. | Not a MANUAL row |
+| 8 | MFA is registered | Sign in to the Azure portal and confirm your MFA method works. | MFA |
+| 9 | You can create private repos in the partner's GitHub org | You did this when you created your repo above. | GitHub repositories |
+| 10 | Azure Hybrid Benefit | You hold eligible Windows Server licenses with Software Assurance. If you don't, follow the rule on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page. | Azure Hybrid Benefit |
 
-See the [ALZ-lite guide](../../guides/alz-lite/) for why the model needs two kinds of subscription. When all of this is green, go to [C0: Ready to hack](../../challenges/c00-ready-to-hack/).
+See the [ALZ-lite guide](../../guides/alz-lite/) for why the model needs two kinds of subscription.
+
+## Merge your import into main
+
+Your import is still on the `feat/...` branch. Merge it, so `main` holds the kit and everything that follows can run on `main`.
+
+1. On GitHub, open your repo. Choose **Compare & pull request** for the `feat/...` branch (or **Pull requests** > **New pull request**), then **Create pull request**, **Merge pull request** and **Confirm merge**. This is the only branch you merge into `main`. If a rule blocks the merge, tell your coach.
+2. In the dev container terminal, from the repo root, bring `main` up to date:
+
+   ```bash
+   git switch main && git pull
+   ```
+
+Done when `factory/` is visible on `main` on GitHub and `git branch --show-current` prints `main`.
+
+From now on, all your work is on `main`, except the `vm-dev01-work` branch that C0 sets up on `vm-dev01`. Evidence follows one rule everywhere:
+
+- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
+- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
+
+Each member keeps evidence in their own repo. For a team document, one person types it, then every teammate saves the final file under the same name in their own `factory/evidence/cNN/`.
+
+## Where to go next
+
+When all of this is green, go to [C0: Ready to hack](../../challenges/c00-ready-to-hack/). Start with its preflight, which is due by T-14.

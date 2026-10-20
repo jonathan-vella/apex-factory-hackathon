@@ -15,4 +15,8 @@ Some services the kit deploys are zone-redundant by default, with no configurati
 - Azure Service Bus (Premium SKU) is zone-redundant by default in regions that support it.
 - Public IP addresses created as Standard SKU are zone-redundant by default unless a specific zone is requested (the kit never requests one).
 
-This is the platform's own default behavior, not a setting the kit turns on — don't add explicit zone configuration to any Bicep template in this kit, even to "make it more resilient." If a future requirement needs zone pinning, that's an explicit owner decision, not something to add silently.
+This is the platform's own default behavior, not a setting the kit turns on. The kit leaves zones alone on purpose, so you don't need to configure anything for them in this event.
+
+## Where to go next
+
+See [Cost](../cost/) for what the deployment costs.
