@@ -32,7 +32,7 @@ Parameters come from the member's `.local/settings.json` (`$s`). `-WorkloadSubsc
 - Trying a manual Arc onboarding through the portal "just to see" — this works but produces a differently-named Arc resource that later scripts (`Test-Datacenter.ps1`, the migration assessment lookups) won't find. Redo with the script if this happened.
 - Turning Azure Hybrid Benefit off "to compare" and forgetting to turn it back on — it should stay on throughout.
 - Leaving both VMs running between pre-work sessions — not a correctness problem, but worth a reminder since it's billing for nothing. Stopping `vm-dev01` during the event is the opposite mistake: it's the members' workstation.
-- Evidence kept only on the member's laptop: the team repo doesn't exist until C1, so ask them to copy it into `evidence/c00/member-<n>/` on day one.
+- Evidence kept only on the member's laptop: ask them to copy it into `factory/evidence/c00/` in their own repo and push it to `main` on day one.
 
 ## Partial credit
 

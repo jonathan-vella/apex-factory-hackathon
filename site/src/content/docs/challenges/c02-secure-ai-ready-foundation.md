@@ -66,7 +66,7 @@ Task 2 is a demo; there's nothing to run.
    ```
 
    Done when the second run reports the three Graph permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) as granted. A re-run skips what is already granted. If the identity lookup is denied, give that person Reader on the shared services subscription first.
-5. **Platform lead: vend every member, yourself included.** You are also a student with one workload subscription like everyone else, and you need to be vended too. Collect from each member their workload subscription ID, member index, location (the same as yours unless the coach said otherwise), Entra object ID and email. Each member gets the object ID with `az ad signed-in-user show --query id -o tsv` and posts these values in the team channel; nobody commits them to the team repo. `-MemberPrincipalId` is required in practice: without it vending skips the member's Owner role, their Reader role on the shared services subscription (which `Test-Connectivity.ps1` and C5's preflight need to read the hub) and the Managed Identity Operator grant on `id-sqlmi-directory`, and C5's preflight then stops. Run once per member, from the same `factory/` folder:
+5. **Platform lead: vend every member, yourself included.** You are also a student with one workload subscription like everyone else, and you need to be vended too. Collect from each member their workload subscription ID, member index, location (the same as yours unless the coach said otherwise), Entra object ID and email. Each member gets the object ID with `az ad signed-in-user show --query id -o tsv` and posts these values in the team channel; nobody commits them to any repo. `-MemberPrincipalId` is required in practice: without it vending skips the member's Owner role, their Reader role on the shared services subscription (which `Test-Connectivity.ps1` and C5's preflight need to read the hub) and the Managed Identity Operator grant on `id-sqlmi-directory`, and C5's preflight then stops. Run once per member, from the same `factory/` folder:
 
    ```powershell
    ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -WhatIf
@@ -91,7 +91,7 @@ Task 2 is a demo; there's nothing to run.
 
 ## Evidence
 
-Save screenshots and output as files in `evidence/c02/` (team-level items) or `evidence/c02/member-<n>/` (your own), and commit and push them to the team repo. Redact subscription, tenant and object IDs first: the hub VNet, DNS zone and workspace IDs in the vending output all contain the shared services subscription ID.
+Save screenshots and output as files in `factory/evidence/c02/` in your own repo, and commit (for example `docs: C2 evidence`) and push them to `main`. The team-level items (ALZ-lite, the Graph grant, vending) are scored once per team, from the platform lead's copy. Redact subscription, tenant and object IDs first: the hub VNet, DNS zone and workspace IDs in the vending output all contain the shared services subscription ID.
 
 - `Deploy-AlzLite.ps1` output: management groups, hub and policies in place.
 - `Grant-SqlMiDirectoryRead.ps1` output: the three Graph permissions granted.

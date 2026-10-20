@@ -36,7 +36,7 @@ $mi
 
 `$mi` is your SQL Managed Instance's host name. If it's empty, copy it from the portal instead: the managed instance's **Overview** > **Host**. Use the standard host name, not an IP address or a `privatelink` name.
 
-Clone the team repo on the VM once, as in [Copy your evidence to the team repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-the-team-repo), and create your folder `C:\src\team-repo\evidence\c09\member-<n>\`. You'll save the fix scripts and the numbers there as you go.
+Create your folder `factory/evidence/c09/` in your own repo's clone on the VM (`C:\src\<your-repo>`), cloning it once as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo). You'll save the fix scripts and the numbers there as you go.
 
 ## How the hour works
 
@@ -80,18 +80,18 @@ Start each run at least five minutes after the previous one finished, so two run
    - **Checkpoint 1:** P5, P1, P2 and P3.
    - **Checkpoint 2:** P4, last: raising the compatibility level can change how P4's view runs, so measuring P4 afterwards shows whether the rewrite still matters.
 
-   Save each fix as its own script (`p1-<name>.sql` to `p5-<name>.sql`) in your `evidence\c09\member-<n>\` folder, and run it in SSMS against `ContosoUniversity`.
+   Save each fix as its own script (`p1-<name>.sql` to `p5-<name>.sql`) in your `factory\evidence\c09\` folder, and run it in SSMS against `ContosoUniversity`.
 4. **Capture the numbers after each run.** The baseline run is task 1. After each fix checkpoint, repeat task 1's command, unchanged. After every run, wait a minute for Query Store to flush, then:
    - Capture the **Top Resource Consuming Queries** report as a screenshot, with the run's time range.
    - Open the snapshot script `C:\src\factory\db\perf-kit\Get-QueryStoreSnapshot.sql` in SSMS, connected to `ContosoUniversity`, and set `@Label` (`baseline`, `after-checkpoint-1`, `after-checkpoint-2`) and the UTC window `@FromUtc` and `@ToUtc`: from the five-minute mark at or before the run's start to the five-minute mark at or after `Finished at`. A run from 09:03 to 09:08 gets 09:00 to 09:10, written `'2026-10-14T09:00:00+00:00'`.
-   - Run it. Its output gives, per query and plan, executions, average duration and CPU in milliseconds and average logical reads, weighted by execution count. Save each result grid (copy with headers into a CSV, or screenshot it) in your `evidence\c09\member-<n>\` folder, named with its label.
-5. **Summarize and push.** Write one line per fix: what it changed, and how much the query's average duration (and reads) moved between the baseline and the checkpoint that contains it. Say so when a fix shows no change of its own, and why. Then commit and push the folder to the team repo (`git add`, `git commit`, `git pull --rebase`, `git push`, as in the guide).
+   - Run it. Its output gives, per query and plan, executions, average duration and CPU in milliseconds and average logical reads, weighted by execution count. Save each result grid (copy with headers into a CSV, or screenshot it) in your `factory\evidence\c09\` folder, named with its label.
+5. **Summarize and push.** Write one line per fix: what it changed, and how much the query's average duration (and reads) moved between the baseline and the checkpoint that contains it. Say so when a fix shows no change of its own, and why. Then commit the folder with a conventional message (for example `docs: C9 query tuning evidence`) and push `main` of your own repo, as in the guide.
 
 ## Evidence
 
 - Query Store screenshots or exported reports for the baseline and both checkpoints, together covering the before and after of all five fixes.
 - The snapshot script's output for the baseline and each checkpoint, labelled with its window.
-- The five fix scripts you ran, committed to the team repo in `evidence/c09/member-<n>/`.
+- The five fix scripts you ran, committed to your own repo in `factory/evidence/c09/`.
 - A one-line summary of what each fix changed and by how much.
 
 ## Hints

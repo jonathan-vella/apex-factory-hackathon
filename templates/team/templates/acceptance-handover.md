@@ -73,4 +73,4 @@ Member index: <!-- your member number, 1 to 20 -->
 
 ## Handover summary (C10)
 
-<!-- What's being handed over, to whom, and what they need to know to operate it without the team in the room. Cover every member: list each member index and link to their C8 pack in evidence/c08/member-<n>/. -->
+<!-- What's being handed over, to whom, and what they need to know to operate it without the team in the room. Cover every member: list each member index and link to their C8 pack in factory/evidence/c08/ of their own repo. -->

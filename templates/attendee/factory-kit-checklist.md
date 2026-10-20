@@ -4,7 +4,7 @@
 A final sanity pass across the team's deliverables in C10. Check each item; don't tick a box you haven't actually verified.
 -->
 
-- [ ] Every member's C0–C9 evidence is committed to the team repo.
+- [ ] Your C0–C9 evidence is committed to your own repo under `factory/evidence/`.
 - [ ] The opportunity canvas (C1) has all six dimensions filled in.
 - [ ] ALZ-lite and vending (C2) evidence is recorded, including the exemptions table.
 - [ ] Every assessment finding from C3 is triaged, including the trace-flag finding.

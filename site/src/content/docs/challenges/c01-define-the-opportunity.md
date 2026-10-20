@@ -11,7 +11,7 @@ Agree, as a team, what "modernized" means for Contoso University and write it do
 
 Team. **45 min**. The platform lead starts ALZ-lite at 09:00, so it deploys during C1 (see [C2](../c02-secure-ai-ready-foundation/), task 3); C1 needs no Azure access, so don't wait for it. Members start C3 later, at 10:15 (see [C3](../c03-assess-the-source/)).
 
-The one-time repo setup below takes about 10 minutes and tasks 2 to 5 add up to 35, so the 45 minutes leave no slack. Do the setup while teammates read the canvas template, and keep to the times given.
+The one-time evidence set-up below takes about 5 minutes and tasks 2 to 5 add up to 35, so the 45 minutes leave little slack. Do the set-up while teammates read the canvas template, and keep to the times given.
 
 ## Points
 
@@ -21,54 +21,40 @@ The one-time repo setup below takes about 10 minutes and tasks 2 to 5 add up to 
 
 None beyond the kit brief: Contoso University, an ASP.NET MVC 5 app on .NET Framework 4.8, moving to .NET 10 and Azure.
 
-## The team repo: what it is and how to set it up
+## Where your evidence goes
 
-Your **own repo** (from Prerequisites) holds your dev container, your copy of the kit and your personal settings. The **team repo** is different: one private repo that the whole team shares, holding only the team's written evidence (canvases, ADRs, runbooks, acceptance documents, screenshots). Nothing is deployed from it and it has no dev container. The assessors read it to score the team.
+The team doesn't collect evidence in a common repository. You work in one private repo of your own (the one from Prerequisites, with the kit in `factory/`). Your evidence lives in it, on `main`, under `factory/evidence/cNN/` (`c00` to `c10`). Your coach reads each member's repo to score it.
 
-It isn't a GitHub template repo: the starting content is the kit's `templates/team/` folder, which you copy into a new empty repo. One teammate (ask your coach who) does this once; everyone else only accepts the invitation and clones.
+Why `factory/`: the repo's lint and format ignores cover it, so evidence files don't trip the pre-commit hooks, and the weekly upstream sync leaves it alone.
 
-**Setup, by one teammate (about 10 minutes):**
+**Set it up once (about 5 minutes).** In your own repo's folder on your computer (WSL on Windows 11) or in its dev container:
 
-1. **Create an empty private repo** in the partner's GitHub org, for example `team-<team-name>-evidence`. On github.com choose **New repository**, set the owner to the partner org, **Private**, no README, no `.gitignore`.
-2. **Clone it next to your own repo**, in the same folder (not inside your own repo), in a terminal on your computer (WSL on Windows 11):
+```bash
+cd ~/repos/<your-repo>
+cp -r factory/templates/team/evidence factory/evidence
+cp factory/templates/team/README.md factory/evidence/README.md
+git add factory/evidence
+git commit -m "docs: add evidence folders"
+git push
+```
 
-   ```bash
-   cd ~/repos
-   git clone https://github.com/<your-org>/<team-repo>.git
-   ```
+If you already created `factory/evidence/c00/` in C0, use `cp -rn` for the first copy: it adds the missing folders and keeps yours.
 
-3. **Copy the template in** from the kit in your own repo, then commit and push:
+**Commit messages** in your own repo must be conventional commits (`type: Subject`), or the commit hook rejects them. For example `docs: C1 opportunity canvas`. Commit evidence with plain `git` and push to `main`; no pull request is needed. Don't use `/apex-git-commit` for this: it skips some paths and refuses `main`. Never commit secrets, tenant IDs or subscription IDs.
 
-   ```bash
-   cp -r ~/repos/<your-repo>/factory/templates/team/. ~/repos/<team-repo>/
-   cd ~/repos/<team-repo>
-   git add -A && git commit -m "Add team evidence template" && git push
-   ```
-
-4. **Give every teammate write access.** On github.com open the repo's **Settings** > **Collaborators and teams** > **Add people**, add each teammate by GitHub user name, and choose the **Write** role. If your org uses a GitHub team for your team, add the team instead.
-
-**Every other teammate:**
-
-1. Accept the invitation (an email, or `https://github.com/<your-org>/<team-repo>/invitations`).
-2. Clone the repo into `~/repos`, next to your own repo: `git clone https://github.com/<your-org>/<team-repo>.git`.
-3. Before every edit, run `git pull`. Commit and push after every challenge.
-
-The repo has an `evidence/` folder with one folder per challenge (`evidence/c01/`, `evidence/c02/`, and so on), where member-scoped evidence goes in `member-<n>/` folders inside it, and a `templates/` folder with copies of the attendee templates. Its README explains the layout. Never commit secrets, tenant IDs or subscription IDs.
-
-If you can't create repos in the partner org, or a teammate can't be added, tell your coach before the event: it's a blocker like any other prerequisite.
+**Team deliverables** (the C1 canvas, C4's team ADRs, the C10 package): the team writes one document together on one person's screen. Afterwards every teammate copies the final file into their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the platform lead's copy, so the other copies must match it.
 
 ## Where to run
 
-Work on one shared screen (one person types, everyone contributes), in the team repo's folder on that person's computer (a terminal on your computer, WSL on Windows 11). No dev container or Azure access is needed for C1.
+Work on one shared screen (one person types, everyone contributes). Use your own repo's folder on that person's computer (`cd ~/repos/<your-repo>` in a terminal on your computer, WSL on Windows 11) or its dev container. No Azure access is needed for C1.
 
 ## Your tasks
 
-1. **Copy the template.** In the team repo, copy `templates/opportunity-canvas.md` to `evidence/c01/opportunity-canvas.md`:
+1. **Copy the template.** In your own repo, copy `factory/templates/attendee/opportunity-canvas.md` to `factory/evidence/c01/opportunity-canvas.md`:
 
    ```bash
-   cd ~/repos/<team-repo>
-   git pull
-   cp templates/opportunity-canvas.md evidence/c01/opportunity-canvas.md
+   cd ~/repos/<your-repo>
+   cp factory/templates/attendee/opportunity-canvas.md factory/evidence/c01/opportunity-canvas.md
    ```
 
 2. **Business case (5 min).** Name the sponsor (a role, for example "the university's CIO") and write one or two sentences on the problem modernizing Contoso University solves for them.
@@ -76,22 +62,21 @@ Work on one shared screen (one person types, everyone contributes), in the team 
 4. **Six dimensions (20 min).** For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed shape as the target where it applies: .NET 10 on Azure App Service, SQL Managed Instance, private-by-default networking, central logging, and cost tracked against the vending budget.
 5. **Target outcome (5 min).** Write one sentence a sponsor would accept as "done" at the end of day two, and make sure every teammate can say it from memory.
 6. **Open questions.** Record any disagreement under "Open questions" with the people holding each view, then move on. C4 decides.
-7. **Commit.**
+7. **Commit.** The person who typed commits first. Then every teammate copies the final file into their own `factory/evidence/c01/` and commits it.
 
    ```bash
-   git add evidence/c01/opportunity-canvas.md
-   git commit -m "C1: opportunity canvas"
-   git pull --rebase
+   git add factory/evidence/c01/opportunity-canvas.md
+   git commit -m "docs: C1 opportunity canvas"
    git push
    ```
 
    Don't commit tenant IDs, subscription IDs or secrets.
 
-Done when no HTML comment prompt text remains in the file, all six dimensions have both a `Today:` and a `Target:` line, and the commit is on the team repo's main branch.
+Done when no HTML comment prompt text remains in the file, all six dimensions have both a `Today:` and a `Target:` line, and every teammate's copy is committed on `main` of their own repo and matches the platform lead's.
 
 ## Evidence
 
-- `evidence/c01/opportunity-canvas.md`, committed, with all six dimensions filled in (not left as the template's placeholder text).
+- `factory/evidence/c01/opportunity-canvas.md`, committed, with all six dimensions filled in (not left as the template's placeholder text). It's scored once per team, from the platform lead's copy.
 - A one-sentence target outcome the whole team can repeat.
 
 ## Hints

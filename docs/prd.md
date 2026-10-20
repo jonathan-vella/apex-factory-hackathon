@@ -166,7 +166,7 @@ flowchart LR
    - `infra/`, `db/perf-kit/`, `scripts/`, `templates/`, `facilitator/` and `coach/`;
    - `lifeline/*` branches with checkpoints of the golden path.
 
-   At the event, each member creates a private repo from the template in the partner's GitHub org, plus an APEX repo from `apex-accelerator` into which they copy `archetype/`. Each team creates one private team repo from `templates/team/`.
+   At the event, each member works in one private repo of their own, created from `apex-accelerator` in the partner's GitHub org, with the kit imported into `factory/` (including `archetype/`). Teams don't share a repo: each member keeps evidence in `factory/evidence/` of their own repo, and coaches read every member's repo.
 2. **Bicep:** datacenter, ALZ-lite and vending.
 3. **Scripts:** preflight (go/no-go), probes, exemptions and cleanup. Cleanup covers the re-run traps: Key Vault purge and MI subnet release.
 4. **Attendee templates:** opportunity canvas, ADRs, deferred-work register, cutover/rollback runbook, acceptance/handover, AI-readiness gap register and factory-kit checklist.

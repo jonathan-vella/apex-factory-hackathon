@@ -1,26 +1,23 @@
-# Team repository
+# Evidence folder
 
-This repository is where your team's factory-kit evidence lives. It's one repo for the whole team, separate from each member's own repo. Every teammate has write access, and everyone commits here.
+This folder, `factory/evidence/` in your own repo, is where your factory-kit evidence lives. Teams don't share a repo: every member keeps their own copy, on `main`.
 
 ## Structure
 
-```
-evidence/
-  c00/ ... c10/        # one folder per challenge
-    README.md
-    member-<n>/        # member-scoped evidence, one subfolder per member index (n = 1 to 20)
-templates/
-  (copies of the attendee templates; the source of truth is the kit's templates/attendee/)
+```text
+factory/evidence/
+  c00/ ... c10/        # one folder per challenge, each with a README
 ```
 
-Team-level deliverables go straight in the challenge's folder: the C1 opportunity canvas is `evidence/c01/opportunity-canvas.md`, and the C10 hand-over package goes in `evidence/c10/`. Member-scoped evidence (for example your C8 acceptance document) goes in your own subfolder: `evidence/c08/member-<n>/`.
+Every challenge's evidence goes in its own `cNN` folder. The folders are the same for team and member items, with no per-member subfolder (the repo is already yours). For example, the C1 opportunity canvas is `factory/evidence/c01/opportunity-canvas.md`, and your C8 acceptance document is in `factory/evidence/c08/`.
+
+Team deliverables (the C1 canvas, the C4 platform and migration ADRs, the C10 package) are written once, together, on one person's screen. Afterwards every teammate copies the final file into their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the platform lead's copy, so the other copies must match it.
 
 ## How to use this
 
-1. Pull before you start: `git pull`. Several teammates commit to the same repo.
-2. Copy the relevant template from `templates/` into your challenge's evidence folder before you start that challenge.
-3. Fill it in as you go, not retroactively: screenshots and command output are more convincing right after you produce them.
-4. Commit after each challenge, not just at the end of the day. Commit only your own folder to avoid merge conflicts, then `git pull --rebase` and `git push`.
-5. Use the [factory-kit checklist](./templates/factory-kit-checklist.md) in C10 to confirm nothing is missing before handover.
+1. Copy the relevant template from `factory/templates/attendee/` into your challenge's evidence folder before you start that challenge.
+2. Fill it in as you go, not retroactively: screenshots and command output are more convincing right after you produce them.
+3. Commit after each challenge, not just at the end of the day. Use a conventional commit message, because the repo's commit hook rejects anything else, for example `git commit -m "docs: C1 opportunity canvas"`. Then `git push` to `main`.
+4. Use the [factory-kit checklist](../templates/attendee/factory-kit-checklist.md) in C10 to confirm nothing is missing before handover.
 
 Don't commit secrets, connection strings or tokens. Don't commit tenant IDs, subscription IDs or object IDs.

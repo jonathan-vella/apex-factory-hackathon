@@ -176,7 +176,7 @@ Expected order of work. Attendees measure three times, not six, so the hour fits
 | 30–40 min | Run, then capture `after-checkpoint-1`. Expect the view to be far faster from P5 alone (scalar UDF inlining), the per-student queries to read about 25 pages, and `usp_SearchStudents` to be much faster |
 | 40–45 min | Checkpoint 2: P4, the view rewrite |
 | 45–55 min | Run, then capture `after-checkpoint-2`. The view may not move much, because P5 already inlined the function. That's the lesson: the rewrite no longer depends on the level |
-| 55–60 min | Summary, one line per fix, pushed with the scripts and numbers to the team repo |
+| 55–60 min | Summary, one line per fix, pushed with the scripts and numbers to the member's own repo (`factory/evidence/c09/`) |
 
 The page's order, P4 after P5, is on purpose: it isolates P5's effect on the view at checkpoint 1. If a member does P4 first, accept it, as long as the summary says which fix caused which change.
 
