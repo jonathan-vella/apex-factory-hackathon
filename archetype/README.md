@@ -36,8 +36,8 @@ archetype/
   BRIEF.md                           the brief pasted into APEX step 1
   README.md                          this file
   deploy.ps1                         no-agent fallback deploy
-  .github/prompts/
-    adapt-archetype.prompt.md        adapt prompt; ends at `azd provision --preview`
+  .github/skills/apex-adapt-archetype/
+    SKILL.md                         adapt skill; ends at `azd provision --preview`
   agent-output/university/           APEX's artifacts (about 95 files), copied in with
                                       04-governance-constraints.json and
                                       04-policy-property-map.json redacted
@@ -67,9 +67,9 @@ repo and continue from there.
 
    This downloads `archetype/` at `-Ref` (default `main`) straight from GitHub (no git clone, no
    auth needed for the public repo), copies `agent-output/university/`, `infra/bicep/university/` and
-   `.github/prompts/adapt-archetype.prompt.md` into the matching paths of `-Destination` (default:
-   the current repo), and adds the prompt to `EXCLUDE_PATHS` in the destination's
-   `weekly-upstream-sync.yml` so the weekly upstream sync doesn't delete it (`.github/prompts/` is
+   `.github/skills/apex-adapt-archetype/` into the matching paths of `-Destination` (default:
+   the current repo), and adds the skill to `EXCLUDE_PATHS` in the destination's
+   `weekly-upstream-sync.yml` so the weekly upstream sync doesn't delete it (`.github/skills/` is
    otherwise synced wholesale from upstream). It refuses to overwrite an existing `university`
    project unless you pass `-Force`, which loses your changes to it. It prints a file count and
    content hash for `infra/bicep/university/` so you can sanity-check the copy -- a mismatch
@@ -82,7 +82,7 @@ repo and continue from there.
    ```
 
    Or copy the three paths by hand if you'd rather not run a script from the kit repo.
-3. Run the `adapt-archetype` prompt in VS Code's **built-in agent mode** (not `01-Orchestrator`,
+3. Run the `/apex-adapt-archetype` skill in VS Code's **built-in agent mode** (not `01-Orchestrator`,
    which would route on to APEX Deploy), after signing in to azd with `azd auth login
    --use-device-code` (azd keeps its own sign-in, separate from `az login`). It's self-contained:
    it reads the tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks
@@ -118,8 +118,8 @@ repo and continue from there.
 
 A member who prefers APEX to drive the deployment itself, instead of azd, can hand off to
 **APEX Deploy** (agent `07b-Bicep Deploy`, workflow step 6) against `infra/bicep/university/`
-after the governance refresh, the same way the `adapt-archetype` prompt used to. This still works,
-but isn't the path the prompt or this README walks through by default.
+after the governance refresh, the same way the `/apex-adapt-archetype` skill used to. This still works,
+but isn't the path the skill or this README walks through by default.
 
 **Known tree hash drift (tracked, [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52)):**
 the packaged `infra/bicep/university/` tree hash no longer matches the APEX handoff, because two
@@ -251,7 +251,7 @@ This redaction, verified against this package with the real validators:
 - `validate-policy-property-map.mjs`: **passes** (22 policies, `constraints_ref` recomputed).
 - `validate-governance-refs.mjs`: **passes**, unaffected.
 - `validate-governance-trace.mjs --through L3`: the L0 gate **fails on `discovery_status: PARTIAL`
-  by design** -- this is exactly the mechanism that forces `adapt-archetype` to re-run live
+  by design** -- this is exactly the mechanism that forces `/apex-adapt-archetype` to re-run live
   discovery in the member's tenant before Deploy. The L1 matrix (20 rows) still passes: redaction
   doesn't corrupt the policy-compliance content, only the subscription/tenant identifiers.
 - `validate-iac-handoff.mjs` (no `--skip-tree-hash`): **one error**,
@@ -271,7 +271,7 @@ APEX step (Step 6 re-emits `05-iac-handoff.json`; a fresh Step 3.5 Challenger pa
 sidecar), and this kit never hand-edits a hash to force a check to pass. **These files, and APEX's
 whole hash chain, are the CoE's own review evidence** -- proof that this archetype's plan and Bicep
 passed a real governance review in the build tenant. They are not, and never become, a per-member
-deployment gate (a design choice of this kit). A member's `adapt-archetype` run does a lighter check
+deployment gate (a design choice of this kit). A member's `/apex-adapt-archetype` run does a lighter check
 instead: live Deny-effect discovery in the member's own tenant, written only to a gitignored
 scratch folder, diffed against the packaged policy set by policy definition and resource type. It
 stops only if the member's tenant has a genuinely new deny on a resource type this archetype
@@ -314,7 +314,7 @@ row with no evidence in the repo.
 
 | What | Result | Source |
 |---|---|---|
-| `adapt-archetype` prompt, then `azd provision`, then As-Built (environment `m18f06`) | Deployment `m18f06-1791436413` reported `Succeeded` (22m59s, started 05:13:45 UTC) on 2026-10-08, with all 17 expected resources. As-Built ran 17:11 to 17:41 UTC | B09, item 18 |
+| `/apex-adapt-archetype` skill, then `azd provision`, then As-Built (environment `m18f06`) | Deployment `m18f06-1791436413` reported `Succeeded` (22m59s, started 05:13:45 UTC) on 2026-10-08, with all 17 expected resources. As-Built ran 17:11 to 17:41 UTC | B09, item 18 |
 | `deploy.ps1` fallback | Validated end to end. TODO: no timing is recorded | B09, "Done when" |
 | Post-deploy checks (public endpoints, policy compliance, private DNS, MI name resolution, image push, pull and restart, telemetry) | Pass, with two non-blocking gaps: the `alzl-diag-appinsights` compliance-reporting gap and a false negative on the SQL MI port-11000 check | B09, "Done when" |
 | Web app on the archetype, after the B10 cutover test | 13 of 13 front-end checks passed with the L5 image and again with the known-good image | #53 |

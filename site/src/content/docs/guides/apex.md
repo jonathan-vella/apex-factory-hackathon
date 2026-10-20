@@ -13,7 +13,7 @@ APEX agents adapt the archetype template and document the result. They don't dep
 
 ## Get the archetype into your own repo
 
-You did this in [Prerequisites](../../getting-started/prerequisites/): your repo is created from the `apex-accelerator` template, and `Import-Kit.ps1` copied the kit into `factory/` and the archetype's APEX project into the repo root. There are two copies of the archetype: the kit's own under `factory/archetype/`, and the working copy at the repo root (`agent-output/university/`, `infra/bicep/university/` and the `adapt-archetype` prompt). Edit and deploy only the root copy.
+You did this in [Prerequisites](../../getting-started/prerequisites/): your repo is created from the `apex-accelerator` template, and `Import-Kit.ps1` copied the kit into `factory/` and the archetype's APEX project into the repo root. There are two copies of the archetype: the kit's own under `factory/archetype/`, and the working copy at the repo root (`agent-output/university/`, `infra/bicep/university/` and the `/apex-adapt-archetype` skill). Edit and deploy only the root copy.
 
 To redo only the archetype import, run `./factory/archetype/Import-Archetype.ps1 -Force` from the repo root. `-Force` replaces your copy of the archetype, so you lose any changes you made to it.
 
@@ -27,11 +27,11 @@ Open the repo in VS Code's dev container, or in GitHub Codespaces. APEX's `.gita
 
 ## Adapt and preview
 
-Run the `adapt-archetype` prompt in VS Code's built-in agent mode (not the `01-Orchestrator` custom mode — this flow doesn't need the full orchestrator). It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. Don't change the suffix: every later `<suffix>` command and resource name uses it. If your Codespace or dev container was deleted, `factory/.local/` went with it: restore the suffix with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` before you run the prompt. The prompt then checks a spoke is already vended for you (if it isn't, your platform lead vends it in C2; members can't), runs a lightweight live governance check against the upstream template, creates an `azd` environment, and stops at `azd provision --preview`.
+Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode (not the `01-Orchestrator` custom mode — this flow doesn't need the full orchestrator). It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. Don't change the suffix: every later `<suffix>` command and resource name uses it. If your Codespace or dev container was deleted, `factory/.local/` went with it: restore the suffix with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` before you run The skill. The skill then checks a spoke is already vended for you (if it isn't, your platform lead vends it in C2; members can't), runs a lightweight live governance check against the upstream template, creates an `azd` environment, and stops at `azd provision --preview`.
 
 ## Provision
 
-Review the preview output, then run `azd provision` yourself, in `infra/bicep/university/` (where `azure.yaml` is; the `adapt-archetype` prompt's shell session is already there; in a new terminal run `cd infra/bicep/university` first). Its hooks run a preflight check, post-deploy tests and a deployment summary automatically — you don't need to run them separately.
+Review the preview output, then run `azd provision` yourself, in `infra/bicep/university/` (where `azure.yaml` is; the `/apex-adapt-archetype` skill's shell session is already there; in a new terminal run `cd infra/bicep/university` first). Its hooks run a preflight check, post-deploy tests and a deployment summary automatically — you don't need to run them separately.
 
 :::danger[Don't run azd down to start over]
 

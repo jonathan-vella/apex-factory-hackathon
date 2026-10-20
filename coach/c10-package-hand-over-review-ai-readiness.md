@@ -22,7 +22,7 @@ A credible AI-readiness gap register entry for a team that used no lifelines:
 > **Why:** a wrong cutover risks data loss, and no automated check in the kit makes this call for you.
 > **Implication:** migration cutover should stay a human-approved step even in a more automated pipeline — this isn't a gap to close, it's a deliberate control.
 
-A reusable asset that passes the bar: the team's adapted archetype repository with the `adapt-archetype` outputs and As-Built document, committed with a short README explaining what subscription/tenant values a new team would need to supply — not "ask us how this works."
+A reusable asset that passes the bar: the team's adapted archetype repository with the `/apex-adapt-archetype` outputs and As-Built document, committed with a short README explaining what subscription/tenant values a new team would need to supply — not "ask us how this works."
 
 ## Common mistakes
 

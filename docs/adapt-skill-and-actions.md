@@ -1,48 +1,34 @@
-# Adapt prompt on the Copilot harness, and deploying with GitHub Actions
+# Adapt skill on the Copilot harness, and deploying with GitHub Actions
 
-Status 2026-10-19. A draft, not live. Nothing in the kit or in attendee repos changes until you promote it.
+Status 2026-10-20. The skill is live: `Import-Archetype.ps1` copies it and protects it from the weekly upstream sync.
 
 ## Why
 
-The migrated APEX (jonathan-vella/apex PR #779, still an open feature branch) drops VS Code prompt files. Its
-entry points are manual skills under `.github/skills/`, and the validator requires every skill name to be
-`apex-<name>` and to match its directory. The archetype's `adapt-archetype.prompt.md` therefore has to become a skill
-called `apex-adapt-archetype` once members run the migrated APEX.
+The migrated APEX (jonathan-vella/apex, merged 2026-10-20) drops VS Code prompt files. Its entry points are manual
+skills under `.github/skills/`, and the validator requires every skill name to be `apex-<name>` and to match its
+directory. The archetype's `adapt-archetype.prompt.md` therefore became a skill called `apex-adapt-archetype`.
 
-## What is in the draft
+## What changed from the prompt
 
-`archetype/.github/skills/apex-adapt-archetype/SKILL.md` is a port of the prompt. `Import-Archetype.ps1` copies only
-the old prompt path, so this file is inert until the import changes.
+`archetype/.github/skills/apex-adapt-archetype/SKILL.md` replaces the prompt.
 
 | Change | Reason |
 |---|---|
 | Frontmatter: `name`, `description`, `argument-hint`, `user-invocable: true`, `disable-model-invocation: true` | Same shape as APEX's other manual skills (`apex-workflow-start`, `apex-debug-log-export`) |
-| "VS Code built-in agent mode" becomes "the built-in `agent` owner" | VS Code Local isn't the harness any more. A skill can't select the agent, so it stops and asks if the Orchestrator is active |
-| Inputs through native `ask_user` | The migrated agents use it for material questions |
+| "VS Code built-in agent mode" becomes "the built-in `agent` owner" | VS Code Local isn't the harness any more. A skill can't select the agent, so it asks the member to confirm the owner and stops if it is an APEX workflow agent |
+| Inputs through native `ask_user`, read from `factory/.local/settings.json` with a command first | The file is gitignored, so the `read` tool may skip it. The member answers one "Use these?" question |
 | Governance discovery points at the `apex-azure-governance-discovery` skill | The migrated APEX has that skill. The old prompt said "the same calls 04g uses" |
 | `user.type` must be `user` | `preflight.ps1` rejects a service principal (see below) |
 | Links the accepted lab risks | Members should see them before `azd provision` |
 | Flow unchanged | `azd env new`, set the three values, derive the region, `preflight.ps1` and `azd provision --preview` in one shell, then stop |
 
-Validated: the upstream `tools/scripts/validate-skills.mjs` passes with this skill added to a clone of the migration
-branch at `4b688a5` (the branch head on 2026-10-19). `.github/prompts` no longer exists there. Unverified: the skill
-hasn't been run on the migrated APEX, and I haven't checked how Copilot CLI or the app list skills from a nested
-`archetype/` folder. Test it in a repo that has the migrated APEX before promoting it. The branch is still moving
-(33 commits ahead of `main` when I checked), so rerun the validator before promoting.
+Tested 2026-10-20 in a repo created from the migrated template, on the Copilot harness in VS Code: the skill appeared
+as `/apex-adapt-archetype`, read the settings, found no new Deny policy, passed preflight and stopped at the preview
+with 12 resources to create. `validate:skills` passes.
 
-## To promote it
-
-1. Move the migrated APEX into the template your members create repos from, and check `npm run validate:skills`.
-2. Change `archetype/Import-Archetype.ps1` to copy `.github/skills/apex-adapt-archetype/` instead of the prompt, and
-   add that directory to the destination's `EXCLUDE_PATHS` in `weekly-upstream-sync.yml`. `.github/skills/` is
-   otherwise taken from upstream, so the sync would delete it.
-3. Replace the references to the prompt. These files mention `adapt-archetype`: `archetype/README.md`,
-   `archetype/Import-Archetype.ps1`, `archetype/infra/bicep/university/scripts/write-deployment-summary.ps1`,
-   `coach/c05-deploy-the-coe-archetype.md`, `coach/c10-package-hand-over-review-ai-readiness.md`,
-   `facilitator/apex-demo.md`, `docs/prd.md`, the B09, B11 and B14 runbooks, and the site pages for C5, the APEX
-   guide, module 3 and troubleshooting. `write-deployment-summary.ps1` sits in a byte-checked folder, so that
-   reference changes only through a re-emit from the CoE repo.
-4. Delete the old prompt after one successful run of the skill.
+Left as it was: `archetype/infra/bicep/university/scripts/write-deployment-summary.ps1` and
+`archetype/agent-output/university/.gitignore` still say "prompt". They sit in byte-checked folders, so they change only
+through a re-emit from the CoE repo. The B09, B11 and B14 runbooks are specs and keep their original wording.
 
 ## Deployment options
 
