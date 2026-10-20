@@ -115,10 +115,10 @@ if ($SharedSubscriptionId -and $SharedSubscriptionId -eq $SubscriptionId) {
 }
 
 # A stable 6-character suffix (letter first) for resource names; generated once, never changed.
-$suffix = if ($Suffix) { $Suffix } else { $current['suffix'] }
-if (-not $suffix) {
+$resourceSuffix = if ($Suffix) { $Suffix } else { $current['suffix'] }
+if (-not $resourceSuffix) {
     $chars = [char[]]'abcdefghijklmnopqrstuvwxyz0123456789'
-    $suffix = (Get-Random -InputObject ([char[]]'abcdefghijklmnopqrstuvwxyz')) + (-join (1..5 | ForEach-Object { Get-Random -InputObject $chars }))
+    $resourceSuffix = (Get-Random -InputObject ([char[]]'abcdefghijklmnopqrstuvwxyz')) + (-join (1..5 | ForEach-Object { Get-Random -InputObject $chars }))
 }
 
 $settings = [ordered]@{
@@ -126,11 +126,11 @@ $settings = [ordered]@{
     subscriptionId = $SubscriptionId
     location       = $Location
     memberIndex    = $MemberIndex
-    suffix         = $suffix
+    suffix         = $resourceSuffix
 }
 if ($SharedSubscriptionId) { $settings['sharedSubscriptionId'] = $SharedSubscriptionId }
 
 New-Item -ItemType Directory -Force -Path $settingsDir | Out-Null
 $settings | ConvertTo-Json | Set-Content -Path $settingsPath
 Write-Host "Wrote $((Resolve-Path $settingsPath).Path)"
-Write-Host "Your suffix is '$suffix'. It names your resources; don't change it."
+Write-Host "Your suffix is '$resourceSuffix'. It names your resources; don't change it."
