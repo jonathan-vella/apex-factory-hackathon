@@ -44,7 +44,7 @@ import LandingStyles from "../../components/LandingStyles.astro";
       </div>
       <div>
         <dt><a href="/challenges/c01-define-the-opportunity/#where-your-evidence-goes">Your own repo</a></dt>
-        <dd>Evidence goes in <code>factory/evidence/cNN/</code>, pushed to <code>main</code>. Your coach reads it.</dd>
+        <dd>Evidence goes in <code>factory/evidence/cNN/</code> on <code>main</code>: run <code>git pull</code> first. On <code>vm-dev01</code>, use your plain clone <code>C:\src\&lt;your-repo&gt;</code> and run <code>git pull --rebase</code> first. Your coach reads it.</dd>
       </div>
     </dl>
   </aside>
@@ -64,14 +64,14 @@ import LandingStyles from "../../components/LandingStyles.astro";
   <ol class="start-banner__steps">
     <li>
       <span class="start-banner__when">By T-14</span>
-      <span>Finish the prerequisites and run C0's preflight.</span>
+      <span>14 days before day one: finish the prerequisites and run C0's preflight.</span>
     </li>
     <li>
       <span class="start-banner__when">By T-3</span>
-      <span>Deploy the datacenter, pass <code>Test-Datacenter.ps1</code>, connect <code>vm-app01</code> to Azure Arc and sign in to <code>vm-dev01</code>.</span>
+      <span>3 days before day one: the datacenter is deployed, <code>Test-Datacenter.ps1</code> passes for you (run before Arc onboarding), <code>vm-app01</code> is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and <code>vm-dev01</code> is set up with Copilot working in VS Code.</span>
     </li>
   </ol>
-  <p class="start-banner__note">C0 takes about 150 minutes and is mandatory: every challenge builds on the datacenter.</p>
+  <p class="start-banner__note">The prerequisites take about 60 to 90 minutes. C0 takes about 150 minutes and is mandatory: every challenge builds on the datacenter. New terms are in the <a href="/reference/glossary/">glossary</a>.</p>
 </section>
 
 <section id="scenario" class="landing-section scenario-frame not-content">
@@ -114,6 +114,7 @@ import LandingStyles from "../../components/LandingStyles.astro";
   </div>
   <div class="scenario-frame__body">
     <JourneyMap />
+    <p class="arch__lead">GHCP is GitHub Copilot. The MI link is the replication link from the source SQL Server to Azure SQL Managed Instance. The CoE archetype is a Center of Excellence's reference platform, built with APEX and deployed with azd. The <a href="/reference/glossary/">glossary</a> explains each term.</p>
   </div>
 </section>
 
@@ -125,7 +126,7 @@ import LandingStyles from "../../components/LandingStyles.astro";
   </div>
   <div class="scenario-frame__body">
     <p class="arch__lead">Pick a challenge to see the parts it touches. C2 builds the foundation, C5 deploys the archetype, C7 links the database and C8 checks the result.</p>
-    <ArchitectureDiagram interactive name="landing-arch" caption="n is your member index (1–20). The suffix is the six-character string from your settings. Names and ranges are in the naming and IP plan under Reference." />
+    <ArchitectureDiagram interactive name="landing-arch" caption="n is your member index (1–20). The suffix is the six-character string from your settings. Names and ranges are in the naming and IP plan under Reference, including the archetype resource names." />
   </div>
 </section>
 
@@ -148,7 +149,7 @@ import LandingStyles from "../../components/LandingStyles.astro";
       />
       <LinkCard
         title="Modules"
-        description="What each module takes in and hands on."
+        description="Background and recovery for each group of challenges. Start with Challenges."
         href="/modules/"
       />
       <LinkCard

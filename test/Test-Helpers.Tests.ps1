@@ -65,6 +65,20 @@ try {
     Assert-True ($run.ExitCode -ne 0 -and $run.Output -match 'different') 'A shared subscription equal to the workload subscription must be refused.'
     $passed++
 
+    # With a signed-in az account, the script shows the subscription name and tenant before it writes.
+    $azStub = @'
+function global:az {
+    $global:LASTEXITCODE = 0
+    $command = $args -join ' '
+    if ($command -like 'account show*') { return '{"id":"22222222-2222-2222-2222-222222222222","tenantId":"11111111-1111-1111-1111-111111111111","name":"Contoso Test Subscription"}' }
+    $global:LASTEXITCODE = 1
+}
+'@
+    $run = Invoke-Child -Variables @{ s = $settingsScript; a = $guidA; b = $guidB } -Script "$azStub`n& `$s -TenantId `$a -SubscriptionId `$b -MemberIndex 3 -Location swedencentral"
+    Assert-True ($run.ExitCode -eq 0) "Settings with a signed-in account failed: $($run.Output)"
+    Assert-True ($run.Output -match 'Subscription: Contoso Test Subscription' -and $run.Output -match 'Tenant:') 'The script should show the subscription name and tenant it saves.'
+    $passed++
+
     # Deploy-Vending: the summary masks subscription IDs unless -ShowIds.
     $vendingScript = Join-Path $repoRoot 'scripts/Deploy-Vending.ps1'
     $vendingStub = @'
