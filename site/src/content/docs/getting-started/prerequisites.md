@@ -176,7 +176,7 @@ The script asks for your tenant ID and workload subscription ID (it offers the o
 | 1 | Copilot Chat responds in VS Code | Open Copilot Chat, send "hello". |
 | 2 | The APEX custom agents appear | In Copilot Chat's agent picker, `01-Orchestrator` and `08-As-Built` are listed. |
 | 3 | The agents' models are permitted | The picker lets you select and run them (no policy block message). |
-| 4 | The MCP servers in `.vscode/mcp.json` load | VS Code shows them started and authenticated. Your organization's Copilot policy must also allow MCP servers and Copilot CLI. |
+| 4 | The MCP servers in `.mcp.json` (repo root) load | VS Code shows them started and authenticated. Your organization's Copilot policy must also allow MCP servers and Copilot CLI. |
 | 5 | Dev container opens | You can run `az version` and `pwsh --version` in its terminal. Docker Desktop is available, or your account can use Codespaces. |
 | 6 | One subscription per member | Confirm with your coach. |
 | 7 | Your roles match your kit role | Platform lead: Tenant Root Owner and a separate shared services subscription. Members: Owner on your own workload subscription. |
