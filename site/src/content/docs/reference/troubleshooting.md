@@ -15,12 +15,12 @@ sidebar:
 - **`Initialize-Settings.ps1` saved the wrong subscription:** run `./scripts/Initialize-Settings.ps1 -SubscriptionId '<subscription-id>' -TenantId '<tenant-id>'` again. It updates only the values you pass.
 - **You deleted your dev container volume and `factory/.local/` is gone:** that folder holds your settings, including the suffix, and your datacenter credentials, and it isn't in git. Re-import the kit if needed, then run `./scripts/Initialize-Settings.ps1 -Suffix '<old suffix>'` from `factory/` to restore your suffix, and re-enter your other values. Use the suffix you were first given: it's in the names of anything you already deployed, for example `rg-university-<suffix>`. The script refuses a different suffix if one is already stored. The VM admin password was in that folder too: in the Azure portal, open `rg-datacenter` > the VM > **Reset password** to set a new one.
 
-## C0: preflight
+## C0 preflight
 
 - **Preflight reports FAIL on Owner:** you have no unconditional Owner assignment on your workload subscription. Contributor doesn't pass. If Owner is eligible through Privileged Identity Management, activate it first; otherwise ask your coach.
 - **Preflight fails on a resource provider:** re-run `Test-Preflight.ps1 -Fix` and wait up to 15 minutes for the registration to propagate before re-checking.
 
-## C0: datacenter and Arc
+## C0 datacenter and Arc
 
 - **`Deploy-Datacenter.ps1` stops or fails on quota or a VM size:** run the same command again; it converges. If a quota or size error comes back, check **Usage + quotas** for `swedencentral` in the Azure portal and tell your coach.
 - **`Test-Datacenter.ps1` fails on in-VM checks:** the VMs must be running, and it must run before Arc onboarding. After `Connect-DatacenterArc.ps1` the run commands no longer work, so don't re-run it. Keep the PASS output you captured before Arc onboarding as your evidence.
