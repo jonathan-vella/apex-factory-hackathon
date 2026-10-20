@@ -156,7 +156,7 @@ try {
         # the root .prettierignore.
         $eslintConfig = @'
 // The imported kit is not linted: it holds vendored scripts and kit tooling, not this repo's source.
-const skip = { preprocess: () => [], postprocess: () => [] };
+const skip = { meta: { name: "factory-skip" }, preprocess: () => [], postprocess: () => [] };
 
 export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }];
 
