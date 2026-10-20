@@ -70,6 +70,8 @@ The deployment configures both VMs through run commands. Each downloads its scri
 | `vm-dev01` | `dev-04-first-logon` | `Register-DevFirstLogon.ps1` | A logon task that installs the VS Code extensions for each user (see below) |
 | `vm-dev01` | `dev-05-versions` | `Write-DevVersions.ps1` | The installed versions, in `C:\LabTools\versions.txt` |
 
+`Prepare-MiLinkSource.ps1` in `infra/datacenter/scripts/` is not a run command: the deployment never runs it, and students run it in C7 task 1, in a Bastion session on `vm-app01`.
+
 VS Code extensions install per user, so they install when you sign in, not during the deployment: GitHub Copilot, GitHub Copilot Chat, GitHub Copilot upgrade, C# Dev Kit, SQL Server (mssql), PowerShell and Bicep. The first sign-in takes a minute or two longer while they install.
 
 ### The kit clone on `vm-dev01`

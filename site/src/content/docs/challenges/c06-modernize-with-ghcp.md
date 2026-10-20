@@ -21,7 +21,7 @@ C3's reviewed assessment and approved plan (`plan.md`, committed as `app: assess
 
 ## Where to run
 
-Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShell on the VM, in your clone of the kit at `C:\src\factory`, on your `vm-dev01-work` branch. You set the VM up in C0 and used it in C3: see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) if you need to connect again. The configuration checks in task 5 that only read Azure Resource Manager (the identity, app settings and role assignments) also work in any browser or with `az` on any computer. The image check needs `vm-dev01`, because the registry has no public access.
+Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShell on the VM, in your clone of the kit at `C:\src\factory`, on your `vm-dev01-work` branch. You set the VM up in C0 task 7 and used it in C3, so you only reconnect: see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) if you need to connect again. The configuration checks in task 5 that only read Azure Resource Manager (the identity, app settings and role assignments) also work in any browser or with `az` on any computer. The image check needs `vm-dev01`, because the registry has no public access.
 
 Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 

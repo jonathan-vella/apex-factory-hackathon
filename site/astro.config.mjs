@@ -10,6 +10,18 @@ export default defineConfig({
   site: "https://factory.apexops.pro",
   base: "/",
   trailingSlash: "always",
+  // The module pages were retired: each module's content lives on its challenge pages.
+  redirects: {
+    "/modules/": "/challenges/",
+    "/modules/m0-pre-work/": "/challenges/c00-ready-to-hack/",
+    "/modules/m1-foundation/": "/challenges/c01-define-the-opportunity/",
+    "/modules/m2-assess-and-decide/": "/challenges/c03-assess-the-source/",
+    "/modules/m3-archetype/": "/challenges/c05-deploy-the-coe-archetype/",
+    "/modules/m4-modernize-the-app/": "/challenges/c06-modernize-with-ghcp/",
+    "/modules/m5-migrate-the-data/": "/challenges/c07-migrate-and-go-live/",
+    "/modules/m6-validate-and-optimize/": "/challenges/c08-validate-the-pattern/",
+    "/modules/m7-package-and-operate/": "/challenges/c10-package-hand-over-review-ai-readiness/",
+  },
   vite: {
     build: {
       chunkSizeWarningLimit: 650,
@@ -56,11 +68,6 @@ export default defineConfig({
           label: "Challenges",
           collapsed: true,
           items: [{ autogenerate: { directory: "challenges" } }],
-        },
-        {
-          label: "Modules",
-          collapsed: true,
-          items: [{ autogenerate: { directory: "modules" } }],
         },
         {
           label: "Guides",

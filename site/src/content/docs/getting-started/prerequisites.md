@@ -9,7 +9,7 @@ sidebar:
 This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not** event-day tasks. Every attendee, including the platform lead, completes both **before the event starts**. The two deadlines count back from day one of the event: **T-14** is 14 days before it and **T-3** is 3 days before it.
 
 - **By T-14:** this page, plus C0's preflight.
-- **By T-3:** the datacenter is deployed, `Test-Datacenter.ps1` passes for you (run before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code.
+- **By T-3:** the datacenter is deployed, `Test-Datacenter.ps1` passes for you (run before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and you have a fully set up `vm-dev01` (C0 task 7), with Copilot working in VS Code.
 
 If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, and the deployments run unattended for part of that. Raise any blocker with your coach now. The [event overview](../event-overview/#pre-work) has the full T-14 and T-3 gates.
 :::
@@ -41,7 +41,7 @@ The event is hands-on first. The exams come after it: infra roles hold AZ-104, G
 
 You work in **one repo of your own**: a private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. A **dev container** is a ready-made Linux workspace that VS Code opens inside Docker, so every member has the same tools (Azure CLI, PowerShell 7, Git, `azd`, Bicep). The template also brings the **APEX agents**: Copilot custom agents that ship in the repo and appear in Copilot Chat's agent picker. A single import command then copies the kit into a `factory/` folder at the root of that repo. From then on you run the kit's deployment and Azure scripts from `factory/` inside the dev container, and the archetype for C5 is already in place.
 
-Until C3, everything runs in the dev container. From C3 the app work happens on `vm-dev01`, which C0 sets up for you. Each challenge page has a **Where to run** block that says which one to use.
+Until C3, everything runs in the dev container. From C3 the app work happens on `vm-dev01`, which you set up in C0 task 7. Each challenge page has a **Where to run** block that says which one to use.
 
 Your evidence lives in your own repo, under `factory/evidence/`; you set that up in [C1](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes). Each member keeps evidence in their own repo; there is no shared team repo. After you merge the import on this page, all your work is on `main`, with one exception: the `vm-dev01-work` branch of the clone on `vm-dev01`, which you never merge.
 
