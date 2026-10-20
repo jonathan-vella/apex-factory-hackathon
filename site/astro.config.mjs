@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import { unified } from "@astrojs/markdown-remark";
+import sitemap from "@astrojs/sitemap";
 import starlight from "@astrojs/starlight";
 import rehypeMermaid from "rehype-mermaid-lite";
 
@@ -20,6 +21,8 @@ export default defineConfig({
     }),
   },
   integrations: [
+    // Coach pages are hidden: keep them out of the sitemap.
+    sitemap({ filter: (page) => !new URL(page).pathname.startsWith("/coach/") }),
     starlight({
       title: "Partner Modernization Factory",
       description:
