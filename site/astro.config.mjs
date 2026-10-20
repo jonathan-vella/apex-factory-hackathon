@@ -98,6 +98,8 @@ export default defineConfig({
         "@fontsource/ibm-plex-mono/400.css",
         "@fontsource/ibm-plex-mono/500.css",
         "./src/styles/custom.css",
+        "./src/styles/layout.css",
+        "./src/styles/tasks.css",
       ],
       components: {
         Footer: "./src/components/Footer.astro",
