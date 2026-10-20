@@ -6,6 +6,10 @@ template: splash
 
 import { CardGrid, LinkCard } from "@astrojs/starlight/components";
 import JourneyMap from "../../components/JourneyMap.astro";
+import ArchitectureDiagram from "../../components/ArchitectureDiagram.astro";
+import LandingStyles from "../../components/LandingStyles.astro";
+
+<LandingStyles />
 
 <section class="landing-hero not-content">
   <div class="landing-hero__copy">
@@ -18,10 +22,56 @@ import JourneyMap from "../../components/JourneyMap.astro";
     <p class="landing-hero__tagline">Modernize today. Enable AI tomorrow.</p>
     <p class="landing-hero__purpose">Teams build a secure Azure foundation, adapt a CoE archetype with APEX and deploy it with azd, and modernize the app and database with GitHub Copilot and Azure Arc.</p>
     <p class="landing-hero__purpose">They keep reusable assets for customer delivery.</p>
-    <a class="landing-hero__scroll not-content" href="#scenario">
-      <span class="landing-hero__scroll-label">Explore the scenario</span>
-    </a>
+    <div class="landing-hero__actions">
+      <a class="landing-button landing-button--primary" href="#before">Before the event: start here</a>
+      <a class="landing-button" href="#scenario">Explore the scenario</a>
+    </div>
   </div>
+  <aside class="landing-where" aria-labelledby="where-title">
+    <h2 id="where-title">Where do I run this?</h2>
+    <dl>
+      <div>
+        <dt><a href="/getting-started/prerequisites/#how-you-work-with-one-repo-and-one-dev-container">Dev container</a></dt>
+        <dd>In VS Code on your laptop, in your own repo. The kit's scripts run from <code>factory/</code>: C0 setup, the C2 foundation, C5 with APEX and azd, the C8 load and security checks.</dd>
+      </div>
+      <div>
+        <dt><a href="/guides/ghcp-upgrade/#switching-to-vm-dev01"><code>vm-dev01</code></a></dt>
+        <dd>Your workstation, through Bastion. From C3 the app work happens here, next to the private network. Never stop it.</dd>
+      </div>
+      <div>
+        <dt>Browser and Azure portal</dt>
+        <dd>The Azure Arc assessment (C3), the MI link (C7), Bastion connections and the C8 smoke checks.</dd>
+      </div>
+      <div>
+        <dt><a href="/challenges/c01-define-the-opportunity/#where-your-evidence-goes">Your own repo</a></dt>
+        <dd>Evidence goes in <code>factory/evidence/cNN/</code>, pushed to <code>main</code>. Your coach reads it.</dd>
+      </div>
+    </dl>
+  </aside>
+</section>
+
+<section id="before" class="start-banner not-content">
+  <div class="start-banner__head">
+    <div>
+      <div class="section-label">Before the event</div>
+      <h2>Start here</h2>
+    </div>
+    <div class="landing-hero__actions">
+      <a class="landing-button landing-button--primary" href="/getting-started/prerequisites/">Prerequisites</a>
+      <a class="landing-button" href="/challenges/c00-ready-to-hack/">C0: Ready to hack</a>
+    </div>
+  </div>
+  <ol class="start-banner__steps">
+    <li>
+      <span class="start-banner__when">By T-14</span>
+      <span>Finish the prerequisites and run C0's preflight.</span>
+    </li>
+    <li>
+      <span class="start-banner__when">By T-3</span>
+      <span>Deploy the datacenter, pass <code>Test-Datacenter.ps1</code>, connect <code>vm-app01</code> to Azure Arc and sign in to <code>vm-dev01</code>.</span>
+    </li>
+  </ol>
+  <p class="start-banner__note">C0 takes about 150 minutes and is mandatory: every challenge builds on the datacenter.</p>
 </section>
 
 <section id="scenario" class="landing-section scenario-frame not-content">
@@ -35,6 +85,12 @@ import JourneyMap from "../../components/JourneyMap.astro";
       <div class="scenario-panel">
         <div class="scenario-panel__label">Starting point</div>
         <p>Contoso University runs its student system on ASP.NET MVC and .NET Framework 4.8 on IIS and SQL Server in its own datacenter. It wants to move to Azure and modernize so its data is ready for future AI use cases.</p>
+        <dl class="shift">
+          <div><dt>App</dt><dd>.NET Framework 4.8 <b>to</b> .NET 10 and ASP.NET Core MVC</dd></div>
+          <div><dt>Hosting</dt><dd>IIS on <code>vm-app01</code> <b>to</b> a container image on App Service for Linux</dd></div>
+          <div><dt>Database</dt><dd>SQL Server <b>to</b> Azure SQL Managed Instance</dd></div>
+          <div><dt>Messaging</dt><dd>MSMQ <b>to</b> Azure Service Bus</dd></div>
+        </dl>
       </div>
       <div class="scenario-panel scenario-panel--tasks">
         <div class="scenario-panel__label">What the team does</div>
@@ -61,18 +117,25 @@ import JourneyMap from "../../components/JourneyMap.astro";
   </div>
 </section>
 
+<section id="end-state" class="landing-section scenario-frame not-content">
+  <div class="scenario-frame__head">
+    <div class="section-label">The end state</div>
+    <h2>What every member ends up with</h2>
+    <p>The team shares one hub. Each member has a datacenter, a spoke and a CoE archetype.</p>
+  </div>
+  <div class="scenario-frame__body">
+    <p class="arch__lead">Pick a challenge to see the parts it touches. C2 builds the foundation, C5 deploys the archetype, C7 links the database and C8 checks the result.</p>
+    <ArchitectureDiagram interactive name="landing-arch" caption="n is your member index (1–20). The suffix is the six-character string from your settings. Names and ranges are in the naming and IP plan under Reference." />
+  </div>
+</section>
+
 <section class="landing-section scenario-frame explore-section not-content">
   <div class="scenario-frame__head">
-    <div class="section-label">Start here</div>
+    <div class="section-label">Explore</div>
     <h2>Explore the kit</h2>
   </div>
   <div class="scenario-frame__body">
     <CardGrid>
-      <LinkCard
-        title="Before the event: start here"
-        description="Prerequisites and C0 preflight by T-14. Datacenter, Test-Datacenter, Azure Arc and a vm-dev01 sign-in by T-3."
-        href="/getting-started/prerequisites/"
-      />
       <LinkCard
         title="Getting Started"
         description="Pre-work, setup, roles and how the event runs."

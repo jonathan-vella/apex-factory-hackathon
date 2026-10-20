@@ -3,6 +3,8 @@ title: "C2: Secure, AI-ready foundation"
 description: ALZ-lite, vending, exemptions and probes — the team's landing zone.
 ---
 
+import ArchitectureDiagram from "../../../components/ArchitectureDiagram.astro";
+
 ## Goal
 
 Stand up the team's landing zone: a live portal ALZ demo first, then ALZ-lite deployed for real, every member's subscription vended into it, and the result proven with probes.
@@ -36,6 +38,12 @@ $s = Get-Content .local/settings.json | ConvertFrom-Json
 ```
 
 Task 2 is a demo; there's nothing to run.
+
+## What this builds
+
+The highlighted parts are what C2 puts in place: the management groups, the hub with its firewall, private DNS zones and workspace, and for each member the spoke, the peering and the routes. Your datacenter is already there from C0.
+
+<ArchitectureDiagram highlight="c2" name="c2-arch" caption="Highlighted: what C2 deploys. n is your member index." />
 
 ## Your tasks
 

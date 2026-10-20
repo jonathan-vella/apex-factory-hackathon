@@ -3,6 +3,8 @@ title: "C5: Deploy the CoE archetype with APEX"
 description: Adapt and deploy the platform the modernized app will run on.
 ---
 
+import ArchitectureDiagram from "../../../components/ArchitectureDiagram.astro";
+
 ## Goal
 
 Get the CoE archetype — App Service, ACR, SQL MI, Blob, Service Bus, Key Vault and Application Insights — deployed into your spoke, policy-compliant, with its As-Built record.
@@ -30,6 +32,12 @@ $s = Get-Content .local/settings.json | ConvertFrom-Json
 ```
 
 The `/apex-adapt-archetype` skill runs from the repo root (not `factory/`). `azd` runs in `infra/bicep/university/`, in the same terminal session in which the skill ran its `./scripts/preflight.ps1` (the skill takes you there; `azure.yaml` is in that folder). Every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
+
+## What this deploys
+
+The highlighted parts are what C5 adds to the spoke that C2 vended: the resources in `rg-university-<suffix>`, their private endpoints in `snet-pe`, the web app's VNet integration and the SQL Managed Instance in `snet-sqlmi`.
+
+<ArchitectureDiagram highlight="c5" name="c5-arch" caption="Highlighted: what C5 deploys. n is your member index and the suffix is yours from settings." />
 
 ## Your tasks
 
@@ -82,7 +90,7 @@ A managed instance was deleted from your spoke earlier, and Azure releases its v
 </details>
 
 <details>
-<summary>azd provision --preview looks incomplete</summary>
+<summary>`azd provision --preview` looks incomplete</summary>
 
 The preview only lists resource types `azd` has display names for — it's expected to omit the SQL Managed Instance, the managed identity, role assignments, diagnostic settings and the maintenance schedule even though they're all in the template and will be created.
 </details>

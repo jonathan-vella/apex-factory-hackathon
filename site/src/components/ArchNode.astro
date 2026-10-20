@@ -1,0 +1,25 @@
+---
+interface Props {
+  name: string;
+  meta?: string;
+  ch?: string[];
+  class?: string;
+}
+const { name, meta, ch = [], class: extra = "" } = Astro.props;
+---
+
+<div class:list={["node", extra]} data-ch={ch.join(" ")}>
+  <span class="node__top">
+    <span class="node__name">{name}</span>
+    {ch.length > 0 && (
+      <span class="tags" aria-hidden="true">
+        {ch.map((c) => (
+          <span class="tag" data-tag={c}>
+            {c.toUpperCase()}
+          </span>
+        ))}
+      </span>
+    )}
+  </span>
+  {meta && <span class="node__meta">{meta}</span>}
+</div>

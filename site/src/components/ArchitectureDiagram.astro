@@ -1,0 +1,728 @@
+---
+import ArchNode from "./ArchNode.astro";
+
+type Highlight = "all" | "c0" | "c2" | "c5" | "c7" | "c8";
+
+interface Props {
+  /** Challenge whose parts are emphasized. "all" shows everything with no dimming. */
+  highlight?: Highlight;
+  /** Show the pure CSS legend that lets the reader switch the highlight. */
+  interactive?: boolean;
+  /** Unique name for the legend's radio group when a page has several diagrams. */
+  name?: string;
+  caption?: string;
+}
+
+const { highlight = "all", interactive = false, name = "arch", caption } = Astro.props;
+
+const sfx = "<suffix>";
+const choices: { id: Highlight; label: string; what: string }[] = [
+  { id: "all", label: "All", what: "" },
+  { id: "c0", label: "C0", what: "Datacenter" },
+  { id: "c2", label: "C2", what: "Foundation" },
+  { id: "c5", label: "C5", what: "Archetype" },
+  { id: "c7", label: "C7", what: "MI link" },
+  { id: "c8", label: "C8", what: "Checks" },
+];
+
+const resources = [
+  {
+    name: "App Service",
+    meta: `P0v3 plan asp-university-${sfx}, web app app-university-${sfx}. Public HTTPS front end.`,
+    ch: ["c5", "c7", "c8"],
+  },
+  {
+    name: "Container registry",
+    meta: `cruniversity${sfx}. Premium, private endpoint.`,
+    ch: ["c5"],
+  },
+  {
+    name: "SQL Managed Instance",
+    meta: `sqlmi-university-${sfx}. General Purpose, 4 vCores, in snet-sqlmi. No private endpoint.`,
+    ch: ["c5", "c7", "c8"],
+  },
+  {
+    name: "Blob Storage",
+    meta: `stuniversity${sfx}. Container teaching-materials, private endpoint.`,
+    ch: ["c5", "c8"],
+  },
+  {
+    name: "Service Bus",
+    meta: `sbns-university-${sfx}. Premium, queue notifications, private endpoint.`,
+    ch: ["c5", "c8"],
+  },
+  {
+    name: "Key Vault",
+    meta: `kv-university-${sfx}. Private endpoint. Holds the connection string secret.`,
+    ch: ["c5", "c7"],
+  },
+  {
+    name: "Application Insights",
+    meta: `appi-university-${sfx}. Ingestion is public, allowed by a firewall rule.`,
+    ch: ["c5"],
+  },
+  {
+    name: "Managed identity",
+    meta: `id-university-${sfx}. The web app's identity for data access.`,
+    ch: ["c5", "c7"],
+  },
+];
+
+const flows = [
+  {
+    text: "Datacenter to hub: peering and the route rt-servers (10.20.n.0/24 via afw-hub).",
+    ch: ["c2"],
+  },
+  {
+    text: "Spoke to hub: peering and the routes rt-app and rt-pe (0.0.0.0/0) and rt-sqlmi (10.10.n.0/24), all via afw-hub.",
+    ch: ["c2"],
+  },
+  {
+    text: "DNS: both VNets use afw-hub as their DNS server. Its DNS proxy asks Azure DNS in vnet-hub, where the private zones are linked.",
+    ch: ["c2", "c5"],
+    wide: true,
+  },
+  {
+    text: "MI link: vm-app01 to afw-hub to snet-sqlmi, TCP 5022 and 11000–11999. The datacenter and the spoke aren't peered with each other.",
+    ch: ["c7"],
+  },
+  {
+    text: "From vm-dev01 via afw-hub: private endpoints in snet-pe (TCP 443, 5671) and SQL MI (TCP 1433, 11000–11999).",
+    ch: ["c7", "c8"],
+  },
+];
+
+const label =
+  "Architecture of the end state. A shared services subscription holds the hub VNet with Azure Firewall, the central private DNS zones, Log Analytics and the SQL MI directory identity. A member workload subscription holds the datacenter VNet with the legacy app server, the dev VM, Bastion and a NAT gateway, the spoke VNet with three subnets, and the resource group of the CoE archetype. Both VNets peer with the hub. A text version follows the diagram.";
+---
+
+<figure class="arch not-content" data-hl={highlight}>
+  {interactive && (
+    <div class="arch__legend" role="radiogroup" aria-labelledby={`${name}-legend`}>
+      <span class="arch__legend-label" id={`${name}-legend`}>
+        Highlight
+      </span>
+      {choices.map((c) => (
+        <label class="arch__chip">
+          <input type="radio" name={name} value={c.id} checked={c.id === highlight} />
+          <span>
+            <b>{c.label}</b>
+            {c.what && <span class="arch__chip-what"> {c.what}</span>}
+          </span>
+        </label>
+      ))}
+    </div>
+  )}
+
+  <div class="arch__diagram" role="img" aria-label={label}>
+    <ArchNode
+      class="mg"
+      name="Management groups"
+      meta="mg-factory > mg-factory-platform (holds the shared services subscription) and mg-factory-corp (holds the members' workload subscriptions and the core policies)."
+      ch={["c2"]}
+    />
+
+    <section class="frame frame--shared">
+      <div class="frame__head">
+        <span class="frame__title">Shared services subscription</span>
+        <span class="frame__sub">one per team</span>
+      </div>
+      <div class="grid grid--shared">
+        <div class="frame frame--rg">
+          <div class="frame__head">
+            <span class="frame__title">rg-hub</span>
+          </div>
+          <div class="frame frame--vnet">
+            <div class="frame__head">
+              <span class="frame__title">vnet-hub</span>
+              <span class="frame__sub">10.100.0.0/16</span>
+            </div>
+            <div class="grid grid--pair">
+              <ArchNode
+                name="afw-hub"
+                meta="Azure Firewall Standard, 10.100.0.4, DNS proxy. Policy afwp-hub holds the rules."
+                ch={["c2", "c7"]}
+              />
+              <ArchNode
+                name="Private DNS zones"
+                meta="Blob, Service Bus, ACR and Key Vault, linked to vnet-hub."
+                ch={["c2", "c5"]}
+              />
+            </div>
+          </div>
+        </div>
+        <div class="frame frame--rg">
+          <div class="frame__head">
+            <span class="frame__title">rg-management</span>
+          </div>
+          <div class="stack">
+            <ArchNode name="log-management" meta="Central Log Analytics workspace." ch={["c2"]} />
+            <ArchNode
+              name="id-sqlmi-directory"
+              meta="Identity of every member's SQL MI. Graph read granted in C2."
+              ch={["c2", "c7"]}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <ul class="flows" aria-hidden="true">
+      {flows.map((f) => (
+        <li class:list={["flow", { "flow--wide": f.wide }]} data-ch={f.ch.join(" ")}>
+          <span class="flow__arrow">&harr;</span>
+          <span class="flow__text">{f.text}</span>
+          <span class="tags">
+            {f.ch.map((c) => (
+              <span class="tag" data-tag={c}>
+                {c.toUpperCase()}
+              </span>
+            ))}
+          </span>
+        </li>
+      ))}
+    </ul>
+
+    <section class="frame frame--member">
+      <div class="frame__head">
+        <span class="frame__title">Member workload subscription</span>
+        <span class="frame__sub">one per member, n = 1–20</span>
+      </div>
+
+      <div class="grid grid--member">
+        <div class="frame frame--rg">
+          <div class="frame__head">
+            <span class="frame__title">rg-datacenter</span>
+            <span class="frame__sub">the simulated on-premises estate</span>
+          </div>
+          <div class="frame frame--vnet">
+            <div class="frame__head">
+              <span class="frame__title">vnet-datacenter</span>
+              <span class="frame__sub">10.10.n.0/24</span>
+            </div>
+            <div class="frame frame--subnet">
+              <div class="frame__head">
+                <span class="frame__title">snet-servers</span>
+                <span class="frame__sub">10.10.n.0/25</span>
+              </div>
+              <div class="grid grid--pair">
+                <ArchNode
+                  name="vm-app01"
+                  meta="10.10.n.4. Legacy Contoso University on IIS, SQL Server 2022. Arc-enabled."
+                  ch={["c0", "c7"]}
+                />
+                <ArchNode
+                  name="vm-dev01"
+                  meta="10.10.n.5. Your Windows 11 workstation, never stopped."
+                  ch={["c0", "c7", "c8"]}
+                />
+              </div>
+            </div>
+            <div class="frame frame--subnet">
+              <div class="frame__head">
+                <span class="frame__title">AzureBastionSubnet</span>
+                <span class="frame__sub">10.10.n.192/26</span>
+              </div>
+              <ArchNode
+                name="bas-datacenter"
+                meta="Bastion Standard. The only way into the VMs."
+                ch={["c0"]}
+              />
+            </div>
+          </div>
+          <ArchNode
+            name="nat-datacenter"
+            meta="NAT gateway for outbound internet. Everything else goes through the hub."
+            ch={["c0"]}
+          />
+        </div>
+
+        <div class="stack">
+          <div class="frame frame--rg">
+            <div class="frame__head">
+              <span class="frame__title">rg-spoke</span>
+              <span class="frame__sub">vended in C2</span>
+            </div>
+            <div class="frame frame--vnet">
+              <div class="frame__head">
+                <span class="frame__title">vnet-spoke</span>
+                <span class="frame__sub">10.20.n.0/24</span>
+              </div>
+              <div class="stack">
+                <ArchNode
+                  name="snet-app"
+                  meta="10.20.n.0/26. VNet integration for the web app."
+                  ch={["c2", "c5"]}
+                />
+                <ArchNode
+                  name="snet-pe"
+                  meta="10.20.n.64/26. Private endpoints for ACR, Blob, Service Bus and Key Vault."
+                  ch={["c2", "c5", "c8"]}
+                />
+                <ArchNode
+                  name="snet-sqlmi"
+                  meta="10.20.n.128/26. Delegated to SQL Managed Instance."
+                  ch={["c2", "c5", "c7"]}
+                />
+              </div>
+            </div>
+          </div>
+          <ArchNode
+            class="mg"
+            name="Public access"
+            meta="Only the web app's HTTPS front end and Application Insights ingestion. Every other backend is private-endpoint only."
+            ch={["c5", "c8"]}
+          />
+        </div>
+      </div>
+
+      <div class="frame frame--rg frame--archetype">
+        <div class="frame__head">
+          <span class="frame__title">{`rg-university-${sfx}`}</span>
+          <span class="frame__sub">the CoE archetype, deployed in C5</span>
+        </div>
+        <div class="grid grid--resources">
+          {resources.map((r) => (
+            <ArchNode name={r.name} meta={r.meta} ch={r.ch} />
+          ))}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  {caption && <figcaption class="arch__caption">{caption}</figcaption>}
+
+  <details class="arch__text">
+    <summary>Text version of the diagram</summary>
+    <ul>
+      <li>
+        Management groups: <code>mg-factory</code> contains <code>mg-factory-platform</code> (the
+        shared services subscription) and <code>mg-factory-corp</code> (every member's workload
+        subscription and the core policies). C2 creates them.
+      </li>
+      <li>
+        Shared services subscription, one per team (C2). Resource group <code>rg-hub</code> holds
+        <code>vnet-hub</code> (10.100.0.0/16) with Azure Firewall Standard <code>afw-hub</code>{" "}
+        (10.100.0.4, DNS proxy, rules in <code>afwp-hub</code>), and the four central private DNS
+        zones for Blob, Service Bus, ACR and Key Vault. Resource group <code>rg-management</code>{" "}
+        holds the Log Analytics workspace
+        <code>log-management</code> and the identity <code>id-sqlmi-directory</code>, which every
+        member's SQL Managed Instance uses.
+      </li>
+      <li>
+        Member workload subscription, one per member (n is 1 to 20). Resource group
+        <code>rg-datacenter</code> (C0) holds <code>vnet-datacenter</code> (10.10.n.0/24). Subnet
+        <code>snet-servers</code> (10.10.n.0/25) has <code>vm-app01</code> (10.10.n.4, the legacy
+        app and SQL Server) and <code>vm-dev01</code> (10.10.n.5, your workstation).{" "}
+        <code>AzureBastionSubnet</code>
+        (10.10.n.192/26) has Bastion Standard <code>bas-datacenter</code>. A NAT gateway
+        <code>nat-datacenter</code> provides outbound internet.
+      </li>
+      <li>
+        Resource group <code>rg-spoke</code> (vended in C2) holds <code>vnet-spoke</code>{" "}
+        (10.20.n.0/24) with
+        <code>snet-app</code> (10.20.n.0/26, web app VNet integration), <code>snet-pe</code>{" "}
+        (10.20.n.64/26, private endpoints) and <code>snet-sqlmi</code> (10.20.n.128/26, SQL Managed
+        Instance).
+      </li>
+      <li>
+        Resource group <code>rg-university-&lt;suffix&gt;</code> (C5) holds the archetype: an App
+        Service plan (P0v3) and web app with a public HTTPS front end, a container registry, a SQL
+        Managed Instance, Blob Storage (container <code>teaching-materials</code>), Service Bus
+        (queue
+        <code>notifications</code>), Key Vault, Application Insights and the web app's managed
+        identity. Registry, storage, Service Bus and Key Vault are reached through private endpoints
+        in
+        <code>snet-pe</code>. Application Insights ingestion stays public, allowed by a firewall
+        rule.
+      </li>
+      <li>
+        Network flows (C2): the datacenter and the spoke each peer with the hub and send traffic
+        through
+        <code>afw-hub</code> by user-defined routes. Both VNets use <code>afw-hub</code> as DNS
+        server.
+      </li>
+      <li>
+        C7: the MI link runs from <code>vm-app01</code> through <code>afw-hub</code> to
+        <code>snet-sqlmi</code> on TCP 5022 and 11000–11999. The datacenter and the spoke aren't
+        peered with each other.
+      </li>
+      <li>
+        C7 and C8: from <code>vm-dev01</code> you reach the private endpoints (TCP 443 and 5671) and
+        the SQL Managed Instance (TCP 1433 and 11000–11999) through <code>afw-hub</code>.
+      </li>
+    </ul>
+  </details>
+</figure>
+
+<style is:global>
+  .arch {
+    --a-fg: var(--sl-color-white, #f0f6fc);
+    --a-muted: var(--sl-color-gray-2, #8b949e);
+    --a-line: var(--sl-color-gray-4, #484f58);
+    --a-surface: var(--sl-color-black, #0d1117);
+    --a-hi: var(--sl-color-accent-high, #6cb8f7);
+    --a-hi-bg: color-mix(in srgb, var(--sl-color-accent, #0078d4) 16%, var(--a-surface));
+    --a-tint: rgba(127, 140, 160, 0.08);
+    --a-team: #ffb44c;
+    --a-team-text: #ffb44c;
+    --a-member: #63b7ff;
+    --a-member-text: #63b7ff;
+    container-type: inline-size;
+    container-name: arch;
+    margin: 1.5rem 0;
+    color: var(--a-fg);
+    font-family: var(--font-body, system-ui, sans-serif);
+    line-height: 1.4;
+  }
+
+  :root[data-theme="light"] .arch {
+    --a-team: #b35f00;
+    --a-team-text: #8f4a00;
+    --a-member: #0b6bbd;
+    --a-member-text: #0a5fa8;
+  }
+
+  .arch *,
+  .arch *::before,
+  .arch *::after {
+    box-sizing: border-box;
+  }
+
+  .arch__diagram {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .arch :is(ul, li, p, figure, details, summary) {
+    margin: 0;
+  }
+
+  /* Legend */
+  .arch__legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .arch__legend-label {
+    margin-right: 0.25rem;
+    color: var(--a-muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .arch__chip {
+    position: relative;
+    display: inline-flex;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--a-line);
+    border-radius: 999px;
+    background: var(--a-surface);
+    color: var(--a-fg);
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+
+  .arch__chip input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .arch__chip:hover {
+    border-color: var(--a-hi);
+  }
+
+  .arch__chip:has(input:checked) {
+    border-color: var(--a-hi);
+    background: var(--a-hi-bg);
+    box-shadow: inset 0 0 0 1px var(--a-hi);
+  }
+
+  .arch__chip:has(input:focus-visible) {
+    outline: 2px solid var(--a-hi);
+    outline-offset: 2px;
+  }
+
+  .arch__chip-what {
+    color: var(--a-muted);
+  }
+
+  .arch__chip:has(input:checked) .arch__chip-what {
+    color: var(--a-fg);
+  }
+
+  /* Frames */
+  .arch .frame {
+    display: grid;
+    gap: 0.6rem;
+    padding: 0.7rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.75rem;
+    background: var(--a-tint);
+  }
+
+  .arch .frame--shared {
+    border-color: var(--a-team);
+  }
+
+  .arch .frame--member {
+    border-color: var(--a-member);
+  }
+
+  .arch .frame .frame {
+    padding: 0.55rem;
+    border-radius: 0.6rem;
+  }
+
+  .arch .frame .frame .frame {
+    background: transparent;
+  }
+
+  .arch .frame--vnet {
+    border-style: dashed;
+  }
+
+  .arch .frame__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.1rem 0.6rem;
+  }
+
+  .arch .frame__title {
+    color: var(--a-fg);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .arch .frame--shared > .frame__head .frame__title,
+  .arch .frame--member > .frame__head .frame__title {
+    font-family: var(--font-display, var(--font-body, system-ui));
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .arch .frame--shared > .frame__head .frame__title {
+    color: var(--a-team-text);
+  }
+
+  .arch .frame--member > .frame__head .frame__title {
+    color: var(--a-member-text);
+  }
+
+  .arch .frame__sub {
+    color: var(--a-muted);
+    font-size: 0.74rem;
+  }
+
+  /* Nodes */
+  .arch .node {
+    display: grid;
+    align-content: start;
+    gap: 0.2rem;
+    min-width: 0;
+    padding: 0.5rem 0.6rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.5rem;
+    background: var(--a-surface);
+    color: var(--a-fg);
+  }
+
+  .arch .node__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.2rem 0.5rem;
+  }
+
+  .arch .node__name {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.8rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .arch .node__meta {
+    color: var(--a-muted);
+    font-size: 0.74rem;
+    overflow-wrap: anywhere;
+  }
+
+  .arch .mg {
+    border-style: dashed;
+  }
+
+  .arch .stack {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .arch .grid {
+    display: grid;
+    gap: 0.6rem;
+    min-width: 0;
+  }
+
+  .arch .grid--resources {
+    grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  }
+
+  /* Tags */
+  .arch .tags {
+    display: inline-flex;
+    gap: 0.2rem;
+  }
+
+  .arch .tag {
+    padding: 0 0.35rem;
+    border: 1px solid var(--a-line);
+    border-radius: 0.25rem;
+    color: var(--a-muted);
+    font-family: var(--font-mono, monospace);
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  /* Flows */
+  .arch .flows {
+    display: grid;
+    gap: 0.4rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .arch .flow {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    border: 1px dashed var(--a-line);
+    border-radius: 0.5rem;
+    color: var(--a-fg);
+    font-size: 0.76rem;
+  }
+
+  .arch .flow__arrow {
+    color: var(--a-hi);
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .arch .flow__text {
+    min-width: 0;
+  }
+
+  /* Text version and caption */
+  .arch__caption {
+    margin-top: 0.75rem;
+    color: var(--a-muted);
+    font-size: 0.8rem;
+  }
+
+  .arch__text {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+  }
+
+  .arch__text summary {
+    color: var(--a-hi);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .arch__text ul {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding-left: 1.2rem;
+  }
+
+  .arch__text code {
+    font-size: 0.8em;
+  }
+
+  /* Highlight states: "on" emphasizes what a challenge touches, "off" quiets the rest. */
+  .arch:is([data-hl="c0"], :has(input[value="c0"]:checked)) [data-ch~="c0"],
+  .arch:is([data-hl="c2"], :has(input[value="c2"]:checked)) [data-ch~="c2"],
+  .arch:is([data-hl="c5"], :has(input[value="c5"]:checked)) [data-ch~="c5"],
+  .arch:is([data-hl="c7"], :has(input[value="c7"]:checked)) [data-ch~="c7"],
+  .arch:is([data-hl="c8"], :has(input[value="c8"]:checked)) [data-ch~="c8"] {
+    border-style: solid;
+    border-color: var(--a-hi);
+    background: var(--a-hi-bg);
+    box-shadow: inset 0 0 0 1px var(--a-hi);
+  }
+
+  .arch:is([data-hl="c0"], :has(input[value="c0"]:checked)) :is(.node, .flow):not([data-ch~="c0"]),
+  .arch:is([data-hl="c2"], :has(input[value="c2"]:checked)) :is(.node, .flow):not([data-ch~="c2"]),
+  .arch:is([data-hl="c5"], :has(input[value="c5"]:checked)) :is(.node, .flow):not([data-ch~="c5"]),
+  .arch:is([data-hl="c7"], :has(input[value="c7"]:checked)) :is(.node, .flow):not([data-ch~="c7"]),
+  .arch:is([data-hl="c8"], :has(input[value="c8"]:checked)) :is(.node, .flow):not([data-ch~="c8"]) {
+    border-style: dashed;
+    background: transparent;
+    color: var(--a-muted);
+  }
+
+  .arch:is([data-hl="c0"], :has(input[value="c0"]:checked)) .tag[data-tag="c0"],
+  .arch:is([data-hl="c2"], :has(input[value="c2"]:checked)) .tag[data-tag="c2"],
+  .arch:is([data-hl="c5"], :has(input[value="c5"]:checked)) .tag[data-tag="c5"],
+  .arch:is([data-hl="c7"], :has(input[value="c7"]:checked)) .tag[data-tag="c7"],
+  .arch:is([data-hl="c8"], :has(input[value="c8"]:checked)) .tag[data-tag="c8"] {
+    border-color: var(--a-hi);
+    background: var(--a-hi);
+    color: var(--a-surface);
+  }
+
+  /* Wider containers: two columns, resources in a grid */
+  @container arch (min-width: 34rem) {
+    .arch .grid--shared {
+      grid-template-columns: 1.5fr 1fr;
+    }
+
+    .arch .grid--pair {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .arch .grid--member {
+      grid-template-columns: 1fr 1fr;
+      align-items: start;
+    }
+
+    .arch .flows {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .arch .flow--wide {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @container arch (min-width: 52rem) {
+    .arch .grid--member {
+      grid-template-columns: 1.15fr 1fr;
+    }
+
+    .arch .node__name,
+    .arch .frame__title {
+      font-size: 0.84rem;
+    }
+
+    .arch .node__meta,
+    .arch .flow {
+      font-size: 0.78rem;
+    }
+  }
+</style>
