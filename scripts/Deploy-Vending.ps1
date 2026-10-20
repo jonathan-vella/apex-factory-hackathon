@@ -43,7 +43,7 @@ Monthly budget on the workload subscription, in the billing currency.
 Email address for the budget alert at 80%.
 .PARAMETER ShowIds
 Print the hub's resource IDs in full. By default the summary masks the subscription ID in them, so the output
-can go into the team repo as evidence.
+can go into your own repo's factory/evidence/ as evidence.
 .PARAMETER SkipDefender
 Leave the subscription's Defender for Cloud plans as they are. Without it, every paid plan is turned off
 subscription-wide (Foundational CSPM only), including for resources the kit didn't create. Use it only in

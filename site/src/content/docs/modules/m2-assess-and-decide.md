@@ -13,7 +13,7 @@ M0 complete: the datacenter, Arc onboarding and a first assessment. M1 doesn't n
 
 ## Where to run
 
-C3's Upgrade agent assessment runs on `vm-dev01`, set up as in the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/#switching-to-vm-dev01). Its Arc assessment runs in the Azure portal. The triage record and C4's ADRs go in the team repo.
+C3's Upgrade agent assessment runs on `vm-dev01`, set up as in the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/#switching-to-vm-dev01). Its Arc assessment runs in the Azure portal. The triage record and C4's ADRs go in `factory/evidence/` in your own repo.
 
 ## Bootstrap (standalone)
 

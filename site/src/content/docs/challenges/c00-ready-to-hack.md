@@ -80,7 +80,7 @@ Reuse that `$s` in every command below (re-run the `$s = ...` line in any new te
 
 ## Evidence
 
-Save your evidence in a local folder as you go, because the team repo doesn't exist until C1. On day one, copy it to the team repo as `evidence/c00/member-<n>/` (`<n>` is your member index), then commit and push as [C1](../c01-define-the-opportunity/#the-team-repo-what-it-is-and-how-to-set-it-up) describes. Redact subscription, tenant and object IDs from anything you commit.
+Save your evidence in `factory/evidence/c00/` in your own repo, or in a local folder if you prefer. On day one, [C1](../c01-define-the-opportunity/#where-your-evidence-goes) sets up the `factory/evidence/` folder in your own repo (with `cp -rn` it keeps a `c00/` folder you already made); commit and push `factory/evidence/c00/` to `main` then, with a conventional commit message such as `docs: C0 evidence`. Redact subscription, tenant and object IDs from anything you commit.
 
 - `Test-Preflight.ps1` output: every automated check green. `.local/preflight.json` is git-ignored, so save the console output or a screenshot instead.
 - `Test-Datacenter.ps1` output from before Arc onboarding: every check green (or an explained FAIL your coach has already seen).

@@ -8,11 +8,11 @@ Member cleanup deletes `rg-datacenter`, which removes `vm-dev01` and its `C:\src
 
 - Scores are signed off in the [scoreboard](scoreboard.md) and no evidence question is open.
 - The member's work branch on `vm-dev01` (`vm-dev01-work`, or the lifeline branch a coach applied) is pushed to the member's own repo with `git push`. Check `git branch -vv` on `vm-dev01` and that the commits are on GitHub.
-- The evidence that the challenge pages ask for is in the team repo under `evidence/cNN/member-<n>/`, copied, committed and pushed as in [Copy your evidence to the team repo](../site/src/content/docs/guides/ghcp-upgrade.md#copy-your-evidence-to-the-team-repo). That covers the C6 task commits, the C9 fix scripts and results, and any screenshots from the Azure portal or Application Insights.
+- The evidence that the challenge pages ask for is in the member's own repo under `factory/evidence/cNN/`, copied, committed and pushed to `main` as in [Copy your evidence to your repo](../site/src/content/docs/guides/ghcp-upgrade.md#copy-your-evidence-to-your-repo). That covers the C6 task commits, the C9 fix scripts and results, and any screenshots from the Azure portal or Application Insights.
 - Each member has noted their `.local/settings.json` values (workload subscription, member index, suffix, location), or the person running cleanup has them. Member cleanup needs them, and they're lost if the dev container is rebuilt without the file.
 - The event report has the costs and the owner follow-ups.
 
-The GitHub repos (members' repos and the team repo) aren't touched by cleanup. Decide with the partner how long to keep them.
+The members' GitHub repos aren't touched by cleanup. Decide with the partner how long to keep them.
 
 ## Member cleanup
 

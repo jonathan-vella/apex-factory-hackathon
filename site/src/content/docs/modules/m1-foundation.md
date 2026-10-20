@@ -13,7 +13,7 @@ Every member's M0 complete, because vending needs each member's datacenter to ex
 
 ## Where to run
 
-The dev container of your own repo, from `factory/`. C1's team repo setup runs on your own computer.
+The dev container of your own repo, from `factory/`. C1's evidence set-up runs in your own repo, on your own computer.
 
 ## Bootstrap (standalone)
 

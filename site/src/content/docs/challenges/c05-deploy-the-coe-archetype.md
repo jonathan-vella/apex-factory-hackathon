@@ -54,7 +54,7 @@ The `/apex-adapt-archetype` skill runs from the repo root (not `factory/`). `azd
 
 ## Evidence
 
-Save screenshots and output as files in `evidence/c05/member-<n>/` in the team repo, and commit and push them. Redact subscription, tenant and object IDs first.
+Save screenshots and output as files in `factory/evidence/c05/` in your own repo, and commit (for example `docs: C5 evidence`) and push them to `main`. Redact subscription, tenant and object IDs first.
 
 - Your own repo, with `/apex-adapt-archetype`'s outputs and `azd provision`'s deployment record.
 - `agent-output/university/07-as-built.md` from the As-Built agent.

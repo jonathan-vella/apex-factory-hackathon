@@ -17,25 +17,25 @@ Team and member. **45 min**.
 
 ## Inputs
 
-C3's triaged findings (everyone's `evidence/c03/member-<n>/triage.md`), including the trace-flag decision, and C2's exemptions tables.
+C3's triaged findings (everyone's `factory/evidence/c03/triage.md`, each teammate shares theirs on the shared screen), including the trace-flag decision, and C2's exemptions tables.
 
 ## Where to run
 
-In the team repo, in the folder on your computer (the same terminal as C1: `cd ~/repos/<team-repo>`, then `git pull`). Copy the templates you need from the repo's `templates/` folder ([ADR](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/adr.md), [deferred-work register](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/deferred-work-register.md)). No Azure access is needed. Commit only your own files, then `git pull --rebase` and `git push`.
+In your own repo, in the folder on your computer (the same terminal as C1: `cd ~/repos/<your-repo>`). Copy the templates you need from `factory/templates/attendee/` ([ADR](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/adr.md), [deferred-work register](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/deferred-work-register.md)). No Azure access is needed. The team writes the team documents together on one person's screen; then every teammate copies the final files into their own repo, commits with a conventional message (for example `docs: C4 target-state decisions`) and runs `git push` to `main`.
 
 ## Your tasks
 
-1. As a team, write the platform ADR in `evidence/c04/adr-platform.md`: the CoE archetype's shape (App Service, SQL MI, Blob, Service Bus, Key Vault, Application Insights) and why it fits C1's opportunity. One teammate commits it.
-2. As a team, write the migration-method ADR in `evidence/c04/adr-migration.md`: Arc SQL migration assessment plus MI link, online, with a planned cutover — and why not an offline backup/restore. One teammate commits it.
-3. As a member, write two ADRs in your own folder: `evidence/c04/member-<n>/adr-app.md` for the app target state (.NET 10, ASP.NET Core MVC, GitHub Copilot's Upgrade agent) and `evidence/c04/member-<n>/adr-data.md` for the data target state (SQL Managed Instance, Microsoft Entra authentication only).
-4. As a team, assemble `evidence/c04/deferred-work-register.md`. One teammate writes it from everyone's `triage.md`: every C3 finding you're deferring, including the trace-flag removal after cutover (one row per member, because each member has their own `vm-app01`), each with an owner, a target and a timeline. Add the exemptions from C2 as rows too: each member sends their exemptions table, and you map its columns to the register's (policy assignment to finding, owner to owner, target date to timeline).
-5. Commit and push everything, and check `git log` shows each teammate's files.
+1. As a team, write the platform ADR in `factory/evidence/c04/adr-platform.md`: the CoE archetype's shape (App Service, SQL MI, Blob, Service Bus, Key Vault, Application Insights) and why it fits C1's opportunity. Every teammate copies it into their own `factory/evidence/c04/`.
+2. As a team, write the migration-method ADR in `factory/evidence/c04/adr-migration.md`: Arc SQL migration assessment plus MI link, online, with a planned cutover — and why not an offline backup/restore. Every teammate copies it too.
+3. As a member, write two ADRs in your own repo: `factory/evidence/c04/adr-app.md` for the app target state (.NET 10, ASP.NET Core MVC, GitHub Copilot's Upgrade agent) and `factory/evidence/c04/adr-data.md` for the data target state (SQL Managed Instance, Microsoft Entra authentication only).
+4. As a team, assemble `factory/evidence/c04/deferred-work-register.md`. One teammate types it from everyone's `triage.md`: every C3 finding you're deferring, including the trace-flag removal after cutover (one row per member, because each member has their own `vm-app01`), each with an owner, a target and a timeline. Add the exemptions from C2 as rows too: each member reads out their exemptions table, and you map its columns to the register's (policy assignment to finding, owner to owner, target date to timeline). Every teammate copies the final register too.
+5. Commit and push everything to `main` of your own repo.
 
-Done when `evidence/c04/` holds both team ADRs and the register, and each member's folder holds their two ADRs.
+Done when `factory/evidence/c04/` in your repo holds both team ADRs and the register (matching the platform lead's copies) and your two ADRs.
 
 ## Evidence
 
-- The ADRs: platform and migration method (team), app and data (each member). Each has a decision, an alternative considered, and a consequence.
+- The ADRs: platform and migration method (team, scored from the platform lead's copy), app and data (each member). Each has a decision, an alternative considered, and a consequence.
 - The deferred-work register, with every deferred C3 finding present and the trace-flag removal step explicitly listed for each member.
 
 ## Hints

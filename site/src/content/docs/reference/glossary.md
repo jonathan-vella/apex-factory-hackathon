@@ -17,6 +17,7 @@ sidebar:
 | CoE | Center of Excellence: the team or pattern this kit's archetype represents. |
 | Datacenter | This kit's simulated on-premises environment: `vm-app01` (the legacy app and database) and `vm-dev01` (the member's workstation). |
 | Dev container | The containerized development environment in your own repo (from `apex-accelerator`) with the Azure CLI, PowerShell 7, Git, `azd` and Bicep. You run the kit's scripts from `factory/` inside it. |
+| Evidence folder | `factory/evidence/` in your own repo, created in C1 from `factory/templates/team/evidence`. It holds your written evidence for each challenge (`cNN/`), committed to `main`. No code is deployed from it. |
 | GHCP | GitHub Copilot. |
 | Kit | This repository's content as you use it: the scripts, infrastructure, app, templates and archetype, imported into the `factory/` folder of your own repo. |
 | Lifeline | A coach-applied unblock for a stuck member or team, used at the coach's discretion — see your coach, not this glossary, for how it works. |
@@ -26,6 +27,5 @@ sidebar:
 | Preflight | The automated and manual readiness checks you run before the event with `Test-Preflight.ps1`. `Test-Datacenter.ps1` is a separate check of the deployed datacenter. |
 | Spoke | A member's virtual network `vnet-spoke` in their workload subscription. Vending creates it and peers it to the hub. The archetype runs in it. |
 | Suffix | A random six-character string that `Initialize-Settings.ps1` generates once for you. It names your archetype resources, such as `rg-university-<suffix>`. Not the same as the member index. |
-| Team repo | The one private repo your whole team shares, created in C1 from `templates/team/`. It holds the team's written evidence, and no code is deployed from it. |
 | Upgrade agent | GitHub Copilot's agent for assessing and executing a .NET upgrade, used throughout C6. |
 | Vending | The per-member process of connecting a workload subscription into ALZ-lite's hub: placement under the Corp management group, spoke, subnets, peering, routes, DNS, firewall rules, RBAC and budget. |

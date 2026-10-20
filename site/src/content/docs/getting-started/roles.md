@@ -13,7 +13,7 @@ The platform lead is also a student. They hold their own workload subscription a
 
 ## Members
 
-Everyone else on the team: teams have three to five people, platform lead included. Each member has their own workload subscription and a member index (1 to 20), runs the member challenges independently, and joins the team challenges together with the rest of the team. One teammate creates the team repo in C1; your coach tells you who.
+Everyone else on the team: teams have three to five people, platform lead included. Each member has their own workload subscription and a member index (1 to 20), runs the member challenges independently, and joins the team challenges together with the rest of the team. Evidence goes in each member's own repo; C1 sets it up.
 
 ## Coach
 

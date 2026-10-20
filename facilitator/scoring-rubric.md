@@ -12,7 +12,7 @@ This is the scoring single source of truth. The base contract is 80 team points 
 - Challenge bonus tasks and badges draw from one bonus allowance per team, capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. Award the bonuses in the order they appear in this rubric until the team reaches the cap. Once a team has reached it, further eligible bonus evidence is recorded but adds no points.
 - Rank teams by team score. Teams with the same score share the rank.
 - Team score = team base points + average member base points + awarded team bonus + average awarded member bonus, with combined bonus capped at 30. The scoreboard shows the components separately.
-- Coaches sign off evidence and the event owner resolves scoring disagreements against this rubric. Keep evidence in the team's repository; redact secrets and tenant, subscription and object IDs before sharing it publicly.
+- Coaches sign off evidence and the event owner resolves scoring disagreements against this rubric. Coaches read each member's own repo (evidence is in `factory/evidence/cNN/`). Score team items once per team, from the platform lead's copy; the other members' copies must match it. Redact secrets and tenant, subscription and object IDs before sharing evidence publicly.
 
 ## Base points by challenge
 
@@ -151,7 +151,7 @@ Each badge adds 5 team bonus points when its evidence is signed off. Badges shar
 | Zero public backend endpoints | SQL MI, Blob, Service Bus, Key Vault and ACR are private-only; only the documented web front end and telemetry ingestion are public exceptions | C8 security check with the commands or portal views used |
 | Policy clean | Kit Deny policies have no unapproved violations on the archetype resources; the documented datacenter exemptions are not counted as unapproved violations | Policy compliance evidence and the reviewed exemption register |
 | Rollback ready | The team can explain the pre-cutover abort, the writable MI copy trap and the safe reseed plan | Committed cutover/rollback runbook, with C7 abort evidence if the curveball was triggered |
-| Trust but verify | AI-produced changes are reviewed by a person and the relevant build, test or runtime checks are recorded | Task commits and check output linked from the team's evidence |
+| Trust but verify | AI-produced changes are reviewed by a person and the relevant build, test or runtime checks are recorded | Task commits and check output linked from the evidence |
 | Cost guardian | Team records the event cost, stops idle datacenter VMs outside the event days (never `vm-dev01` during the event) and accounts for the MI schedule and budget | Cost worksheet and shutdown/schedule evidence |
 | Reusable-asset contributor | Another team could use the packaged asset without undocumented tribal knowledge | C10 asset, README and handover reference |
 

@@ -9,11 +9,11 @@ description: Close out the engagement with a reusable asset and an AI-readiness 
 
 ## Prerequisites
 
-Every other module's evidence for the team, in the team repo.
+Every other module's evidence for the team, in each member's own repo (`factory/evidence/`).
 
 ## Where to run
 
-The team repo. M7 needs no infrastructure of its own.
+Your own repo, on your computer. M7 needs no infrastructure of its own.
 
 ## Bootstrap (standalone)
 

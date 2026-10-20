@@ -77,13 +77,13 @@ The modernization files are at `C:\src\factory\.github\modernization\`. The app 
 
 ## Save your work and keep the branches straight
 
-You work in **two repos**, and each has its own branch. Keep this table in mind; most confusion comes from mixing them up.
+You work in **one repo of your own**, and on `vm-dev01` it has two clones, each on its own branch. Keep this table in mind; most confusion comes from mixing them up.
 
 | Where | Repo | Branch | What's there |
 | --- | --- | --- | --- |
 | Your dev container (C0 to C2, C5) | Your own repo | `main` | The accelerator, plus the kit in `factory/` |
 | `vm-dev01`, `C:\src\factory` (C3, C6, C7, C9) | The public kit (`origin`), connected to your repo (`member`) | `vm-dev01-work` | The kit at the repo root: the app and your changes |
-| The team repo (C1 onward) | Your team's evidence repo | `main` | Evidence only |
+| `vm-dev01`, `C:\src\<your-repo>` (C3, C6, C7, C9) | Your own repo | `main` | Evidence only, in `factory/evidence/` |
 
 After each task, commit and push to your branch. Because step 5 set the upstream, a plain `git push` goes to `member/vm-dev01-work`:
 
@@ -107,24 +107,22 @@ Your own repo now has the `vm-dev01-work` branch next to `main`. The two branche
 
 :::
 
-### Copy your evidence to the team repo
+### Copy your evidence to your repo
 
-Your assessors read the team repo, not your work branch. After a challenge, copy its evidence there (clone the team repo once, then repeat the rest). You need write access to it, from C1. Replace `<n>` with your member index and `c03` with the challenge:
+Your assessors read your evidence on `main` in your own repo, not your work branch. After a challenge, copy its evidence there. Clone your own repo's `main` once on the VM, to `C:\src\<your-repo>`. This is a separate clone from the `C:\src\factory` kit clone: never mix them. Then repeat the rest after each challenge, with `c03` replaced by the challenge:
 
 ```powershell
-git clone https://github.com/<your-org>/<team-repo>.git C:\src\team-repo
-cd C:\src\team-repo
-git pull
-$dest = "evidence\c03\member-<n>"
+git clone https://github.com/<your-org>/<your-repo>.git C:\src\<your-repo>
+cd C:\src\<your-repo>
+$dest = "factory\evidence\c03"
 New-Item -ItemType Directory -Force $dest | Out-Null
 Copy-Item C:\src\factory\.github\upgrades\scenarios\dotnet-version-upgrade\assessment.md $dest
 git add $dest
-git commit -m "C3: member <n> assessment"
-git pull --rebase
+git commit -m "docs: C3 assessment"
 git push
 ```
 
-The team repo is a different repo with its own `main`: this is the only place where you `git pull`. Don't commit tenant IDs, subscription IDs or secrets. Screenshots and exported reports go in the same folder.
+Use a conventional commit message (`type: Subject`): your repo's commit hook rejects anything else. Push to `main`; no pull request is needed. If the push is rejected because `main` moved, run `git pull --rebase` in `C:\src\<your-repo>` and push again. Don't commit tenant IDs, subscription IDs or secrets. Screenshots and exported reports go in the same folder. Never merge `vm-dev01-work` into `main`.
 
 ## Where to run
 

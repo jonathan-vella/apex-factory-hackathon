@@ -29,7 +29,7 @@ Start the link at 08:30 on Day 2, before you finish C6, so it's already seeded w
 | 3 (stop the writers) | `vm-app01` (the legacy IIS and SQL Server VM), through Bastion. Plus a check on `vm-dev01`. |
 | 4, 5 (secret, user, App Service) | `vm-dev01`, in PowerShell and SSMS. It's inside the private network, so it reaches the managed instance and Key Vault. |
 | 6 (trace flags) | `vm-app01`, through Bastion. |
-| 7 (runbook) | The team repo: on `vm-dev01` (clone it as in [Copy your evidence to the team repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-the-team-repo), and save into `evidence/c07/member-<n>/`), or on your own computer. |
+| 7 (runbook) | Your own repo: on `vm-dev01` (clone it as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo), and save into `factory/evidence/c07/`), or on your own computer, in your repo's folder. |
 
 Connect to a VM through Bastion in the portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. Get the password in your dev container, from `factory/`:
 
@@ -138,7 +138,7 @@ $mi
       "Flags: $($table.Rows.Count)"
       ```
 
-7. Write the cutover and rollback runbook from what you actually did, using the [template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md), and save it in `evidence/c07/member-<n>/` in the team repo.
+7. Write the cutover and rollback runbook from what you actually did, using the [template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md), and save it in `factory/evidence/c07/` in your own repo.
 
 ## Evidence
 
@@ -146,7 +146,7 @@ $mi
 - The maintenance-window output from `vm-app01`: site and pool `Stopped`, `Sessions: 0`, and the lag at no lag (two dashes) in the Monitor and cutover pane just before you completed the cutover.
 - `https://app-university-<suffix>.azurewebsites.net/` loading, with the five pages showing the migrated data.
 - The contained database user created, and the `CREATE USER` statement used (no `WITH SID`, no `TYPE = E` — SQL MI doesn't support them).
-- The source's trace flags removed (the empty `DBCC TRACESTATUS` output from task 6), and the cutover/rollback runbook committed to the team repo.
+- The source's trace flags removed (the empty `DBCC TRACESTATUS` output from task 6), and the cutover/rollback runbook committed to your own repo.
 
 ## Why the cutover isn't scripted
 

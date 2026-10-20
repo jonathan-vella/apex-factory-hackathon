@@ -25,7 +25,7 @@ C7's app, live on App Service against SQL MI.
 | --- | --- |
 | 1 (pages), 2, 3 (browser flows) | A browser, on any computer. Use `vm-dev01` if your own network can't reach the web app. The row counts in task 1 and the blob listing in task 2 use `vm-dev01` (SSMS and PowerShell), because the databases and storage are private-only. |
 | 4, 5 (load and security checks) | The dev container of your own repo, from `factory/`. |
-| 6 (record) | The team repo, in `evidence/c08/member-<n>/`. |
+| 6 (record) | Your own repo, in `factory/evidence/c08/`. |
 
 In the dev container, open `pwsh` and set up the values the checks use:
 
@@ -75,7 +75,7 @@ The last line prints your archetype's resource group and the web app's host name
    ```
 
    It reports PASS, FAIL or UNKNOWN for: the five pages and the HTTP-to-HTTPS redirect; the web app's HTTPS-only and minimum TLS 1.2; public network access off and an approved private endpoint for Storage, Service Bus, Key Vault and Container Registry; and SQL Managed Instance's public data endpoint off. It must end with `ACCEPT`. Fix every FAIL, and explain every UNKNOWN with the portal view that settles it. It doesn't replace tasks 1 to 3, and it doesn't prove the data is right. If you have time, check **Azure Policy > Compliance** (filter on your resource group) and **Microsoft Defender for Cloud > Recommendations** for findings on the same resources as a second view; they can lag the live settings by many minutes, so treat them as corroboration only, and skip them if you're short of time.
-6. **Record every result** against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`). Save it in `evidence/c08/member-<n>/` in the team repo. Your `acceptance.json` is in `factory/.local/` in your own repo on your computer: copy it from there into the team repo's folder, then commit and push.
+6. **Record every result** against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`). Save it in `factory/evidence/c08/` in your own repo. Your `acceptance.json` is in `factory/.local/`: copy it from there into `factory/evidence/c08/`, then commit (a conventional message, for example `docs: C8 acceptance pack`) and push `main`.
 
 ## Evidence
 

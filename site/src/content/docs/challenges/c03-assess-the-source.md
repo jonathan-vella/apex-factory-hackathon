@@ -23,7 +23,7 @@ C0's first Arc migration assessment. C2's foundation doesn't need to be finished
 
 - **Upgrade agent assessment and plan (task 1):** on `vm-dev01`, in VS Code opened on `C:\src\factory`, on your `vm-dev01-work` branch. Connect through Bastion and set up the branch as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 1 to 6). Don't use the dev container: the Local harness has to run next to the app. The exact setup and prompt are in Step 0 and Step 1 of the playbook, `C:\src\factory\.github\modernization\playbook.md` on the VM.
 - **Arc assessment (task 2):** the Azure portal, in your browser.
-- **Triage record (tasks 3 to 6):** the team repo, in `evidence/c03/member-<n>/`. Copy `assessment.md` there from the VM, as in [Copy your evidence to the team repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-the-team-repo), and write the triage table in the same folder (see [the team repo](../c01-define-the-opportunity/#the-team-repo-what-it-is-and-how-to-set-it-up)). If the team repo doesn't exist yet, keep your files in a local folder and copy them in once it does.
+- **Triage record (tasks 3 to 6):** your own repo, in `factory/evidence/c03/` (set up in [C1](../c01-define-the-opportunity/#where-your-evidence-goes)). Copy `assessment.md` there from the VM, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo), and write the triage table in the same folder. If `factory/evidence/` isn't set up yet, keep your files in a local folder and copy them in once it is.
 
 ## Your tasks
 
@@ -32,7 +32,7 @@ C0's first Arc migration assessment. C2's foundation doesn't need to be finished
 3. Triage every finding from both assessments: blocker, accepted risk, or fix, and what it means for the target state.
 4. Work through the trace-flag finding by hand, not just by ticking it: the assessment reports **"Trace flags not supported in Azure SQL Managed Instance"** (warning) for flags `1800` and `9567`. The kit set these on the source on purpose. Find out why in the MI link preparation article under Learn more, then decide what to do about the finding, and record your reason, its impact on the target state, and when the flags should be removed.
 5. Learn to tell this kind of self-inflicted, expected finding apart from one that would genuinely force the workload onto SQL Server on an Azure VM instead of SQL MI (for example, a feature SQL MI doesn't support at all, used by the application).
-6. Write the triage table to `evidence/c03/member-<n>/triage.md`, with the columns finding, source, triage and impact. Deferrals from it go into the deferred-work register in C4.
+6. Write the triage table to `factory/evidence/c03/triage.md`, with the columns finding, source, triage and impact. Deferrals from it go into the deferred-work register in C4.
 
 ## Evidence
 

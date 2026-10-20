@@ -51,7 +51,7 @@ The one change C6 asks of you in Azure, besides pushing the image, is a Monitori
 
 ## Evidence
 
-- Seven task commits (`app: task 0N <name>`), each preceded by a passing build and a local run, pushed to `vm-dev01-work` in your own repo. Copy your screenshots and notes to the team repo as in [Copy your evidence to the team repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-the-team-repo), in `evidence/c06/member-<n>/`.
+- Seven task commits (`app: task 0N <name>`), each preceded by a passing build and a local run, pushed to `vm-dev01-work` in your own repo. Copy your screenshots and notes to your own repo as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo), in `factory/evidence/c06/`.
 - The app running on `vm-dev01` against the source database, with uploads landing in Blob, a notification toast appearing within 5 seconds of an edit, and telemetry reaching Application Insights.
 - `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` reporting nothing, or a documented remediation.
 - The image tag in your registry (`az acr repository show-tags`).

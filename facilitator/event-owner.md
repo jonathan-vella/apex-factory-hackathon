@@ -8,7 +8,7 @@
 4. Preserve the two-subscription model, names, private networking, security constraints and the challenge point/time contract. If you intentionally change a technical contract, validate it and update the affected attendee and coach material together.
 5. Keep `versions.md` as the compatibility record. Before each event, compare its pinned versions and validation dates with the current upstream file; validate any update in a disposable environment before adopting it.
 6. Know what the copy does and doesn't control. Attendees run `Import-Kit.ps1`, the datacenter deployment's script download and the `vm-dev01` clone against the upstream `jonathan-vella/apex-factory-hackathon` repository at `main`, so an event copy doesn't change what they run. Keep technical changes upstream, or agree with attendees and coaches which copy they use before the event. Pull upstream changes only when you've reviewed them, because `main` moves under attendees.
-7. Work through the [T-30 to T-14 checklist](guide.md#t-30-to-t-14-event-owner) in the facilitator guide: roster, member indexes, platform lead, team-repo creator and access.
+7. Work through the [T-30 to T-14 checklist](guide.md#t-30-to-t-14-event-owner) in the facilitator guide: roster, member indexes, platform lead and access.
 
 ## Lifelines
 
