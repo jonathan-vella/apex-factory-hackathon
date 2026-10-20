@@ -24,7 +24,7 @@ This section introduces the challenges in order, with their time boxes and point
 
 **Totals: 975 min across 11 challenges, 200 base points (80 team + 120 member).** Bonus points (up to 30, noted per challenge) are separate from this base contract.
 
-Time boxes are pacing, not hard stops. Coaches flex on the day. The event's real gates are T-14 (14 days before day one) and T-3 (3 days before day one), both pre-work, and the end of each day. The [event overview](../getting-started/event-overview/#pre-work) has both gates.
+Time boxes are pacing, not hard stops. Coaches flex on the day. C0 takes about 150 minutes, plus about 30 for the VM setup in task 7. The event's real gates are T-14 (14 days before day one) and T-3 (3 days before day one), both pre-work, and the end of each day. The [event overview](../getting-started/event-overview/#pre-work) has both gates.
 
 On a challenge page, tick **Done** on each task card as you finish it. The bar under the header shows how many tasks are done and jumps to each one. Ticks stay in this browser only: they aren't shared with your team, and clearing site data or switching browsers starts you from zero. **Reset** clears the page.
 

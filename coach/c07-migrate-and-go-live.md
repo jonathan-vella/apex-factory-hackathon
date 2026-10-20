@@ -7,13 +7,13 @@ The cutover mechanism is the one detail worth double-checking: the validated pat
 
 ## Before the team starts
 
-- **Graph grant.** The platform lead and a Privileged Role Administrator ran `Grant-SqlMiDirectoryRead.ps1` in C2 on Day 1. On Day 2 at 08:30 confirm it: `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf` prints that the permissions are already granted. If it wasn't done, the contained user in task 4 fails with "Server identity does not have Azure Active Directory Readers permission". That is the most likely stuck point for a whole team; get the Privileged Role Administrator to run the script, then retry.
+- **Graph grant.** The platform lead and a Privileged Role Administrator ran `Grant-SqlMiDirectoryRead.ps1` in C2 on Day 1. On Day 2 at 08:30 confirm it: `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf` prints that the permissions are already granted. If it wasn't done, the contained user in task 5 fails with "Server identity does not have Azure Active Directory Readers permission". That is the most likely stuck point for a whole team; get the Privileged Role Administrator to run the script, then retry.
 - **Both VMs running.** `vm-app01` must be up (it holds the source), and `vm-dev01` stays running all event.
-- **Link started at 08:30.** The members start the link as C7 task 1, so seeding overlaps the end of C6. The time counts toward C7's 120 minutes.
+- **Link started at 08:30.** The members start the link in C7 tasks 1 and 2 (prepare the source, then start the link), so seeding overlaps the end of C6. The time counts toward C7's 120 minutes.
 
 ## Maintenance window
 
-At go/no-go agree a short window with each member (the page says so in task 3) and check it before they cut over:
+At go/no-go agree a short window with each member (the page says so in task 4) and check it before they cut over:
 
 1. Nothing on `vm-dev01` writes to the source (modernized app stopped, no `Reset-PerfKit.ps1`).
 2. On `vm-app01`, the site and the `ContosoUniversity` pool show `Stopped` and the session count is 0.

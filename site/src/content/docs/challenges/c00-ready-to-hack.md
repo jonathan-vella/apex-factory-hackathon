@@ -27,7 +27,7 @@ None. This is the first challenge: your workload subscription, assigned at onboa
 
 - **Tasks 1 to 4 and 6:** the dev container of your own repo, from the `factory/` folder, as set up in [Prerequisites](../../getting-started/prerequisites/).
 - **Task 5:** the Azure portal, on your own computer.
-- **Task 7:** the dev container for one lookup, the Azure portal, then `vm-dev01` itself through Bastion.
+- **Task 7:** the dev container for the lookups in step 1, the Azure portal, then `vm-dev01` itself through Bastion.
 
 Open a terminal in the dev container and start `pwsh`. Check you're signed in and load your settings:
 
@@ -96,7 +96,7 @@ If `az account show` fails, sign in again with `az login --use-device-code`. `$s
 
 ## Evidence
 
-Save your evidence in `factory/evidence/c00/` in your own repo (create the folder if it isn't there). The rule is the same everywhere:
+Save your evidence in `factory/evidence/c00/` in your own repo (create the folder if it isn't there). To save a screenshot or a file from your laptop, drag it into that folder in VS Code's Explorer, in the dev container. The rule is the same everywhere:
 
 - **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
 - **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
@@ -123,7 +123,7 @@ Most preflight failures are missing resource provider registrations or a role as
 
 `Connect-DatacenterArc.ps1` needs outbound internet from `vm-app01` to Arc's endpoints; the datacenter's NAT gateway (its shared outbound path) should already allow this. Don't run the script again if it timed out after it started: it refuses a second run once the guest agent is off, and re-running `Deploy-Datacenter.ps1` can't recover it either. To see what happened, connect to `vm-app01` through Bastion as in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 1 and 2, `vm-app01` instead of `vm-dev01`, same password) and open `C:\LabTools\logs\Connect-AppArc.log` in Notepad.
 
-If onboarding didn't finish, there are two ways out. Message your coach, who may have a faster fix. Or start over: delete `rg-datacenter` in the Azure portal (**Resource groups** > `rg-datacenter` > **Delete resource group**, in your own workload subscription), run `Deploy-Datacenter.ps1` again (task 2), `Test-Datacenter.ps1` (task 3), then Arc (task 4). Deleting `rg-datacenter` also deletes `vm-dev01`, so repeat task 7 afterwards.
+If onboarding didn't finish, there are two ways out. Message your coach, who may have a faster fix. Or start over: delete `rg-datacenter` in the Azure portal (**Resource groups** > `rg-datacenter` > **Delete resource group**, in your own workload subscription), run `Deploy-Datacenter.ps1` again (task 2), `Test-Datacenter.ps1` (task 3), then Arc (task 4). Deleting `rg-datacenter` also deletes `vm-dev01`, so repeat task 7 afterward.
 </details>
 
 <details>

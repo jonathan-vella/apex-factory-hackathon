@@ -9,7 +9,7 @@ This guide covers the mechanics of working on `vm-dev01` and running GitHub Copi
 
 ## Switching to vm-dev01
 
-From C3 you leave the dev container and work on `vm-dev01`, because the Upgrade agent's **Local** harness has to run next to the app and the datacenter's private network. (A harness is where the agent runs. **Local** runs it on this VM.) You set the VM up once, in C0 task 7, with the steps below, so that C3 opens on a ready VM. Never stop or deallocate `vm-dev01` during the event: it's your workstation for the rest of the event.
+You set up `vm-dev01` in C0 task 7 and reconnect to it in C2. From C3 you leave the dev container for the app work, because the Upgrade agent's **Local** harness has to run next to the app and the datacenter's private network. (A harness is where the agent runs. **Local** runs it on this VM.) The steps below are the setup you do once, in C0 task 7, so that C3 opens on a ready VM. Never stop or deallocate `vm-dev01` during the event: it's your workstation for the rest of the event.
 
 On `vm-dev01` you have two folders. Keep them apart:
 
@@ -18,7 +18,7 @@ On `vm-dev01` you have two folders. Keep them apart:
 | `C:\src\factory` | A clone of the public kit (its `origin`), with your own repo added as a second remote named `member` | `vm-dev01-work` | Code: the app and the Upgrade agent's changes. You push to `member`. |
 | `C:\src\<your-repo>` | A plain clone of your own repo (the one from Prerequisites) | `main` | Evidence: files in `factory\evidence\`. |
 
-A remote is a saved name for a repository's URL. `<your-org>` and `<your-repo>` are the owner and name of your own repo: copy them from its page on GitHub. `<workload-subscription-id>` is `$s.subscriptionId` in your dev container; `$s` is your `factory/.local/settings.json`, loaded as in C0.
+A remote is a saved name for a repository's URL. `<your-org>` and `<your-repo>` are the owner and name of your own repo: copy them from its page on GitHub. `<workload-subscription-id>` is your `$s.subscriptionId`; step 1 prints it.
 
 Before you start:
 
@@ -28,15 +28,17 @@ Before you start:
 
 Step 1 runs in your dev container and step 2 in the Azure portal on your own computer. Steps 3 to 9 run on `vm-dev01`.
 
-1. **Get the password.** In your dev container, open a terminal, start `pwsh` and go to `factory/`:
+1. **Get the password and two values for later.** In your dev container, open a terminal, start `pwsh` and go to `factory/`:
 
    ```powershell
    cd factory
    $s = Get-Content .local/settings.json | ConvertFrom-Json
    (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
+   $s.subscriptionId
+   git remote get-url origin
    ```
 
-   The user name is `labadmin`. The file is in your repo folder (git-ignored), so it survives a dev container rebuild. The same password opens `vm-app01`.
+   The first line is the password; the user name is `labadmin`. The second is your workload subscription ID (`<workload-subscription-id>` in step 4) and the third is your repo URL (the one to use for `<your-org>` and `<your-repo>` in steps 6 and 7). Keep them next to you, because the VM has no `factory/.local` folder. The password file is in your repo folder (git-ignored), so it survives a dev container rebuild. The same password opens `vm-app01`.
 2. **Connect through Bastion.** In the Azure portal on your own computer, use the search box to find **Resource groups**, check the directory and subscription filter shows your workload subscription, then open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**. Set **Authentication type** to **Password**, enter `labadmin` and the password, and choose **Connect**. After your first ever sign-in, wait up to five minutes before you open VS Code: the VM installs VS Code's extensions, including the Upgrade extension, for your user then. If you work from a Windows computer, `./scripts/Connect-DatacenterVm.ps1` is an optional shortcut that opens a Remote Desktop session through Bastion. It needs PowerShell 7, the Azure CLI with its `bastion` extension and a Windows-side copy of the `factory/` folder, so most people skip it.
 3. **Sign in to GitHub and set your git identity.** In PowerShell 7 on the VM:
 
@@ -58,7 +60,7 @@ Step 1 runs in your dev container and step 2 in the Azure portal on your own com
    [Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')
    ```
 
-   Enter the code at `https://microsoft.com/devicelogin` on your own computer. If your tenant blocks device code sign-in, run `az login` in the Bastion session instead. The last `az` command must print your workload subscription, the one with `rg-datacenter`. The environment variable makes the app's Azure calls use your own Azure CLI sign-in, because your own identity holds the data roles; without it the app gets 403 from Blob, Service Bus and Key Vault. Set it only on `vm-dev01`: on App Service the app uses its managed identity. It only reaches programs you start afterwards, so don't open VS Code before this step.
+   Enter the code at `https://microsoft.com/devicelogin` on your own computer. If your tenant blocks device code sign-in, run `az login` in the Bastion session instead. The last `az` command must print your workload subscription, the one with `rg-datacenter`. The environment variable makes the app's Azure calls use your own Azure CLI sign-in, because your own identity holds the data roles; without it the app gets 403 from Blob, Service Bus and Key Vault. Set it only on `vm-dev01`: on App Service the app uses its managed identity. It only reaches programs you start afterward, so don't open VS Code before this step.
 5. **Refresh the kit clone, once.** The deployment already cloned the public kit to `C:\src\factory`. The kit sits at its root, not in a `factory/` folder. Refresh it now, before you create your work branch (step 6), and never again after that:
 
    ```powershell
@@ -155,9 +157,9 @@ You have one repo of your own on GitHub. Your dev container holds a clone of it,
 
 | Where | Repo | Branch | What's there |
 | --- | --- | --- | --- |
-| Your dev container (C0 to C2, C5) | Your own repo | `main` | The accelerator, plus the kit in `factory/` |
+| Your dev container (C0 to C2, C4, C5, C10; C8 in part) | Your own repo | `main` | The accelerator, plus the kit in `factory/` |
 | `vm-dev01`, `C:\src\factory` (C3, C6, C7, C9) | The public kit (`origin`), connected to your repo (`member`) | `vm-dev01-work` | The kit at the repo root: the app and your changes |
-| `vm-dev01`, `C:\src\<your-repo>` (C3, C6, C7, C9) | Your own repo | `main` | Evidence only, in `factory\evidence\` |
+| `vm-dev01`, `C:\src\<your-repo>` (C3, C6, C7, C9; C8 in part) | Your own repo | `main` | Evidence only, in `factory\evidence\` |
 
 After each task, commit and push to your branch. Because step 6 set the upstream, a plain `git push` goes to `member/vm-dev01-work`:
 
@@ -187,8 +189,8 @@ Your own repo now has the `vm-dev01-work` branch next to `main`. The two branche
 
 Your assessors read your evidence on `main` in your own repo, not your work branch. Each team member keeps evidence in their own repo; there's no shared team repo. One rule applies everywhere:
 
-- **Dev container:** evidence goes in `factory/evidence/` on `main`. Run `git pull` first.
-- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`. Run `git pull --rebase` first.
+- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
+- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
 
 For a team document, one person types, then every teammate saves the final file under the same name in their own `factory/evidence/cNN/`.
 

@@ -49,8 +49,8 @@ The highlighted parts are what C5 adds to the spoke that C2 vended: the resource
 ## Your tasks
 
 1. Watch the coach's demo of the archetype's shape and the `/apex-adapt-archetype` flow.
-2. Open your own repo (created from the `apex-accelerator` template in [Prerequisites](../../getting-started/prerequisites/)) in its dev container or Codespaces, and confirm the archetype is already there: `agent-output/university/`, `infra/bicep/university/` and `.github/skills/apex-adapt-archetype/` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1` from the repo root (or the `Import-Kit.ps1` step from Prerequisites if `factory/` doesn't exist).
-3. Run the `/apex-adapt-archetype` skill, in the dev container or Codespaces (not natively on Windows):
+2. Open your own repo (created from the `apex-accelerator` template in [Prerequisites](../../getting-started/prerequisites/)) in its dev container, and confirm the archetype is already there: `agent-output/university/`, `infra/bicep/university/` and `.github/skills/apex-adapt-archetype/` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1` from the repo root (or the `Import-Kit.ps1` step from Prerequisites if `factory/` doesn't exist).
+3. Run the `/apex-adapt-archetype` skill, in the dev container (not natively on Windows):
 
    1. Sign in to `azd` first, in the terminal: `azd auth login --use-device-code`. `azd` keeps its own sign-in, separate from `az login`, and the skill stops without it. Skip this only if `azd` already says you're signed in.
    2. Open Copilot Chat, set the mode to **Agent** (the built-in one, not `01-Orchestrator`) and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` (the `$s.tenantId`, `$s.subscriptionId` and `$s.suffix` values from your terminal) and asks you to confirm them. It checks that a spoke is already vended, runs a lightweight live governance check and creates an `azd` environment named after your suffix (that's expected). Then it stops at `azd provision --preview`.
@@ -98,7 +98,7 @@ It looks for `rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe` and `snet-sqlmi` by
 </details>
 
 <details>
-<summary>My dev container or Codespaces environment was deleted</summary>
+<summary>My dev container was deleted</summary>
 
 `factory/.local/` went with it. Restore your suffix first with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` (use the suffix you were first given), then reload `$s` with the command in Where to run.
 </details>
@@ -124,7 +124,7 @@ The preview only lists resource types `azd` has display names for: it's expected
 <details>
 <summary>I'd rather run this natively on Windows</summary>
 
-Don't: APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a native Windows checkout turns `main.bicepparam` into CRLF line endings, which makes APEX's governance check fail. Use the dev container or Codespaces.
+Don't: APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a native Windows checkout turns `main.bicepparam` into CRLF line endings, which makes APEX's governance check fail. Use the dev container.
 </details>
 
 ## If you need to start over

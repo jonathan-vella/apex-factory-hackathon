@@ -5,6 +5,38 @@ import { join } from "node:path";
 import test from "node:test";
 import { runChecks } from "../scripts/check-content-invariants.mjs";
 
+test("a team template that differs from its attendee template is blocked", async () => {
+  const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
+  try {
+    await mkdir(join(root, "templates/attendee"), { recursive: true });
+    await mkdir(join(root, "templates/team/templates"), { recursive: true });
+    await writeFile(join(root, "templates/attendee/adr.md"), "# ADR\n");
+    await writeFile(join(root, "templates/team/templates/adr.md"), "# ADR changed\n");
+    await writeFile(join(root, "templates/attendee/only-attendee.md"), "# Only here\n");
+    const result = await runChecks(root);
+    const text = result.failures.join("\n");
+    assert.match(text, /templates\/team\/templates\/adr\.md: differs from/);
+    assert.doesNotMatch(text, /only-attendee/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("an evidence rule page without the two bullets is blocked", async () => {
+  const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
+  try {
+    await mkdir(join(root, "site/src/content/docs/guides"), { recursive: true });
+    await writeFile(
+      join(root, "site/src/content/docs/guides/ghcp-upgrade.md"),
+      "- **Dev container:** evidence goes in `factory/evidence/` on `main`. Run `git pull` first.\n",
+    );
+    const result = await runChecks(root);
+    assert.match(result.failures.join("\n"), /ghcp-upgrade\.md: missing the evidence rule bullet/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("retired artifact in an Astro component is blocked", async () => {
   const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
   try {

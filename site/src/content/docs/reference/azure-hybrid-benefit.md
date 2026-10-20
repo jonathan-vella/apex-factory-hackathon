@@ -23,7 +23,7 @@ If you do hold eligible licenses, leave AHB on.
 
 ## Turning it off to compare costs
 
-If you want to compare costs with and without AHB, turn it off for `vm-app01` only, with `Deploy-Datacenter.ps1 -NoHybridBenefit` or `az vm update -g rg-datacenter -n vm-app01 --license-type None`, or set the managed instance's `licenseType` to `LicenseIncluded`, and redeploy. Leave `vm-dev01` on `Windows_Client`. Turn AHB back on afterward if you hold eligible licenses: the kit's cost figures throughout this site assume it's on.
+Not during the event, and only with your coach's agreement: if you want to compare costs with and without AHB, turn it off for `vm-app01` only, with `Deploy-Datacenter.ps1 -NoHybridBenefit` or `az vm update -g rg-datacenter -n vm-app01 --license-type None`, or set the managed instance's `licenseType` to `LicenseIncluded`, and redeploy. Leave `vm-dev01` on `Windows_Client`. Turn AHB back on afterward if you hold eligible licenses: the kit's cost figures throughout this site assume it's on.
 
 ## Where to go next
 
