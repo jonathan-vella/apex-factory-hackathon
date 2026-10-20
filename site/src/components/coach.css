@@ -1,0 +1,100 @@
+.coach-banner {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1.1rem;
+  border: 2px solid var(--sl-color-red, #e5484d);
+  border-radius: 0.5rem;
+  background: var(--sl-color-red-low, rgb(229 72 77 / 0.12));
+  color: var(--sl-color-white, inherit);
+}
+
+.coach-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.coach-sheet .coach-facts > div {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--sl-color-hairline, #8884);
+  border-radius: 0.5rem;
+  background: var(--sl-color-bg-nav, transparent);
+}
+
+.coach-facts dt {
+  font-size: var(--sl-text-xs, 0.75rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sl-color-gray-3, inherit);
+}
+
+.coach-facts dd {
+  margin: 0.15rem 0 0;
+  font-size: var(--sl-text-lg, 1.1rem);
+  font-weight: 600;
+  color: var(--sl-color-white, inherit);
+}
+
+.coach-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  font-size: var(--sl-text-sm, 0.875rem);
+}
+
+.coach-card {
+  --card-color: var(--sl-color-gray-3, #888);
+  margin: 1.5rem 0;
+  padding: 0.25rem 1.25rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--card-color) 55%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--card-color) 6%, var(--sl-color-bg-nav, transparent));
+}
+
+.coach-card > h2 {
+  margin-top: 0.9rem;
+  margin-bottom: 0.5rem;
+  border: 0;
+  padding: 0;
+  color: var(--card-color);
+  font-size: var(--sl-text-xl, 1.25rem);
+}
+
+.coach-card > h2 + * {
+  margin-top: 0.5rem;
+}
+
+.coach-card__note {
+  margin-top: 0;
+  font-size: var(--sl-text-sm, 0.875rem);
+  color: var(--sl-color-gray-3, inherit);
+}
+
+.coach-card--evidence {
+  --card-color: var(--sl-color-green, #30a46c);
+}
+
+.coach-card--answer {
+  --card-color: var(--sl-color-blue, #3e63dd);
+}
+
+.coach-card--mistakes {
+  --card-color: var(--sl-color-red, #e5484d);
+}
+
+.coach-card--partial {
+  --card-color: var(--sl-color-orange, #f76b15);
+}
+
+.coach-card--bonus {
+  --card-color: var(--sl-color-purple, #8e4ec6);
+}
+
+.coach-card--reset {
+  --card-color: var(--sl-color-gray-3, #888);
+}
+
+.coach-card--scoring {
+  --card-color: var(--sl-color-accent, #7c5cff);
+}

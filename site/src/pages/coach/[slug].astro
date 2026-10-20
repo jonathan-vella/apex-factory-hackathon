@@ -1,0 +1,13 @@
+---
+import { getCollection } from "astro:content";
+import CoachSheet from "../../components/CoachSheet.astro";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("coach");
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+---
+
+<CoachSheet entry={entry} />

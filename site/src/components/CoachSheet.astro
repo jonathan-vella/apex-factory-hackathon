@@ -1,0 +1,104 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import type { CollectionEntry } from "astro:content";
+import "./coach.css";
+
+interface Props {
+  entry: CollectionEntry<"coach">;
+}
+
+const { entry } = Astro.props;
+const data = entry.data;
+const sourceUrl = `https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/${data.sourcePath}`;
+const isChallenge = data.kind === "challenge";
+
+const scopeLabel = data.scope ? data.scope : undefined;
+const points = [
+  data.teamPoints ? `${data.teamPoints} team` : undefined,
+  data.memberPoints ? `${data.memberPoints} member` : undefined,
+]
+  .filter(Boolean)
+  .join(" + ");
+
+const headings = [
+  ...(data.scoringHtml ? [{ depth: 2, slug: "scoring", text: "Scoring" }] : []),
+  ...data.sections.map((section) => ({
+    depth: 2,
+    slug: section.slug,
+    text: section.title,
+  })),
+];
+
+const frontmatter = {
+  title: data.title,
+  description: "Coach material. Hidden page, not for attendees.",
+  editUrl: false,
+  lastUpdated: false,
+  prev: false,
+  next: false,
+  pagefind: false,
+  tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 2 },
+  head: [
+    { tag: "meta", attrs: { name: "robots", content: "noindex, nofollow, noarchive" } },
+    { tag: "meta", attrs: { name: "googlebot", content: "noindex, nofollow" } },
+  ],
+} as const;
+---
+
+<StarlightPage frontmatter={frontmatter} headings={headings}>
+  <div class="coach-sheet" data-pagefind-ignore>
+    <aside class="coach-banner" role="note">
+      <strong>Coach material: contains the answers. Don't share with attendees.</strong>
+    </aside>
+
+    {isChallenge && (
+      <dl class="coach-facts">
+        {scopeLabel && (
+          <div>
+            <dt>Scope</dt>
+            <dd>{scopeLabel}</dd>
+          </div>
+        )}
+        {data.minutes !== undefined && (
+          <div>
+            <dt>Time box</dt>
+            <dd>{data.minutes} min</dd>
+          </div>
+        )}
+        {points && (
+          <div>
+            <dt>Points</dt>
+            <dd>{points}</dd>
+          </div>
+        )}
+        <div>
+          <dt>Bonus</dt>
+          <dd>{data.bonus ?? "None listed"}</dd>
+        </div>
+      </dl>
+    )}
+
+    <p class="coach-links">
+      <a href="/coach/">All coach pages</a>
+      {isChallenge && data.studentPage && <a href={data.studentPage}>Student page</a>}
+      <a href={sourceUrl}>Source on GitHub</a>
+    </p>
+
+    {data.introHtml.trim() && <div class="coach-intro" set:html={data.introHtml} />}
+
+    {data.scoringHtml && (
+      <section class="coach-card coach-card--scoring" id="scoring">
+        <h2>Scoring</h2>
+        <p class="coach-card__note">From the scoring rubric.</p>
+        <div set:html={data.scoringHtml} />
+      </section>
+    )}
+
+    {data.sections.map((section) => (
+      <section class={`coach-card coach-card--${section.kind}`} id={section.slug}>
+        <h2>{section.title}</h2>
+        <div set:html={section.html} />
+      </section>
+    ))}
+  </div>
+</StarlightPage>

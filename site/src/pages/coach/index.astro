@@ -1,0 +1,85 @@
+---
+import StarlightPage from "@astrojs/starlight/components/StarlightPage.astro";
+import { getCollection } from "astro:content";
+import "../../components/coach.css";
+
+const entries = await getCollection("coach");
+const challenges = entries
+  .filter((entry) => entry.data.kind === "challenge")
+  .sort((a, b) => a.id.localeCompare(b.id));
+const others = [
+  entries.find((entry) => entry.id === "run-of-show"),
+  entries.find((entry) => entry.id === "lifelines"),
+].filter((entry) => entry !== undefined);
+
+const points = (data: (typeof challenges)[number]["data"]) =>
+  [
+    data.teamPoints ? `${data.teamPoints} team` : undefined,
+    data.memberPoints ? `${data.memberPoints} member` : undefined,
+  ]
+    .filter(Boolean)
+    .join(" + ");
+
+const frontmatter = {
+  title: "Coach cheat sheets",
+  description: "Coach material. Hidden page, not for attendees.",
+  editUrl: false,
+  lastUpdated: false,
+  prev: false,
+  next: false,
+  pagefind: false,
+  tableOfContents: false,
+  head: [
+    { tag: "meta", attrs: { name: "robots", content: "noindex, nofollow, noarchive" } },
+    { tag: "meta", attrs: { name: "googlebot", content: "noindex, nofollow" } },
+  ],
+} as const;
+---
+
+<StarlightPage frontmatter={frontmatter}>
+  <div class="coach-sheet" data-pagefind-ignore>
+    <aside class="coach-banner" role="note">
+      <strong>Coach material: contains the answers. Don't share with attendees.</strong>
+    </aside>
+
+    <p>
+      One cheat sheet per challenge, rendered from the <code>coach/</code> folder and the scoring
+      rubric. Edit the source files, not these pages. Nothing on the student site links here.
+    </p>
+
+    <h2>Challenges</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Challenge</th>
+          <th>Scope</th>
+          <th>Minutes</th>
+          <th>Points</th>
+          <th>Bonus</th>
+        </tr>
+      </thead>
+      <tbody>
+        {challenges.map(({ id, data }) => (
+          <tr>
+            <td>
+              <a href={`/coach/${id}/`}>{data.title}</a>
+            </td>
+            <td>{data.scope}</td>
+            <td>{data.minutes}</td>
+            <td>{points(data)}</td>
+            <td>{data.bonus ?? "None listed"}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+
+    <h2>Facilitator pages</h2>
+    <ul>
+      {others.map(({ id, data }) => (
+        <li>
+          <a href={`/coach/${id}/`}>{data.title}</a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</StarlightPage>
