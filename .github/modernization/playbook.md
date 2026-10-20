@@ -37,47 +37,27 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
 
 ## Step 0: Set up
 
-**Goal:** a signed-in VM, a clean legacy tree and the Upgrade agent ready in the Local harness.
+**Goal:** a ready VM: signed in, your two folders in place, a clean legacy tree and the Upgrade agent ready in the Local harness.
 
-1. Connect to `vm-dev01` through Bastion. Open PowerShell 7 and sign in with device code flows. Each command prints a code: enter it on your own device, where passkeys and password managers work.
+You set this up once, in C0 task 7. The steps (sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the kit clone, the `member` remote and your `vm-dev01-work` branch, your plain clone for evidence, VS Code, the Upgrade agent) are in the guide: [Switching to vm-dev01](https://factory.apexops.pro/guides/ghcp-upgrade/#switching-to-vm-dev01). Don't repeat them here. Before Step 1, check in PowerShell 7 on `vm-dev01`:
 
-   ```powershell
-   gh auth login --web                 # enter the code at https://github.com/login/device
-   az login --use-device-code          # enter the code at https://microsoft.com/devicelogin
-   az account show --query name -o tsv # your workload subscription, the one with rg-datacenter
-   ```
+```powershell
+Set-Location C:\src\factory
+git branch -vv                                  # must show * vm-dev01-work tracking member/vm-dev01-work
+az account show --query name -o tsv             # your workload subscription, the one with rg-datacenter
+git status --short --ignored -- app .github     # must print nothing
+```
 
-   Some tenants block device code flow. Then use `az login` in the Bastion session.
+If the last command prints something, leftover plans, skills and build output from an earlier attempt would steer the agent. Remove them (a dry run first, to read the list):
 
-2. Give git your GitHub identity. A fresh VM user has none, and the first commit fails without it:
+```powershell
+git clean -ndx -- app .github
+git clean -fdx -- app .github
+```
 
-   ```powershell
-   $u = gh api user | ConvertFrom-Json
-   git config --global user.name ($u.name ?? $u.login)
-   git config --global user.email "$($u.id)+$($u.login)@users.noreply.github.com"
-   gh auth setup-git
-   ```
+In VS Code, the agent picker must list **Upgrade**, **GitHub Copilot modernization** must be disabled for the workspace, and the chat's **Session Target** must be **Local**. If the Upgrade server can't call a model, give it model access: **MCP: List Servers** > **Upgrade** > **Configure Model Access**.
 
-3. Make `DefaultAzureCredential` use your Azure CLI sign-in. Your own identity holds the data roles, and without this the app gets 403 from Blob, Service Bus and Key Vault. Then restart VS Code and every terminal:
-
-   ```powershell
-   [Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')
-   ```
-
-   Set it only on `vm-dev01`. On App Service the app uses its managed identity.
-
-4. Use the kit clone and your work branch, then make the tree pure legacy. The deployment cloned the kit to `C:\src\factory`; the [GHCP upgrade guide](https://factory.apexops.pro/guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 4 and 5) connects it to your own repo as the `member` remote and creates your work branch `vm-dev01-work`. Do those steps first. Leftover plans, skills and build output from an earlier attempt steer the agent:
-
-   ```powershell
-   Set-Location C:\src\factory
-   git branch -vv                       # must show * vm-dev01-work tracking member/vm-dev01-work
-   git clean -ndx -- app .github        # dry run: read the list
-   git clean -fdx -- app .github
-   git status --short --ignored -- app .github   # must print nothing
-   ```
-
-5. Open the clone's root in VS Code (`code C:\src\factory`), so the agent finds `.github/skills/` and `.github/modernization/`. Check that **GitHub Copilot upgrade** is installed and enabled. If **GitHub Copilot modernization** is installed, disable it for the workspace (**Extensions** > **GitHub Copilot modernization** > **Disable (Workspace)**).
-6. In the Chat panel, set the harness (**Session Target**) to **Local**. Give the Upgrade server model access once: **MCP: List Servers** > **Upgrade** > **Configure Model Access**, and allow the models you'll use.
+**Check:** `az account show` names your workload subscription, `git status --short` prints nothing, and the agent picker lists **Upgrade**.
 
 **Check:** `az account show` names your workload subscription, `git status --short` prints nothing, and the agent picker lists **Upgrade**.
 

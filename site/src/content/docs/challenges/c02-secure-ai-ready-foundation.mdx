@@ -11,7 +11,9 @@ Stand up the team's landing zone: a live portal ALZ demo first, then ALZ-lite de
 
 ## Scope and time box
 
-Team. **120 min**. The platform lead does tasks 3 to 5; every member does tasks 6 and 7 for their own datacenter. Members wait for the platform lead's vending (task 5) before task 6. ALZ-lite (task 3) deploys unattended in about 9 minutes, so the platform lead starts it at the start of day one while the team works on C1; the coach's demo (task 2) opens C2 at 09:45.
+Team. **120 min**. The platform lead does tasks 3 to 5; every member does tasks 6 and 7 for their own datacenter. ALZ-lite (task 3) deploys unattended in about 15 to 25 minutes, mostly Azure Firewall, so the platform lead starts it at the start of day one while the team works on C1; the coach's demo (task 2) opens C2 at 09:45.
+
+**How C2 fits around C3.** Members start C3 at 10:15, usually before the platform lead has vended everyone. The platform lead vends themselves first, then the others (about 4 minutes each), and posts "vended" with the member's name in the team channel after each run. When you see yours, stop at a clean point in C3 (for example right after the `app: assess and plan` commit), do tasks 6 and 7 (about 15 minutes), then go back to C3. Your `vm-dev01` is already set up (C0 task 7), so after the restart in task 7 you only reconnect through Bastion and open VS Code on `C:\src\factory` again. **Restart `vm-dev01` only when no agent run is in progress:** a restart ends your Bastion session and the run in it.
 
 ## Points
 
@@ -23,14 +25,14 @@ C1's opportunity canvas (context only — C2 doesn't depend on its content).
 
 ## Where to run
 
-Every command on this page runs in the dev container of your own repo, from the `factory/` folder, unless a task says otherwise. Open a terminal there, start PowerShell, and go to `factory`:
+Every command on this page runs in the dev container of your own repo, from the `factory/` folder, unless a task says otherwise (task 4 is run by someone else, on their own computer). Open a terminal there, start PowerShell, and go to `factory`:
 
 ```bash
 pwsh
 cd factory
 ```
 
-Check you're signed in (run `az login --use-device-code` if this fails), and load your settings. In any new terminal, repeat the `$s = ...` line; you only re-run `Initialize-Settings.ps1` when you add or change a value (task 1):
+Check you're signed in (run `az login --use-device-code` only if this fails), and load your settings. In any new terminal, repeat the `$s = ...` line; `$s` is your `factory/.local/settings.json` (`$s.subscriptionId`, `$s.memberIndex`, `$s.sharedSubscriptionId`, `$s.location`). You only re-run `Initialize-Settings.ps1` when you add or change a value (task 1):
 
 ```powershell
 az account show --output table
@@ -45,9 +47,19 @@ The highlighted parts are what C2 puts in place: the management groups, the hub 
 
 <ArchitectureDiagram highlight="c2" name="c2-arch" caption="Highlighted: what C2 deploys. n is your member index." />
 
+Terms on this page:
+
+- **Management group:** a container above subscriptions. Policy and access set on it apply to everything under it.
+- **Hub and spoke:** the hub is the shared virtual network (`vnet-hub`) with the firewall and the central private DNS zones. Each member's spoke (`vnet-spoke`) connects to it through a peering.
+- **Firewall DNS proxy:** Azure Firewall answers the VMs' DNS queries, so they resolve the private names of Azure services.
+- **UDR:** a user-defined route. Here, a route that sends the spoke's traffic through the hub firewall.
+- **Vending:** connecting a member's workload subscription and datacenter to the hub.
+- **Exemption:** a recorded, time-limited exception to a policy for one resource, with an owner, a reason and an expiry.
+- **Graph read:** Microsoft Graph read permissions that let SQL Managed Instance look up Microsoft Entra users and apps.
+
 ## Your tasks
 
-1. **Everyone: get the shared services subscription ID.** The platform lead posts it in the team channel at the start of day one. In the terminal above, add it to your settings, then reload `$s`. The script asks for your other values again: press Enter at each prompt to keep them.
+1. **Members: record the shared services subscription ID.** The platform lead posts it in the team channel at the start of day one. (Platform lead: skip this task, your settings already hold the ID from Prerequisites.) In the terminal above, add it to your settings, then reload `$s`. The script asks nothing; it prints the path of your settings file and your suffix.
 
    ```powershell
    ./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
@@ -55,8 +67,8 @@ The highlighted parts are what C2 puts in place: the management groups, the hub 
    $s.sharedSubscriptionId
    ```
 
-   The last line prints the ID you just saved. The platform lead already has it; run the same command once to record it.
-2. Watch the coach's live demo of a full portal-based Azure Landing Zone, and note what ALZ-lite deliberately leaves out (it's a comparison table in the [ALZ-lite guide](../../guides/alz-lite/), not a gap to fix).
+   Done when the last line prints the shared services subscription ID the platform lead gave you.
+2. Watch the coach's live demo of a full portal-based Azure Landing Zone, and note what ALZ-lite deliberately leaves out (it's a comparison table in the [ALZ-lite guide](../../guides/alz-lite/), not a gap to fix). Done when you can name two things a full ALZ has that ALZ-lite leaves out.
 3. **Platform lead: deploy ALZ-lite.** On Day 1 the platform lead starts this at 09:00, before joining C1, so it's finished by the demo in task 2 (09:45). In the same terminal (dev container, `factory/`), against the **shared services** subscription:
 
    ```powershell
@@ -65,41 +77,42 @@ The highlighted parts are what C2 puts in place: the management groups, the hub 
    ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
    ```
 
-   It creates the management groups, the hub (Azure Firewall Standard with DNS proxy, central private DNS zones), the central Log Analytics workspace, and the core policies at `mg-factory-corp`. It creates the identity `id-sqlmi-directory` in `rg-management`, which task 4 needs. Done when the second run prints "ALZ-lite is deployed" with the management groups, the hub firewall and the workspace. The other members wait for vending (task 5) before their own tasks.
-4. **Platform lead, with a Privileged Role Administrator: grant the SQL MI identity its Graph read, once per team.** Every member's SQL Managed Instance uses `id-sqlmi-directory`, and without this grant C7 can't create the web app's database user (`CREATE USER ... FROM EXTERNAL PROVIDER` fails with "Server identity does not have Azure Active Directory Readers permission"). Only someone with the Privileged Role Administrator (or Global Administrator) directory role can grant it. The platform lead usually can't, so your coach arranges that person (see the facilitator's pre-work): they sign in with `az login` as themselves in the same dev container (or any machine with the kit), and run:
+   It creates the management groups, the hub (Azure Firewall Standard with DNS proxy, central private DNS zones), the central Log Analytics workspace, and the core policies at `mg-factory-corp`. It creates the identity `id-sqlmi-directory` in `rg-management`, which task 4 needs. Done when the second run prints "ALZ-lite is deployed" with the management groups, the hub firewall and the workspace. The other members wait for vending (task 5) before their own tasks 6 and 7.
+4. **Platform lead, with a Privileged Role Administrator: grant the SQL MI identity its Graph read, once per team.** Every member's SQL Managed Instance uses `id-sqlmi-directory`, and without this grant C7 can't create the web app's database user (`CREATE USER ... FROM EXTERNAL PROVIDER` fails with "Server identity does not have Azure Active Directory Readers permission"). Only someone with the Privileged Role Administrator (or Global Administrator) Microsoft Entra directory role can grant it, and the platform lead usually doesn't hold that role. So ask your coach to bring that person to you. They run the two commands below from their own computer, in the kit's `factory/` folder (your coach helps them get it), signed in as themselves with `az login`. Don't have them sign in inside your dev container: a second `az login` there replaces yours. Give them the shared services subscription ID (`$s.sharedSubscriptionId`). You don't wait for them to start task 5: vending doesn't depend on this grant. It must be done before C7.
 
    ```powershell
    ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>' -WhatIf
    ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
    ```
 
-   Done when the second run reports the three Graph permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) as granted. A re-run skips what is already granted. If the identity lookup is denied, give that person Reader on the shared services subscription first.
-5. **Platform lead: vend every member, yourself included.** You are also a student with one workload subscription like everyone else, and you need to be vended too. Collect from each member their workload subscription ID, member index, location (the same as yours unless the coach said otherwise), Entra object ID and email. Each member gets the object ID with `az ad signed-in-user show --query id -o tsv` and posts these values in the team channel; nobody commits them to any repo. `-MemberPrincipalId` is required in practice: without it vending skips the member's Owner role, their Reader role on the shared services subscription (which `Test-Connectivity.ps1` and C5's preflight need to read the hub) and the Managed Identity Operator grant on `id-sqlmi-directory`, and C5's preflight then stops. Run once per member, from the same `factory/` folder:
+   Done when the second run reports the three Graph permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) as granted. A re-run skips what is already granted. Ask the role holder to share the output with you for your evidence. If the identity lookup is denied, give that person Reader on the shared services subscription first.
+5. **Platform lead: vend every member, yourself first.** You are also a student with one workload subscription like everyone else, and you need to be vended too: do yours first, so your own C2 and C3 tasks aren't left waiting. Collect from each member their workload subscription ID, member index, location (the same as yours unless the coach said otherwise), Entra object ID and email. Each member gets the object ID with `az ad signed-in-user show --query id -o tsv` and posts these values in the team channel; nobody commits them to any repo. `-MemberPrincipalId` is required in practice: without it vending skips the member's Owner role, their Reader role on the shared services subscription (which `Test-Connectivity.ps1` and C5's preflight need to read the hub) and the Managed Identity Operator grant on `id-sqlmi-directory`, and C5's preflight then stops. Run once per member, from the same `factory/` folder:
 
    ```powershell
    ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -WhatIf
    ```
 
-   Re-run without `-WhatIf` once the plan looks right. Each run connects that workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget. It takes about 4 minutes per member. Done when each run prints "is vended". `Deploy-Vending.ps1` masks subscription IDs in its own summary, but the `-WhatIf` text that comes from Azure doesn't, so remove subscription IDs from anything you save before committing.
-6. **Every member (including the platform lead): record your datacenter's exemptions.** After you've been vended, run this from your own `factory/` folder against your workload subscription. Each exemption needs an owner, a reason and an expiry (the default is 14 days). Policy changes can take up to 30 minutes to take effect after ALZ-lite, so if the output says "nothing to do", wait and run it again; check `az policy assignment list --scope /providers/Microsoft.Management/managementGroups/mg-factory-corp -o table` for the `ALZ-lite:` assignments first:
+   Re-run without `-WhatIf` once the plan looks right. Each run connects that workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget. It takes about 4 minutes per member. After each run, post "vended" with the member's name in the team channel. Done when each run prints "is vended". `Deploy-Vending.ps1` masks subscription IDs in its own summary, but the `-WhatIf` text that comes from Azure doesn't, so remove subscription IDs from anything you save before committing. Your `az` context is still the shared services subscription from task 3 (the commands here name their subscriptions); task 6 switches it back.
+6. **Every member (including the platform lead): record your datacenter's exemptions.** Wait for "vended" with your name. Then run this from your own `factory/` folder against your workload subscription. Each exemption needs an owner, a reason and an expiry (the default is 14 days). Policy changes can take up to 30 minutes to take effect after ALZ-lite, so if the output says "nothing to do", wait and run it again. First check that the `ALZ-lite:` policy assignments are visible on your subscription (they're inherited from `mg-factory-corp`; the portal shows them under **Policy** > **Assignments**):
 
    ```powershell
    az account set --subscription $s.subscriptionId
+   az policy assignment list --disable-scope-strict-match -o table
    ./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $s.subscriptionId -Owner '<your name>' -WhatIf
    ```
 
-   Re-run without `-WhatIf` to create them. Done when the script prints the exemptions table. Save it: you carry its rows into the deferred-work register in C4.
-7. **Every member: prove connectivity.** Vending changed your datacenter's DNS servers and routes, and running VMs keep their old settings, so first restart both VMs (`az vm restart -g rg-datacenter -n vm-dev01 --subscription $s.subscriptionId`, then `-n vm-app01`). If you're working on `vm-dev01` at the time, expect your session to drop; reconnect through Bastion. Then run this from your own dev container, from `factory/`. It runs its checks inside your datacenter VMs through Azure, so you don't sign in to the VMs:
+   Re-run the last command without `-WhatIf` to create the exemptions. Done when the script prints the exemptions table. Save it: you carry its rows into the deferred-work register in C4.
+7. **Every member: prove connectivity (about 10 min).** Vending changed your datacenter's DNS servers and routes, and running VMs keep their old settings, so first restart both VMs, only when no agent run is in progress on `vm-dev01` (`az vm restart -g rg-datacenter -n vm-dev01 --subscription $s.subscriptionId`, then `-n vm-app01`). If you're connected to `vm-dev01`, your Bastion session drops: reconnect through Bastion and open VS Code on `C:\src\factory`. Then run this from your own dev container, from `factory/`. It runs its checks inside your datacenter VMs through Azure, so you don't sign in to the VMs:
 
    ```powershell
    ./scripts/Test-Connectivity.ps1 -SubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex
    ```
 
-   Every applicable check must PASS.
+   Done when every applicable check is PASS. If one fails, see the hint "DNS stops resolving for a running VM after vending".
 
 ## Evidence
 
-Save screenshots and output as files in `factory/evidence/c02/` in your own repo, and commit (for example `docs: C2 evidence`) and push them to `main`. The team-level items (ALZ-lite, the Graph grant, vending) are scored once per team, from the platform lead's copy. Redact subscription, tenant and object IDs first: the hub VNet, DNS zone and workspace IDs in the vending output all contain the shared services subscription ID.
+Save screenshots and output as files in `factory/evidence/c02/`, and commit (for example `docs: C2 evidence`) and push them. **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first (your VM pushes evidence to the same repo). The team-level items (ALZ-lite, the Graph grant, vending) are scored once per team, from the platform lead's copy. Redact subscription, tenant and object IDs first: the hub VNet, DNS zone and workspace IDs in the vending output all contain the shared services subscription ID.
 
 - `Deploy-AlzLite.ps1` output: management groups, hub and policies in place.
 - `Grant-SqlMiDirectoryRead.ps1` output: the three Graph permissions granted.
@@ -124,8 +137,12 @@ That's expected until exemptions run — the datacenter was deployed before the 
 <details>
 <summary>DNS stops resolving for a running VM after vending</summary>
 
-VNet DNS servers changed, but running VMs keep their old settings. Restart the VM (`az vm restart`, as in task 7).
+VNet DNS servers changed, but running VMs keep their old settings. Restart the VM (`az vm restart`, as in task 7), only when no agent run is in progress on it, then run `Test-Connectivity.ps1` again.
 </details>
+
+## If you need to start over
+
+Run `Deploy-AlzLite.ps1` and `Deploy-Vending.ps1` again: both converge on existing resources. If a member's datacenter is redeployed (C0), vend that member again, restart both of their VMs and record their policy exemptions again. ALZ-lite bills about $1.30 an hour while it exists, because of the firewall: when the event is over, delete `rg-hub` in the shared services subscription to stop it.
 
 ## Bonus
 
