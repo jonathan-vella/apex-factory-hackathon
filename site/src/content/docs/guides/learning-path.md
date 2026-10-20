@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-This page links each factory challenge to Microsoft Learn content and to the credential that builds on it. It also shows which track takes which exam, and in what order. The event is hands-on first: you learn a little before it, build the factory, and take the exams afterwards.
+This page links each factory challenge to Microsoft Learn content and to the credential that builds on it. It also shows which track takes which exam, and in what order. The event is hands-on first: you learn a little before it, build the factory, and take the exams afterward.
 
 :::note
 No exam is a gate for attending the event. Exam rules, outlines and Partner Center requirements change, so the links go to the pages that are the source of truth. [Last validated](#last-validated) shows when each one was checked.
@@ -37,7 +37,7 @@ AKS and Container Apps are learning content, not a kit path: the factory runs on
 
 ## Role tracks
 
-These are certification tracks, not event roles. On the event you're a member of a team (see [Roles](../../getting-started/roles/)); pick the track closest to your day job. Core exams are the certifications everyone on that track takes first, in the stage 2 window. Specialize exams add depth afterwards, in stage 3. If you're unsure which exam to take first: infra tracks start with AZ-104, the data track with DP-300 and the developer track with GH-300.
+These are certification tracks, not event roles. On the event you're a member of a team (see [Roles](../../getting-started/roles/)); pick the track closest to your day job. Core exams are the certifications everyone on that track takes first, in the stage 2 window. Specialize exams add depth afterward, in stage 3. If you're unsure which exam to take first: infra tracks start with AZ-104, the data track with DP-300 and the developer track with GH-300.
 
 | Track | Core | Specialize | Next | Challenges closest to this track |
 | --- | --- | --- | --- | --- |

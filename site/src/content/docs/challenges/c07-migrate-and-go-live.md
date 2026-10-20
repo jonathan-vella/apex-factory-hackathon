@@ -72,12 +72,13 @@ $mi
 
 ## Your tasks
 
-1. **Prepare the source.** Run the kit's `Prepare-MiLinkSource.ps1` on `vm-app01`. It must run inside a Bastion session, because VM run commands stop working once the VM is Arc-enabled. Safe to run again: it changes nothing that already exists.
+1. **Prepare the source.** Run the kit's `Prepare-MiLinkSource.ps1` on `vm-app01`. It must run inside a Bastion session, because VM run commands stop working once the VM is Arc-enabled. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
 
    1. Connect to `vm-app01` through Bastion and open an Administrator Windows PowerShell (Where to run).
    2. Download the script and run it with the command from the dev container, which has your `<n>` in it. If your event runs from a copy of the kit, your coach gives you that copy's URL instead of the one below.
 
       ```powershell
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       New-Item -ItemType Directory -Force C:\LabTools | Out-Null
       Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/infra/datacenter/scripts/Prepare-MiLinkSource.ps1' -OutFile C:\LabTools\Prepare-MiLinkSource.ps1 -UseBasicParsing
       C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.<n>.128/26

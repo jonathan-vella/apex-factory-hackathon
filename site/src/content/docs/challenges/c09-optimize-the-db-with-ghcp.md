@@ -81,7 +81,7 @@ Start each run at least five minutes after the previous one finished, so two run
 
    Use GitHub Copilot to diagnose each plan, not just to write the fix: in VS Code, which has the SQL Server extension, paste the query text and the plan's warnings or its XML into Copilot Chat (SSMS's own Copilot works too, if your SSMS has it). In SSMS, right-click the plan > **Show Execution Plan XML** for the XML; warnings show as a yellow triangle on an operator. Apply the fixes in two checkpoints:
    - **Checkpoint 1:** P5, P1, P2 and P3.
-   - **Checkpoint 2:** P4, last: raising the compatibility level can change how P4's view runs, so measuring P4 afterwards shows whether the rewrite still matters.
+   - **Checkpoint 2:** P4, last: raising the compatibility level can change how P4's view runs, so measuring P4 afterward shows whether the rewrite still matters.
 
    Change each object in place (`ALTER` the same procedure, view or function, with the same name and parameter names): the workload calls `dbo.usp_SearchStudents`, `dbo.usp_GetStudentEnrollments` and `dbo.vw_EnrollmentStatistics` by name, so a copy such as `usp_SearchStudents_v2` leaves the "after" run unchanged. Each fix is done when the same input returns the same rows as before, or when you state in your summary what changed in behavior (P2 can't keep `LIKE '%term%'` results identical if you change it to a prefix search). Save each fix as its own script (`p1-<name>.sql` to `p5-<name>.sql`) in `$ev`, and run it in SSMS against `ContosoUniversity`.
 4. **Capture the numbers after each run.** The baseline run is task 1. After each fix checkpoint, repeat task 1's command, unchanged. After every run, wait a minute for Query Store to flush, then:

@@ -16,7 +16,7 @@ param vmSize string = 'Standard_D8as_v6'
 @description('Windows 11 Enterprise image SKU for vm-dev01.')
 param devImageSku string = 'win11-25h2-ent'
 
-@description('Azure Hybrid Benefit for Windows Server on vm-app01. Assumes eligible licences. vm-dev01 always uses Windows_Client.')
+@description('Azure Hybrid Benefit for Windows Server on vm-app01. Assumes eligible licenses. vm-dev01 always uses Windows_Client.')
 param enableHybridBenefit bool = true
 
 @description('Password of the labadmin user on both VMs.')

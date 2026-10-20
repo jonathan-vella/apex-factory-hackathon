@@ -2,7 +2,7 @@
 title: Azure Arc and the MI link
 description: Onboarding, assessment, source preparation, seeding, go/no-go and cutover.
 sidebar:
-  order: 4
+  order: 1
 ---
 
 This guide covers the mechanics of the Arc-based SQL Managed Instance link migration. [C7](../../challenges/c07-migrate-and-go-live/) is the what, the maintenance-window steps and the acceptance bar; [C3](../../challenges/c03-assess-the-source/) covers assessment triage.

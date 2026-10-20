@@ -3,10 +3,10 @@
 
 <#
 .SYNOPSIS
-Prepares vm-app01's SQL Server and the ContosoUniversity database for the SQL Managed Instance link migration in C7. Safe to run again.
+Prepares vm-app01's SQL Server and the ContosoUniversity database for the SQL Managed Instance link migration in C7. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
 .DESCRIPTION
-Run it on vm-app01 in a Bastion session, in Windows PowerShell 5.1, as an administrator (right-click Start >
-Terminal (Admin) > Windows PowerShell). It needs your own admin session: VM run commands stop working once
+Run it on vm-app01 in a Bastion session, in Windows PowerShell 5.1, as an administrator (select Start, type powershell,
+right-click Windows PowerShell and choose Run as administrator). It needs your own admin session: VM run commands stop working once
 vm-app01 is Arc-enabled in C0, so there's no remote way to run it. The labadmin user is a SQL Server sysadmin.
 
 It follows "Prepare environment for a Managed Instance link migration" (SQL Server migration in Azure Arc) and
@@ -26,6 +26,9 @@ logs each step with its time to C:\LabTools\logs\Prepare-MiLinkSource.log:
    backup file of an earlier run.
 
 The script only changes this VM. It never touches Azure, and the source database keeps working.
+
+To check the script without running it (syntax, parameter check, help), run this from the repo root on any computer:
+pwsh -NoProfile -File test/Test-MiLinkSource.Tests.ps1
 .PARAMETER MiSubnetPrefix
 The managed instance's subnet, snet-sqlmi in your spoke: 10.20.<n>.128/26, where <n> is your member index
 (the memberIndex value in factory/.local/settings.json). For member 3, 10.20.3.128/26.

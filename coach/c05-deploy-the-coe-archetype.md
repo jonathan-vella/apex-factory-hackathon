@@ -1,7 +1,7 @@
 # C5 answer key: Deploy the CoE archetype with APEX
 
 > [!WARNING]
-> Coach material. This page has the answers to C5. Attendees run APEX's `/apex-adapt-archetype` flow themselves, in a dev container or Codespaces.
+> Coach material. This page has the answers to C5. Attendees run APEX's `/apex-adapt-archetype` flow themselves, in the local dev container.
 
 The one thing to watch for here is members trying this natively on Windows — it produces a subtle, hard-to-diagnose failure (a corrupted tree hash from CRLF line endings), not an obvious error.
 
@@ -16,7 +16,7 @@ The one thing to watch for here is members trying this natively on Windows — i
 ## Model answer
 
 1. The member's repo and the archetype are already in place from the prerequisites (`Import-Kit.ps1`). If the archetype is missing, run `./factory/archetype/Import-Archetype.ps1 -Ref main` from the repo root.
-2. Open the repo in the dev container or Codespaces (never natively on Windows — `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a Windows checkout corrupts the tree hash the governance check relies on).
+2. Open the repo in the dev container (never natively on Windows — `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a Windows checkout corrupts the tree hash the governance check relies on).
 3. Run `/apex-adapt-archetype` in agent mode: it asks only for tenant ID, subscription ID and suffix, confirms C2's vended spoke exists (`rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe`, `snet-sqlmi`), runs its lightweight governance check, and stops at `azd provision --preview`.
 4. Review the preview (see the "looks incomplete" hint below — it's expected to be partial), then run `azd provision` for real.
 5. Run agent `08-As-Built` to produce the deployed-state document.
@@ -24,7 +24,7 @@ The one thing to watch for here is members trying this natively on Windows — i
 
 ## Common mistakes
 
-- Running `/apex-adapt-archetype` natively on Windows "because the dev container is slow to start" — this is the single most impactful mistake in C5; insist on the dev container or Codespaces every time.
+- Running `/apex-adapt-archetype` natively on Windows "because the dev container is slow to start" — this is the single most impactful mistake in C5; insist on the dev container every time.
 - Treating `azd provision --preview`'s partial output as a failure — it only lists resource types `azd` has display names for; SQL MI, the managed identity, role assignments and the maintenance schedule are created even though the preview doesn't name them.
 - Skipping the As-Built step because the deployment "obviously worked" — As-Built is graded evidence, not optional.
 - Trying to run `/apex-adapt-archetype` before C2's vending finished for that member — it fails fast with a clear "spoke not found" message; this is a sequencing issue, not a bug. A preflight that stops with "cannot be read" or a missing `assign/action` permission on `id-sqlmi-directory` means vending ran without the member's `-MemberPrincipalId`: the platform lead re-runs vending with it.

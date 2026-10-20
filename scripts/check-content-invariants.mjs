@@ -22,6 +22,16 @@ const expectedMinutes = 975;
 const expectedPoints = 200;
 const expectedTeamPoints = 80;
 const expectedMemberPoints = 120;
+const evidenceRule = [
+  "- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.",
+  "- **`vm-dev01`:** evidence goes in `C:\\src\\<your-repo>\\factory\\evidence\\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.",
+];
+const evidenceRulePages = [
+  "site/src/content/docs/getting-started/prerequisites.md",
+  "site/src/content/docs/challenges/c00-ready-to-hack.md",
+  "site/src/content/docs/challenges/c01-define-the-opportunity.md",
+  "site/src/content/docs/guides/ghcp-upgrade.md",
+];
 
 async function collectFiles(path) {
   let entries;
@@ -44,6 +54,53 @@ async function collectFiles(path) {
   }
 
   return files;
+}
+
+// The team template folder holds copies of the attendee templates: they must stay byte-identical.
+async function checkTemplateCopies(root) {
+  const attendee = join(root, "templates/attendee");
+  const team = join(root, "templates/team/templates");
+  let names;
+  try {
+    names = await readdir(attendee);
+  } catch (error) {
+    if (error.code === "ENOENT") return [];
+    throw error;
+  }
+  const failures = [];
+  for (const name of names) {
+    let copy;
+    try {
+      copy = await readFile(join(team, name));
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      throw error;
+    }
+    if (!copy.equals(await readFile(join(attendee, name)))) {
+      failures.push(`templates/team/templates/${name}: differs from templates/attendee/${name}`);
+    }
+  }
+  return failures;
+}
+
+// One evidence rule, worded the same on every page that states it, so the copies cannot drift.
+async function checkEvidenceRule(root) {
+  const failures = [];
+  for (const page of evidenceRulePages) {
+    let text;
+    try {
+      text = await readFile(join(root, page), "utf8");
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      throw error;
+    }
+    const lines = text.split(/\r?\n/);
+    for (const bullet of evidenceRule) {
+      if (!lines.includes(bullet))
+        failures.push(`${page}: missing the evidence rule bullet: ${bullet}`);
+    }
+  }
+  return failures;
 }
 
 export async function runChecks(root = defaultRoot) {
@@ -170,6 +227,8 @@ export async function runChecks(root = defaultRoot) {
       `challenge contract: expected ${expectedPoints} base points, found ${totalPoints}`,
     );
   }
+
+  failures.push(...(await checkTemplateCopies(root)), ...(await checkEvidenceRule(root)));
 
   let rubricTeamPoints = 0;
   let rubricMemberPoints = 0;

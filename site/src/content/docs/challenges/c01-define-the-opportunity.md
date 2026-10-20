@@ -49,7 +49,7 @@ The `-n` keeps anything you already created in C0 (such as `factory/evidence/c00
 
 ## Where to run
 
-The dev container of your own repo, and only there: it has the tools and the GitHub sign-in you set up in Prerequisites. Don't use a terminal outside the container. It opens at the repo root, so you don't need to `cd`. Work on one shared screen (one person types, everyone contributes). No Azure access is needed for C1.
+The dev container of your own repo, and only there: it has the tools and the GitHub sign-in you set up in Prerequisites. Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if it isn't already open in it. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer. The terminal opens at the repo root, so you don't need to `cd`. Work on one shared screen (one person types, everyone contributes). No Azure access is needed for C1.
 
 ## Your tasks
 

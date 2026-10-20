@@ -215,12 +215,12 @@ Hybrid Benefit is **on by default**:
 
 | VM | `licenseType` | What it means |
 |---|---|---|
-| `vm-app01` | `Windows_Server` | Hybrid Benefit for Windows Server: compute is billed at the Linux rate. It assumes the partner holds eligible Windows Server licences with Software Assurance or subscriptions, as partners in CSP usually do |
+| `vm-app01` | `Windows_Server` | Hybrid Benefit for Windows Server: compute is billed at the Linux rate. It assumes the partner holds eligible Windows Server licenses with Software Assurance or subscriptions, as partners in CSP usually do |
 | `vm-dev01` | `Windows_Client` | Multitenant hosting rights, which Windows 11 on Azure needs. It isn't optional, and compute is billed at the Linux rate |
 
-SQL Server 2022 Developer is free, so it needs no licence setting.
+SQL Server 2022 Developer is free, so it needs no license setting.
 
-If you don't hold eligible licences, deploy with `-NoHybridBenefit`, or turn it off after deployment:
+If you don't hold eligible licenses, deploy with `-NoHybridBenefit`, or turn it off after deployment:
 
 ```powershell
 az vm update -g rg-datacenter -n vm-app01 --license-type None

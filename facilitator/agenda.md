@@ -33,7 +33,7 @@ The challenge minutes are effort targets, not a serial schedule. On Day 1 the pl
 
 | Time | Activity | Challenge / owner | Notes |
 |---|---|---|---|
-| 08:30–09:00 | Reconnect, check both VMs are running and the Graph grant is done, then start the MI link | Platform lead, members | The link is C7 task 1, started early so seeding overlaps the end of C6. The time counts toward C7's 120 minutes |
+| 08:30–09:00 | Reconnect, check both VMs are running and the Graph grant is done, then start the MI link | Platform lead, members | The link is C7 tasks 1 and 2 (prepare the source, then start the link), started early so seeding overlaps the end of C6. The time counts toward C7's 120 minutes |
 | 09:00–10:30 | Modernize with GHCP, part 2 | C6 / members | Complete the 180-minute total across both days |
 | 10:30–12:30 | Migrate and go live | C7 / members | Validate the read-only replica, go/no-go, cutover and app checks; trigger the abort curveball at go/no-go |
 | 12:30–13:15 | Lunch break | — | — |
@@ -47,7 +47,7 @@ The challenge minutes are effort targets, not a serial schedule. On Day 1 the pl
 
 - The C2 portal ALZ demo is live and coach-led in the coach's own tenant; it has no kit deployment script.
 - ALZ-lite deploys during C1. Members can reach the dev VM through Bastion without waiting for ALZ-lite.
-- SQL MI provisioning starts while C6 begins on Day 1. The MI link starts at 08:30 on Day 2 (C7 task 1), so automatic seeding runs while the final C6 work completes.
+- SQL MI provisioning starts while C6 begins on Day 1. The MI link starts at 08:30 on Day 2 (C7 tasks 1 and 2), so automatic seeding runs while the final C6 work completes.
 - Keep `vm-dev01` running from Day 1 kickoff to the end of the event, and keep `vm-app01` running until the link is removed. Stop VMs only in the pre-work gaps and after the event.
 - If the MI or link misses the agenda window, do not skip the read-only replica checks or cut over under time pressure. The coach uses the Day 2 abort curveball and the team replans.
 - Day 1 from 09:00 to 12:30 holds more challenge minutes than clock time, because C1, C2, C3 and C4 overlap. The platform lead carries the most overlap, so coaches protect the C4 hour for the ADRs and don't add work.

@@ -9,7 +9,7 @@ sidebar:
 |---|---|
 | ADR | Architecture decision record: a short note of a decision, an alternative you considered and the consequence. C4 produces them. |
 | ALZ-lite | This kit's scaled-down Azure Landing Zone: management groups, a hub, central policies and per-member vending, built for a two-day event rather than a production estate. |
-| APEX | The agent-driven design tooling the CoE used to build the archetype. At the event an agent adapts the archetype to your tenant and documents it afterwards; the APEX agents don't provision it. |
+| APEX | The agent-driven design tooling the CoE used to build the archetype. At the event an agent adapts the archetype to your tenant and documents it afterward; the APEX agents don't provision it. |
 | APEX agent | A GitHub Copilot custom agent that ships in your repo (from `apex-accelerator`) and appears in Copilot Chat's agent picker, for example `01-Orchestrator`. |
 | Arc, Azure Arc | The service that projects an on-premises (or lab) server and its SQL Server instance into Azure as a manageable resource, enabling the migration assessment and the MI link. |
 | Archetype | The CoE's reference platform (App Service, ACR, SQL MI, Blob, Service Bus, Key Vault, Application Insights) that the modernized app runs on. |
@@ -40,7 +40,7 @@ sidebar:
 | Scenario | The kind of job the Upgrade agent runs. C3 uses `dotnet-version-upgrade`. |
 | Spoke | A member's virtual network `vnet-spoke` in their workload subscription. Vending creates it and peers it to the hub. The archetype runs in it. |
 | SQL MI | Azure SQL Managed Instance: the managed database service that replaces SQL Server on `vm-app01`. |
-| Suffix | A random six-character string that `Initialize-Settings.ps1` generates once for you. It names your archetype resources, such as `rg-university-<suffix>`. Not the same as the member index. Scripts and pages show it as `$s.suffix`, read from `factory/.local/settings.json`. |
+| Suffix | A random six-character string of lowercase letters and digits that `Initialize-Settings.ps1` generates once for you. It names your archetype resources, such as `rg-university-<suffix>`. Not the same as the member index. Scripts and pages show it as `$s.suffix`, read from `factory/.local/settings.json`. |
 | T-14 | 14 days before day one of the event. Prerequisites and C0's preflight are due. |
 | T-3 | 3 days before day one of the event. The datacenter, Arc onboarding, the first assessment and `vm-dev01` setup are due. See the [event overview](../../getting-started/event-overview/#pre-work). |
 | Tenant Root | The top management group of your Microsoft Entra tenant. The platform lead needs the Owner role there. |

@@ -2,7 +2,7 @@
 title: ALZ-lite
 description: The two-subscription model, what the deploy creates, what's fixed, and how it compares with a full ALZ.
 sidebar:
-  order: 1
+  order: 2
 ---
 
 This guide covers the mechanics of the kit's landing zone. [C2](../../challenges/c02-secure-ai-ready-foundation/) is the what, the commands and the acceptance bar.
@@ -43,7 +43,7 @@ Vending then connects each member's workload subscription and datacenter to the 
 
 ## One step that needs a directory role
 
-ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up the web app's identity in C7. Once per team, right after `Deploy-AlzLite.ps1`, someone with the **Privileged Role Administrator** (or Global Administrator) Microsoft Entra directory role grants it Microsoft Graph read permissions (the three read-only application permissions that let SQL Managed Instance look up Entra users and apps) with `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <shared-services-subscription-id>`. The platform lead usually doesn't hold that role, so it's a platform lead task done with a role holder: the platform lead asks the coach, who brings that person. The role holder runs the script from their own computer, in the kit's `factory/` folder, signed in as themselves, not in the platform lead's signed-in terminal. The grant is tenant-wide and read-only, and members can attach the identity to other resources during the event, so your coach agrees it with the tenant owner and the event owner, who also arrange for the identity to be deleted afterwards ([details](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)). [C2](../../challenges/c02-secure-ai-ready-foundation/) has the exact step.
+ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up the web app's identity in C7. Once per team, right after `Deploy-AlzLite.ps1`, someone with the **Privileged Role Administrator** (or Global Administrator) Microsoft Entra directory role grants it Microsoft Graph read permissions (the three read-only application permissions that let SQL Managed Instance look up Entra users and apps) with `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <shared-services-subscription-id>`. The platform lead usually doesn't hold that role, so it's a platform lead task done with a role holder: the platform lead asks the coach, who brings that person. The role holder runs the script from their own computer, in the kit's `factory/` folder, signed in as themselves, not in the platform lead's signed-in terminal. The grant is tenant-wide and read-only, and members can attach the identity to other resources during the event, so tell your coach before you ask for it: the coach agrees it with the tenant owner and the event owner, who also arrange for the identity to be deleted afterward ([details](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)). [C2](../../challenges/c02-secure-ai-ready-foundation/) has the exact step.
 
 ## Fixed values
 

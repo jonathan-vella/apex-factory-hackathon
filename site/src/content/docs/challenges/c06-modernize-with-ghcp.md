@@ -70,7 +70,7 @@ Save your screenshots and notes as files in `factory/evidence/c06/` of your own 
 <details>
 <summary>The app falls back to LocalDB after agent task 01</summary>
 
-LocalDB is a small local test database, not your source. Agent task 01 changes the project's `UserSecretsId`, so re-set your user secrets (connection string, Blob, Service Bus) afterwards. See the **Local configuration** section in playbook Step 2.
+LocalDB is a small local test database, not your source. Agent task 01 changes the project's `UserSecretsId`, so re-set your user secrets (connection string, Blob, Service Bus) afterward. See the **Local configuration** section in playbook Step 2.
 </details>
 
 <details>

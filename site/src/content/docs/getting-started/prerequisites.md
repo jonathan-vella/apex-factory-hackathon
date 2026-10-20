@@ -11,7 +11,7 @@ This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not
 - **By T-14:** this page, plus C0's preflight.
 - **By T-3:** the datacenter is deployed, `Test-Datacenter.ps1` passes for you (run before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and you have a fully set up `vm-dev01` (C0 task 7), with Copilot working in VS Code.
 
-If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, and the deployments run unattended for part of that. Raise any blocker with your coach now. The [event overview](../event-overview/#pre-work) has the full T-14 and T-3 gates.
+If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, plus about 30 for the VM setup, and the deployments run unattended for part of that. Raise any blocker with your coach now. The [event overview](../event-overview/#pre-work) has the full T-14 and T-3 gates.
 :::
 
 ```mermaid
@@ -41,7 +41,7 @@ The event is hands-on first. The exams come after it: infra roles hold AZ-104, G
 
 You work in **one repo of your own**: a private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. A **dev container** is a ready-made Linux workspace that VS Code opens inside Docker, so every member has the same tools (Azure CLI, PowerShell 7, Git, `azd`, Bicep). The template also brings the **APEX agents**: Copilot custom agents that ship in the repo and appear in Copilot Chat's agent picker. A single import command then copies the kit into a `factory/` folder at the root of that repo. From then on you run the kit's deployment and Azure scripts from `factory/` inside the dev container, and the archetype for C5 is already in place.
 
-Until C3, everything runs in the dev container. From C3 the app work happens on `vm-dev01`, which you set up in C0 task 7. Each challenge page has a **Where to run** block that says which one to use.
+Everything runs in the dev container, with two exceptions: C0 task 7, where you set up `vm-dev01`, and the reconnect to it in C2. From C3 the app work happens on `vm-dev01` (C3, C6, C7 and C9). C4, C5 and C10 run in the dev container again, and C8 uses both. Each challenge page has a **Where to run** block that says which one to use.
 
 Your evidence lives in your own repo, under `factory/evidence/`; you set that up in [C1](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes). Each member keeps evidence in their own repo; there is no shared team repo. After you merge the import on this page, all your work is on `main`, with one exception: the `vm-dev01-work` branch of the clone on `vm-dev01`, which you never merge.
 
@@ -102,7 +102,7 @@ Allow outbound HTTPS to these hosts:
    rm Import-Kit.ps1
    ```
 
-   This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`. If a run fails, the third line has already deleted the script, so repeat all three lines and put `-Force` on the second one (`pwsh ./Import-Kit.ps1 -Force`). `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
+   This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`. If a run fails, the third line has already deleted the script, so repeat all three lines, and add `-Force` to the second one (`pwsh ./Import-Kit.ps1 -Force`) when the script says `factory/` exists (a failed run can leave a partial one). `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
 5. Commit the result to a new branch. Don't use `/apex-git-commit` for this: it skips `agent-output/` and `infra/`, which hold the imported archetype, and it won't commit on `main`. If Copilot Chat asks you to sign in, do it from the Accounts menu at the bottom left of VS Code. Then paste this prompt into Copilot Chat in Agent mode:
 
    ```text
@@ -153,7 +153,7 @@ cd factory
 ./scripts/Initialize-Settings.ps1
 ```
 
-The script asks for five things: your tenant ID and workload subscription ID (it offers the ones from your `az login`), your member index, your location (press Enter for `swedencentral`) and the shared services subscription (optional, see below). It checks the format of each value, shows the subscription name and tenant it is about to save, and writes `factory/.local/settings.json`. It can't tell a mistyped but valid ID from a real one, so read the name it shows.
+The script asks for five things: your tenant ID and workload subscription ID (it offers the ones from your `az login`), your member index, your location (press Enter for `swedencentral`) and the shared services subscription (optional, see below). It checks the format of each value, shows the subscription name and tenant it is about to save, and writes `factory/.local/settings.json`. When both IDs come from your `az login`, it also asks `Save these values? [Y/n]`: answer `Y` when the subscription name is yours. It can't tell a mistyped but valid ID from a real one, so read the name it shows.
 
 **Member index:** your coach assigns you a number from 1 to 20 from the event roster, unique within your team. Ask your coach if you don't have one; don't pick your own. It isn't the same as the six-character suffix the script generates for you. Later pages show these two values as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
 
@@ -197,9 +197,9 @@ See the [ALZ-lite guide](../../guides/alz-lite/) for why the model needs two kin
 Your import is still on the `feat/...` branch. Merge it, so `main` holds the kit and everything that follows can run on `main`.
 
 1. On GitHub, open your repo. Choose **Compare & pull request** for the `feat/...` branch (or **Pull requests** > **New pull request**), then **Create pull request**, **Merge pull request** and **Confirm merge**. This is the only branch you merge into `main`. If a rule blocks the merge, tell your coach.
-2. In the dev container terminal, from the repo root, bring `main` up to date:
+2. In any terminal inside the repo in the dev container (the `pwsh` you used in `factory/` works), bring `main` up to date:
 
-   ```bash
+   ```powershell
    git switch main && git pull
    ```
 
