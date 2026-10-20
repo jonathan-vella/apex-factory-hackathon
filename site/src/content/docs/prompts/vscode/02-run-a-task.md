@@ -8,7 +8,8 @@ sidebar:
 ## Before you send
 
 A new chat, harness **Local**, agent **Upgrade**, the execution model (balanced at Medium reasoning, or an
-efficient model at maximum reasoning).
+efficient model at maximum reasoning). You're on `vm-dev01-work` with a clean tree (see
+[prerequisites](../00-prerequisites/)).
 
 ## The prompt
 
@@ -23,39 +24,31 @@ Approve builds and file edits as they come up; if the agent stops halfway, reply
 
 ## After the agent finishes
 
-1. Build and `dotnet run` the app — the agent's own validation can pass without the app ever starting.
-2. Run that task's check:
-
-   | Task | Check |
-   |---|---|
-   | 01 .NET 10 / ASP.NET Core MVC | Build passes; the five pages load against `10.10.<n>.4`; `Global.asax`/`App_Start` gone; container properties in the project file (base image, repository `contoso-university`, port 8080); no `Dockerfile`; `/Notifications/GetNotifications` returns `success:true` |
-   | 02 SQL Managed Instance | Development still reads/writes against the source; Production refuses a SQL login (`$env:ASPNETCORE_ENVIRONMENT='Production'; dotnet run --no-launch-profile`, then unset the variable) |
-   | 03 Blob | Upload/replace/delete round-trips through Blob (`az storage blob list ...`); non-image and >5MB rejected; no `blob.core.windows.net` link on the page |
-   | 04 Service Bus | A toast appears within 5 seconds of a student edit; `/Notifications/GetNotifications` returns `success:true` |
-   | 05 Key Vault | A: Development without `KeyVault:VaultUri` runs. B: Production without it refuses to start. C: Production with it opens the vault, then stops for no `ConnectionStrings--DefaultConnection` yet (C7 writes it) |
-   | 06 OpenTelemetry | With no connection string the app starts normally; with one, requests/SQL/traces show in Application Insights within 5 minutes; no leftover `Trace`/`Debug` calls (search below) |
-   | 07 CVE audit | `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` finds nothing, or a documented no-op |
-
-   Task 06's leftover-call search (keep this out of the table above — a table cell can't safely hold a
-   regex with a literal `|` alternation):
-
-   ```powershell
-   git grep -n -E "Trace\.|Debug\.Write" -- app/ContosoUniversity
-   ```
-
-   Full hot-spot table and the task 05/06 command blocks are in the
-   [playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#task-checks).
-3. Commit and push `app: task 0N <name>` before starting the next task's chat.
+1. Build and `dotnet run` the app. The agent's own validation can pass without the app ever starting.
+2. Run that task's check from the playbook's
+   [Task checks](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#task-checks)
+   table. It's the single source for the seven checks and their hot spots, so it isn't copied here. Two things it
+   says that people miss:
+   - Task 05 runs the app three ways (Development, Production without a vault, Production with one). The
+     playbook has the command block.
+   - Task 06 needs a one-time **Monitoring Metrics Publisher** grant on Application Insights for your own
+     sign-in. You run it yourself; the command is in the same playbook section. It's the one Azure change C6 asks
+     of you besides the image push.
+3. Check you stayed in scope: `git status --short -- . ':!app' ':!.github/upgrades'` must print nothing.
+4. Commit and push `app: task 0N <name>` to your work branch before you start the next task's chat.
 
 ## Local configuration
 
-Task 01 gives the project a new `UserSecretsId`. Re-set your user secrets afterward — the exact commands are in
-the playbook's **Local configuration** section.
+Task 01 gives the project a new `UserSecretsId`. Set your user secrets again afterward. The exact commands are in
+the playbook's [Local configuration](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#local-configuration)
+section.
 
 ## Hot spots for every task
 
 | Symptom | Fix |
 |---|---|
-| `start_task` fails with "internal LLM client unavailable" or "plan.md could not be parsed" | You're in the Copilot harness — switch to **Local** and start a new chat |
+| `start_task` fails with "internal LLM client unavailable" or "plan.md could not be parsed" | You're in the Copilot harness. Switch to **Local** and start a new chat |
 | The agent edits files outside `app/` and `.github/upgrades/` | Restore them with `git restore <path>` before you commit |
-| The agent offers extra work (Aspire, ARM64, reports) | Decline — it's out of scope |
+| The agent offers extra work (Aspire, ARM64, reports) | Decline: it's out of scope |
+
+More help: [Troubleshoot](../04-troubleshoot/).

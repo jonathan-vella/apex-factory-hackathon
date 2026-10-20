@@ -318,3 +318,4 @@ Where it differs from VS Code:
 - There's no harness to choose and no Local or Copilot split, and you don't configure model access.
 - There's no dashboard. Read the plan and progress in `.github/upgrades/scenarios/dotnet-version-upgrade/` (`plan.md`, `tasks.md`).
 - If the agent says the Upgrade workflow tools (`get_state`, `initialize_scenario`) aren't available, the prompt stops it on purpose. The GitHub Copilot app had the same problem in the kit's tests. Switch to VS Code.
+- In the app, three things stopped the tools from attaching in testing: an untrusted project folder, project sandboxing, and a missing .NET 10 SDK or no app restart after installing it. The [Copilot app page](https://factory.apexops.pro/prompts/copilot-app/) has the checks. It's best effort, not validated.

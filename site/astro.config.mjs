@@ -70,13 +70,10 @@ export default defineConfig({
           items: [
             { label: "Overview", link: "/prompts/" },
             {
-              label: "Copilot App",
-              items: [{ autogenerate: { directory: "prompts/ghcp-app" } }],
-            },
-            {
               label: "VS Code",
               items: [{ autogenerate: { directory: "prompts/vscode" } }],
             },
+            { label: "Copilot app (best effort)", link: "/prompts/copilot-app/" },
           ],
         },
         {

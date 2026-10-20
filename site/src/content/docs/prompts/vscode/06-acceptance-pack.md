@@ -5,41 +5,27 @@ sidebar:
   order: 7
 ---
 
-C8's acceptance pack, condensed to a checklist. Run this against the live app after C7's cutover — it isn't a
-demo click-through, it's a fixed set of checks with recorded evidence.
+C8's acceptance pack is the checklist. This page only adds the prompt for interpreting a failure. The tasks, the
+commands and where each one runs are in [C8](../../../challenges/c08-validate-the-pattern/), and the read-only
+`Test-Acceptance.ps1` check is its task 5. Don't copy the checklist from here: C8 is the source.
 
-## Set up the values once
+## Where to run
 
-```powershell
-$s = Get-Content .local/settings.json | ConvertFrom-Json
-az account set --subscription $s.subscriptionId
-$rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
-$app = az webapp list --resource-group $rg --query "[0].defaultHostName" --output tsv
-$rg; $app
-```
+Browser checks run in any browser. The row counts and the blob listing run on `vm-dev01`, because the databases
+and storage are private-only. The load and security checks run in your dev container, from `factory/`. C8's
+**Where to run** table has the details.
 
-## Checklist
-
-1. **Smoke checks.** `https://$app/` and each of Students, Courses, Instructors, Departments load with no
-   error page and show rows. Row counts against the source and the managed instance match (see C8's query).
-2. **Upload round-trip.** Upload, replace, then delete a small PNG on a course's teaching material. Confirm
-   each step in Blob with `az storage blob list --account-name stuniversity<suffix> --container-name teaching-materials --auth-mode login`.
-   A non-image and a >5MB file are rejected.
-3. **Notification round-trip.** With the browser's Network panel open and filtered on `GetNotifications`, edit
-   a student. A toast appears within 5 seconds and the next poll returns `success: true`. Don't open
-   `/Notifications/GetNotifications` yourself in another tab — each call consumes the queued messages, so the
-   page would never show the toast.
-4. **Load check.** A light burst — the command is in [C8](../../../../challenges/c08-validate-the-pattern/).
-   Every response is `200`.
-5. **Security check.** Run the read-only `Test-Acceptance.ps1` script from C8 against the resource group. It
-   must end `ACCEPT`.
-6. **Record every result** — pass, fail, or not applicable, with evidence — using the
-   [acceptance and handover template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md).
-
-## If you want the agent to help interpret a failure
+## If you want the agent to help with a failure
 
 ```text
 This acceptance pack check failed: <paste the exact symptom or Test-Acceptance.ps1 output>. Diagnose the likely cause (app configuration, network/private endpoint, or identity/role) without changing anything, and tell me what to check next.
 ```
 
-Full task text, hints and bonus are in [C8](../../../../challenges/c08-validate-the-pattern/).
+Paste the real output. The agent can't see your terminal, and a guess at the cause costs more time than the
+check itself.
+
+## Check
+
+- Every C8 task has a result (pass, fail or not applicable) with evidence, in the
+  [acceptance and handover template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md).
+- `Test-Acceptance.ps1` ends `ACCEPT`.
