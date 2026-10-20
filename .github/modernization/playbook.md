@@ -60,8 +60,6 @@ In VS Code, the agent picker must list **Upgrade**, **GitHub Copilot modernizati
 
 **Check:** `az account show` names your workload subscription, `git status --short` prints nothing, and the agent picker lists **Upgrade**.
 
-**Check:** `az account show` names your workload subscription, `git status --short` prints nothing, and the agent picker lists **Upgrade**.
-
 ## Step 1: Assess and plan (C3)
 
 **Goal:** a tool-based assessment and a seven-task plan that follows the kit's rules, with no application file changed.
