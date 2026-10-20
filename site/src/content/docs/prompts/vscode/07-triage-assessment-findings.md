@@ -10,12 +10,21 @@ reviewed, human-authorized triage table.
 
 ## The prompt
 
+Use plain Agent mode in the chat (not the Upgrade agent: it would start the upgrade workflow). Send:
+
 ```text
 Read .github/upgrades/scenarios/dotnet-version-upgrade/assessment.md. List every distinct finding with its severity, then for each one propose a triage: blocker, accepted risk, or fix, and its impact on the target state. Don't change anything, and don't start planning — this is analysis only.
 ```
 
-Then paste the Arc assessment report's findings (exported or copied from the portal) and ask the same question
-for those.
+Use the same agent for the Arc assessment. Open it in the Azure portal as in C3 task 2 (Azure Arc > SQL Server
+instances > the instance under `vm-app01` > **Migration** > **Database migration** > **Assess source instance** >
+**View report**), copy its findings, and send:
+
+```text
+Here are the findings from the Arc SQL migration assessment: <paste the findings>. List every distinct finding with its severity, then for each one propose a triage: blocker, accepted risk, or fix, and its impact on the target state. Don't change anything — this is analysis only.
+```
+
+Keep the results in `factory/evidence/c03/triage.md`, as C3 asks.
 
 ## The trace-flag finding, specifically
 

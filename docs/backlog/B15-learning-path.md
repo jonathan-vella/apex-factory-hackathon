@@ -36,7 +36,7 @@
 
 ### Page
 
-7. Create `site/src/content/docs/guides/learning-path.md`, titled **Partner learning path**, with these sections in order: **Who it's for**, **Stages**, **Role tracks**, **Challenge map**, **Partner Center outcomes**, **Next: enable AI tomorrow**, **Last validated**.
+7. Create `site/src/content/docs/guides/learning-path.md`, titled **Partner learning path**, with these sections in order: **Who it's for**, **Stages**, **Role tracks**, **Challenge map**, **Partner Center outcomes**, **Next: enable AI tomorrow**, **Last validated**, **Things to know**.
 8. **Stages:** a table with when, goal, content and exit evidence for each stage:
 
    | Stage | When | Content |
@@ -133,3 +133,19 @@ docs: add the partner learning path page
 - **AI-200 fit:** it's Python-oriented and covers Cosmos DB, PostgreSQL vectors and Redis, so keep it on the developer track only.
 - **Arc and MI link:** there's no standalone Arc credential: the Arc-enabled servers Applied Skill retired on 2026-01-30. DP-300 covers Arc-enabled SQL use cases and online migration, but doesn't name MI link.
 - **AKS:** v1 runs on App Service only. AKS and Container Apps are learning content, not a kit path (PRD §1 non-goals).
+
+## Validation notes 2026-10-10
+
+Notes that were on the published page as "Where this page differs from the plan it was built from". The page now carries only the student-facing parts, under **Things to know**.
+
+- **Where the page differs from this runbook.**
+  - **DP-800 on Infra and Database Migration:** the partner page lists SQL AI Developer Associate (DP-800) as a separate group with no "OR". The owner decided on 2026-10-10 to treat it as a required group, so the role tracks and the sample plan include it. The page states the rule as "DP-800 counts as a required group for Infra and Database Migration". Don't reopen it unless the partner page changes (the stop-and-ask rule above).
+  - **AZ-400 prerequisite:** requirement 14's route (AZ-104 first) stands. AI-200 isn't a listed prerequisite, so a developer with only GH-300 and AI-200 can sit AZ-400 but needs AZ-104 to earn the certification.
+  - **Partner Center lag:** the Infrastructure designation still lists Windows Server Hybrid Administrator although AZ-800 and AZ-801 retired. The June 2026 partner announcement adds AI-200 and GH-600 to Digital & App Innovation.
+  - **No outline date and practice assessments:** SC-500, AI-200, GH-600 and GH-900 showed no skills outline date, and the AI-200 and SC-500 practice assessments weren't available.
+- **Re-check 2026-10-20.**
+  - AI-200 now shows "as of October 7, 2026", GH-900 "as of January 2026" and DP-800 "as of October 19, 2026" (in effect). DP-300 shows "as of October 27, 2026", an announced change. SC-500 and GH-600 still show no date.
+  - The Digital & App Innovation designation page now lists the Azure AI Cloud Developer Associate and GitHub Certified: Agentic AI Developer. Only the Windows Server Hybrid lag remains.
+  - The AI-200 practice assessment is on AI Skills Navigator. The SC-500 study guide lists none.
+  - All external links on the page return HTTP 200 (locale redirects only).
+- **Page edits since publication:** the role tracks use the names in `getting-started/roles.md`, C0 sits in stage 0 (pre-work) and stage 1 lists C1 to C10, and the Learn link labels match the page titles.

@@ -80,7 +80,7 @@ function Get-PerfKitConnectionString {
             $password = $secrets.sqlAppPassword
         }
         else {
-            # Fixed, documented lab password: see docs/backlog/README.md, Secrets.
+            # Fixed, documented lab password: see the datacenter README, Credentials.
             Write-Information 'No -SqlPassword and no .local datacenter.json in the kit folder: using contosoapp with the documented lab password.'
             $login = 'contosoapp'
             $password = 'FactoryLab-2026-Pw'
