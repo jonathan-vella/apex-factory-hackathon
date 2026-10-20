@@ -86,7 +86,7 @@ Allow outbound HTTPS to these hosts:
 - **GitHub and Copilot:** `github.com`, `api.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `api.githubcopilot.com`.
 - **Azure and Microsoft:** `*.azure.com`, `*.microsoft.com`, `login.microsoftonline.com`, `learn.microsoft.com`.
 - **Docker Hub:** `docker.io`, `registry-1.docker.io`.
-- **The dev container:** `ghcr.io` (its features come from there), `mcr.microsoft.com` (its base image, covered by `*.microsoft.com`) and `packagefeedproxy.microsoft.io` (its npm and Python package proxy).
+- **The dev container:** `ghcr.io` (its features come from there), `mcr.microsoft.com` (its base image, covered by `*.microsoft.com`) and `packagefeedproxy.microsoft.io` (its Node.js and Python package proxy).
 - **VS Code:** `marketplace.visualstudio.com` for extensions.
 
 ## Create your repo and import the kit
