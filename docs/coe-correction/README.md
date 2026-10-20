@@ -1,22 +1,21 @@
 # CoE correction: status and how to resume
 
-Last updated 2026-10-10. This folder exists so the work on the CoE `university` correction can continue from any device. It holds no secrets.
+Last updated 2026-10-20. This folder exists so the work on the CoE `university` correction can continue from any device. It holds no secrets.
 
 ## Status at a glance
 
 | Item | State |
 |---|---|
-| #52 script fixes and deployment summary | Code done in the CoE repo and validated locally. Handoff re-emission and kit re-packaging are waiting for a live validation. |
-| #60 deployer Monitoring Metrics Publisher | Same as #52. The playbook self-grant stays until the kit is re-packaged. |
-| #40 B14 adoption agent | Not started. It needs the live foundation and a stable CoE commit to pin. |
+| #52 script fixes and deployment summary | Done 2026-10-20. CoE PR 19 merged (`main` `db65758`): Step 4 re-reviewed (pass11), handoff re-emitted, tree hash matches, Step 5 complete. The kit's `archetype/` is re-packaged from it. |
+| #60 deployer Monitoring Metrics Publisher | Done 2026-10-20, same delivery. The playbook grant stays only as a fallback for deployments from before that date. |
+| #40 B14 adoption agent | Not started. The CoE commit to pin is `db65758`. |
 | #44 B15 learning path | Done and live (#83, #84). Nothing left. |
-| Lab foundation (hub, spokes) | Not deployed. Only the ALZ management groups and the shared identity remain. Tracked in #87. |
-| Documenting the accepted lab risks for adopters | Not started. Tracked in #88. |
+| Lab foundation (hub, spokes) | Deployed for member 1 on 2026-10-19 and still running. Tracked in #87. |
+| Documenting the accepted lab risks for adopters | Done (#94). |
 
 ## What exists where
 
-- **CoE branch:** `fix/university-52-60-wip` in [`jonathan-vella/apex-factory-coe`](https://github.com/jonathan-vella/apex-factory-coe), pushed. Latest commit `778d8d2` (the #52/#60 code). It is not merged into `main` on purpose: `main` would then hold a handoff that no longer matches the Bicep tree.
-- **Project state on that branch:** Step 4 complete with `plan_status=EXCEPTION_AUTHORIZED`, Step 5 `in_progress`.
+- **CoE:** [`jonathan-vella/apex-factory-coe`](https://github.com/jonathan-vella/apex-factory-coe) `main` at `db65758` (PR 19, merged 2026-10-20). Step 4 and Step 5 are complete. The selected Step 4 review is `challenge-findings-plan-pass11.json`; its signed lab risk authorization is revision 2 (`*.r2.*`, plan-complete, codegen and code-complete, expires 2026-11-19). Revision 1 files stay as history.
 - **Upstream framework:** [`jonathan-vella/apex`](https://github.com/jonathan-vella/apex) `main`, with the lab risk authorization (#747, #748) and the review-verdict fix (#750). Contract: `tools/apex-recall/docs/risk-authorizations.md` in that repo.
 - **Upstream issues found on the way:** [#751](https://github.com/jonathan-vella/apex/issues/751) pre-commit hook false positive, [#752](https://github.com/jonathan-vella/apex/issues/752) stale reviews after a sync, [#753](https://github.com/jonathan-vella/apex/issues/753) `validate:session-state`, [#754](https://github.com/jonathan-vella/apex/issues/754) `check-gate` pre-check and trust pins.
 - **This folder:** the signing tools (`risk-signing/`), the SQL MI identity research (`research/`), a resume prompt (`resume-prompt.md`) and this guide.
@@ -50,7 +49,7 @@ These stay on the old device. Plan for each one.
 1. Install Docker, VS Code with the Dev Containers extension, GitHub Copilot, Node 24 and Git.
 2. Clone the CoE repo and check out `fix/university-52-60-wip`. On Windows, use **Dev Containers: Clone Repository in Container Volume**. A plain bind mount of a Windows checkout failed earlier because the Git pointer and file ownership are wrong inside Linux. On Linux or macOS a normal open should work, but this is unverified.
 3. Let the repo's dev container finish its post-create steps. They install `apex-recall` and the tools. Check `apex-recall --help` works.
-4. Add the Azure MCP mapping to `.vscode/settings.json` under `chat.mcp.serverSampling`. The key includes the workspace folder name, for example `"<folder-name>/.vscode/mcp.json: azure-mcp"`, so it differs from the old device's `coe-linux-source`. The CoE prompt in [prompts.md](prompts.md) does this for you (Step 0.5).
+4. Add the Azure MCP mapping to `.vscode/settings.json` under `chat.mcp.serverSampling`. The key includes the workspace folder name, for example `"<folder-name>/.mcp.json: azure-mcp"` (upstream moved the MCP config from `.vscode/mcp.json` to a root `.mcp.json` on 2026-10-20), so it differs from the old device's `coe-linux-source`. The CoE prompt in [prompts.md](prompts.md) does this for you (Step 0.5).
 5. Restore the signing keys (see [Keys](#keys)), then create the trust file and pins.
 6. Send the prompt for the repo you are working in from [prompts.md](prompts.md). Each one first checks you are on the right branch and fixes it safely, then does read-only checks and stops.
 
@@ -84,9 +83,12 @@ Key IDs are fixed, so new keys under the same IDs cannot verify the existing sig
 
 ### Expiry and rotation
 
-The trust file, authorization and approval are valid until 2026-11-09. After that, re-sign at a new revision (see the runbook). That is also a good moment to generate fresh keys and update the fingerprints in `settings.json`, because new records signed by new keys replace the old ones.
+The trust file, authorization and approval are valid until 2026-11-19 (revision 2; revision 1 was valid until 2026-11-09). After that, re-sign at a new revision (see the runbook). That is also a good moment to generate fresh keys and update the fingerprints in `settings.json`, because new records signed by new keys replace the old ones.
 
-## Finish the correction
+## Finish the correction (done 2026-10-20)
+
+These steps are complete and are kept as the record of what ran and in which order. For a repeat (for example after another upstream sync that changes the review protocol) the same sequence applies: a fresh review of unchanged inputs needs an owner override of the invocation ceiling; run the reviewer from the CoE container with `prior_findings` as an array, and run `record-review.mjs` in a later turn. In an agent terminal, run `apex-recall` gate commands through an interactive shell (`bash -ic ...`), because the trust pins load only from `~/.bashrc`.
+
 
 These steps need the lab foundation. Redeploying it needs the owner's approval and a cost estimate first (about $4.63 per hour while the foundation and archetype are deployed, per the B14 runbook). Track it in #87.
 

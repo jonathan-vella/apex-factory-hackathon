@@ -83,7 +83,7 @@ brief's settings; SQL MI (`databaseFormat` missing in AVM 0.5.1) and its start/s
 | 3ea4e2b0 (ADR-0004 quotation) | Verified 2026-10-06 against the current Learn page (updated 2026-08-27): "To import to or from a network-restricted Azure container registry, the restricted registry must allow access by trusted services to bypass the network." The ADR quotation is verbatim. Step 4 cannot edit the ADR; the evidence is recorded here and in recall. |
 | Step 1 tag convention | No tag policy discovered. The 9 APEX fallback tags (values below) are set explicitly on the archetype RG and every taggable resource the deployment creates; vended resources are never retagged. |
 | Requirement 11 names | App settings use `__` instead of `:` (Learn: App Service names allow letters, digits, `.` and `_`; Linux replaces `:` with `__`). .NET maps them back to the same keys. Owner-approved 2026-10-06. |
-| ACR ARM audience tokens (owner revision 2026-10-07) | The web app pulls from ACR with its UAMI. Learn, "Configure a custom container" (updated 2026-09-14): "Your Azure Container Registry must allow ARM audience tokens for authentication in order to use managed identity to pull images." Live testing returned `ACRTokenRetrievalFailure` until it was enabled. AVM container-registry 0.13.1 defaults `azureADAuthenticationAsArmPolicyStatus` to `disabled`, so the plan sets `enabled` explicitly (Task 4) and verifies it post-deploy (Task 13 step 5). Governance: built-in `42781ec6-6127-4c30-bdfa-fb423a0047d3` ("Container registries should have ARM audience token authentication disabled", Audit/Deny/Disabled) is in `member_policy_index` but not among the 19 Deny entries, so expect an Audit non-compliance result on `cr`, not a deployment block. If a later discovery shows it as Deny, it becomes unsatisfiable for this pull model and returns to 04g-Governance. |
+| ACR ARM audience tokens (owner revision 2026-10-07) | The web app pulls from ACR with its UAMI. Learn, "Configure a custom container" (updated 2026-09-14): "Your Azure Container Registry must allow ARM audience tokens for authentication in order to use managed identity to pull images." Live testing returned `ACRTokenRetrievalFailure` until it was enabled. AVM container-registry 0.13.1 defaults `azureADAuthenticationAsArmPolicyStatus` to `disabled`, so the plan sets `enabled` explicitly (Task 4) and verifies it post-deploy (Task 13 step 5). Governance: built-in `42781ec6-6127-4c30-bdfa-fb423a0047d3` ("Container registries should have ARM audience token authentication disabled", Audit/Deny/Disabled) is in `member_policy_index` but has no effective-effect record in the saved snapshot. That evidence contains no Deny finding for this policy but does not establish Audit versus Disabled; no Audit outcome is promised. A future effective Deny requires review by 04g-Governance before deployment because it conflicts with this pull model. |
 | SQL MI directory identity (owner revision 2026-10-07) | C7 creates Entra users in the MI, so the instance identity must read Microsoft Graph. Learn, "Managed identities in Microsoft Entra for Azure SQL": the instance identity needs `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All` (or Directory Readers), granted only by a Privileged Role Administrator. The team's shared `id-sqlmi-directory` (B08-owned, `rg-management` in the shared services subscription) holds that grant; the MI uses `SystemAssigned,UserAssigned` with it as `primaryUserAssignedIdentityId`. The archetype creates no identity and grants no Graph or directory role. Discovered the same way as `log-management`; no new member input. |
 
 Tags (constants in `main.bicep`, not inputs): `environment=dev`, `owner=lab-admin`, `costcenter=apex-factory`,
@@ -114,7 +114,7 @@ SKU rows are rendered from [sku-manifest.json](sku-manifest.json) rev 3 (all use
 | `pe-sbns-university-<suffix>` | Microsoft.Network/privateEndpoints | — | ✅ AVM `br/public:avm/res/network/private-endpoint:0.12.1` | Service Bus, `snet-pe` | ⬜ Todo |
 | `pe-kv-university-<suffix>` | Microsoft.Network/privateEndpoints | — | ✅ AVM `br/public:avm/res/network/private-endpoint:0.12.1` | Key Vault, `snet-pe` | ⬜ Todo |
 | `service` diagnostic setting ×6 (4 PEs, ASP, storage account) | Microsoft.Insights/diagnosticSettings | — | ❌ No AVM (Justified: extension resource) — raw `@2016-09-01` | target resource, `log-management` | ⬜ Todo |
-| 12 role assignments (6 UAMI, 6 deployer) | Microsoft.Authorization/roleAssignments | — | ✅ via each AVM module's `roleAssignments` | UAMI, target | ⬜ Todo |
+| 13 role assignments (6 UAMI, 7 deployer) | Microsoft.Authorization/roleAssignments | — | ✅ via each AVM module's `roleAssignments` | UAMI, target | ⬜ Todo |
 
 `requires[]` cross-check (sku-manifest rev 3): `vnet-integration` (P0v3, Premium v3 ≥ Standard) ✅;
 `private-endpoints` (ACR Premium, StorageV2, Service Bus Premium) ✅; `managed-identity` (all) ✅. No unmet entry.
@@ -207,9 +207,10 @@ infra/bicep/university/
 └── scripts/
     ├── preflight.ps1             # capabilities 14-18, region gate, derivation (standalone)
     ├── postdeploy-tests.ps1      # MCR, routing, DNS, ACR import, ACR ARM audience + pull, diagnostics (standalone)
+    ├── write-deployment-summary.ps1 # observed ARM deployment + test outcomes; no automatic step completion
     └── hooks/
         ├── preprovision.ps1      # azd wrapper: runs preflight.ps1, sets azd env values
-        └── postprovision.ps1     # azd wrapper: runs postdeploy-tests.ps1
+      └── postprovision.ps1     # tests, image persistence, best-effort evidence summary
 ```
 
 No `deploy.ps1` is generated here: the kit's no-agent fallback `archetype/deploy.ps1` calls the same standalone
@@ -322,8 +323,13 @@ avm: avm/res/managed-identity/user-assigned-identity:0.6.0
 
 **Resources**: Application Insights `appi-university-<suffix>` — `kind: web`, `applicationType: web`,
 `workspaceResourceId: logAnalyticsWorkspaceId`, `disableLocalAuth: true`, `publicNetworkAccessForIngestion: Enabled`,
-`publicNetworkAccessForQuery: Enabled` (Entra-authenticated; baseline Azure Monitor allowance). Role assignment:
-Monitoring Metrics Publisher → UAMI.
+`publicNetworkAccessForQuery: Enabled` (Entra-authenticated; baseline Azure Monitor allowance). Role assignments:
+Monitoring Metrics Publisher → UAMI (`principalType: ServicePrincipal`) and → signed-in `deployerObjectId`
+(`principalType: User`), both at this Application Insights component's scope, never the workspace or subscription.
+Pass `deployerObjectId` from `main.bicep` to `monitoring.bicep`; retain the UAMI assignment and local-auth disablement.
+AVM 0.8.0 accepts both entries through `roleAssignments`, with `roleDefinitionIdOrName` =
+`3913510d-42f4-4e42-8a64-420c390055eb` and `principalId` = the respective principal. The native Bicep metadata and
+pinned source were verified on 2026-10-09 for kit #60; no module upgrade or new member input is needed.
 
 **Outputs**: `resourceId`, `connectionString` (endpoint metadata, not a credential).
 
@@ -547,7 +553,8 @@ with `shell: pwsh`, `run: ./scripts/hooks/<hook>.ps1`, `continueOnError: false`.
 ### Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1
 
 PowerShell 7, cross-platform (no Windows-only cmdlets), `az` CLI only, `$ErrorActionPreference = 'Stop'`, no
-prompts. Runs on `vm-dev01`, the dev container (pwsh 7.6.6, azd 1.34.1) and Cloud Shell. Fails closed with a
+prompts, except the explicit ARM REST calls below use `Invoke-RestMethod` with a process-local CLI-issued token.
+Runs on `vm-dev01`, the dev container (pwsh 7.6.6, azd 1.34.1) and Cloud Shell. Fails closed with a
 message naming the missing item; nothing is created before all checks pass.
 
 1. **Inputs and names** (e6c5e56c): `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `SUFFIX`; validated first:
@@ -583,7 +590,10 @@ message naming the missing item; nothing is created before all checks pass.
    subscription and, on the shared services subscription, only Managed Identity Operator on `id-sqlmi-directory`
    (step 10); the archetype assigns only the fixed role set in
    this plan, at resource scope, and no role definition ID is a Bicep parameter. A constrained-delegation role is a
-   possible future vending change, not an archetype requirement.
+  possible future vending change, not an archetype requirement. Fixed template role IDs constrain only this
+  deployment's declarations, not the deployer's independent Owner-level RBAC authority. The deployer can assign
+  other roles independently; the generic `roleAssignments/write` check is not a role-set restriction. This remains
+  an explicit residual accepted risk, not an implemented least-privilege boundary.
 8. **Name collisions** (e6c5e56c): name-availability checks for the ACR, Storage account, Service Bus namespace,
    Key Vault and web app names (`az acr check-name`, `az storage account check-name`, `az keyvault check-name`, and
    `az rest` POST to the Service Bus and `Microsoft.Web` `checkNameAvailability` APIs, stable versions). A name that
@@ -591,8 +601,12 @@ message naming the missing item; nothing is created before all checks pass.
    re-runs converge. If the vault name is held by a soft-deleted vault in this subscription (redeploy after
    teardown), stop and print the `az keyvault purge` command (purge protection is off; never purge automatically).
    Any other collision fails before anything is created and tells the user to choose a different suffix.
-9. **DINE assignments** (23c33d49, 2c0780f6; read-only on the workload subscription): an `az rest` GET of
-   `/subscriptions/{id}/providers/Microsoft.Authorization/policyAssignments?api-version=2023-04-01&$filter=atScope()`
+9. **DINE assignments** (23c33d49, 2c0780f6; kit #52; read-only on the workload subscription): use
+  `Invoke-RestMethod -Method Get` against the ARM endpoint
+  `/subscriptions/{id}/providers/Microsoft.Authorization/policyAssignments?api-version=2023-04-01&$filter=atScope()`
+  with the bearer token obtained from `az account get-access-token --resource https://management.azure.com`.
+  Keep the token process-local; never log or persist it. This avoids Windows `az.cmd` interpreting `atScope()`
+  as shell metacharacters. Request failures stop preflight, and any `nextLink` is followed to retain completeness.
    (not `az policy assignment list`, which omitted the inherited management-group assignments in this tenant)
    must show the 4 ALZ-lite private DNS assignments (Container registries, blob
    groupID, Service Bus namespaces, Key Vaults) and the 7 ALZ-lite diagnostics assignments (Application Insights,
@@ -608,11 +622,21 @@ message naming the missing item; nothing is created before all checks pass.
     `Microsoft.ManagedIdentity/userAssignedIdentities/*/assign/action` (Managed Identity Operator, granted by vending)
     and not exclude it in `notActions`. Either failure stops with "re-run ALZ-lite and vending (B08)". Graph
     permissions on the identity are B08's responsibility and are not read here.
+    **Lifecycle ownership (92079f7c, plan-only clarification approved 2026-10-09)**: B08 owns identity stability
+    while any SQL MI consumes it and coordinated recovery if deletion or recreation is unavoidable. B08 must
+    coordinate every consumer's rebinding and restore the Graph app-role grants before declaring recovery ready.
+    These are B08 ownership obligations, not verified or implemented lifecycle controls. The existence and
+    `assign/action` checks do not prove lifecycle protection or recovery of already-bound consumers; this archetype
+    neither recreates the shared identity nor changes its Graph grants.
     **Accepted risk (569fbf8e, owner 2026-10-07)**: Managed Identity Operator does not limit which resource type the
     identity is attached to, so a member could attach it outside the SQL MI. The identity holds only Graph read
     (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`); members are tenant users who already have
-    default directory read, and already hold Owner on dedicated, short-lived lab subscriptions. No attachment
-    boundary is required.
+    default directory read, and already hold Owner on dedicated, short-lived lab subscriptions. The historical
+    owner accepted that threat boundary without an attachment restriction; acceptance is not technical remediation
+    and does not erase a current must-fix. Existence and `assign/action` checks are not an attachment boundary.
+    Kit #52/#60 leave the shared identity binding, Graph grants, Managed Identity Operator and workload Owner rights
+    unchanged. Fresh independent Challenger adjudication evaluates this residual risk against the historical
+    acceptance; no control implementation or clean verdict is claimed here.
 11. **Outputs**: `azd env set` `AZURE_LOCATION`, `LOG_ANALYTICS_WORKSPACE_ID`, `SQLMI_DIRECTORY_IDENTITY_ID`,
     `DEPLOYER_OBJECT_ID`, `DEPLOYER_UPN`.
 
@@ -625,12 +649,18 @@ widen access or fall back to another image source.
 2. **Routing**: web app reports `outboundVnetRouting.allTraffic = true`, `imagePullTraffic = true`, subnet `snet-app`.
 3. **DINE DNS** (cap. 15, 44e9df0f): each of the 4 PEs has a private DNS zone group; ACR, Blob, Service Bus and
    Key Vault FQDNs resolve to private IPs from the `snet-app` path (Kudu command API with an Entra token; hub DNS
-   10.100.0.4). Failure blocks the readiness claim.
+  10.100.0.4). Match the NIC IP configuration whose `privateLinkConnectionProperties.fqdns` contains the target
+  FQDN; ACR has separate registry and regional data-endpoint configurations, so index zero is not reliable.
+  A first-IP fallback is permitted only for a single-IP endpoint without FQDN metadata; ambiguous multi-IP
+  evidence fails readiness. Failure blocks the readiness claim.
 4. **ACR import** (cap. 4): `az acr import` of `mcr.microsoft.com/dotnet/samples:aspnetapp-10.0` into the registry.
 5. **Private pull**: first, `az acr config authentication-as-arm show -r <acrName>` must return `status: enabled`
    (ARM audience tokens; otherwise fail before the image switch and never enable it from the script). Then
    `azd env set CONTAINER_IMAGE <loginServer>/dotnet/samples:aspnetapp-10.0`; set
-   `linuxFxVersion`, `acrUseManagedIdentityCreds=true` and `acrUserManagedIdentityID`; restart; expect HTTP 200.
+  `linuxFxVersion`, `acrUseManagedIdentityCreds=true` and `acrUserManagedIdentityID` by an authenticated
+  `Invoke-RestMethod -Method Patch` to ARM `/config/web?api-version=2025-03-01`, using a JSON body and the
+  process-local ARM token. Never pass `DOCKER|<image>` through `az.cmd --set` on Windows. PATCH failures are
+  recorded as failed results; restart only after a successful PATCH, then expect HTTP 200.
    The env value keeps later `azd provision` runs on the ACR copy (no drift); C6 then changes only image and tag.
 6. **Diagnostics readiness** (44e9df0f): a diagnostic setting targeting `log-management` exists on the web app,
    ACR, Service Bus, Key Vault, SQL MI, App Insights and the blob service (DINE), and on the 6 archetype settings.
@@ -642,6 +672,38 @@ widen access or fall back to another image source.
    settings stay as listed (no `APPLICATIONINSIGHTS_AUTHENTICATION_STRING`); the Monitoring Metrics Publisher assignment and the
    diagnostic-settings check stay. The network path (`app-to-azure-monitor`, `app-to-entra-id`) is checked by
    preflight step 6, not here; local auth stays off and no key-based fallback is added.
+8. **Deployment summary and hook** (kit #52, source correction
+   `f1d2d8cc8dfc670f1604030c422fab22cb02db64`): `hooks/postprovision.ps1` runs the tests and persists the successful
+   `Outcome.ContainerImage`, then invokes `write-deployment-summary.ps1 -Outcome $outcome` in a best-effort block.
+   Preserve test failure exits; a summary failure produces an explicit warning and never a completion claim.
+   The writer accepts `EnvName` (default `AZURE_ENV_NAME`) and `Outcome` (`ContainerImage`, `Results` with
+   `Name`, `Status`, `Detail`). It selects an observed subscription deployment associated with that azd environment
+   and verifies the target RG/output association; absence or ambiguous association blocks the summary's success
+   claim. Read deployment name, location, UTC timestamp, duration, provisioning state, output resources and outputs
+   from ARM, and test statuses from `Outcome.Results`; no hardcoded `Succeeded`, `Complete` or preview-pass status.
+   Render `06-deployment-summary.md` using the canonical Step 6 template H2 order. Separate provisioning state,
+   readiness (`Passed`, `Pending`, `Failed`) and app telemetry (pending B06/B10); missing test or preview evidence
+   is `unverified`, never successful. Preserve partial-deployment failures and DINE-pending results.
+   Reduce resource IDs to type/name and redact tenant, subscription and identity IDs, full ARM IDs, tokens and
+   secrets recursively from outputs and test details. Escape table cells so evidence cannot alter the structure.
+   Summary persistence is not workflow completion. Only when recall already shows an authorized Step 6 in progress,
+   record the artifact with the supported checkpoint interface:
+
+   ```bash
+   apex-recall checkpoint university 6 phase_6_artifact \
+     --artifact agent-output/university/06-deployment-summary.md --json
+   ```
+
+   Missing recall or failed recording leaves the summary as evidence, with an actionable warning; do not initialize,
+   force-start, bypass reviews or edit state. Only the owning workflow, after current evidence, required gates and
+   separate human authorization to advance, may use the supported transition:
+
+   ```bash
+   apex-recall transition university --from-step 6 --to-step 7 --complete --json
+   ```
+
+   Never use `transition 6 7 --artifact ...`; `--artifact` belongs to `checkpoint`, not `transition`. The hook must
+   not run the transition automatically. This session plans these behaviors only and performs no Step 6/7 action.
 
 ---
 
@@ -678,9 +740,11 @@ Secrets Officer `b86a8fe4-44ce-4948-aee5-eccb2c155cd7`, Monitoring Metrics Publi
 
 ### Microsoft.Insights/components:appi
 
-- **Required parameters**: `logAnalyticsWorkspaceId` — string — derived by preflight (`rg-management/log-management`)
+- **Required parameters**: `logAnalyticsWorkspaceId` — string — derived by preflight (`rg-management/log-management`);
+  `deployerObjectId` — string — signed-in user, passed through `main.bicep` to monitoring
 - **Secrets**: _None._ (connection string is endpoint metadata)
-- **Managed identity bindings**: Monitoring Metrics Publisher → `id-web.principalId` (`ServicePrincipal`)
+- **Managed identity bindings**: retain Monitoring Metrics Publisher → `id-web.principalId` (`ServicePrincipal`);
+  add the same role → `deployerObjectId` (`User`), both scoped to `appi`; `disableLocalAuth: true` stays explicit
 - **External dependencies**: `log-management` (read; linked-scope permission checked by preflight)
 
 ### Microsoft.ContainerRegistry/registries:cr
@@ -872,9 +936,22 @@ Secrets Officer `b86a8fe4-44ce-4948-aee5-eccb2c155cd7`, Monitoring Metrics Publi
 - **Secrets**: _None._ **Managed identity bindings**: _None._
 - **External dependencies**: C7 writes the secret with this role
 
+### Microsoft.Authorization/roleAssignments:ra-dep-mmp
+
+- **Required parameters**: scope `appi`; Monitoring Metrics Publisher (`3913510d-42f4-4e42-8a64-420c390055eb`);
+  `deployerObjectId`; `principalType: User`; AVM monitoring `roleAssignments` entry
+- **Secrets**: _None._ **Managed identity bindings**: _None._ (signed-in deployer, not the app UAMI)
+- **External dependencies**: `appi`; retain `ra-web-mmp`; no workspace/subscription assignment or Graph grant
+
 Child resources wired inside their parent blocks: blob container `st-container` (`teaching-materials`, public
 access `None`), queue `sbns-queue` (`notifications`), schedule `sqlmi-schedule` (`default`, Mon–Fri 07:30–18:30
 `W. Europe Standard Time`, parameters).
+
+**Script contract (kit #52)**: the four corrected files are `scripts/preflight.ps1`,
+`scripts/postdeploy-tests.ps1`, `scripts/hooks/postprovision.ps1`, and `scripts/write-deployment-summary.ps1`.
+No new member input: consume existing derived environment/output values and the structured test outcome specified
+in Tasks 12–13. ARM credentials are process-local only. Summary outcome, preview evidence and recall recording
+status must reflect observations; writing a summary never implies successful deployment or permission to advance.
 
 **Contract enforcement**:
 
@@ -907,7 +984,7 @@ resources by dependency inside that deployment; there is no `phase` parameter an
 
 | Order | Module | Resources | Validation |
 | ----- | ------ | --------- | ---------- |
-| 3 | monitoring, registry, storage, messaging, keyvault | App Insights, ACR, Storage + container, Service Bus + queue, Key Vault, 12 role assignments, storage metrics setting | `publicNetworkAccess` Disabled on all four data services; local auth off |
+| 3 | monitoring, registry, storage, messaging, keyvault | App Insights, ACR, Storage + container, Service Bus + queue, Key Vault, 13 role assignments, storage metrics setting | `publicNetworkAccess` Disabled on all four data services; local auth off |
 | 3 | sql-mi.bicep | SQL MI + schedule (longest-running branch) | Entra-only, public endpoint off, `SQLServer2022`, primary identity `id-sqlmi-directory` |
 | 4 | private-endpoints.bicep | 4 PEs + 4 metrics settings | PEs `Succeeded`, no zone group declared |
 
@@ -918,7 +995,7 @@ resources by dependency inside that deployment; there is no `phase` parameter an
 | Order | Module | Resources | Validation |
 | ----- | ------ | --------- | ---------- |
 | 5 | web.bicep | ASP + metrics setting, web app | Starts on the MCR placeholder |
-| 6 | hooks/postprovision.ps1 | none (tests, image switch) | Task 13 tests 1–6 |
+| 6 | hooks/postprovision.ps1 | none (tests, image switch, evidence summary) | Task 13 tests 1–6; observed summary, no automatic step completion |
 
 ### Failure and recovery (b9e56ee6)
 
@@ -940,7 +1017,7 @@ ARM does not roll back: resources created before a failure stay in `rg-universit
 | Phase | Resources | Est. Deploy Time | Approval Gate |
 | ----- | --------- | ---------------- | ------------- |
 | 1 | 2 (+ read-only preflight) | ~5 min | ✅ preflight fail-closed |
-| 2 | 30 (incl. 12 role assignments, 5 settings, 2 children) | dominated by SQL MI (see below) | ✅ Deny = deployment failure |
+| 2 | 31 (incl. 13 role assignments, 5 settings, 2 children) | dominated by SQL MI (see below) | ✅ Deny = deployment failure |
 | 3 | 3 (+ post-deploy tests) | ~10 min + tests | ✅ readiness claim only after tests |
 
 ---
@@ -1009,6 +1086,7 @@ in names. Lengths below use the maximum 6-char suffix; example suffix `ab12cd`.
 | Key Vault | Public access; RBAC; soft delete; purge protection; network ACL | Disabled; on; 90 days; off (teardown, Step 1); Deny/None |
 | SQL MI | Public data endpoint; auth; TLS; identity | off; Entra-only, admin = deployer; `1.2`; system-assigned + `id-sqlmi-directory` (primary, B08-owned Graph read) |
 | App Insights | Local auth; ingestion; query | disabled; public, Entra-authenticated (exception 2); public, Entra-authenticated |
+| App Insights | Monitoring Metrics Publisher scopes | `id-web` and signed-in `deployerObjectId`, component scope only |
 | Private endpoints | Zone groups; public IPs | DINE-owned (not declared); none |
 | All | Secrets in app settings; keys; service principals | none; none consumed; none |
 | All | Diagnostics | DINE (logs) for App Service, ACR, Service Bus, Key Vault, SQL MI, App Insights, blob service; archetype metrics settings on 4 PEs, ASP, storage account |
@@ -1034,7 +1112,7 @@ in names. Lengths below use the maximum 6-char suffix; example suffix `ab12cd`.
 >
 > | Metric                           | Value   |
 > | -------------------------------- | ------- |
-> | Azure resources planned          | 35 (incl. 12 role assignments, 6 diagnostic settings, 3 child resources) |
+> | Azure resources planned          | 36 (incl. 13 role assignments, 6 diagnostic settings, 3 child resources) |
 > | Bicep modules to create          | 9 modules + `main.bicep` |
 > | Governance constraints addressed | ✅ |
 > | CAF naming conventions applied   | ✅ |
@@ -1046,6 +1124,12 @@ in names. Lengths below use the maximum 6-char suffix; example suffix `ab12cd`.
 >
 > Request approval only with current plan-readiness evidence; route using
 > `decisions.iac_tool`. Template completion alone does not complete Step 4.
+
+**CodeGen boundary ambiguity**: CodeGen wording refers to `metadata.plan_lock`, but the workflow graph owns the
+static freeze policy and no runtime metadata writer exists. Do not manufacture a runtime lock. This owner-reopened
+draft uses `decisions.plan_status = DRAFT`; renewed human gate-3 approval and current reviewed hashes are required
+before CodeGen. Resolve the interpretation with the owning workflow before forward handoff; existing Step 5
+completion is historical evidence, not permission to generate code from this revised draft.
 
 ---
 

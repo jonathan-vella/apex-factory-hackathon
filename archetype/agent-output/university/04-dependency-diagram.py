@@ -49,7 +49,7 @@ with Diagram(
 
         with Cluster("rg-university-<suffix>"):
             uami = ManagedIdentities("Task 2 identity\nid-university-<suffix>")
-            appi = ApplicationInsights("Task 3 monitoring\nappi + MMP role")
+            appi = ApplicationInsights("Task 3 monitoring\nMMP roles: UAMI + deployer\nappi component scope")
             acr = ContainerRegistries("Task 4 registry\ncr + AcrPull/Push/Importer")
             st = StorageAccounts("Task 5 storage\nst + container + roles")
             sb = ServiceBus("Task 6 messaging\nsbns + queue + roles")
@@ -58,10 +58,15 @@ with Diagram(
             mi = SQLManagedInstances("Task 9 sql-mi (raw)\nMI + startStopSchedules")
             web = AppServices("Task 10 web\nasp + app (UAMI)")
 
-    pre >> Edge(label="AZURE_LOCATION, shared sub,\ndeployer UPN/objectId,\ndirectory identity ID", color="#555555") >> rg
+    (
+        pre
+        >> Edge(label="AZURE_LOCATION, shared sub,\ndeployer UPN/objectId,\ndirectory identity ID", color="#555555")
+        >> rg
+    )
     rg >> uami
     rg >> mi
-    uami >> Edge(label="principalId", color="#2f6fed") >> appi
+    pre >> Edge(label="deployerObjectId (User)\nvia main to monitoring", style="dashed", color="#2f6fed") >> appi
+    uami >> Edge(label="principalId (ServicePrincipal)\ncomponent-scoped MMP", color="#2f6fed") >> appi
     uami >> Edge(label="principalId", color="#2f6fed") >> acr
     uami >> Edge(label="principalId", color="#2f6fed") >> st
     uami >> Edge(label="principalId", color="#2f6fed") >> sb

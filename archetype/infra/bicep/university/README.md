@@ -43,8 +43,9 @@ The logic lives in standalone scripts that the kit's `archetype/deploy.ps1` can 
 | ------------------------------ | ------------------------------------------------------------------------------------------------ |
 | `scripts/preflight.ps1`        | Read-only checks and derivation. Fails closed before anything is created.                        |
 | `scripts/postdeploy-tests.ps1` | MCR start, routing, private DNS, ACR import and private pull, diagnostics. Never claims telemetry. |
+| `scripts/write-deployment-summary.ps1` | Writes `06-deployment-summary.md` from the observed deployment record and test results. Unobserved items are `unverified`; it never claims completion. |
 | `scripts/hooks/preprovision.ps1`  | Runs the preflight and writes the derived values to the azd environment.                      |
-| `scripts/hooks/postprovision.ps1` | Runs the post-deployment tests and keeps later runs on the registry image.                    |
+| `scripts/hooks/postprovision.ps1` | Runs the post-deployment tests, keeps later runs on the registry image, then writes the evidence summary (best effort; a failure only warns). |
 
 ## Azure Hybrid Benefit assumption for SQL Managed Instance
 
