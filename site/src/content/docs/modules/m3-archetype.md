@@ -13,11 +13,11 @@ M1's vended spoke for the member. M2's platform ADR, which informs the archetype
 
 ## Where to run
 
-The dev container or Codespaces of your own repo, not natively on Windows. The `adapt-archetype` prompt runs at the repo root, `azd` runs in `infra/bicep/university/`, and the other commands run from `factory/`.
+The dev container or Codespaces of your own repo, not natively on Windows. The `/apex-adapt-archetype` skill runs at the repo root, `azd` runs in `infra/bicep/university/`, and the other commands run from `factory/`.
 
 ## Bootstrap (standalone)
 
-In your repo created from the `apex-accelerator` template, with the kit imported as in Prerequisites (`Import-Kit.ps1` also imports the archetype), sign in to azd (`azd auth login --use-device-code`), run the `adapt-archetype` prompt, then `azd provision` yourself.
+In your repo created from the `apex-accelerator` template, with the kit imported as in Prerequisites (`Import-Kit.ps1` also imports the archetype), sign in to azd (`azd auth login --use-device-code`), run the `/apex-adapt-archetype` skill, then `azd provision` yourself.
 
 ## Exit evidence
 
@@ -31,7 +31,7 @@ The items in [C5's Evidence](../../challenges/c05-deploy-the-coe-archetype/#evid
 
 :::
 
-To redeploy, re-run `adapt-archetype` and `azd provision`. The `deploy.ps1` fallback works without the agent or `azd`: see the [APEX guide](../../guides/apex/#if-youd-rather-skip-the-agents).
+To redeploy, re-run `/apex-adapt-archetype` and `azd provision`. The `deploy.ps1` fallback works without the agent or `azd`: see the [APEX guide](../../guides/apex/#if-youd-rather-skip-the-agents).
 
 ## Time box
 

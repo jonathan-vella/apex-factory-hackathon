@@ -29,13 +29,13 @@ cd factory
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 ```
 
-The `adapt-archetype` prompt runs from the repo root (not `factory/`). `azd` runs in `infra/bicep/university/`, in the same terminal session in which the prompt ran its `./scripts/preflight.ps1` (the prompt takes you there; `azure.yaml` is in that folder). Every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
+The `/apex-adapt-archetype` skill runs from the repo root (not `factory/`). `azd` runs in `infra/bicep/university/`, in the same terminal session in which the skill ran its `./scripts/preflight.ps1` (the skill takes you there; `azure.yaml` is in that folder). Every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
 
 ## Your tasks
 
-1. Watch the coach's demo of the archetype's shape and the `adapt-archetype` flow.
-2. Open your own repo (created from the `apex-accelerator` template in [Prerequisites](../../getting-started/prerequisites/)) in its dev container or Codespaces, and confirm the archetype is already there: `agent-output/university/`, `infra/bicep/university/` and `.github/prompts/adapt-archetype.prompt.md` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1` from the repo root (or the `Import-Kit.ps1` step from Prerequisites if `factory/` doesn't exist).
-3. Run the `adapt-archetype` prompt in VS Code's built-in agent mode, in the dev container or Codespaces (not natively on Windows): open Copilot Chat, switch to agent mode and type `/adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` (the `$s.tenantId`, `$s.subscriptionId` and `$s.suffix` values from your terminal) and asks you to confirm them; it asks for them if the file is missing. It checks a spoke is already vended, runs a lightweight live governance check, and stops at `azd provision --preview`. If it says the spoke is missing, your platform lead has to vend your subscription (C2); members can't. Done when the prompt shows the preview. If your Codespace or dev container was deleted, `factory/.local/` is gone: restore your suffix first with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` (use the suffix you were first given), then reload `$s`.
+1. Watch the coach's demo of the archetype's shape and the `/apex-adapt-archetype` flow.
+2. Open your own repo (created from the `apex-accelerator` template in [Prerequisites](../../getting-started/prerequisites/)) in its dev container or Codespaces, and confirm the archetype is already there: `agent-output/university/`, `infra/bicep/university/` and `.github/skills/apex-adapt-archetype/` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1` from the repo root (or the `Import-Kit.ps1` step from Prerequisites if `factory/` doesn't exist).
+3. Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode, in the dev container or Codespaces (not natively on Windows): open Copilot Chat, switch to agent mode and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` (the `$s.tenantId`, `$s.subscriptionId` and `$s.suffix` values from your terminal) and asks you to confirm them; it asks for them if the file is missing. It checks a spoke is already vended, runs a lightweight live governance check, and stops at `azd provision --preview`. If it says the spoke is missing, your platform lead has to vend your subscription (C2); members can't. Done when the skill shows the preview. If your Codespace or dev container was deleted, `factory/.local/` is gone: restore your suffix first with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` (use the suffix you were first given), then reload `$s`.
 4. Review the preview, then run `azd provision` yourself from `infra/bicep/university/` to deploy for real. It waits until the SQL Managed Instance is created, which can take a long time, so keep that terminal open. No provisioning time has been measured for this kit yet. You can start C6 on `vm-dev01` while it runs. Done when `azd provision` returns without an error and `rg-university-<suffix>` exists.
 5. When `azd provision` returns, run **As-Built** (agent `08-As-Built`): in Copilot Chat in your repo, pick the `08-As-Built` agent from the agent picker and ask it to document the deployed state. If `azd`'s post-provision output says to run an `apex-recall` command first, run it. Done when `agent-output/university/07-as-built.md` exists.
 6. Confirm the deployment, from `factory/`, with your suffix:
@@ -56,7 +56,7 @@ The `adapt-archetype` prompt runs from the repo root (not `factory/`). `azd` run
 
 Save screenshots and output as files in `evidence/c05/member-<n>/` in the team repo, and commit and push them. Redact subscription, tenant and object IDs first.
 
-- Your own repo, with `adapt-archetype`'s outputs and `azd provision`'s deployment record.
+- Your own repo, with `/apex-adapt-archetype`'s outputs and `azd provision`'s deployment record.
 - `agent-output/university/07-as-built.md` from the As-Built agent.
 - `az resource list -g rg-university-<suffix> -o table` showing every expected resource.
 - A note of any policy-compliance finding the governance check surfaced, and how you resolved it.
@@ -64,7 +64,7 @@ Save screenshots and output as files in `evidence/c05/member-<n>/` in the team r
 ## Hints
 
 <details>
-<summary>adapt-archetype won't find a vended spoke</summary>
+<summary>/apex-adapt-archetype won't find a vended spoke</summary>
 
 It looks for `rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe` and `snet-sqlmi` by the naming convention in the [naming and IP plan](../../reference/naming-and-ip-plan/). Confirm C2's vending ran for your member index before retrying.
 </details>

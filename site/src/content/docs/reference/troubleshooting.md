@@ -33,7 +33,7 @@ sidebar:
 
 ## APEX and the archetype
 
-- **A native Windows checkout changes the archetype's tree hash:** APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`; always run `adapt-archetype` in the dev container or Codespaces, never natively on Windows.
+- **A native Windows checkout changes the archetype's tree hash:** APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`; always run `/apex-adapt-archetype` in the dev container or Codespaces, never natively on Windows.
 - **`azd provision --preview` looks incomplete:** the preview only lists resource types `azd` has display names for — SQL MI, the managed identity, role assignments and diagnostic settings are still being created even though the preview doesn't name them.
 
 ## Migration

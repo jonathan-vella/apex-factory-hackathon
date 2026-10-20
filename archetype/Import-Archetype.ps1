@@ -6,12 +6,12 @@ Imports the CoE archetype's APEX project into a member's own apex-accelerator re
 .DESCRIPTION
 Downloads this kit's archetype/ folder at -Ref straight from GitHub (the tarball REST API; no git
 clone, no auth needed for the public repo), and copies agent-output/university/,
-infra/bicep/university/ and .github/prompts/adapt-archetype.prompt.md into the matching paths of
+infra/bicep/university/ and .github/skills/apex-adapt-archetype/ into the matching paths of
 -Destination, which must already be an apex-accelerator repo (checked by .github/agents/ existing).
-It also adds .github/prompts/adapt-archetype.prompt.md to -Destination's
-.github/workflows/weekly-upstream-sync.yml EXCLUDE_PATHS list (idempotently), because that prompt
+It also adds .github/skills/apex-adapt-archetype/ to -Destination's
+.github/workflows/weekly-upstream-sync.yml EXCLUDE_PATHS list (idempotently), because that skill
 is accelerator-specific and the weekly upstream sync would otherwise delete it the first time it
-runs (apex-accelerator's .github/prompts/ is synced from upstream, upstream wins). Refuses to
+runs (apex-accelerator's .github/skills/ is synced from upstream, upstream wins). Refuses to
 overwrite an existing university project unless -Force. Reports a file count and a byte-level
 content hash over the copied infra/bicep/university/ tree so the member can compare it against the
 archetype's packaged tree hash -- a mismatch there is a known, already-documented drift (see
@@ -52,10 +52,10 @@ $KitOwner, $KitRepo = $KitRepository -split '/'
 $ImportItems = @(
     [PSCustomObject]@{ RelativePath = 'agent-output/university'; IsDirectory = $true }
     [PSCustomObject]@{ RelativePath = 'infra/bicep/university'; IsDirectory = $true }
-    [PSCustomObject]@{ RelativePath = '.github/prompts/adapt-archetype.prompt.md'; IsDirectory = $false }
+    [PSCustomObject]@{ RelativePath = '.github/skills/apex-adapt-archetype'; IsDirectory = $true }
 )
 $SyncWorkflowRelativePath = '.github/workflows/weekly-upstream-sync.yml'
-$SyncProtectedPath = '.github/prompts/adapt-archetype.prompt.md'
+$SyncProtectedPath = '.github/skills/apex-adapt-archetype/'
 
 function ConvertTo-NativePath {
     # Joins forward-slash relative paths the same way on every platform.
@@ -162,13 +162,13 @@ function Copy-ArchetypeItem {
 
 function Set-SyncProtectionExclusion {
     # Adds $SyncProtectedPath to weekly-upstream-sync.yml's EXCLUDE_PATHS block, idempotently, so
-    # the upstream sync (which otherwise takes .github/prompts/ entirely from upstream) does not
-    # delete the member's copy of the adapt-archetype prompt on its next run.
+    # the upstream sync (which otherwise takes .github/skills/ entirely from upstream) does not
+    # delete the member's copy of the adapt-archetype skill on its next run.
     [CmdletBinding(SupportsShouldProcess)]
     param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string]$ProtectedPath)
 
     if (-not (Test-Path $Path)) {
-        Write-Warning "$SyncWorkflowRelativePath was not found at the destination. Add '$ProtectedPath' to its EXCLUDE_PATHS yourself, or the next upstream sync will delete the imported prompt."
+        Write-Warning "$SyncWorkflowRelativePath was not found at the destination. Add '$ProtectedPath' to its EXCLUDE_PATHS yourself, or the next upstream sync will delete the imported skill."
         return
     }
 
@@ -178,7 +178,7 @@ function Set-SyncProtectionExclusion {
 
     $blockStart = ($lines | Select-String -Pattern '^\s*EXCLUDE_PATHS:\s*\|\s*$' | Select-Object -First 1).LineNumber
     if (-not $blockStart) {
-        Write-Warning "$SyncWorkflowRelativePath has no 'EXCLUDE_PATHS: |' block. Add '$ProtectedPath' to it yourself, or the next upstream sync will delete the imported prompt."
+        Write-Warning "$SyncWorkflowRelativePath has no 'EXCLUDE_PATHS: |' block. Add '$ProtectedPath' to it yourself, or the next upstream sync will delete the imported skill."
         return
     }
 
@@ -252,7 +252,7 @@ try {
 
     Write-Host ''
     Write-Host "Imported archetype/ from $KitOwner/$KitRepo@$Ref into '$Destination'."
-    Write-Host 'Next: open this repo in VS Code and run /adapt-archetype in Agent mode.'
+    Write-Host 'Next: open this repo in VS Code, choose the built-in agent in Copilot Chat and run /apex-adapt-archetype.'
 }
 finally {
     Remove-Item -Path $workDir -Recurse -Force -ErrorAction SilentlyContinue
