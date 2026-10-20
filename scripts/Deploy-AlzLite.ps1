@@ -15,7 +15,7 @@ Deploys infra/foundation/alz-lite/main.bicep at the Tenant Root management group
 - the core policies at <MgPrefix>-corp (built-in definitions, display names prefixed ALZ-lite:).
 The platform lead runs it once per team, then scripts/Deploy-Vending.ps1 for every member. It needs
 Owner at the Tenant Root management group and checks that first. A re-run converges. Use -WhatIf to
-see the changes (az deployment mg what-if) without deploying. Azure Firewall takes 10-15 minutes.
+see the changes (az deployment mg what-if) without deploying. The deployment takes 15-25 minutes, mostly Azure Firewall.
 .PARAMETER SharedSubscriptionId
 The team's shared services subscription.
 .PARAMETER Location

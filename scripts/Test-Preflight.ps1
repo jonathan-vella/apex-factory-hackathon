@@ -281,7 +281,7 @@ Add-Result -Check 'MFA' -Status MANUAL -Reason 'Confirm MFA is registered for th
 Add-Result -Check 'GitHub Copilot' -Status MANUAL -Reason "Confirm a Copilot seat and org policies allowing agent mode, MCP servers and Copilot CLI."
 Add-Result -Check 'GitHub repositories' -Status MANUAL -Reason "Confirm the account can create private repos in the partner's GitHub org."
 Add-Result -Check 'APEX' -Status MANUAL -Reason 'Confirm Docker Desktop is available, or the account can use Codespaces.'
-Add-Result -Check 'Azure Hybrid Benefit' -Status MANUAL -Reason 'Confirm you hold eligible Windows Server licences with Software Assurance. Azure Hybrid Benefit is on by default for vm-app01; without eligible licences, deploy the datacenter with -NoHybridBenefit.'
+Add-Result -Check 'Azure Hybrid Benefit' -Status MANUAL -Reason 'Confirm you hold eligible Windows Server licenses with Software Assurance. Azure Hybrid Benefit is on by default for vm-app01; without eligible licenses, deploy the datacenter with -NoHybridBenefit.'
 
 $failures = @($results | Where-Object { $_.Status -eq 'FAIL' }).Count
 if ($OutFile) {
