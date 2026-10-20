@@ -9,7 +9,10 @@ public repo; it needs api.github.com and codeload.github.com through the firewal
 infra/, archetype/, app/, db/, templates/, .github/modernization/ and .github/skills/
 into <Destination>/factory/. It then imports the archetype's APEX project into the repo root by
 running factory/archetype/Import-Archetype.ps1 at the same -Ref (skip with -SkipArchetype).
-factory/.gitignore keeps factory/.local/ (your subscription IDs) out of git.
+factory/.gitignore keeps factory/.local/ (your subscription IDs) out of git. It also keeps factory/ out of the repo's
+ESLint, Prettier and markdownlint checks (a nested factory/eslint.config.mjs and factory/.markdownlint-cli2.jsonc, plus a
+factory/ line in .prettierignore) and adds factory/ and .prettierignore to the weekly upstream sync's EXCLUDE_PATHS, so
+neither the pre-commit hooks nor the sync touch the kit.
 Refuses to overwrite an existing factory/ folder unless -Force. -Force replaces only the imported kit
 folders: factory/.local (your settings, suffix and datacenter credentials) and your archetype work in the
 repo root are kept, unless you also pass -ReplaceArchetype. The site, docs, backlog and coach
@@ -53,6 +56,34 @@ $PSNativeCommandUseErrorActionPreference = $false
 
 $KitOwner, $KitRepo = $KitRepository -split '/'
 $ImportItems = @('scripts', 'infra', 'archetype', 'app', 'db', 'templates', '.github/modernization', '.github/skills')
+
+function Add-SyncExclusion {
+    # Adds entries to weekly-upstream-sync.yml's EXCLUDE_PATHS block, idempotently.
+    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string[]]$Entries)
+
+    $warning = "Add $($Entries -join ', ') to EXCLUDE_PATHS in .github/workflows/weekly-upstream-sync.yml yourself, or the next upstream sync reverts or deletes them."
+    if (-not (Test-Path $Path)) { Write-Warning "weekly-upstream-sync.yml was not found. $warning"; return }
+
+    $raw = Get-Content -Path $Path -Raw
+    $newline = if ($raw -match "`r`n") { "`r`n" } else { "`n" }
+    $lines = $raw -split "`r?`n"
+    $start = ($lines | Select-String -Pattern '^\s*EXCLUDE_PATHS:\s*\|\s*$' | Select-Object -First 1).LineNumber
+    if (-not $start -or $start -ge $lines.Count -or $lines[$start] -notmatch '^(\s+)\S') {
+        Write-Warning "weekly-upstream-sync.yml has no recognizable 'EXCLUDE_PATHS: |' block. $warning"
+        return
+    }
+    $indent = $Matches[1]
+    $end = $start
+    while ($end + 1 -lt $lines.Count -and $lines[$end + 1] -match "^$indent\S") { $end++ }
+
+    $present = $lines[$start..$end] | ForEach-Object { $_.Trim() }
+    $missing = @($Entries | Where-Object { $_ -notin $present })
+    if (-not $missing) { return }
+
+    $newLines = @($lines[0..$end]) + @($missing | ForEach-Object { "$indent$_" }) + @($lines[($end + 1)..($lines.Count - 1)])
+    Set-Content -Path $Path -Value ($newLines -join $newline) -NoNewline
+    Write-Host "Added $($missing -join ', ') to EXCLUDE_PATHS in weekly-upstream-sync.yml."
+}
 
 if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
     throw 'tar was not found on PATH. It ships with Windows 10 1803+, macOS, Linux and the dev container.'
@@ -118,6 +149,35 @@ try {
         }
         Set-Content -Path (Join-Path $factory '.gitignore') -Value ".local/`n" -NoNewline
         Write-Host "Imported the kit at $Ref into '$factory'."
+
+        # The repo's pre-commit hooks lint and format everything staged. The kit isn't written to that style
+        # and holds vendored scripts, so keep factory/ out of ESLint, Prettier and markdownlint.
+        # ESLint 10 and markdownlint read the nearest config, so factory/ carries its own; Prettier only reads
+        # the root .prettierignore.
+        $eslintConfig = @'
+// The imported kit is not linted: it holds vendored scripts and kit tooling, not this repo's source.
+const skip = { preprocess: () => [], postprocess: () => [] };
+
+export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }];
+
+'@
+        Set-Content -Path (Join-Path $factory 'eslint.config.mjs') -Value $eslintConfig -NoNewline
+        $markdownRules = (1..60 | ForEach-Object { '    "MD{0:D3}": false' -f $_ }) -join ",`n"
+        Set-Content -Path (Join-Path $factory '.markdownlint-cli2.jsonc') -Value "{`n  `"config`": {`n$markdownRules`n  }`n}`n" -NoNewline
+
+        $prettierIgnore = Join-Path $Destination '.prettierignore'
+        if (-not (Test-Path $prettierIgnore)) {
+            Write-Warning "No .prettierignore at '$Destination'. Add 'factory/' to it yourself, or the pre-commit hooks will format-check the kit."
+        }
+        elseif (-not ((Get-Content -Path $prettierIgnore -Raw) -match '(?m)^factory/\s*$')) {
+            $existing = Get-Content -Path $prettierIgnore -Raw
+            $lead = if ($existing.EndsWith("`n")) { '' } else { "`n" }
+            Add-Content -Path $prettierIgnore -Value "${lead}`n# Imported kit (Import-Kit.ps1)`nfactory/`n" -NoNewline
+        }
+
+        # The weekly upstream sync removes everything upstream doesn't have, except EXCLUDE_PATHS: without
+        # factory/ there, it deletes the kit; without .prettierignore, it reverts the line added above.
+        Add-SyncExclusion -Path (Join-Path $Destination '.github/workflows/weekly-upstream-sync.yml') -Entries @('factory/', '.prettierignore')
     }
 
     if (-not $SkipArchetype) {

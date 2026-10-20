@@ -120,11 +120,13 @@ Allow outbound HTTPS to `github.com`, `api.github.com`, `codeload.github.com`, `
    ```
 
    This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`. `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
-5. Commit the result:
+5. Commit the result. The repo's commit hook requires a conventional message (`type: Subject`), so use this one as it is:
 
    ```bash
-   git add -A && git commit -m "Import kit" && git push
+   git add -A && git commit -m "chore: Import the factory kit" && git push
    ```
+
+   The import keeps `factory/` out of the repo's linters and formatters (ESLint, Prettier, markdownlint) and out of the weekly upstream sync, so the commit hook doesn't check the kit's files.
 
 The archetype was built against APEX commit `c209d8b` (recorded in `archetype/README.md`). If the APEX agents in your repo behave differently from the C5 instructions, tell your coach.
 
