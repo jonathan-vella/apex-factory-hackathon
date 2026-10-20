@@ -10,15 +10,15 @@ Fill this in from what you actually did in C7, not from a plan written in advanc
 
 ## Go/no-go decision
 
-<!-- What you confirmed before cutting over: every writer to the source stopped (site and pool `ContosoUniversity` on vm-app01, any local app on vm-dev01), no remaining database sessions, replication lag at 0, replica validation passed. Paste the command output. -->
+<!-- What you confirmed before cutting over: every writer to the source stopped (site and pool `ContosoUniversity` on vm-app01, any local app on vm-dev01), no remaining database sessions, no replication lag (two dashes in the Lag column), replica validation passed. Paste the command output. -->
 
 ## Cutover steps taken
 
-<!-- The actual steps you ran, in order, including the Arc portal pane and whether you ticked or left unticked the forced-failover checkbox, and why. -->
+<!-- The actual steps you ran, in order, including the Arc portal pane and whether you ticked or cleared the forced-failover checkbox, and why. -->
 
 ## Post-cutover validation
 
-<!-- What you checked immediately after cutover: app connectivity, data presence, contained user creation. -->
+<!-- What you checked immediately after cutover: the database reads READ_WRITE on the managed instance, app connectivity, data presence, contained user creation. -->
 
 ## Rollback path (if needed)
 
@@ -26,4 +26,4 @@ Fill this in from what you actually did in C7, not from a plan written in advanc
 
 ## Follow-up actions
 
-<!-- Anything still open after cutover — e.g. removing trace flags from the source, the web app's first start on App Service, or anything you deferred. -->
+<!-- Anything still open after cutover, such as the web app's first start on App Service or anything you deferred (the trace flags are removed in C7 task 7; record them here only if you left them). -->

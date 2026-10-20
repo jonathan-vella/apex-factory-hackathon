@@ -17,7 +17,10 @@ An [APEX](https://github.com/jonathan-vella/apex-accelerator) project that desig
 private-by-default Azure platform for the modernized Contoso University web app: App Service, a
 container registry, a SQL Managed Instance, Blob storage, Service Bus, Key Vault and Application
 Insights, in a Corp landing zone spoke that already exists (vended in C2). It does not deploy or
-modernize the app itself -- that is the separate app- and database-modernization work (C6 to C9).
+modernize the app itself: that is the separate app- and database-modernization work (C6 to C9).
+
+As a member you need only **Deploy it**, **Inputs**, **Cost** and **Public-endpoint exceptions**. The sections
+from **Accepted lab risks and adopter obligations** on are reference for the people who run the kit.
 
 APEX release/commit this project is pinned to: `apex-accelerator` has no tagged releases, so this
 records the commit SHA the archetype was generated with, `c209d8b`. `BRIEF.md`'s Notes section
@@ -89,19 +92,19 @@ repo and continue from there.
    you to confirm them (it asks for them if the file is missing), checks that a spoke is already
    vended (your platform lead vends it in C2), runs a lightweight governance check
    (live Deny-effect discovery, compared against the packaged policy set by policy definition and
-   resource type -- stopping only on a genuinely new deny; never overwriting the tracked
+   resource type, stopping only on a genuinely new deny; never overwriting the tracked
    `04-governance-*` files or running drift routing/Step 4-5 re-emission), creates the `azd`
    environment, sets the three inputs, sets `AZURE_LOCATION` from the hub's region (a core azd
    value azd needs before it will provision at all), runs `./scripts/preflight.ps1` in the same
    shell session to derive the other required values, then stops at `azd provision --preview`.
-   The preview only lists resource types azd has display names for -- expect it to omit the SQL
+   The preview only lists resource types azd has display names for: expect it to omit the SQL
    Managed Instance, the UAMI, role assignments, diagnostic settings and the maintenance schedule
    even though they're all in the template and will be created. It never runs `azd provision`,
-   `azd down`, `07b-Bicep Deploy`, or anything else that writes to Azure -- running the deployment
+   `azd down`, `07b-Bicep Deploy`, or anything else that writes to Azure: running the deployment
    is the member's own decision. `azd` stores the tenant and subscription IDs it was given in the
-   gitignored `.azure/<env>/.env` -- expected, not a leak.
+   gitignored `.azure/<env>/.env`: expected, not a leak.
 4. Review the preview, then run `azd provision` yourself (from `infra/bicep/university/`, same
-   shell session) to deploy. The `preprovision`/`postprovision` hooks run `preflight.ps1` and
+   shell session) to deploy. It takes about 20 minutes. The `preprovision`/`postprovision` hooks run `preflight.ps1` and
    `postdeploy-tests.ps1` automatically. Because `azd` bypasses APEX Deploy (`07b`), which would
    otherwise write the Step 6 artifact, `postprovision` also runs `write-deployment-summary.ps1`:
    it writes `agent-output/university/06-deployment-summary.md` from the live deployment record
@@ -145,9 +148,9 @@ create` of `infra/bicep/university/main.bicep` (subscription-scope; the template
 
 ## Inputs
 
-Only three: **tenant ID**, **subscription ID**, **suffix**. Everything else -- region, spoke,
-subnets, Log Analytics workspace, SQL MI Entra admin -- is derived or discovered by both the APEX
-path and the fallback script, by the backlog's naming conventions.
+Only three: **tenant ID**, **subscription ID**, **suffix**. Everything else (region, spoke,
+subnets, Log Analytics workspace, SQL MI Entra admin) is derived or discovered by both the APEX
+path and the fallback script, by the kit's naming conventions.
 
 ## Cost
 
@@ -155,7 +158,7 @@ The archetype adds about **$1.83/hour** while deployed: SQL MI General Purpose S
 4 vCores with AHB about $0.68, Service Bus Premium about $0.93, App Service P0v3 about $0.10, ACR
 Premium about $0.07, private endpoints about $0.05. The foundation it runs on (ALZ-lite about $1.30
 plus the datacenter about $1.55) is about **$2.85/hour** on its own, so the kit total while both the
-foundation and the archetype are deployed is about **$4.63-$4.66/hour**. The SQL MI can't be
+foundation and the archetype are deployed is about **$4.63 to $4.68/hour**. The SQL MI can't be
 stopped while an MI link is active.
 
 ## Public-endpoint exceptions
@@ -163,8 +166,8 @@ stopped while an MI link is active.
 The archetype is private-only apart from two documented public endpoints, both required for the
 app to function:
 
-1. **The web app's front end** -- the only public inbound endpoint; it's the point of the exercise.
-2. **Application Insights ingestion** -- stays public; there is no private-endpoint-only ingestion
+1. **The web app's front end**: the only public inbound endpoint; it's the point of the exercise.
+2. **Application Insights ingestion**: stays public; there is no private-endpoint-only ingestion
    path for the workspace-based resource this kit uses.
 
 Separately, the container registry allows **trusted Azure services** to bypass its network rules
@@ -195,8 +198,8 @@ reports them as unresolved. Read this section before you deploy the archetype in
    - Removing the grant or the identity doesn't cancel tokens that were already issued. The effect
      can take hours.
 2. **The public web app has no end-user authentication.** The web app's front end is the one public
-   inbound endpoint (see above). It has no App Service authentication and no IP restrictions, and an
-   owner decision left end-user sign-in to the application. Its managed identity holds
+   inbound endpoint (see above). It has no App Service authentication and no IP restrictions, and the
+   kit leaves end-user sign-in to the application. Its managed identity holds
    Storage Blob Data Contributor, Service Bus Data Sender and Receiver, and Key Vault Secrets User.
    If the application you deploy exposes an operation that uses those roles, anyone on the Internet
    can call it. The archetype deploys a placeholder image, so the exposure depends on the
@@ -298,7 +301,7 @@ before relying on it. Follow-up filed upstream: `apex-accelerator`'s `.gitattrib
 
 SQL MI deploys with `licenseType: 'BasePrice'`, which assumes the subscription has Software
 Assurance-eligible SQL Server core licenses to cover it (Azure Hybrid Benefit). This is the kit-wide
-default (see `docs/backlog/README.md`). To turn AHB off and pay full license-included pricing
+default (the cost figures above assume it). To turn AHB off and pay full license-included pricing
 instead, change `licenseType` to `'LicenseIncludedPrice'` in `infra/bicep/university/main.bicep`
 (or override it as a deployment parameter) before deploying.
 

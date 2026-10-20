@@ -7,7 +7,7 @@ description: Build Contoso University's container image with .NET SDK container 
 
 ## When to use
 
-- After task 07, to package the app (playbook step 4).
+- After agent task 07, to package the app (playbook Step 4).
 - When `dotnet publish /t:PublishContainer` or the push fails.
 - When an agent proposes a `Dockerfile` or Docker Desktop: the kit uses neither, and `vm-dev01` has no Docker.
 
