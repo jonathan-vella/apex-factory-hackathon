@@ -1,11 +1,11 @@
 ---
 title: "Copilot App: prerequisites"
-description: Three checks before you select the Upgrade agent in the GitHub Copilot app.
+description: Four checks before you select the Upgrade agent in the GitHub Copilot app.
 sidebar:
   order: 1
 ---
 
-The kit validated VS Code, not the Copilot app. If the Upgrade agent's tools don't attach after these three
+The kit validated VS Code, not the Copilot app. If the Upgrade agent's tools don't attach after these four
 checks, switch to the [VS Code track](../../vscode/00-prerequisites/) — don't keep retrying.
 
 ## 1. .NET 10 SDK installed
@@ -42,7 +42,18 @@ with an access-denied error, even though the sandbox panel shows the workspace a
 
 **Action:** in the project's sandbox settings, turn off **Sandbox new sessions** before you start.
 
-## Check all three before you continue
+## 4. `AZURE_TOKEN_CREDENTIALS` set, so the app can reach Azure locally
+
+Once a task has the app calling Blob, Service Bus or Key Vault, it needs your own Azure CLI sign-in — the
+app's managed identity only applies once it's actually running on App Service. Without this, calls return 403.
+
+```powershell
+[Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')
+```
+
+Set it only on `vm-dev01`, then restart the Copilot app so new sessions pick it up.
+
+## Check all four before you continue
 
 | Check | How |
 | --- | --- |
@@ -50,5 +61,6 @@ with an access-denied error, even though the sandbox panel shows the workspace a
 | App restarted after install | You quit and reopened the Copilot app since installing the SDK |
 | Folder trusted | Project settings show the repository as trusted |
 | Sandboxing off | Project settings show **Sandbox new sessions** off |
+| `AZURE_TOKEN_CREDENTIALS` set | Set at the user level, and the app restarted since |
 
-With all four true, continue to [Assess and plan](../01-assess-and-plan/).
+With all five true, continue to [Assess and plan](../01-assess-and-plan/).

@@ -33,8 +33,15 @@ Approve builds and file edits as they come up; if the agent stops halfway, reply
    | 03 Blob | Upload/replace/delete round-trips through Blob (`az storage blob list ...`); non-image and >5MB rejected; no `blob.core.windows.net` link on the page |
    | 04 Service Bus | A toast appears within 5 seconds of a student edit; `/Notifications/GetNotifications` returns `success:true` |
    | 05 Key Vault | A: Development without `KeyVault:VaultUri` runs. B: Production without it refuses to start. C: Production with it opens the vault, then stops for no `ConnectionStrings--DefaultConnection` yet (C7 writes it) |
-   | 06 OpenTelemetry | With no connection string the app starts normally; with one, requests/SQL/traces show in Application Insights within 5 minutes; `git grep -n -E "Trace\.\|Debug\.Write" -- app/ContosoUniversity` prints nothing |
+   | 06 OpenTelemetry | With no connection string the app starts normally; with one, requests/SQL/traces show in Application Insights within 5 minutes; no leftover `Trace`/`Debug` calls (search below) |
    | 07 CVE audit | `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` finds nothing, or a documented no-op |
+
+   Task 06's leftover-call search (keep this out of the table above — a table cell can't safely hold a
+   regex with a literal `|` alternation):
+
+   ```powershell
+   git grep -n -E "Trace\.|Debug\.Write" -- app/ContosoUniversity
+   ```
 
    Full hot-spot table and the task 05/06 command blocks are in the
    [playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#task-checks).

@@ -26,7 +26,9 @@ $rg; $app
    each step in Blob with `az storage blob list --account-name stuniversity<suffix> --container-name teaching-materials --auth-mode login`.
    A non-image and a >5MB file are rejected.
 3. **Notification round-trip.** With the browser's Network panel open and filtered on `GetNotifications`, edit
-   a student. A toast appears within 5 seconds and the next poll returns `success: true`.
+   a student. A toast appears within 5 seconds and the next poll returns `success: true`. Don't open
+   `/Notifications/GetNotifications` yourself in another tab — each call consumes the queued messages, so the
+   page would never show the toast.
 4. **Load check.** A light burst — the command is in [C8](../../../../challenges/c08-validate-the-pattern/).
    Every response is `200`.
 5. **Security check.** Run the read-only `Test-Acceptance.ps1` script from C8 against the resource group. It

@@ -19,7 +19,7 @@ acceptance bar; these are the *paste this*.
 | Track | Host | Status |
 | --- | --- | --- |
 | [VS Code](vscode/) | VS Code on `vm-dev01`, harness **Local** | The kit's validated golden path. Use this. |
-| [Copilot App](ghcp-app/) | The GitHub Copilot app, on `vm-dev01` | Best-effort. The playbook's own CLI section already notes the Upgrade agent's tools sometimes don't attach in the app, with VS Code as the fallback. This track adds three prerequisites that measurably help, but isn't a guaranteed alternative. |
+| [Copilot App](ghcp-app/) | The GitHub Copilot app, on `vm-dev01` | Best-effort. The playbook's own CLI section already notes the Upgrade agent's tools sometimes don't attach in the app, with VS Code as the fallback. This track adds four prerequisites that measurably help, but isn't a guaranteed alternative. |
 
 If you haven't chosen a track yet, use VS Code. Reach for the Copilot App track only if you specifically want to
 try it, and keep VS Code as your fallback if a prompt's checks don't pass.

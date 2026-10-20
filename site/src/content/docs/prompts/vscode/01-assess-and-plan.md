@@ -41,8 +41,9 @@ gate:
 - `git status --short -- app` prints nothing.
 
 If a check fails, tell the agent which one, in the same chat — it can revise its own plan. Commit and push
-`app: assess and plan` — your baseline for C6. If you ever have to restart the seven tasks,
-`git reset --hard` to this commit.
+`app: assess and plan` — your baseline for C6. If you ever have to restart the seven tasks, `git reset --hard`
+to this commit (it discards uncommitted work, and your next push needs `git push --force-with-lease`), then
+confirm the tree is clean again with [Prerequisites](../00-prerequisites/)' last check.
 
 ## Hot spots
 

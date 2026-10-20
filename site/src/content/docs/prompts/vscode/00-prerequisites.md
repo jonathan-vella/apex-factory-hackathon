@@ -17,6 +17,12 @@ this page is the checklist version.
 3. **`AZURE_TOKEN_CREDENTIALS=AzureCliCredential`** set at the user level, then every terminal and VS Code
    restarted. Without it the app gets 403 from Blob, Service Bus and Key Vault — your own identity holds the
    data roles, not the app's managed identity, when running locally.
+
+   ```powershell
+   [Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')
+   ```
+
+   Set it only on `vm-dev01`. On App Service the app uses its managed identity instead.
 4. **On your `vm-dev01-work` branch**, in the kit clone at `C:\src\factory`, with a clean tree:
 
    ```powershell
