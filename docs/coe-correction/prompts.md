@@ -60,8 +60,8 @@ Step 0, before anything else: make sure we are on the right branch.
 - Report the branch and `git log --oneline -3` before continuing.
 
 Step 0.5: Azure MCP mapping. I explicitly authorize this one edit and nothing else in settings.
-- Folder name: `basename "$(git rev-parse --show-toplevel)"`. Required key: `"<folder>/.vscode/mcp.json: azure-mcp"`.
-- Check `.vscode/mcp.json` exists and defines a server named `azure-mcp`. If not, skip this step and tell me.
+- Folder name: `basename "$(git rev-parse --show-toplevel)"`. Required key: `"<folder>/.mcp.json: azure-mcp"`.
+- Check the root `.mcp.json` exists and defines a server named `azure-mcp` under `mcpServers`. If not, skip this step and tell me.
 - Open `.vscode/settings.json`. If `chat.mcp.serverSampling` already has the required key, do nothing. Otherwise add exactly that one
   key with `{ "allowedDuringChat": true }` next to the existing entries. Keep every other entry and all formatting, and keep the
   file valid JSON (check with `node -e "JSON.parse(require('fs').readFileSync('.vscode/settings.json','utf8'))"`; if the file
