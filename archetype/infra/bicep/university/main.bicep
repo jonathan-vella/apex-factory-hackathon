@@ -134,6 +134,7 @@ module monitoring 'modules/monitoring.bicep' = {
     tags: tags
     logAnalyticsWorkspaceId: logAnalyticsWorkspaceId
     uamiPrincipalId: identity.outputs.principalId
+    deployerObjectId: deployerObjectId
   }
 }
 

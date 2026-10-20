@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "challenged_artifact": "agent-output/university/04-implementation-plan.md",
+  "artifact_type": "implementation-plan",
+  "review_focus": "comprehensive",
+  "pass_number": 1,
+  "challenge_summary": "NEEDS_REVISION: 569fbf8e remains must_fix. The 2026-10-07 owner override records acceptance, but a tenant user's default directory access does not establish an equivalent boundary to Graph application-role permissions on a shared UAMI that members can attach to other resources. The plan, contract, and saved policy evidence show no effective target-type restriction; B08 must provide a restriction and verifiable evidence before the Step 4 gate. Confirmed plan-level clarification of 57f85f8d (fixed template roles are not a role-set restriction; Owner authority remains an accepted risk) and 3fd577cf (no Audit claim; the effect remains unknown). The 92079f7c B08 stability, recovery, consumer-rebinding, and grant-restoration obligations are now explicit but remain unverified obligations, not implemented lifecycle controls. The dependency diagram now distinguishes the UAMI and deployer Monitoring Metrics Publisher principals at App Insights component scope. These clarifications do not change the shared identity, Graph grants, or attachment threat boundary. No other material issue was found in the reviewed plan/contract, governance mapping, SKU and cost alignment, dependencies, monitoring, readiness, or approval boundary.",
+  "compact_for_parent": "Pass 1 (comprehensive) | HIGH | 1 must_fix, 0 should_fix | Key: Shared Graph-enabled UAMI is not restricted to SQL MI consumers",
+  "risk_level": "high",
+  "must_fix_count": 1,
+  "should_fix_count": 0,
+  "suggestion_count": 0,
+  "findings": [
+    {
+      "id": "569fbf8e",
+      "severity": "must_fix",
+      "category": "governance_gap",
+      "claim": "Shared Graph-enabled UAMI is not restricted to SQL MI consumers.",
+      "evidence": "Task 12 step 7 records that each member has Owner on its dedicated workload subscription and step 10 grants/checks Managed Identity Operator on the shared id-sqlmi-directory. A member with workload Owner can create or modify an identity-capable resource in that subscription; the shared identity's assign/action permission lets that resource attach id-sqlmi-directory. Once attached, the resource can request managed-identity tokens carrying the identity's Graph application permissions: User.Read.All, GroupMember.Read.All, and Application.Read.All. Those app-role grants are exercised as the service identity, not bounded by the deploying user's delegated token or by the fact that the user can read some directory information. The historical acceptance rationale (tenant users' default directory read and short-lived lab subscriptions) therefore does not constrain attachment, token availability, or the service principal's authorization. The plan's checks establish identity existence and assign/action only; the plan, iac contract, governance assignments, and policy-property map contain no effective rule restricting this UAMI to Microsoft.Sql/managedInstances. The 2026-10-07 owner override is preserved as a risk disposition, but there is no new override or technical attachment control in this review's authorized scope.",
+      "impact": "A compromised or intentionally member-controlled resource in any workload subscription can attach the shared identity and use its app-only Graph token outside the SQL MI C7 user-creation path. This creates a tenant-directory access path across the shared-services trust boundary; normal user directory visibility and the lab's short lifetime do not prevent service-identity token use or reduce its scope.",
+      "artifact_section": "Task 12: scripts/preflight.ps1 + hooks/preprovision.ps1 — Deployer accepted risk / SQL MI directory identity",
+      "suggested_fix": {
+        "artifact_path": "agent-output/university/04-implementation-plan.md",
+        "proposed_edit": "Keep the existing id-sqlmi-directory binding and Graph grants unchanged during this review. Route to B08 for an effective boundary that prevents member workload principals from attaching this identity to any resource type other than Microsoft.Sql/managedInstances, plus independently verifiable pre-deployment evidence that the boundary is enforced across member subscriptions. The current existence and assign/action preflight is not that boundary. If B08 cannot provide and evidence the restriction, keep Step 4 DRAFT and return to the owner for an authorized identity-isolation decision before deployment; do not treat the historical risk acceptance as technical closure."
+      },
+      "traces_to": ["569fbf8e"],
+      "requires_step": "step-4",
+      "verification_anchors": [
+        "04-implementation-plan.md > Overview > Carried items > SQL MI directory identity: shared B08-owned identity and Graph grants",
+        "04-implementation-plan.md > Task 9 > modules/sql-mi.bicep: userAssignedIdentities and primaryUserAssignedIdentityId",
+        "04-implementation-plan.md > Task 12 step 7: workload Owner authority, generic roleAssignments/write, and accepted-risk scope",
+        "04-implementation-plan.md > Task 12 step 10: id-sqlmi-directory existence and assign/action checks; no attachment restriction",
+        "04-implementation-plan.md > Security Configuration > SQL MI identity",
+        "04-implementation-plan.md > Code-Generation Contract > Microsoft.Sql/managedInstances:sqlmi external identity dependency",
+        "04-dependency-diagram.py and 04-dependency-diagram.png > intended shared identity edge to SQL MI; this depicts intended use, not an enforced attachment boundary",
+        "04-runtime-diagram.py > SQL MI Graph lookup path through the shared identity",
+        "04-iac-contract.json > resources[logical_name=sqlmi] and capability_checks[id=sqlmi-directory-identity]",
+        "04-governance-constraints.json > assignment_inventory/findings: no managed-identity attachment target-type restriction is recorded",
+        "04-policy-property-map.json > policies: no managed-identity attachment target-type restriction is mapped",
+        "challenge-findings-plan-decisions.json and apex-recall decisions --project university --json > historical 569fbf8e owner acceptance; no new override or technical closure",
+        "01-requirements.md > User Types > Deploying member (control plane): stated role-set intent does not constrain Owner's independent RBAC authority"
+      ]
+    }
+  ],
+  "supporting_inputs": [
+    { "path": "agent-output/university/04-iac-contract.json", "sha256": "01cc1d85a0109ec10ee55c611a7208b4a8d6bc987f93c32902748a825b129a2f" },
+    { "path": "agent-output/university/04-policy-property-map.json", "sha256": "7735a31195aacb0b77c9605298631b5698d0efed5e04b4f5635bf9739637cef2" },
+    { "path": "agent-output/university/04-environment-manifest.json", "sha256": "f02cac2a63740b018b1b38b975c9ed9705542fab7118df1ed1535c86d562db42" },
+    { "path": "agent-output/university/04-governance-constraints.json", "sha256": "69c7db7997c6f6440c7ffafef4cc84c8b94718f23147e744784ec64ed8cda86b" },
+    { "path": "agent-output/university/sku-manifest.json", "sha256": "23cad96b37fa553522f922a33af1df5878f9d5fec276615d18cefc3bda5f1b83" },
+    { "path": "agent-output/university/02-architecture-assessment.md", "sha256": "b0d49164ca1458346f8bc3d70d806364700f5ac001f37f8d26967aa5a7cda70b" },
+    { "path": "agent-output/university/02-cost-estimate.json", "sha256": "713ff80f98bb4da4f66cf28477b33fcdbe704884b3e59b000f87e934d1abf8a0" },
+    { "path": "agent-output/university/03-des-cost-estimate.md", "sha256": "0971f805999e717f4b2ad2f84a4879cd31321ae8336b83bad155dfcfbf9078e7" },
+    { "path": "agent-output/university/04-dependency-diagram.py", "sha256": "0ff1b112a508676adb775ea642629f71f3e8b507b00e2c3637d60776464c9c2d" },
+    { "path": "agent-output/university/04-dependency-diagram.png", "sha256": "ace62240b7b7122db9a41289d5e74afd792d75af6941ac87a81479965a35a2f9" },
+    { "path": "agent-output/university/04-dependency-diagram.svg", "sha256": "abe8a0394650f2260c29675f90a9e7a0e4f65187bfe1e38b2d90317bdd6a4884" },
+    { "path": "agent-output/university/04-runtime-diagram.py", "sha256": "06043e4abdeb89deee68f6c1c96b6f3b26e0e82021c0bcf02713188a3ef4cd15" },
+    { "path": "agent-output/university/04-runtime-diagram.png", "sha256": "51c5be398c7b04342f365095f7471d7093b0b6e5f1094db9facd2b9c93d5ea1b" },
+    { "path": "agent-output/university/04-runtime-diagram.svg", "sha256": "afa80e12abfac3ef01c2af047ec5a52ed9f58f5d3bfa06d1f8057a3b60b8bdec" },
+    { "path": "agent-output/university/01-requirements.md", "sha256": "85f45236d221db9aee5e1ab66650e57f0dcc9e3310d98d0748bd0ca115aaefb1" },
+    { "path": "agent-output/university/challenge-findings-plan-decisions.json", "sha256": "774b77ee70d7de641e630e6f33658b2e3c0584db425de1f475c50cf754ef90fa" },
+    { "path": "agent-output/university/challenge-findings-plan-pass7.json", "sha256": "fd400c4dcd25baf7c9138492c5c247ea65580ba92df12b702c8e20b74cd43b81" },
+    { "path": "agent-output/university/challenge-findings-plan-pass8.json", "sha256": "a4351fdfd3ce17675ddc20e835b21fb34938da7eccf54ef0a81944088c7d529f" }
+  ],
+  "cache_inputs": {
+    "artifact_sha": "68d26acfc345b570bbc0bbd677c59f77dd9224f5fa8501a756414ac58ce867e2",
+    "checklists_sha": "0300a75e3283490e9d1e64cb0ca32fba34d979e8e1665f4d63f17b0d2f08e25f",
+    "protocol_sha": "8619ca9d2d39431712cbbb29fa5bcf86be2ee5bff6f14fcc7b758d59a4ca64cb",
+    "subagent_sha": "e00489f78dde5a18b8ecb2473881c542c927f87b68eacdb98f290485b66823d9",
+    "model": "GPT-6 Luna (copilot)",
+    "artifact_hash": "637d939b2d4cad26f26c304d1be1c21f521f0b3b66c3fcbc2044ec6b28e931c8"
+  }
+}

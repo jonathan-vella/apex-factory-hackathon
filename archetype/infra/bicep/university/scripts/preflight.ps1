@@ -288,18 +288,28 @@ function Invoke-UniversityPreflight {
 
     # 9. DeployIfNotExists assignments the landing zone must provide
     # `az policy assignment list` omits management-group assignments inherited by the subscription; the ARM atScope() filter returns them.
-    # This one goes through Invoke-RestMethod, not az rest: on Windows, PowerShell's argument passing to the az.cmd
-    # wrapper hands the command line to cmd.exe, which treats the filter's unescaped '()' as grouping metacharacters
-    # it cannot be made to pass through literally, breaking the call every time (reproduced via azd's hook runner).
+    # This call uses Invoke-RestMethod, not `az rest`: on Windows, PowerShell hands the az.cmd wrapper's command line to
+    # cmd.exe, which treats the unescaped '()' of the filter as grouping metacharacters and breaks the call every time.
+    # The bearer token stays in this process: it is never logged, written to a file or set as an environment variable.
     $armToken = Invoke-AzJson -Arguments @('account', 'get-access-token', '--resource', 'https://management.azure.com')
+    $armHeaders = @{ Authorization = "Bearer $($armToken.accessToken)" }
+    $assignmentItems = [System.Collections.Generic.List[object]]::new()
     $assignmentsUrl = 'https://management.azure.com/subscriptions/{0}/providers/Microsoft.Authorization/policyAssignments?api-version=2023-04-01&$filter=atScope()' -f $SubscriptionId
-    try {
-        $assignmentResponse = Invoke-RestMethod -Uri $assignmentsUrl -Headers @{ Authorization = "Bearer $($armToken.accessToken)" } -Method Get
+    while ($assignmentsUrl) {
+        try {
+            $assignmentPage = Invoke-RestMethod -Uri $assignmentsUrl -Headers $armHeaders -Method Get
+        }
+        catch {
+            Stop-Preflight "GET policyAssignments (atScope filter) failed: $($_.Exception.Message)"
+        }
+        foreach ($item in @($assignmentPage.value)) { $assignmentItems.Add($item) }
+        # Follow nextLink so the check sees every assignment, but never send the token to another host.
+        $assignmentsUrl = $assignmentPage.PSObject.Properties['nextLink']?.Value
+        if ($assignmentsUrl -and $assignmentsUrl -notlike 'https://management.azure.com/*') {
+            Stop-Preflight 'the policyAssignments nextLink does not point at management.azure.com; refusing to send the ARM token there.'
+        }
     }
-    catch {
-        Stop-Preflight "GET policyAssignments (atScope filter) failed: $($_.Exception.Message)"
-    }
-    $assignments = @($assignmentResponse.value) | ForEach-Object {
+    $assignments = $assignmentItems | ForEach-Object {
         [PSCustomObject]@{
             displayName     = $_.properties.PSObject.Properties['displayName']?.Value
             enforcementMode = $_.properties.PSObject.Properties['enforcementMode']?.Value

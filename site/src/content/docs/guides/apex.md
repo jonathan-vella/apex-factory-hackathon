@@ -58,5 +58,4 @@ Handing the deployment to the APEX Deploy agent (`07b-Bicep Deploy`) instead of 
 
 ## Known gaps
 
-- Tree-hash drift between this kit's copy of the archetype and the upstream `apex-accelerator` template is a known, deferred issue (tracked as [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52)). The governance check may warn without it being a real problem.
-- The archetype's deployer identity doesn't currently have the Monitoring Metrics Publisher role on Application Insights (tracked as [#60](https://github.com/jonathan-vella/apex-factory-hackathon/issues/60)). C6's OpenTelemetry check (task 06) needs it on `vm-dev01`, and so can C8's telemetry checks, until it's granted. The playbook has the command for your own sign-in.
+- The archetype now gives its deployer the Monitoring Metrics Publisher role on Application Insights, which C6's OpenTelemetry check (task 06) and C8's telemetry checks need. A deployment from before 2026-10-20 lacks it: the playbook has the one-time command for your own sign-in.

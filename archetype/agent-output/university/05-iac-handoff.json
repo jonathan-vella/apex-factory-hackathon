@@ -3,12 +3,12 @@
   "schema_version": "iac-handoff-v1",
   "project": "university",
   "iac_tool": "Bicep",
-  "generated_at": "2026-10-07T13:55:00Z",
+  "generated_at": "2026-10-20T13:14:28.572Z",
   "tree_hash": {
     "algorithm": "sha256-of-sorted-file-hashes",
     "root": "infra/bicep/university/",
-    "value": "dcbe54788bc2952beeb9773b5abded34df3a33e6054851c0997e250972680091",
-    "file_count": 18
+    "value": "cc56dba426714db783391e1aff839c3bc09459781c7829a0e7f06e71fc8d4e1d",
+    "file_count": 19
   },
   "entrypoint": {
     "path": "infra/bicep/university/main.bicep",
@@ -24,9 +24,9 @@
       "pwsh": "7.6.6"
     },
     "validate_gate": {
-      "command": "az deployment sub validate --location <hub-region> --template-file infra/bicep/university/main.bicep --parameters infra/bicep/university/main.bicepparam",
+      "command": "az deployment sub validate --subscription <subscription-id> --location swedencentral --template-file /home/vscode/.copilot/session-state/ca0e3c64-92ad-476b-ae4b-71771154f8ef/files/university-rendered.template.json --parameters @/home/vscode/.copilot/session-state/ca0e3c64-92ad-476b-ae4b-71771154f8ef/files/university-rendered.parameters.json --validation-level Provider --only-show-errors --output json",
       "exit_code": 0,
-      "stdout_sha256": "8b4bebd36c83f5cab2c8abd01c1c2af0c3eed1a6f790a2f3dfdf2f28e58d3c95"
+      "stdout_sha256": "8089bdbea77b3cee097f37530a0d77c9d2869a3c8577e4bca15b993084054462"
     }
   },
   "governance_attestation": {

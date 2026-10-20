@@ -4,7 +4,7 @@
   "iac_tool": "",
   "region": "swedencentral",
   "branch": "main",
-  "updated": "2026-10-07T13:41:59Z",
+  "updated": "2026-10-20T13:24:21Z",
   "current_step": 5,
   "decisions": {
     "region": "swedencentral",
@@ -14,7 +14,7 @@
     "deployment_strategy": "single",
     "complexity": "standard",
     "review_depth": "default",
-    "iac_tool": "bicep",
+    "iac_tool": "Bicep",
     "sku_preferences_captured": "true",
     "relational_db": "sql-managed-instance",
     "environment": "dev",
@@ -53,7 +53,7 @@
     "zone_redundancy": "resolved: az_posture single-zone-mvp; ASP 1 instance zoneRedundant=false; SQL MI zoneRedundant=false; ACR/Service Bus platform zone redundancy forced by AVM and accepted",
     "public_edge_auth_rule": "resolved: App Service public HTTPS, public_edge_auth=none, client_cert_required=false, no Easy Auth, no IP restrictions",
     "accepted_risks": "{\"finding_id\":\"569fbf8e\",\"override_rationale\":\"id-sqlmi-directory holds only Microsoft Graph read (User.Read.All, GroupMember.Read.All, Application.Read.All); members are tenant users with default directory read, so attaching it elsewhere adds no meaningful exposure; members already hold Owner on dedicated, short-lived lab subscriptions. Owner decision 2026-10-07.\",\"step\":\"step-4\",\"requires_step\":\"step-4\"}",
-    "plan_status": "APPROVED"
+    "plan_status": "EXCEPTION_AUTHORIZED"
   },
   "open_findings": [
     "must_fix|accept|dffe7aab|ACR trusted-services bypass is not an exception to the public-access Deny|Owner-reconciled mitigation: keep publicNetworkAccess Disabled and networkRuleBypassOptions AzureServices; record the by",
@@ -316,6 +316,152 @@
       "rationale": "Confirmation review after ACR, SQL MI identity and atScope revisions; reviewer supports pass 1-3 only; review=challenge-findings-plan-pass3.json; pass=3; sha256=a4bf264eff8c07072bf8c8fff5fac11d00084830c5a7e2535b308de226a3a2ea",
       "step": "4",
       "timestamp": "2026-10-07T13:20:43Z"
+    },
+    {
+      "decision": "Owner approved reopening gate-3 and returning Step 5 to Step 4 only for kit issues #52/#60 plan-and-contract revision.",
+      "timestamp": "2026-10-09T13:51:11Z",
+      "rationale": "Human approval in this native VS Code session: add deployerObjectId Monitoring Metrics Publisher at Application Insights component scope while retaining app assignment and disableLocalAuth=true; incorporate four-script correction f1d2d8cc8dfc670f1604030c422fab22cb02db64 with real recall checkpoint/transition and evidence-backed deployment outcomes. Preserve historical reviews, governance, shared SQL MI identity and Graph grants. Workflow instructions loaded directly from authoritative SKILL.md and workflow-entry.md; native skill() failed and is not claimed successful. Planner-only GPT-6.1 Sol override does not authorize reviewer substitution. No generated infrastructure, Azure operations, later-step completion or CodeGen; renewed human gate-3 approval remains required.",
+      "step": "4"
+    },
+    {
+      "decision": "Independent comprehensive #52/#60 confirming review completed at challenge-findings-plan-pass8.json: NEEDS_REVISION, 1 must-fix, 3 should-fix, 1 suggestion. Renewed gate-3 approval is blocked; no approval or Step 4 completion recorded.",
+      "timestamp": "2026-10-09T14:12:24Z",
+      "rationale": "569fbf8e requires verified B08-owned restriction on non-SQL-MI attachment of the shared Graph-enabled identity. Existing human risk acceptance is preserved but not technical closure. Adding or verifying B08 controls is outside the authorized kit #52/#60 plan-and-contract revision and no Azure operation is authorized; retain DRAFT pending owner evidence/resolution.",
+      "step": "4"
+    },
+    {
+      "decision": "Owner approved plan-only clarifications for 57f85f8d, 92079f7c, 3fd577cf and dependency-diagram publisher principals, and authorized fresh independent named Challenger adjudication of 569fbf8e against historical owner acceptance and unchanged threat boundary.",
+      "timestamp": "2026-10-09T14:21:59Z",
+      "rationale": "Clarifications preserve independent workload Owner authority and residual risk, B08 lifecycle/recovery ownership without implemented-control claims, and unresolved Audit versus Disabled evidence. Kit #52/#60 do not alter shared identity binding, Graph grants, Managed Identity Operator or workload Owner rights. Preserve pass8 and all historical dispositions; no prescribed severity/verdict, no Azure operations, identity changes, CodeGen or gate completion. Acceptance is not technical remediation and cannot erase a must-fix.",
+      "step": "4"
+    },
+    {
+      "decision": "Fresh named Challenger adjudication in challenge-findings-plan-pass9.json upheld 569fbf8e as must_fix after reviewing historical owner acceptance and unchanged threat boundary. Approved plan-only clarifications and dependency-diagram assets are finalized; no should-fix or suggestions remain in this review. Stop at DRAFT; gate-3 is blocked.",
+      "timestamp": "2026-10-09T14:30:04Z",
+      "rationale": "B08 must provide an effective boundary preventing member workload principals from attaching id-sqlmi-directory to non-SQL-MI resource types, with independently verifiable enforcement evidence across member subscriptions. If unavailable, return to the owner for a separately authorized identity-isolation decision. Historical acceptance/pass8 remain untouched and are not technical remediation. No identity/grant/rights changes, Azure operation, CodeGen, new review selection, approval or gate completion is authorized or performed.",
+      "step": "4"
+    },
+    {
+      "decision": "Owner decision 2026-10-09: retain the existing B08/shared-identity architecture for this hackathon and accept 569fbf8e as an explicit residual LAB risk, not technical remediation. Participants with resource-write and identity-assignment rights can attach id-sqlmi-directory to non-SQL-MI resources; its Graph application permissions expose tenant-wide directory read, not contained by short-lived subscriptions. This acceptance does not authorize production reuse.",
+      "timestamp": "2026-10-09T16:16:45Z",
+      "rationale": "No restrictions, member-rights removal, Graph-grant changes or identity redesign authorized. Intended final teardown deletes the identity only after all SQL MI consumers are removed; rehearsal teardown retained it, and final deletion has not been evidenced. Tenant-owner approval, event-end date, named cleanup owner and consumer-removal/deletion verification remain outstanding. Existing APEX review lifecycle, gate-3 all-passes-APPROVED precondition and runtime completion check do not support a lab exception for a present must-fix. Record this owner decision only: no gates opened, no new override/closure, no review rerun, no approved plan, no Step 4 completion or CodeGen. Human route 01-Orchestrator for explicit APEX workflow/governance-owner authorization of a versioned scoped exception contract and legitimate enforcement semantics; no such contract change is authorized here.",
+      "step": "4"
+    },
+    {
+      "decision": "Select Plan replacement review for completion",
+      "rationale": "Fresh independent confirmation pass10 with full supporting coverage under the merged lab risk-authorization framework; must-fix a749666a and bc629836 accepted via signed lab authorization university-kit-lab-risk-1; review=challenge-findings-plan-pass10.json; pass=10; sha256=f78b1970c02027d37fa8acc2eed88e03f62a6427f938f7e2debcd9dc03e7b5e5",
+      "step": "4",
+      "timestamp": "2026-10-10T12:25:46Z"
+    },
+    {
+      "id": "D043",
+      "step": 4,
+      "agent": "apex-recall",
+      "title": "Explicit lab risk authorization",
+      "choice": "EXCEPTION_AUTHORIZED",
+      "rationale": "Verified external authority and separate human approval; findings remain unresolved",
+      "decision": "Risk gate exception-authorized; findings remain unresolved",
+      "action": "plan-complete",
+      "authorization": {
+        "path": "agent-output/university/risk/risk-authorization.json",
+        "sha256": "1439357210aa08dd24b2d2cd151a2ea0a800f8bdada46ec433828995868914fa",
+        "id": "university-kit-lab-risk-1"
+      },
+      "timestamp": "2026-10-10T12:25:46Z"
+    },
+    {
+      "id": "D044",
+      "step": 4,
+      "agent": "apex-recall",
+      "title": "Explicit lab risk authorization",
+      "choice": "EXCEPTION_AUTHORIZED",
+      "rationale": "Verified external authority and separate human approval; findings remain unresolved",
+      "decision": "Risk gate exception-authorized; findings remain unresolved",
+      "action": "codegen",
+      "authorization": {
+        "path": "agent-output/university/risk/risk-authorization.json",
+        "sha256": "1439357210aa08dd24b2d2cd151a2ea0a800f8bdada46ec433828995868914fa",
+        "id": "university-kit-lab-risk-1"
+      },
+      "timestamp": "2026-10-10T12:32:27Z"
+    },
+    {
+      "decision": "Workflow owner jonathan-vella authorizes exactly one additional independent Step 4 default/comprehensive confirmation, pass11, overriding the invocation ceiling for university-step4-pass11-20261020-a1 only; authorize the new review record and append-only recall accounting; preserve the plan, five supporting inputs, CodeGen work, all historical reviews and signed records; no signing, gate completion, complete-step, start-step, CodeGen continuation or Azure operation.",
+      "timestamp": "2026-10-20T11:07:02Z",
+      "rationale": "Owner authorization given in this chat on 2026-10-20; preserve all historical attempts and counters; no frozen-input edits, signing, gate approval or Azure permission.",
+      "step": "4"
+    },
+    {
+      "decision": "Workflow owner jonathan-vella authorizes exactly one further independent Step 4 default/comprehensive pass11 invocation, university-step4-pass11-20261020-a2, overriding the invocation ceiling only for this attempt after a1 failed without a substantive review or persisted output; preserve a1 and all historical attempts and counters. Authorize only the new review record and append-only recall accounting. Keep the plan, five supporting inputs, CodeGen work, historical reviews and signed records unchanged. No signing, gate completion, complete-step, start-step, CodeGen continuation or Azure operation.",
+      "timestamp": "2026-10-20T11:20:33Z",
+      "rationale": "Owner authorization given in this chat on 2026-10-20; preserve all historical attempts and counters; no frozen-input edits, signing, gate approval or Azure permission.",
+      "step": "4"
+    },
+    {
+      "decision": "Workflow owner jonathan-vella authorizes exactly ONE final independent Step 4 default/comprehensive confirmation for university, pass11, attempt university-step4-pass11-20261020-a3, after a1 and a2 failed without producing a review. Override the invocation ceiling for this attempt only. Authorize recording the new review, append-only recall accounting and ONE derived reading aid at agent-output/university/tmp/governance-reading-aid.jsonl, to be deleted afterwards. Keep the plan, five supporting inputs, CodeGen work, historical reviews and signed records unchanged. If a3 fails, record the actual failed outcome, do not retry, and stop. No signing, gate completion, complete-step, start-step, CodeGen continuation or Azure operation.",
+      "timestamp": "2026-10-20T11:39:42Z",
+      "rationale": "Explicit workflow-owner authorization in this chat dated 2026-10-20; third and last pass11 override; derived view is not a supporting input; real frozen-input digest must match e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6; no approval or downstream operation authorized.",
+      "step": "4"
+    },
+    {
+      "decision": "Workflow owner jonathan-vella authorizes exactly ONE further independent Step 4 default/comprehensive confirmation for university, pass11, attempt university-step4-pass11-20261020-a4, after a1, a2 and a3 did not produce a recorded review. This fourth override is final: if a4 fails, record the actual failure, do not retry, and stop. Authorize the new review record, append-only recall accounting and ONE derived reading aid at agent-output/university/tmp/governance-reading-aid.jsonl. Preserve the plan, five supporting inputs, CodeGen work, historical reviews and signed records. Require an actual pass10 findings ARRAY, validated dispatch and exactly one synchronous invocation. Do not record in the delegation turn: stop with the prescribed line and wait for the owner message record a4; only then verify exactly one attributed completion before one recording operation and strict cache validation. No signing, gate completion, complete-step, start-step, CodeGen continuation or Azure operation.",
+      "timestamp": "2026-10-20T12:00:31Z",
+      "rationale": "Explicit workflow-owner authorization in this chat dated 2026-10-20, replacing the previous last-override boundary only for a4. Request ID university-step4-pass11-20261020-a4-review is distinct from prior dispatches. Frozen six-input digest must match e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6. Recording and checkpoint are deferred to a later owner-triggered turn; no downstream approval is implied.",
+      "step": "4"
+    },
+    {
+      "decision": "Select Plan replacement review for completion",
+      "rationale": "Owner-authorized pass11 freshness confirmation of unchanged frozen inputs after the upstream sync; separately signed approval agent-output/university/risk/risk-gate-approval.r2.json; review=challenge-findings-plan-pass11.json; pass=11; sha256=d278b83efbe25c8e43a9f43dda59342384fdeced31d8b2eabd145ef9b53650a4",
+      "step": "4",
+      "timestamp": "2026-10-20T12:55:27Z"
+    },
+    {
+      "id": "D050",
+      "step": 4,
+      "agent": "apex-recall",
+      "title": "Explicit lab risk authorization",
+      "choice": "EXCEPTION_AUTHORIZED",
+      "rationale": "Verified external authority and separate human approval; findings remain unresolved",
+      "decision": "Risk gate exception-authorized; findings remain unresolved",
+      "action": "plan-complete",
+      "authorization": {
+        "path": "agent-output/university/risk/risk-authorization.r2.json",
+        "sha256": "a303e57c1998abf21f6a2305333969a67ee02b55c7563bb5f0d512f06ec5a404",
+        "id": "university-kit-lab-risk-1-r2"
+      },
+      "timestamp": "2026-10-20T12:55:27Z"
+    },
+    {
+      "id": "D051",
+      "step": 4,
+      "agent": "apex-recall",
+      "title": "Explicit lab risk authorization",
+      "choice": "EXCEPTION_AUTHORIZED",
+      "rationale": "Verified external authority and separate human approval; findings remain unresolved",
+      "decision": "Risk gate exception-authorized; findings remain unresolved",
+      "action": "codegen",
+      "authorization": {
+        "path": "agent-output/university/risk/risk-authorization.r2.json",
+        "sha256": "a303e57c1998abf21f6a2305333969a67ee02b55c7563bb5f0d512f06ec5a404",
+        "id": "university-kit-lab-risk-1-r2"
+      },
+      "timestamp": "2026-10-20T12:55:28Z"
+    },
+    {
+      "id": "D052",
+      "step": 4,
+      "agent": "apex-recall",
+      "title": "Explicit lab risk authorization",
+      "choice": "EXCEPTION_AUTHORIZED",
+      "rationale": "Verified external authority and separate human approval; findings remain unresolved",
+      "decision": "Risk gate exception-authorized; findings remain unresolved",
+      "action": "code-complete",
+      "authorization": {
+        "path": "agent-output/university/risk/risk-authorization.r2.json",
+        "sha256": "a303e57c1998abf21f6a2305333969a67ee02b55c7563bb5f0d512f06ec5a404",
+        "id": "university-kit-lab-risk-1-r2"
+      },
+      "timestamp": "2026-10-20T13:24:21Z"
     }
   ],
   "review_audit": {
@@ -418,9 +564,14 @@
       "agent": "",
       "status": "complete",
       "sub_step": null,
-      "started": "2026-10-07T11:00:34Z",
-      "completed": "2026-10-07T13:20:43Z",
-      "artifacts": [],
+      "started": "2026-10-09T13:51:23Z",
+      "completed": "2026-10-10T12:25:46Z",
+      "artifacts": [
+        "agent-output/university/04-implementation-plan.md",
+        "agent-output/university/challenge-findings-plan-pass8.json",
+        "agent-output/university/challenge-findings-plan-pass9.json",
+        "agent-output/university/challenge-findings-plan-pass11.json"
+      ],
       "context_files_used": []
     },
     "5": {
@@ -428,8 +579,8 @@
       "agent": "",
       "status": "complete",
       "sub_step": null,
-      "started": "2026-10-07T13:24:20Z",
-      "completed": "2026-10-07T13:41:59Z",
+      "started": "2026-10-20T12:55:28Z",
+      "completed": "2026-10-20T13:24:21Z",
       "artifacts": [],
       "context_files_used": []
     },
@@ -466,12 +617,12 @@
     },
     "4": {
       "schema_version": "review-selection-v1",
-      "path": "agent-output/university/challenge-findings-plan-pass3.json",
-      "sha256": "a4bf264eff8c07072bf8c8fff5fac11d00084830c5a7e2535b308de226a3a2ea",
-      "pass_number": 3,
+      "path": "agent-output/university/challenge-findings-plan-pass11.json",
+      "sha256": "d278b83efbe25c8e43a9f43dda59342384fdeced31d8b2eabd145ef9b53650a4",
+      "pass_number": 11,
       "review_focus": "comprehensive",
       "input_coverage": "primary-and-review-guidance",
-      "selected_at": "2026-10-07T13:20:43Z"
+      "selected_at": "2026-10-20T12:55:27Z"
     }
   },
   "review_attempts": [
@@ -654,6 +805,173 @@
       "outcome": "completed",
       "retry_of": null,
       "recorded_at": "2026-10-07T12:16:27Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-kit52-60-review-20261009-01",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "7de5ce7379bb09f8f6ffa3878d534921c0e50936c55c0acdc04fee8c96e4f573",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-09T13:58:34Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-kit52-60-review-20261009-01",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "7de5ce7379bb09f8f6ffa3878d534921c0e50936c55c0acdc04fee8c96e4f573",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-09T14:10:59Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-kit52-60-adjudication-20261009-01",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e7298e98201dfa075db7501324e11aff48f2c8de3a890c5935d973f933632805",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-09T14:21:59Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-kit52-60-adjudication-20261009-01",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e7298e98201dfa075db7501324e11aff48f2c8de3a890c5935d973f933632805",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-09T14:29:11Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-pass11-20261020-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-20T11:07:49Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-pass11-20261020-a1",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6",
+      "outcome": "failed",
+      "retry_of": null,
+      "recorded_at": "2026-10-20T11:12:44Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-pass11-20261020-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-20T11:21:02Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-pass11-20261020-a2",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6",
+      "outcome": "failed",
+      "retry_of": null,
+      "recorded_at": "2026-10-20T11:25:31Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-pass11-20261020-a3",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-20T11:40:11Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-pass11-20261020-a3",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6",
+      "outcome": "failed",
+      "retry_of": null,
+      "recorded_at": "2026-10-20T11:48:21Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-pass11-20261020-a4",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6",
+      "outcome": "started",
+      "retry_of": null,
+      "recorded_at": "2026-10-20T12:01:33Z"
+    },
+    {
+      "schema_version": "review-attempt-v1",
+      "id": "university-step4-pass11-20261020-a4",
+      "step": "4",
+      "kind": "invocation",
+      "input_digest": "e203076cad756a56e70f82bb65ad256f5fcc8bbc5f3d32175d0bfc757f079ff6",
+      "outcome": "completed",
+      "retry_of": null,
+      "recorded_at": "2026-10-20T12:19:32Z"
     }
-  ]
+  ],
+  "risk_authorizations": {
+    "plan-complete": {
+      "schema_version": "risk-selection-v1",
+      "authorization": {
+        "path": "agent-output/university/risk/risk-authorization.r2.json",
+        "sha256": "a303e57c1998abf21f6a2305333969a67ee02b55c7563bb5f0d512f06ec5a404",
+        "id": "university-kit-lab-risk-1-r2"
+      },
+      "approval": {
+        "path": "agent-output/university/risk/risk-gate-approval.r2.json",
+        "sha256": "995dd21b8fd7baeb48d3b17ad47ec4b388bea7604f76324c704830ec8d6147d8",
+        "id": "university-kit-lab-risk-1-r2-gate"
+      },
+      "execution": null,
+      "context": null
+    },
+    "codegen": {
+      "schema_version": "risk-selection-v1",
+      "authorization": {
+        "path": "agent-output/university/risk/risk-authorization.r2.json",
+        "sha256": "a303e57c1998abf21f6a2305333969a67ee02b55c7563bb5f0d512f06ec5a404",
+        "id": "university-kit-lab-risk-1-r2"
+      },
+      "approval": {
+        "path": "agent-output/university/risk/risk-gate-approval.r2.json",
+        "sha256": "995dd21b8fd7baeb48d3b17ad47ec4b388bea7604f76324c704830ec8d6147d8",
+        "id": "university-kit-lab-risk-1-r2-gate"
+      },
+      "execution": null,
+      "context": null
+    },
+    "code-complete": {
+      "schema_version": "risk-selection-v1",
+      "authorization": {
+        "path": "agent-output/university/risk/risk-authorization.r2.json",
+        "sha256": "a303e57c1998abf21f6a2305333969a67ee02b55c7563bb5f0d512f06ec5a404",
+        "id": "university-kit-lab-risk-1-r2"
+      },
+      "approval": {
+        "path": "agent-output/university/risk/risk-gate-approval.r2.json",
+        "sha256": "995dd21b8fd7baeb48d3b17ad47ec4b388bea7604f76324c704830ec8d6147d8",
+        "id": "university-kit-lab-risk-1-r2-gate"
+      },
+      "execution": null,
+      "context": null
+    }
+  }
 }
