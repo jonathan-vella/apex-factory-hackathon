@@ -65,6 +65,18 @@ export default defineConfig({
           items: [{ autogenerate: { directory: "guides" } }],
         },
         {
+          label: "Prompts",
+          collapsed: true,
+          items: [
+            { label: "Overview", link: "/prompts/" },
+            {
+              label: "VS Code",
+              items: [{ autogenerate: { directory: "prompts/vscode" } }],
+            },
+            { label: "Copilot app (best effort)", link: "/prompts/copilot-app/" },
+          ],
+        },
+        {
           label: "Reference",
           collapsed: true,
           items: [{ autogenerate: { directory: "reference" } }],

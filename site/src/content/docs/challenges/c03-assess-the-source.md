@@ -23,6 +23,7 @@ C0's first Arc migration assessment. C2's foundation doesn't need to be finished
 
 - **Upgrade agent assessment and plan (task 1):** on `vm-dev01`, in VS Code opened on `C:\src\factory`, on your `vm-dev01-work` branch. Connect through Bastion and set up the branch as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 1 to 6). Don't use the dev container: the Local harness has to run next to the app. The exact setup and prompt are in Step 0 and Step 1 of the playbook, `C:\src\factory\.github\modernization\playbook.md` on the VM.
 - **Arc assessment (task 2):** the Azure portal, in your browser.
+- **Paste-ready prompts:** [Assess and plan](../../prompts/vscode/01-assess-and-plan/) for task 1 and [Triage assessment findings](../../prompts/vscode/07-triage-assessment-findings/) for tasks 3 to 6 (optional help; the tasks below are the requirement).
 - **Triage record (tasks 3 to 6):** your own repo, in `factory/evidence/c03/` (set up in [C1](../c01-define-the-opportunity/#where-your-evidence-goes)). Copy `assessment.md` there from the VM, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo), and write the triage table in the same folder. If `factory/evidence/` isn't set up yet, keep your files in a local folder and copy them in once it is.
 
 ## Your tasks

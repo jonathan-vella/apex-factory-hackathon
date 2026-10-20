@@ -44,6 +44,8 @@ $rg; $app
 
 The last line prints your archetype's resource group and the web app's host name. If either is empty, C5 didn't finish.
 
+If a check fails and you want help diagnosing it, there's a prompt for that in the [prompt library](../../prompts/vscode/06-acceptance-pack/). The checks themselves are on this page.
+
 ## Your tasks
 
 1. **Smoke checks.** Open `https://<your web app host name>/` in a browser, then each of **Students**, **Courses**, **Instructors** and **Departments** from the menu. Every page must load with no error page, and the four list pages must show rows. Then confirm the data is the migrated data: on `vm-dev01`, open SSMS and run this query against the source (`10.10.<n>.4`, SQL authentication as `contosoapp`; the password is `sqlAppPassword` in the same `datacenter.json` file as the Bastion password, see C7) and against your SQL Managed Instance (Microsoft Entra authentication). The counts must match, and the source stays running after cutover, so both queries work:

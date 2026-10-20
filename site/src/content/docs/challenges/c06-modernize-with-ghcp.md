@@ -25,6 +25,8 @@ Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShe
 
 Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 
+Paste-ready prompts for this challenge are in the [prompt library](../../prompts/): [Run a task](../../prompts/vscode/02-run-a-task/), [CVE scan](../../prompts/vscode/03-cve-scan/), [Troubleshoot](../../prompts/vscode/04-troubleshoot/) and [App Service check](../../prompts/vscode/05-app-service-check/). The playbook stays the source for the checks.
+
 Start with Step 0 of the playbook (`.github/modernization/playbook.md`) if you haven't finished it in C3: the sign-ins, git identity and `AZURE_TOKEN_CREDENTIALS` take time, and they count against the 180 minutes. The time box is split across two days.
 
 ## The source database login and one Azure change

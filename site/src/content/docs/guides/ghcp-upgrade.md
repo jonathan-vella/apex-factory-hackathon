@@ -150,6 +150,8 @@ Task 01 (the .NET 10 / ASP.NET Core MVC conversion) resets the project's `UserSe
 
 ## Where this hands off
 
+If you prefer to paste ready-made prompts for each step, the [prompt library](../../prompts/) has them, for VS Code and (best effort) the GitHub Copilot app. The playbook stays the source for the checks.
+
 The playbook's step 3 (closing gaps the tasks don't fully cover) uses three skills built for this app: `aspnet-startup-migration`, `notification-service-di` and `trace-to-opentelemetry`. If a task's own validation doesn't pass, check whether one of those skills' symptoms matches before escalating.
 
 C6 continues past the seven tasks with the playbook's step 4 (package the app with .NET SDK container publishing and push it to your registry, skill `sdk-container-publish`) and step 5 (check the App Service configuration, skill `app-service-configuration`). Step 5 only checks in C6. Its commands that change Azure (the Key Vault secret, the web app's image) belong to C7, after the data is migrated.
