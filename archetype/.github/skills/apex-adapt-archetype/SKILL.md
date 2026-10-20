@@ -19,14 +19,23 @@ cancelled question is not an answer, and nothing here counts as the user's appro
 
 ## Inputs
 
-Ask for these three, in order, unless they are already supplied in this conversation. If
-`factory/.local/settings.json` exists in the repo, read `tenantId`, `subscriptionId` and `suffix` from it and show them
-for confirmation instead of asking. Never write these values to a tracked file.
+The skill needs three values:
 
 1. **Tenant ID**: the Entra tenant the workload subscription lives in.
 2. **Subscription ID**: the workload subscription. It is already vended: it has `rg-spoke` with `vnet-spoke`,
    `snet-app`, `snet-pe` and `snet-sqlmi`.
 3. **Suffix**: the member's 4 to 6 lowercase letters or digits, unique per member.
+
+Get them in this order, and never ask for a value you already have:
+
+1. Values already supplied in this conversation or in the argument.
+2. `factory/.local/settings.json` (keys `tenantId`, `subscriptionId`, `suffix`). The file is gitignored, so the `read`
+   tool may refuse it. Read it with `execute` instead: `cat factory/.local/settings.json`. Don't search for it in
+   other places.
+3. Ask with `ask_user` only for what is still missing, one question at a time.
+
+If you found values in the file, show them once and ask a single yes/no question, "Use these?". Don't ask for
+each value separately. Never write these values to a tracked file.
 
 ## Check before adapting
 
