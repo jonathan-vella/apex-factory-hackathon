@@ -110,21 +110,225 @@ const phases = [
 ];
 ---
 
-<ol class="journey">
-  {steps.map((s, i) => {
-    const phase = [...phases].reverse().find((p) => i >= p.start);
-    const first = phase && phase.start === i;
-    return (
-      <li class:list={["journey__step", { "journey__step--team": s.scope.startsWith("Team") }]}>
-        {first && <span class="journey__phase">{phase.label}</span>}
-        <a href={s.href}>
-          <span class="journey__id">{s.id}</span>
-          <span class="journey__title">{s.title}</span>
-          <span class="journey__meta">
-            {s.day} · {s.scope} · {s.min} min · {s.pts} pts{s.split ? ` (${s.split})` : ""}
-          </span>
-        </a>
-      </li>
-    );
-  })}
-</ol>
+<div class="jmap not-content">
+  <p class="jmap__legend">
+    <span class="jmap__key jmap__key--team">Team</span>
+    <span class="jmap__key jmap__key--member">Member</span>
+  </p>
+  <ol class="jmap__list">
+    {steps.map((s, i) => {
+      const phase = [...phases].reverse().find((p) => i >= p.start);
+      const first = phase && phase.start === i;
+      return (
+        <li class:list={["jmap__step", { "jmap__step--team": s.scope.startsWith("Team") }]}>
+          {first && <span class="jmap__phase">{phase.label}</span>}
+          <a href={s.href}>
+            <span class="jmap__id">{s.id}</span>
+            <span class="jmap__title">
+              {s.title}
+              {s.split && <span class="jmap__note">{s.split} pts</span>}
+            </span>
+            <span class="jmap__meta">
+              <span class="jmap__cell jmap__cell--day">{s.day}</span>
+              <span class="jmap__cell jmap__cell--scope">{s.scope}</span>
+              <span class="jmap__cell jmap__cell--num">{s.min} min</span>
+              <span class="jmap__cell jmap__cell--num">{s.pts} pts</span>
+            </span>
+          </a>
+        </li>
+      );
+    })}
+  </ol>
+</div>
+
+<style>
+  .jmap {
+    --j-team: #ffb44c;
+    --j-member: #63b7ff;
+    container-type: inline-size;
+    container-name: jmap;
+  }
+
+  :global(:root[data-theme="light"]) .jmap {
+    --j-team: #b35f00;
+    --j-member: #0b6bbd;
+  }
+
+  .jmap__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.25rem;
+    margin: 0 0 0.25rem;
+    color: var(--lp-muted, var(--sl-color-gray-2));
+    font-size: 0.8rem;
+  }
+
+  .jmap__key::before {
+    content: "";
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    margin-right: 0.4rem;
+    border: 2px solid currentColor;
+    border-radius: 999px;
+    vertical-align: -0.05rem;
+  }
+
+  .jmap__key--team::before {
+    border-color: var(--j-team);
+  }
+
+  .jmap__key--member::before {
+    border-color: var(--j-member);
+  }
+
+  .jmap__list {
+    position: relative;
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0 0 0 1.75rem;
+    list-style: none;
+  }
+
+  .jmap__list::before {
+    content: "";
+    position: absolute;
+    left: 0.45rem;
+    top: 0.5rem;
+    bottom: 0.5rem;
+    width: 2px;
+    background: linear-gradient(180deg, #63b7ff, #684aff 60%, #ffb44c);
+    opacity: 0.55;
+  }
+
+  .jmap__step {
+    position: relative;
+    margin: 0;
+  }
+
+  .jmap__step::before {
+    content: "";
+    position: absolute;
+    left: -1.7rem;
+    top: 1.05rem;
+    width: 0.75rem;
+    height: 0.75rem;
+    border: 2px solid var(--j-member);
+    border-radius: 999px;
+    background: var(--lp-node, var(--sl-color-black));
+  }
+
+  .jmap__step--team::before {
+    border-color: var(--j-team);
+  }
+
+  .jmap__phase {
+    display: block;
+    margin: 0.9rem 0 0.4rem;
+    color: var(--lp-accent-text, var(--sl-color-accent-high));
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .jmap__step:first-child .jmap__phase {
+    margin-top: 0.4rem;
+  }
+
+  .jmap__step a {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    grid-template-areas:
+      "id title"
+      "id meta";
+    column-gap: 0.75rem;
+    row-gap: 0.15rem;
+    align-items: center;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--lp-border, var(--sl-color-gray-5));
+    border-radius: 0.75rem;
+    background: var(--lp-panel, transparent);
+    text-decoration: none;
+  }
+
+  .jmap__step a:hover,
+  .jmap__step a:focus-visible {
+    border-color: var(--lp-hover-border, var(--sl-color-accent-high));
+  }
+
+  .jmap__id {
+    grid-area: id;
+    color: var(--lp-accent-text, var(--sl-color-accent-high));
+    font-family: var(--font-display, inherit);
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  .jmap__title {
+    grid-area: title;
+    color: var(--lp-heading, var(--sl-color-white));
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .jmap__note {
+    display: block;
+    color: var(--lp-muted, var(--sl-color-gray-2));
+    font-size: 0.76rem;
+    font-weight: 500;
+  }
+
+  .jmap__meta {
+    grid-area: meta;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.5rem;
+    color: var(--lp-muted, var(--sl-color-gray-2));
+    font-size: 0.8rem;
+  }
+
+  .jmap__cell:not(:last-child)::after {
+    content: "·";
+    margin-left: 0.5rem;
+  }
+
+  /* Wide enough for aligned columns */
+  @container jmap (min-width: 46rem) {
+    .jmap__step a {
+      grid-template-columns: 3rem minmax(0, 1fr) 4rem 7.5rem 4.25rem 3.75rem;
+      grid-template-areas: "id title day scope min pts";
+      column-gap: 0.75rem;
+    }
+
+    .jmap__meta {
+      display: contents;
+    }
+
+    .jmap__cell:not(:last-child)::after {
+      content: none;
+    }
+
+    .jmap__cell--day {
+      grid-area: day;
+    }
+
+    .jmap__cell--scope {
+      grid-area: scope;
+    }
+
+    .jmap__cell--num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .jmap__cell--num:nth-of-type(3) {
+      grid-area: min;
+    }
+
+    .jmap__cell--num:nth-of-type(4) {
+      grid-area: pts;
+    }
+  }
+</style>

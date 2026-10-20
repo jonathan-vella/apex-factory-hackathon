@@ -7,10 +7,10 @@ const textExtensions = new Set([".astro", ".md", ".mdx", ".yml", ".yaml"]);
 const challengeContract = [
   ["C0", "c00-ready-to-hack.md", 150, 10, 0, 10],
   ["C1", "c01-define-the-opportunity.md", 45, 10, 10, 0],
-  ["C2", "c02-secure-ai-ready-foundation.md", 120, 35, 35, 0],
+  ["C2", "c02-secure-ai-ready-foundation.mdx", 120, 35, 35, 0],
   ["C3", "c03-assess-the-source.md", 60, 15, 0, 15],
   ["C4", "c04-choose-target-states.md", 45, 25, 15, 10],
-  ["C5", "c05-deploy-the-coe-archetype.md", 90, 15, 0, 15],
+  ["C5", "c05-deploy-the-coe-archetype.mdx", 90, 15, 0, 15],
   ["C6", "c06-modernize-with-ghcp.md", 180, 30, 0, 30],
   ["C7", "c07-migrate-and-go-live.md", 120, 20, 0, 20],
   ["C8", "c08-validate-the-pattern.md", 45, 10, 0, 10],

@@ -1,0 +1,252 @@
+---
+// Layout for the landing page only. Selectors start with body:has(.landing-hero), so no other page is affected.
+---
+
+<style is:global>
+  /* Hero: copy on the left, "Where do I run this?" on the right, aligned with the frames below */
+  body:has(.landing-hero) .landing-hero {
+    max-width: var(--landing-content-width, 58rem);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+    gap: 2rem;
+    align-items: center;
+    padding: 3rem 0 0.5rem;
+  }
+
+  body:has(.landing-hero) .landing-hero::before {
+    inset: -2rem 35% auto 0;
+  }
+
+  .landing-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 0.9rem;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+
+  .landing-button {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.55rem 1rem;
+    border: 1px solid var(--lp-accent-text);
+    border-radius: 999px;
+    color: var(--lp-accent-text);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .landing-button--primary {
+    background: var(--sl-color-accent);
+    border-color: var(--sl-color-accent);
+    color: #fff;
+  }
+
+  :root[data-theme="light"] .landing-button--primary {
+    background: #005a9e;
+    border-color: #005a9e;
+  }
+
+  .landing-button:hover {
+    border-color: var(--lp-heading);
+    color: var(--lp-heading);
+  }
+
+  .landing-button--primary:hover {
+    color: #fff;
+    filter: brightness(1.12);
+  }
+
+  .landing-where {
+    position: relative;
+    z-index: 1;
+    padding: 1.1rem 1.25rem 1.2rem;
+    border: 1px solid var(--lp-border);
+    border-radius: 1.1rem;
+    background: var(--lp-surface);
+    box-shadow: var(--lp-shadow);
+  }
+
+  .landing-where h2 {
+    margin: 0 0 0.8rem;
+    color: var(--lp-heading);
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    letter-spacing: -0.02em;
+  }
+
+  .landing-where dl {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+  }
+
+  .landing-where dt {
+    margin: 0;
+    color: var(--lp-heading);
+    font-size: 0.88rem;
+    font-weight: 700;
+  }
+
+  .landing-where dt a {
+    color: inherit;
+    text-decoration-color: var(--lp-line);
+    text-underline-offset: 0.2em;
+  }
+
+  .landing-where dt a:hover {
+    color: var(--lp-accent-text);
+  }
+
+  .landing-where dd {
+    margin: 0.1rem 0 0;
+    color: var(--lp-muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+  }
+
+  .landing-where code,
+  .start-banner code,
+  .shift code {
+    font-size: 0.9em;
+  }
+
+  /* Before the event */
+  .start-banner {
+    max-width: var(--landing-content-width, 58rem);
+    margin: 2rem auto 0;
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--lp-line);
+    border-radius: 1.1rem;
+    background: var(--lp-surface);
+  }
+
+  .start-banner h2 {
+    margin: 0.5rem 0 0;
+    color: var(--lp-heading);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    letter-spacing: -0.03em;
+  }
+
+  .start-banner__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+  }
+
+  .start-banner__head .landing-hero__actions {
+    margin-top: 0;
+  }
+
+  .start-banner__steps {
+    display: grid;
+    gap: 0.6rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .start-banner__steps li {
+    display: grid;
+    grid-template-columns: 5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    margin: 0;
+    color: var(--lp-body);
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .start-banner__when {
+    color: var(--lp-accent-text);
+    font-family: var(--font-display);
+    font-weight: 700;
+  }
+
+  .start-banner a:not(.landing-button) {
+    color: var(--lp-accent-text);
+    text-underline-offset: 0.2em;
+  }
+
+  .start-banner__note {
+    margin: 0.9rem 0 0;
+    color: var(--lp-muted);
+    font-size: 0.88rem;
+  }
+
+  .start-banner .landing-hero__actions {
+    margin-top: 1.1rem;
+  }
+
+  /* Starting point panel: the shift in four lines */
+  .shift {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding-top: 1rem;
+  }
+
+  .shift > div {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--lp-border);
+  }
+
+  .shift dt {
+    margin: 0;
+    color: var(--lp-heading);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .shift dd {
+    margin: 0;
+    color: var(--lp-muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .shift dd b {
+    margin: 0 0.25rem;
+    color: var(--lp-accent-text);
+  }
+
+  .scenario-frame__columns {
+    align-items: start;
+  }
+
+  .scenario-frame__body .arch__lead {
+    margin: 0 0 1rem;
+    color: var(--lp-muted);
+    font-size: 0.92rem;
+  }
+
+  @media (max-width: 899px) {
+    body:has(.landing-hero) .landing-hero {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 1.5rem;
+    }
+
+    .landing-hero__copy {
+      max-width: 36rem;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .start-banner {
+      padding: 1rem;
+    }
+
+    .start-banner__steps li,
+    .shift > div {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.1rem;
+    }
+  }
+</style>
