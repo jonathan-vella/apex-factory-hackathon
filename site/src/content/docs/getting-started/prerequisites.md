@@ -120,11 +120,23 @@ Allow outbound HTTPS to `github.com`, `api.github.com`, `codeload.github.com`, `
    ```
 
    This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`. `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
-5. Commit the result:
+5. Commit the result to a new branch. Don't use `/apex-git-commit` for this: it skips `agent-output/` and `infra/`, which hold the imported archetype, and it won't commit on `main`. Paste this prompt into Copilot Chat in Agent mode instead:
 
-   ```bash
-   git add -A && git commit -m "Import kit" && git push
+   ```text
+   Commit and push all my changes to a new branch. Do not use the apex-git-commit skill or its path exclusions: I want every change committed, including agent-output/, infra/ and factory/.
+
+   1. Run `git status --short`. If the current branch is main, create and switch to a new branch named feat/<two or three words describing the changes>. Otherwise stay on the current branch.
+   2. Stage everything with `git add -A`.
+   3. Commit with a conventional message, type: Subject (types: feat, fix, docs, chore), for example `chore: Import the factory kit`. The repo's hooks run on commit.
+   4. If a hook fails, read its output and fix the cause if it is in a file you changed, then commit again. The one exception: if the only failing hook is iac-security-baseline and it reports exactly these two lines, retry once with `LEFTHOOK_EXCLUDE=iac-security-baseline git commit ...`:
+      - infra/bicep/university/modules/keyvault.bicep:37 purge protection must be enabled
+      - infra/bicep/university/modules/web-app.bicep:64 public network access
+      Those two are accepted lab risks in the archetype (purge protection stays off so the lab can be torn down, and the web app is public on purpose). Do not edit the Bicep to silence them. For any other failure, stop and show me the output.
+   5. Never use --no-verify, never force-push, and never commit to main.
+   6. Push with `git push -u origin <branch>`, then show me the commit hash, the branch name and the number of files committed.
    ```
+
+   The import keeps `factory/` out of the repo's linters and formatters (ESLint, Prettier, markdownlint) and out of the weekly upstream sync, so the commit hook doesn't check the kit's files. Later commits that touch the Bicep hit the same two `iac-security-baseline` lines; the prompt handles them the same way.
 
 The archetype was built against APEX commit `c209d8b` (recorded in `archetype/README.md`). If the APEX agents in your repo behave differently from the C5 instructions, tell your coach.
 
