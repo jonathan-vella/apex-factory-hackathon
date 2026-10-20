@@ -18,7 +18,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 
 | Topic | Decision |
 |---|---|
-| Format | 2 days plus pre-work. Modular: each module can also run standalone |
+| Format | 2 days plus pre-work. Each challenge page is self-contained: it lists its inputs, where to run, evidence and how to start over |
 | Audience | Mostly Azure infra architects/engineers. App and DB work is Copilot-assisted |
 | Licensing | Partners bring their own paid Azure subscriptions and their own GitHub Copilot. Any paid subscription that passes `Test-Preflight.ps1` is supported (it needs an unconditional Owner assignment). Trial, Azure Pass and sponsorship subscriptions are not supported. Nothing else is supported |
 | Hybrid Benefit | Azure Hybrid Benefit is on by default for every resource that supports it: Windows Server VMs, the Windows 11 dev VM (multitenant hosting rights) and SQL MI. It's documented wherever it's deployed, with how to turn it off after deployment |
@@ -39,7 +39,7 @@ Partners need a CoE-style, repeatable way to deliver modernization at scale. Tod
 | Copilot models | Dated guidance from the B06 golden path, recorded in `versions.md`: Claude Opus 5.5 at Medium to assess and plan, Claude Sonnet 5.5 at Medium to execute each task. Re-validate when models change |
 | Learning path | A site page maps each challenge to Microsoft Learn content and credentials, for Microsoft partners on any qualification track. Hands-on first: exams follow the event and finish within 9 months. Core: AZ-104, GH-300 and DP-300, all three mandatory for everyone in an infra role, within 6 months. DP-800 is a required extra group for Infra and Database Migration, taken by the data role (owner decision 2026-10-10). Then AZ-305, AZ-400, SC-500, AZ-700, AI-200, plus AKS and Container Apps learning. Optional "next" stage: GH-600, AI-103. It targets the Infra and Database Migration and App Modernization specializations. Applied Skills are stepping stones, not gates. Coach certifications are recommended, not required. No exam offers (owner decision 2026-10-06) |
 | Scoring | Markdown rubric as the single source of truth (SSOT), with coach sign-off and light gamification. Team score = platform challenges + member workload points averaged across the team |
-| Home | This monorepo and its site (factory.apexops.pro), one folder per module. APEX microhack patterns are reused, not duplicated |
+| Home | This monorepo and its site (factory.apexops.pro), one folder per area. APEX microhack patterns are reused, not duplicated |
 | Repos | One public template repo, owner `jonathan-vella`, MIT (§7). Coach material is public, on the honor system |
 | Regions | Default swedencentral, fallback germanywestcentral. Both are parameters. No automated quota checks |
 
@@ -73,24 +73,24 @@ flowchart LR
 - All backend PaaS services are private-only. There are two documented exceptions: the web app's front end accepts public HTTPS inbound traffic, and Application Insights ingestion stays public, with the hub firewall allowing the Azure Monitor ingestion endpoints. The dev VM reaches the backend services through the hub firewall and DNS. This is how attendees push images, browse the app and run DB tooling. A probe script checks DNS and ports from the dev VM and the app VM.
 - The pre-work datacenter exists before ALZ does, so ALZ policies will flag it once the sub moves to Corp. An exemption script (with owner and expiry) runs right after the move. It's a deliberate lesson: "deferred work needs owner, target, timeline". Arc on Azure VMs is labelled lab-only, not a customer pattern.
 
-## 5. Journey, modules and challenges
+## 5. Journey and challenges
 
-| Day | Module (standalone) | Challenge | Scope | Time box | Outcome / evidence |
-|---|---|---|---|---|---|
-| Pre | M0 Pre-work | C0 Ready to hack | Member | 2–3 h | Go/no-go preflight green by T-14 (RBAC, MFA registered, providers, Copilot policies, APEX runtime). Datacenter deployed by T-3, SQL onboarded to Arc, first Arc migration assessment done, legacy Contoso University running |
-| 1 | M1 Foundation | C1 Define the opportunity | Team | 45 m | Opportunity and 6-dimension modernization plan (done while ALZ deploys) |
-| 1 | M1 Foundation | C2 Secure, AI-ready foundation | Team | 2 h | Live portal ALZ demo by a coach. ALZ-lite deployed by the platform lead (management groups, hub, central services, policies). Member subs vended to Corp (spoke, subnets, peering, UDRs, firewall rules, DNS). Exemptions recorded. Probes green |
-| 1 | M2 Assess and decide | C3 Assess the source | Member | 1 h | Inputs authorized. GHCP assessment of Contoso University and Arc SQL migration assessment (can run while ALZ deploys). Findings reviewed by a human |
-| 1 | M2 Assess and decide | C4 Choose target states | Team + member | 45 m | ADRs for app, data, platform and migration method, including fit with the CoE archetype. Deferred-work register |
-| 1 | M3 Archetype | C5 Deploy the CoE archetype with APEX | Member | 30 m demo + 1 h | Archetype repo from the CoE template. An agent adapts it with only tenant ID, subscription ID and suffix; `azd provision --preview`, then `azd provision`, deploys it; the As-Built agent documents it. Policy-compliant App Service, ACR, SQL MI, Blob storage, Service Bus, Key Vault and monitoring (MI provisions in the background) |
-| 1–2 | M4 Modernize the app | C6 Modernize with GHCP | Member | 1.5 h + 1.5 h | .NET 10 ASP.NET Core running on the dev VM against the source DB. Uploads moved to Blob and MSMQ to Service Bus, both with Entra auth (GHCP predefined tasks). Image in private ACR. App Service identity, Key Vault and OpenTelemetry configured |
-| 2 | M5 Migrate the data | C7 Migrate and go live | Member | 2 h | Link seeded, read-only replica validated, go/no-go, planned cutover (link removed), DB user for the app identity created, app live on App Service against MI, runbook written |
-| 2 | M6 Validate and optimize | C8 Validate the pattern | Member | 45 m | Fixed acceptance pack: smoke, load and security checks, including an upload and a notification round-trip over private endpoints |
-| 2 | M6 Validate and optimize | C9 Optimize the DB with GHCP | Member | 1 h | Planted issues fixed with the MSSQL extension or SSMS Copilot. Query Store before and after |
-| 2 | M7 Package and operate | C10 Package, hand over, review AI readiness | Team | 1 h | One reusable asset, acceptance and handover, AI-readiness gap register, showcase |
+| Day | Challenge | Scope | Time box | Outcome / evidence |
+|---|---|---|---|---|
+| Pre | C0 Ready to hack | Member | 2–3 h | Go/no-go preflight green by T-14 (RBAC, MFA registered, providers, Copilot policies, APEX runtime). Datacenter deployed by T-3, SQL onboarded to Arc, first Arc migration assessment done, legacy Contoso University running |
+| 1 | C1 Define the opportunity | Team | 45 m | Opportunity and 6-dimension modernization plan (done while ALZ deploys) |
+| 1 | C2 Secure, AI-ready foundation | Team | 2 h | Live portal ALZ demo by a coach. ALZ-lite deployed by the platform lead (management groups, hub, central services, policies). Member subs vended to Corp (spoke, subnets, peering, UDRs, firewall rules, DNS). Exemptions recorded. Probes green |
+| 1 | C3 Assess the source | Member | 1 h | Inputs authorized. GHCP assessment of Contoso University and Arc SQL migration assessment (can run while ALZ deploys). Findings reviewed by a human |
+| 1 | C4 Choose target states | Team + member | 45 m | ADRs for app, data, platform and migration method, including fit with the CoE archetype. Deferred-work register |
+| 1 | C5 Deploy the CoE archetype with APEX | Member | 30 m demo + 1 h | Archetype repo from the CoE template. An agent adapts it with only tenant ID, subscription ID and suffix; `azd provision --preview`, then `azd provision`, deploys it; the As-Built agent documents it. Policy-compliant App Service, ACR, SQL MI, Blob storage, Service Bus, Key Vault and monitoring (MI provisions in the background) |
+| 1–2 | C6 Modernize with GHCP | Member | 1.5 h + 1.5 h | .NET 10 ASP.NET Core running on the dev VM against the source DB. Uploads moved to Blob and MSMQ to Service Bus, both with Entra auth (GHCP predefined tasks). Image in private ACR. App Service identity, Key Vault and OpenTelemetry configured |
+| 2 | C7 Migrate and go live | Member | 2 h | Link seeded, read-only replica validated, go/no-go, planned cutover (link removed), DB user for the app identity created, app live on App Service against MI, runbook written |
+| 2 | C8 Validate the pattern | Member | 45 m | Fixed acceptance pack: smoke, load and security checks, including an upload and a notification round-trip over private endpoints |
+| 2 | C9 Optimize the DB with GHCP | Member | 1 h | Planted issues fixed with the MSSQL extension or SSMS Copilot. Query Store before and after |
+| 2 | C10 Package, hand over, review AI readiness | Team | 1 h | One reusable asset, acceptance and handover, AI-readiness gap register, showcase |
 
-- **Parallel work:** the platform lead starts ALZ-lite at 09:00 on Day 1 and it deploys while the team does C1; the coach's ALZ demo opens C2 at 09:45 and members start C3 at 10:15. The dev VM is reachable through Bastion without ALZ. The MI provisions while C6 starts on Day 1. The MI link starts at 08:30 on Day 2 (C7 task 1), so seeding overlaps the end of C6. Time boxes are targets, tuned in the dry run.
-- **Standalone modules:** each module ships a contract: prerequisites, bootstrap (e.g. ALZ-lite or the archetype template), exit evidence, reset steps and time box.
+- **Parallel work:** the platform lead starts ALZ-lite at 09:00 on Day 1 and it deploys while the team does C1; the coach's ALZ demo opens C2 at 09:45 and members start C3 at 10:15. The dev VM is reachable through Bastion without ALZ. The MI provisions while C6 starts on Day 1. The MI link starts at 08:30 on Day 2 (C7 tasks 1 and 2), so seeding overlaps the end of C6. Time boxes are targets, tuned in the dry run.
+- **Self-contained challenges:** each challenge page carries its inputs, where to run, time box, evidence and an If you need to start over section. The earlier separate module pages were retired.
 - **AKS:** not built in v1. Teams may argue for it in a C4 ADR as a future archetype.
 - **Curveballs** (one per day):
   - Day 1: a new deny policy lands mid-build.

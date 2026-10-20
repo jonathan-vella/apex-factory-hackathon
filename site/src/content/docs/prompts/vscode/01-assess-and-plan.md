@@ -7,7 +7,7 @@ sidebar:
 
 ## Before you send
 
-1. Finish [Prerequisites](../00-prerequisites/).
+1. Check your VM is ready, as in [Prerequisites](../00-prerequisites/).
 2. A new chat, harness **Local**, agent **Upgrade**, a balanced model (Sonnet- or Terra-class) for the
    assessment — see the playbook's [Models](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#models)
    table.
@@ -45,7 +45,7 @@ gate:
 If a check fails, tell the agent which one, in the same chat — it can revise its own plan. Commit and push
 `app: assess and plan` — your baseline for C6. If you ever have to restart the seven tasks, `git reset --hard`
 to this commit (it discards uncommitted work, and your next push needs `git push --force-with-lease`), then
-confirm the tree is clean again with [Prerequisites](../00-prerequisites/)' last check.
+confirm the tree is clean again with the last command in the playbook's Step 0 ([Prerequisites](../00-prerequisites/) links to it).
 
 ## Hot spots
 

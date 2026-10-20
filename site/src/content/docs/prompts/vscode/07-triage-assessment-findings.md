@@ -37,7 +37,7 @@ Explain why trace flags 1800 and 9567 would be set on a SQL Server source being 
 
 Read [Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation)
 if the answer isn't clear, then record your own reasoning, the impact on the target state, and when the flags
-should be removed (after cutover — see C7 task 6).
+should be removed (after cutover — see C7 task 7).
 
 ## Tell a self-inflicted finding from a real blocker
 

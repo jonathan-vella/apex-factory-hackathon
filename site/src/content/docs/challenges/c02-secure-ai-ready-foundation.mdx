@@ -86,7 +86,17 @@ Terms on this page:
    ```
 
    Done when the second run reports the three Graph permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) as granted. A re-run skips what is already granted. Ask the role holder to share the output with you for your evidence. If the identity lookup is denied, give that person Reader on the shared services subscription first.
-5. **Platform lead: vend every member, yourself first.** You are also a student with one workload subscription like everyone else, and you need to be vended too: do yours first, so your own C2 and C3 tasks aren't left waiting. Collect from each member their workload subscription ID, member index, location (the same as yours unless the coach said otherwise), Entra object ID and email. Each member gets the object ID with `az ad signed-in-user show --query id -o tsv` and posts these values in the team channel; nobody commits them to any repo. `-MemberPrincipalId` is required in practice: without it vending skips the member's Owner role, their Reader role on the shared services subscription (which `Test-Connectivity.ps1` and C5's preflight need to read the hub) and the Managed Identity Operator grant on `id-sqlmi-directory`, and C5's preflight then stops. Run once per member, from the same `factory/` folder:
+5. **Platform lead: vend every member, yourself first.** You are also a student with one workload subscription like everyone else, and you need to be vended too: do yours first, so your own C2 and C3 tasks aren't left waiting. Each member posts five values in the team channel; nobody commits them to any repo. Collect them from every member, including yourself:
+
+   | Value | Used as | Where the member gets it |
+   | --- | --- | --- |
+   | Workload subscription ID | `-WorkloadSubscriptionId` | `$s.subscriptionId` in their dev container |
+   | Member index | `-MemberIndex` | `$s.memberIndex` in their dev container |
+   | Location | `-Location` | The same as yours unless the coach said otherwise |
+   | Entra object ID | `-MemberPrincipalId` | `az ad signed-in-user show --query id -o tsv` |
+   | Email | `-BudgetEmail` | Their own work email address |
+
+   `-MemberPrincipalId` is required in practice: without it vending skips the member's Owner role, their Reader role on the shared services subscription (which `Test-Connectivity.ps1` and C5's preflight need to read the hub) and the Managed Identity Operator grant on `id-sqlmi-directory`, and C5's preflight then stops. Run once per member, from the same `factory/` folder:
 
    ```powershell
    ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -WhatIf
