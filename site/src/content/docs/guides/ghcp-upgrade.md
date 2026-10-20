@@ -135,7 +135,7 @@ git -C C:\src\factory status --short --ignored -- app .github    # prints nothin
 
 Also check that VS Code is open on `C:\src\factory`, the agent picker lists **Upgrade** and Copilot Chat answers "hello".
 
-If the last git command prints something, a clone left over from an earlier attempt would steer the agent. Remove the leftovers (it deletes untracked and ignored files in those two folders):
+If the last git command prints something, a clone left over from an earlier attempt would steer the agent. Remove the leftovers (it deletes files that git doesn't track, and ignored files, in those two folders):
 
 ```powershell
 cd C:\src\factory
