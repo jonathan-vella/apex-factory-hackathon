@@ -81,6 +81,7 @@ function rewriteLinks(markdown: string, sourcePath: string) {
     if (hidden) return `](/coach/${hidden[1]}/${suffix})`;
     if (resolved === "coach/lifelines.md") return `](/coach/lifelines/${suffix})`;
     if (resolved === "facilitator/agenda.md") return `](/coach/run-of-show/${suffix})`;
+    if (resolved === "facilitator/automation-map.md") return `](/coach/automation-map/${suffix})`;
     const student = /^site\/src\/content\/docs\/(.+?)(?:\/index)?\.mdx?$/.exec(resolved);
     if (student) return `](/${student[1]}/${suffix})`;
     return `](${REPO_URL}${resolved}${suffix})`;
@@ -150,7 +151,7 @@ export function coachLoader(): Loader {
         const files = (await readdir(`${repoRoot}coach`))
           .filter((name) => name.endsWith(".md"))
           .map((name) => `coach/${name}`);
-        files.push("facilitator/agenda.md");
+        files.push("facilitator/agenda.md", "facilitator/automation-map.md");
         store.clear();
         for (const sourcePath of files) {
           try {
