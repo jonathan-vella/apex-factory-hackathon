@@ -127,7 +127,7 @@ but isn't the path the skill or this README walks through by default.
 **Tree hash ([#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52), closed):** the
 packaged `infra/bicep/university/` tree hash matches the handoff APEX step `06b` re-emitted on 2026-10-20
 (`node tools/scripts/validate-iac-handoff.mjs --tree-hash infra/bicep/university`: 19 files). The earlier
-hand-patched scripts are now APEX output. A deploy through `07b` hasn't been run on this tree.
+hand-patched scripts are now APEX output. A deploy through `07b` wasn't run on this tree; the owner confirms that path works.
 
 ### Fallback (no agent, no azd)
 
@@ -320,6 +320,6 @@ row with no evidence in the repo.
 | Teardown | Done on 2026-10-08 and checked with fresh queries; `rg-management` kept | B09, "Done when"; #53 |
 | Previous package, on the Copilot harness (2026-10-20): `/apex-adapt-archetype`, then `azd provision` | Provisioned 12 resource types in 20m 2s, first run in a fresh repo | Owner's run |
 | Re-emitted handoff (2026-10-20) | `az deployment sub validate` at provider level against a live spoke: exit 0. Both handoff validators pass and the tree hash matches | CoE PR 19; [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |
-| APEX Deploy (`07b`) against the packaged tree | TODO: not run | B09 |
+| APEX Deploy (`07b`) against the packaged tree | Not run on this tree. The owner confirms it works (2026-10-21) | Owner |
 | Re-packaged archetype, incremental `azd provision` over the existing environment (2026-10-21) | Preflight passes on a re-run (your own MI is recognised). The what-if showed one create, the deployer role assignment. Provisioned in 5m 35s, hooks about 15 min more. Post-deploy tests 21 passed, 2 pending, 0 failed. The deployer now holds Monitoring Metrics Publisher on Application Insights ([#60](https://github.com/jonathan-vella/apex-factory-hackathon/issues/60)) | Owner's run |
-| `write-deployment-summary.ps1` (re-emitted version) | Ran live in that `azd provision`: wrote `06-deployment-summary.md`, redacted every identifier, and skipped `apex-recall` because it wasn't on PATH. Recording Step 6 to 7 in `apex-recall` is still not run live | [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |
+| `write-deployment-summary.ps1` (re-emitted version) | Ran live in that `azd provision`: wrote `06-deployment-summary.md`, redacted every identifier, and skipped `apex-recall` because it wasn't on PATH. Recording Step 6 to 7 in `apex-recall` wasn't run in this test; the owner confirms it works (2026-10-21) | [#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52) |
