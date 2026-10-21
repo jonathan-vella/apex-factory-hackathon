@@ -23,15 +23,16 @@
 
 ## Requirements
 
-1. The `member` stage: `Deploy-Datacenter.ps1` with `-Repository ${{ github.repository }}` and `-ScriptsRef ${{ github.sha }}`, then `Test-Datacenter.ps1`, then `Connect-DatacenterArc.ps1`, with a fresh OIDC login before each long step. It refuses to run when `vm-app01` is already an Arc machine, because a redeploy can't recover it.
-2. The `vending` stage: `Deploy-Vending.ps1` (with the member object ID and budget email from the roster; one member at a time), a VM restart, `New-DatacenterExemptions.ps1`, then `Test-Connectivity.ps1`. A datacenter redeploy requires a vending re-run; the summary says so.
-3. Check each script under the managed identity (Arc, exemptions, connectivity). Fix what breaks, and record what can't run unattended.
-4. The guard runs in every session. IDs, the member's object ID and the budget address are masked.
-5. `platform.yml` stage `all` runs what-if, member, foundation and vending in that order, with the reviewer gate on each.
+1. The `member` stage runs for each member index in a job matrix (parallel, at most five at a time): `Deploy-Datacenter.ps1` with `-Repository` and `-ScriptsRef` set to the **public kit** (`KIT_REPOSITORY` and `KIT_REF`, which `Import-Kit.ps1` pins in an attendee's repo, because the kit is under `factory/` there and the repo may be private), then `Test-Datacenter.ps1`, then `Connect-DatacenterArc.ps1`, with a fresh OIDC login before each long step. It refuses to run when `vm-app01` is already an Arc machine, because a redeploy can't recover it. The `Test-Datacenter` output goes to the job summary.
+2. The `vending` stage is one job that vends every member in the roster strictly one at a time (`scripts/Invoke-PipelineVending.ps1`, one approval for the stage). For each member it runs the guard, logs in again with a fresh OIDC token, checks that the datacenter exists, then runs `Deploy-Vending.ps1` (with the member object ID and budget email from the roster), restarts both VMs, runs `New-DatacenterExemptions.ps1` and `Test-Connectivity.ps1`. It stops at the first failure and says which member. A datacenter redeploy requires vending again; the summary says so.
+3. A team has **one shared services subscription and one workload subscription per member**. The roster (`ROSTER_JSON`) lists every member (index, subscription, object ID, budget address), `Initialize-PlatformPipeline.ps1 -RosterPath` validates it (1 to 20 unique indexes, unique subscriptions, none equal to the shared one) and the guard allowlist holds the shared subscription plus every member's. `platform.yml` takes a `members` input (default: the `MEMBER_INDEXES` variable) and a `preflight` matrix runs `Test-Preflight` per member.
+4. Check each script under the managed identity (Arc, exemptions, connectivity). Fix what breaks, and record what can't run unattended.
+5. The guard runs in every session. IDs, the member's object ID and the budget address are masked.
+6. `platform.yml` stage `all` runs what-if, member, foundation and vending in that order, with the reviewer gate on each. Run alone, the stages are independent: the strategy decides who runs which (see B21 and B22).
 
 ## Deliverables
 
-- `.github/workflows/platform.yml` (the `member` and `vending` jobs), the session action's roster outputs, script fixes the identity needs.
+- `.github/workflows/platform.yml` (the `member` and `vending` jobs), the session action's roster outputs, `scripts/Invoke-PipelineVending.ps1`, roster support in `Initialize-PlatformPipeline.ps1` and `Test-PipelineSetup.ps1`, `Import-Kit.ps1` pinning `KIT_REPOSITORY` and `KIT_REF`, script fixes the identity needs.
 - Evidence in the PR body: run URLs, times, results of the tests, cost.
 
 ## Verify

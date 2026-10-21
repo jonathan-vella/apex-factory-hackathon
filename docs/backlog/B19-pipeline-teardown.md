@@ -22,7 +22,7 @@
 
 ## Requirements
 
-1. `platform-teardown.yml` (gated): `Remove-FactoryEnvironment.ps1 -Scope Member` for each member, then `-Scope Team`, run by the pipeline identity while it still holds its roles.
+1. A `teardown` stage in `platform.yml` (gated): `Remove-FactoryEnvironment.ps1 -Scope Member` for every member in the roster, one after another, then `-Scope Team`, run by the pipeline identity while it still holds its roles. A member's own pipeline (B21) can tear down that member's datacenter and identity the same way. The order is fixed: every member first, then the team.
 2. The CI lab also removes `rg-management` and `id-sqlmi-directory`, which the team teardown keeps on purpose for a normal lab. Add an explicit option for this, off by default.
 3. The admin then runs `Remove-PlatformPipeline.ps1` (a separate principal): roles, credential, identity, `rg-cicd`, environment variables, secret and environment. It verifies each is gone. The identity can't reliably remove its own roles, so the workflow never tries.
 4. Return the subscriptions to Tenant Root and delete the sandbox group (the admin does it, with a query to confirm).
