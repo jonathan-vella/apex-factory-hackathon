@@ -1,7 +1,7 @@
 name: Platform smoke test
 
 # Logs in as the pipeline's managed identity (OIDC) and runs the permission probe.
-# workflow_dispatch only works once this file is on the default branch, so pushes to ci-test/** also run it.
+# workflow_dispatch only works once this file is on the default branch, so pushes to ci-test/smoke-** also run it.
 on:
   workflow_dispatch:
     inputs:
@@ -10,7 +10,7 @@ on:
         type: boolean
         default: true
   push:
-    branches: ['ci-test/**']
+    branches: ['ci-test/smoke-**']
 
 permissions:
   contents: read

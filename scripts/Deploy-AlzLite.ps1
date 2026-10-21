@@ -87,6 +87,20 @@ function Get-CallerRoleName {
             Where-Object { $_.principalId -eq $objectId } | ForEach-Object { $_.roleDefinitionName })
 }
 
+function Initialize-ManagementGroup {
+    # Under a parent other than Tenant Root, ARM can't authorize a nested deployment at a group that the same
+    # template creates. Create the three groups first; the deployment then converges them.
+    param([string] $ParentId, [string] $Prefix)
+    foreach ($group in @(@{ Name = $Prefix; Parent = $ParentId }, @{ Name = "$Prefix-platform"; Parent = $Prefix }, @{ Name = "$Prefix-corp"; Parent = $Prefix })) {
+        $PSNativeCommandUseErrorActionPreference = $false
+        & az account management-group show --name $group.Name --only-show-errors --output none 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            $null = Invoke-AzureCli -Arguments @('account', 'management-group', 'create', '--name', $group.Name, '--display-name', $group.Name, '--parent', $group.Parent)
+            Write-Information "Created management group $($group.Name)."
+        }
+    }
+}
+
 function Assert-ParentOwner {
     param([string] $TenantId, [string] $ParentId)
     $scope = "/providers/Microsoft.Management/managementGroups/$ParentId"
@@ -152,6 +166,7 @@ try {
     }
     $started = Get-Date
     Write-Information "Deployment started at $($started.ToString('HH:mm'))."
+    if ($parentId -ne $tenantId) { Initialize-ManagementGroup -ParentId $parentId -Prefix $MgPrefix }
     $deployment = Invoke-AzureCli -Arguments (@('deployment', 'mg', 'create') + $deploymentArgs)
 }
 finally {

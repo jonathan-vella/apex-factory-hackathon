@@ -4,8 +4,8 @@ name: Platform
 #   gh workflow run platform.yml -f stage=whatif
 # Each stage runs in the gh-lab environment, where the reviewer approves it.
 # Every job sits in this file because a reusable workflow can't read the environment's secrets.
-# Pushes to ci-test/<stage>-* run that stage, so the pipeline can be tested before this file is on the
-# default branch (GitHub only dispatches a workflow from the default branch).
+# Pushes to ci-test/<stage>-* run that stage (whatif, foundation or all), so the pipeline can be tested before
+# this file is on the default branch (GitHub only dispatches a workflow from the default branch).
 on:
   workflow_dispatch:
     inputs:
@@ -22,7 +22,7 @@ on:
         type: string
         default: '1'
   push:
-    branches: ['ci-test/**']
+    branches: ['ci-test/whatif-**', 'ci-test/foundation-**', 'ci-test/all-**']
 
 permissions:
   contents: read
