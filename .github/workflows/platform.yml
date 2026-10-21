@@ -2,10 +2,11 @@ name: Platform
 
 # The one entry point for the platform pipeline. Run it from the Actions tab or with:
 #   gh workflow run platform.yml -f stage=whatif
-# Each stage runs in the gh-lab environment, where the reviewer approves it.
+# The stages follow the event: the member's datacenter first (pre-work, T-3), ALZ-lite on day 1, then vending.
+# Each stage runs in the gh-lab environment, where the reviewer approves it. "all" runs them in that order.
 # Every job sits in this file because a reusable workflow can't read the environment's secrets.
-# Pushes to ci-test/<stage>-* run that stage (whatif, foundation or all), so the pipeline can be tested before
-# this file is on the default branch (GitHub only dispatches a workflow from the default branch).
+# Pushes to ci-test/<stage>-* run that stage (whatif, member, foundation, vending or all), so the pipeline can
+# be tested before this file is on the default branch (GitHub only dispatches a workflow from the default branch).
 on:
   workflow_dispatch:
     inputs:
@@ -15,14 +16,16 @@ on:
         default: whatif
         options:
           - whatif
+          - member
           - foundation
+          - vending
           - all
       member-index:
         description: The member whose subscription is used
         type: string
         default: '1'
   push:
-    branches: ['ci-test/whatif-**', 'ci-test/foundation-**', 'ci-test/all-**']
+    branches: ['ci-test/whatif-**', 'ci-test/member-**', 'ci-test/foundation-**', 'ci-test/vending-**', 'ci-test/all-**']
 
 permissions:
   contents: read
@@ -56,8 +59,8 @@ jobs:
             stage="${stage%%-*}"
           fi
           case "$stage" in
-            whatif|foundation|all) ;;
-            *) echo "::error::Unknown stage '$stage'. Use whatif, foundation or all."; exit 1 ;;
+            whatif|member|foundation|vending|all) ;;
+            *) echo "::error::Unknown stage '$stage'. Use whatif, member, foundation, vending or all."; exit 1 ;;
           esac
           echo "stage=$stage" >> "$GITHUB_OUTPUT"
 
@@ -117,9 +120,112 @@ jobs:
             -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -WhatIf
           exit $LASTEXITCODE
 
-  foundation:
+  member:
     needs: [plan, whatif]
-    if: ${{ !cancelled() && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'foundation' || needs.plan.outputs.stage == 'all') }}
+    if: ${{ !cancelled() && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'member' || needs.plan.outputs.stage == 'all') }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ env.MEMBER_INDEX }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Refuse to redeploy over Arc
+        shell: pwsh
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+        run: |
+          # After Arc onboarding, run commands stop working on vm-app01, so a redeploy can't recover it.
+          $PSNativeCommandUseErrorActionPreference = $false
+          $id = "/subscriptions/$env:WORKLOAD/resourceGroups/rg-datacenter/providers/Microsoft.HybridCompute/machines/vm-app01"
+          & az resource show --ids $id --only-show-errors --output none 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Error 'vm-app01 is already an Arc machine. The datacenter can not be deployed over it. Remove the member (teardown), then run this stage again.'
+            exit 1
+          }
+          exit 0
+
+      - name: Deploy the datacenter
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          LOCATION: ${{ vars.LOCATION }}
+          REPO: ${{ github.repository }}
+          SCRIPTS_REF: ${{ github.sha }}
+        run: |
+          # The VMs download their configuration scripts from this exact commit.
+          ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION `
+            -Repository $env:REPO -ScriptsRef $env:SCRIPTS_REF
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Refresh the login
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ env.MEMBER_INDEX }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Test the datacenter
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+        run: |
+          # Before Arc: the in-VM checks use run commands, which stop working on vm-app01 afterwards.
+          ./scripts/Test-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Refresh the login for Arc
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ env.MEMBER_INDEX }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Onboard vm-app01 to Azure Arc
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Run vending after the foundation." |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+  foundation:
+    needs: [plan, member]
+    if: ${{ !cancelled() && needs.member.result != 'failure' && (needs.plan.outputs.stage == 'foundation' || needs.plan.outputs.stage == 'all') }}
     runs-on: ubuntu-latest
     environment: gh-lab
     timeout-minutes: 90
@@ -154,4 +260,80 @@ jobs:
             -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "ALZ-lite is deployed under ``$env:MG_PREFIX``. The firewall bills about `$1.30 an hour until the foundation is removed." |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+  vending:
+    needs: [plan, foundation]
+    if: ${{ !cancelled() && needs.foundation.result != 'failure' && (needs.plan.outputs.stage == 'vending' || needs.plan.outputs.stage == 'all') }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ env.MEMBER_INDEX }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Vend the member
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PRINCIPAL: ${{ steps.session.outputs.member-principal-id }}
+          BUDGET_EMAIL: ${{ steps.session.outputs.budget-email }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          if (-not $env:BUDGET_EMAIL) { throw 'The roster has no budget email for this member.' }
+          $arguments = @{
+            WorkloadSubscriptionId = $env:WORKLOAD; SharedSubscriptionId = $env:SHARED; MemberIndex = [int] $env:MEMBER_INDEX
+            MgPrefix = $env:MG_PREFIX; ParentManagementGroupId = $env:PARENT_MG; Location = $env:LOCATION; BudgetEmail = $env:BUDGET_EMAIL
+          }
+          if ($env:PRINCIPAL) { $arguments['MemberPrincipalId'] = $env:PRINCIPAL }
+          ./scripts/Deploy-Vending.ps1 @arguments
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Restart the VMs so they pick up the hub's DNS
+        shell: pwsh
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $true
+          foreach ($vm in 'vm-app01', 'vm-dev01') {
+            az vm restart --subscription $env:WORKLOAD -g rg-datacenter -n $vm --only-show-errors
+          }
+
+      - name: Record the datacenter's policy exemptions
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+        run: |
+          ./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $env:WORKLOAD -Owner 'GitHub Actions pipeline'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Test connectivity
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+        run: |
+          ./scripts/Test-Connectivity.ps1 -SubscriptionId $env:WORKLOAD -SharedSubscriptionId $env:SHARED -MemberIndex $env:MEMBER_INDEX
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "Member $env:MEMBER_INDEX is vended and the datacenter reaches the hub. If the datacenter is ever redeployed, run this stage again: a redeploy resets its DNS and routes." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append

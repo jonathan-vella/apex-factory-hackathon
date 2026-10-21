@@ -41,6 +41,12 @@ outputs:
   workload-subscription-id:
     description: The member's workload subscription (masked in logs)
     value: ${{ steps.roster.outputs.workload }}
+  member-principal-id:
+    description: The member's object ID from the roster (masked in logs), may be empty
+    value: ${{ steps.roster.outputs.principal }}
+  budget-email:
+    description: The budget alert address from the roster (masked in logs), may be empty
+    value: ${{ steps.roster.outputs.email }}
 
 runs:
   using: composite
@@ -62,7 +68,10 @@ runs:
         $member = @($env:ROSTER_JSON | ConvertFrom-Json) | Where-Object { [string] $_.index -eq $env:MEMBER_INDEX } | Select-Object -First 1
         if (-not $member -or -not $member.subscriptionId) { throw "Member $env:MEMBER_INDEX is not in the roster." }
         Write-Host "::add-mask::$($member.subscriptionId)"
+        foreach ($value in $member.memberPrincipalId, $member.budgetEmail) { if ($value) { Write-Host "::add-mask::$value" } }
         "workload=$($member.subscriptionId)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "principal=$($member.memberPrincipalId)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "email=$($member.budgetEmail)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
     - name: Guard
       uses: ./.github/actions/guard
