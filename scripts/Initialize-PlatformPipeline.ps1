@@ -159,7 +159,16 @@ if (-not $Repository -and -not $SkipGitHub) {
 $parentScopeId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { $TenantId }
 $parentScope = "/providers/Microsoft.Management/managementGroups/$parentScopeId"
 $sandbox = [bool] $ParentManagementGroupId
-$subject = "repo:${Repository}:environment:${Environment}"
+$subjectPrefix = "repo:$Repository"
+if (-not $SkipGitHub) {
+    # GitHub may issue immutable subject claims (repo:owner@id/repo@id), so ask the repo what it will present.
+    $oidc = Invoke-GitHubCli -Arguments @('api', "repos/$Repository/actions/oidc/customization/sub") -AllowFailure
+    if ($oidc -and $oidc.use_default -eq $false) {
+        throw "The repo customizes its OIDC subject claim ($($oidc.include_claim_keys -join ', ')). Reset it to the default: gh api -X PUT repos/$Repository/actions/oidc/customization/sub -F use_default=true"
+    }
+    if ($oidc -and $oidc.sub_claim_prefix) { $subjectPrefix = $oidc.sub_claim_prefix }
+}
+$subject = "${subjectPrefix}:environment:${Environment}"
 
 $denied = @()
 if ($DenySettingsPath -and (Test-Path $DenySettingsPath)) {
@@ -329,7 +338,11 @@ if (-not $SkipGitHub) {
 # 5. Smoke test.
 if ($SmokeTest -and -not $WhatIfPreference -and -not $SkipGitHub) {
     $ref = (& git branch --show-current)
-    $null = Invoke-GitHubCli -Arguments @('workflow', 'run', 'platform-smoke.yml', '--repo', $Repository, '--ref', $ref)
+    $dispatched = Invoke-GitHubCli -Arguments @('workflow', 'run', 'platform-smoke.yml', '--repo', $Repository, '--ref', $ref) -AllowFailure
+    if ($null -eq $dispatched) {
+        Write-Warning "platform-smoke.yml can't be dispatched yet: GitHub only dispatches a workflow that is on the default branch. Merge the import to main, or push this branch to ci-test/<name> to run it (git push origin HEAD:refs/heads/ci-test/smoke)."
+        return
+    }
     Start-Sleep -Seconds 8
     $run = Invoke-GitHubCli -Arguments @('run', 'list', '--repo', $Repository, '--workflow', 'platform-smoke.yml', '--branch', $ref, '--limit', '1', '--json', 'databaseId,url,status')
     $runId = $run[0].databaseId

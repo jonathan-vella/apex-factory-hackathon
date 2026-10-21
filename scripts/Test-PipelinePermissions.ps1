@@ -44,6 +44,7 @@ param(
     [string] $MgPrefix = 'mg-factory-ci',
     [string] $Location = 'swedencentral',
     [string] $DenySettingsPath = '',
+    [string[]] $DeniedSubscriptionId = @(),
     [switch] $SkipCreate
 )
 
