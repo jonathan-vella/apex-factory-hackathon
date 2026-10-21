@@ -2,7 +2,7 @@
 title: Event overview
 description: The two-day agenda and the T-14 and T-3 readiness gates.
 sidebar:
-  order: 1
+  order: 4
 ---
 
 The event runs over two days, plus pre-work before day one. Format: a team of members works through the day's challenges in parallel where the challenge is scoped to a member, and together where it's scoped to the team.

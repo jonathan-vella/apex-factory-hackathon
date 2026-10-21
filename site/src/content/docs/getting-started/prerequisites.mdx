@@ -2,8 +2,10 @@
 title: Prerequisites
 description: Accounts, tools and the one repo you set up before T-14.
 sidebar:
-  order: 3
+  order: 2
 ---
+
+import PrepTimeline from "../../../components/PrepTimeline.astro";
 
 :::danger[C0 is mandatory pre-work: finish it before the event]
 This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not** event-day tasks. Every attendee, including the platform lead, completes both **before the event starts**. The two deadlines count back from day one of the event: **T-14** is 14 days before it and **T-3** is 3 days before it.
@@ -14,18 +16,7 @@ This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not
 If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, plus about 30 for the VM setup, and the deployments run unattended for part of that. Raise any blocker with your coach now. The [event overview](../event-overview/#pre-work) has the full T-14 and T-3 gates.
 :::
 
-```mermaid
-flowchart TB
-  subgraph S1["1. This page, by T-14"]
-    direction LR
-    A[Accounts and access] --> B[Install tools] --> C[Create repo from apex-accelerator] --> D[Open dev container] --> E[Import kit] --> F[Sign in and write settings.json] --> G[Manual checks] --> H[Merge the import into main]
-  end
-  subgraph S2["2. C0"]
-    direction LR
-    I[Preflight, by T-14] --> J[Datacenter, test, then Arc, by T-3] --> K[Set up vm-dev01, by T-3] --> L[Ready for the event]
-  end
-  S1 --> S2
-```
+<PrepTimeline />
 
 The order is: accounts, tools, repo, dev container, import, sign in and settings, manual checks, merge, then C0. You're ready for the event only when C0's evidence is green: `Test-Preflight.ps1` GO, `Test-Datacenter.ps1` all PASS (run before Arc onboarding), `vm-app01` Connected in Azure Arc, and Copilot answering in VS Code on `vm-dev01`. If any row in the Accounts table or the Manual checks fails, tell your coach now; don't leave it for event day. The page takes about 60 to 90 minutes, most of it downloads and the first dev container build.
 
