@@ -62,6 +62,17 @@ jobs:
           set -euo pipefail
           echo "Signed in as: $(az account show --query user.type --output tsv)"
 
+      - name: Check the identity-safe scripts read-only
+        if: env.RUN_PROBE == 'true'
+        shell: pwsh
+        run: |
+          $workload = ($env:ALLOWED_SUBSCRIPTIONS -split ',' | Where-Object { $_ -and $_ -ne $env:SHARED_SUBSCRIPTION_ID }) | Select-Object -First 1
+          ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $workload -SharedSubscriptionId $env:SHARED_SUBSCRIPTION_ID `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
+          ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED_SUBSCRIPTION_ID -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -WhatIf
+          exit 0
+
       - name: Run the permission probe
         if: env.RUN_PROBE == 'true'
         shell: pwsh
