@@ -206,7 +206,7 @@ export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }]
                     Add-Content -Path $prettierIgnore -Value "${lead}`n# Platform pipeline (Import-Kit.ps1)`n$($missingIgnore -join "`n")`n" -NoNewline
                 }
             }
-            Write-Host "Installed the platform pipeline workflows in .github/ (they run the kit from factory/). Set it up with ./scripts/Initialize-PlatformPipeline.ps1."
+            Write-Information "Installed the platform pipeline workflows in .github/ (they run the kit from factory/). Set it up with ./scripts/Initialize-PlatformPipeline.ps1." -InformationAction Continue
         }
     }
 
