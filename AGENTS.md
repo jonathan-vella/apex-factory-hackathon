@@ -30,6 +30,20 @@ The order of events is fixed. Take it from [facilitator/guide.md](facilitator/gu
 So: **datacenter, then ALZ-lite, then vending, then the archetype.** Foundation before datacenter is wrong. If a design or
 workflow puts steps in another order, stop and check the guide.
 
+### Planned order with the platform pipeline (P6, adopted by the owner on 2026-10-21; the docs above follow in B22)
+
+The shared platform moves before the event, and each member still deploys their own datacenter:
+
+| When | Who | What |
+|---|---|---|
+| T-14 | Event owner, members | Capture every subscription ID, index, object ID and email. Members run preflight |
+| T-7 | Platform lead (their repo, platform lead profile) | `Deploy-AlzLite.ps1`, which creates `id-sqlmi-directory`. A Privileged Role Administrator runs the Graph grant |
+| T-3 | Each member (own repo; the member profile or the terminal) | Preflight, datacenter, `Test-Datacenter`, then Arc; then the portal assessment and `vm-dev01` setup |
+| T-1 | Platform lead | Vending for every member in order, VM restart, exemptions, connectivity |
+| Day 1 | Everyone | Start at C1. C2 verifies and explains the foundation |
+
+The only hard dependencies are: ALZ-lite and each datacenter before vending, `Test-Datacenter` before Arc, and the Graph grant after ALZ-lite and before C7. Vending comes after `vm-dev01` setup. A team has **one shared services subscription and one workload subscription per member**, and one Entra tenant. Until B22 lands, the guide and the challenge pages still describe the v1 order above.
+
 Roles: the **event owner** plans and cleans up; **coaches** demo and sign off; the **platform lead** deploys ALZ-lite and
 vends every member (and is also a member); **members** run their own C0 and everything after C2. There is no shared team repo:
 each member keeps evidence in `factory/evidence/` of their own repo.

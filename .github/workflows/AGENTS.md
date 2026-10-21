@@ -38,6 +38,6 @@ entry point. Its `stage` input follows the event: `whatif`, `member` (datacenter
 - A `pwsh` step returns the exit code of the last native command: end with an explicit `exit`.
 - `az policy assignment create --policy` takes the bare definition GUID here.
 
-## Open design question
+## Settled design
 
-The guide has each **member** deploy their own datacenter in their own repo and subscription (C0, scored evidence), and the **platform lead** run ALZ-lite and vending from theirs. The pipeline today uses one environment and roster, so a platform lead can run every stage for the team. A per-member profile (identity Owner on the member's own subscription only, `member` stage only) is the likely next step. Don't build it without the owner's decision.
+Two profiles (owner, 2026-10-21). The **member profile** runs in each member's own repo (identity in their own workload subscription, Owner there only; preflight and member stages) and replaces the C0 terminal commands. The **platform lead profile** runs in the lead's repo (identity Owner at Tenant Root, roster of the whole team; foundation and vending, and member for any index). Backlog B21 builds the member profile; B22 re-sequences the event docs. Don't change the C2 points or the rubric without the owner's decision.
