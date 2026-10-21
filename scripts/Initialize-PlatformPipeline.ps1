@@ -259,10 +259,10 @@ if ($identity) {
     $credName = "gh-$($Repository -replace '[^A-Za-z0-9_-]', '-')-$Environment"
     if ($credName.Length -gt 120) { $credName = $credName.Substring(0, 120) }
     $creds = @(Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'list', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '--identity-name', $identityName))
-    $current = $creds | Where-Object { $_.name -eq $credName }
-    if ($current -and $current.subject -ne $subject) {
+    $current = $creds | Where-Object { $_.subject -eq $subject -and $_.issuer -eq $issuer } | Select-Object -First 1
+    $stale = $creds | Where-Object { $_.name -eq $credName -and -not ($_.subject -eq $subject -and $_.issuer -eq $issuer) }
+    if ($stale) {
         $null = Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'delete', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '--identity-name', $identityName, '--name', $credName, '--yes')
-        $current = $null
     }
     if (-not $current -and $PSCmdlet.ShouldProcess($subject, 'Create the federated credential')) {
         $null = Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'create', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName,
