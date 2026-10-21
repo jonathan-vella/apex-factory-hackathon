@@ -78,5 +78,6 @@ each member keeps evidence in `factory/evidence/` of their own repo.
 ## Git and PRs
 
 - Branch per item, conventional commits, short messages, with the Copilot trailers. The owner squash-merges. Open PRs as drafts, never merge or push to `main`, and mark an in-progress PR "do not merge".
+- **The platform pipeline work (P6, backlog B16 to B23) is isolated.** Its pull requests target `p6/platform-pipeline`, never `main`, and stack on each other. `main` and `p6/platform-pipeline` are protected by rulesets (pull request required, no force pushes, no deletion). Only the owner decides when the trunk is proposed for `main`. The `gh-lab` environment doesn't allow `main` to deploy.
 - Always name a PR or issue by its number when you ask the owner anything.
 - Never commit to a branch another PR depends on without saying so. Stacked PRs target the previous branch.
