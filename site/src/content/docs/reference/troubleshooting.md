@@ -43,6 +43,7 @@ sidebar:
 ## APEX and the archetype
 
 - **A native Windows checkout changes the archetype's tree hash:** APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`. Always run `/apex-adapt-archetype` in the dev container, never natively on Windows.
+- **Preflight stops with `snet-sqlmi already hosts another managed instance`:** the suffix you ran it with isn't the suffix of the managed instance already in your subnet. Preflight accepts only `sqlmi-university-<suffix>` there, so a different suffix looks like someone else's instance. This happens when `SUFFIX` or `factory/.local/settings.json` holds a different value than your first deployment, for example after a new dev container, a second clone or a re-imported kit. Find the suffix you deployed with, from any resource name such as `rg-university-<suffix>`, set it again (`./scripts/Initialize-Settings.ps1 -Suffix '<old suffix>'` from `factory/`, and `azd env set SUFFIX <old suffix>` in `infra/bicep/university/`), and re-run. Never delete the managed instance to get past it. If the suffix is right and the message stays, a different instance really is on your subnet: ask your coach.
 - **`azd provision --preview` looks incomplete:** the preview only lists resource types `azd` has display names for. SQL MI, the managed identity, role assignments and diagnostic settings are still being created even though the preview doesn't name them.
 
 ## Migration
