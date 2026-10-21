@@ -135,7 +135,7 @@ if (-not $SkipCreate) {
             }
         }
         Add-Step 'Policy assignment with a system-assigned identity and its role assignment' {
-            $audit = '/providers/Microsoft.Authorization/policyDefinitions/0a914e76-4921-4c19-b460-a2d36003525a'
+            $audit = '0a914e76-4921-4c19-b460-a2d36003525a'
             $null = Invoke-AzureCli -Arguments @('policy', 'assignment', 'create', '--name', $assignmentName, '--scope', $probeScope, '--policy', $audit,
                 '--mi-system-assigned', '--location', $deploymentLocation, '--role', 'Reader', '--identity-scope', $probeScope)
             'Assigned a policy with an identity and granted it Reader.'
