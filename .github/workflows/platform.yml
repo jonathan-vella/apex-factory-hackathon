@@ -3,6 +3,7 @@ name: Platform
 # The one entry point for the platform pipeline. Run it from the Actions tab or with:
 #   gh workflow run platform.yml -f stage=whatif
 # Each stage runs in the gh-lab environment, where the reviewer approves it.
+# Every job sits in this file because a reusable workflow can't read the environment's secrets.
 # Pushes to ci-test/<stage>-* run that stage, so the pipeline can be tested before this file is on the
 # default branch (GitHub only dispatches a workflow from the default branch).
 on:
@@ -30,6 +31,10 @@ permissions:
 concurrency:
   group: platform
   cancel-in-progress: false
+
+env:
+  KIT_DIR: .
+  MEMBER_INDEX: ${{ inputs.member-index || '1' }}
 
 jobs:
   plan:
@@ -59,13 +64,94 @@ jobs:
   whatif:
     needs: plan
     if: needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'all'
-    uses: ./.github/workflows/platform-whatif.yml
-    with:
-      member-index: ${{ inputs.member-index || '1' }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ env.MEMBER_INDEX }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Preflight
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $env:WORKLOAD -SharedSubscriptionId $env:SHARED `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: ALZ-lite what-if
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          & az account management-group show --name "$env:MG_PREFIX-corp" --only-show-errors --output none 2>$null
+          if ($LASTEXITCODE -ne 0 -and $env:PARENT_MG) {
+            # Under a parent other than Tenant Root, the what-if can't authorize a group that doesn't exist yet.
+            Write-Host "::notice::First deployment: $env:MG_PREFIX-corp does not exist yet, so there is nothing to compare. Run the foundation stage."
+            exit 0
+          }
+          ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -WhatIf
+          exit $LASTEXITCODE
 
   foundation:
     needs: [plan, whatif]
     if: ${{ !cancelled() && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'foundation' || needs.plan.outputs.stage == 'all') }}
-    uses: ./.github/workflows/platform-foundation.yml
-    with:
-      member-index: ${{ inputs.member-index || '1' }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ env.MEMBER_INDEX }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Deploy ALZ-lite
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "ALZ-lite is deployed under ``$env:MG_PREFIX``. The firewall bills about `$1.30 an hour until the foundation is removed." |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append

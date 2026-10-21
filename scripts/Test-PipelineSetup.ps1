@@ -144,10 +144,12 @@ Invoke-Check -Name 'Roles' -Fix 'Run ./scripts/Initialize-PlatformPipeline.ps1 a
 Invoke-Check -Name 'Workflows' -Fix 'In an imported repo, run Import-Kit.ps1 again (-Force); it installs them. Then commit and push to the default branch.' -Action {
     $root = (& git rev-parse --show-toplevel 2>$null)
     if (-not $root) { throw 'Not inside a git repo.' }
-    $missing = @('platform.yml', 'platform-whatif.yml', 'platform-foundation.yml') | Where-Object { -not (Test-Path (Join-Path $root ".github/workflows/$_")) }
-    if (-not (Test-Path (Join-Path $root '.github/actions/guard/action.yml'))) { $missing += 'the guard action' }
+    $missing = @('platform.yml') | Where-Object { -not (Test-Path (Join-Path $root ".github/workflows/$_")) }
+    foreach ($action in 'guard', 'platform-session') {
+        if (-not (Test-Path (Join-Path $root ".github/actions/$action/action.yml"))) { $missing += "the $action action" }
+    }
     if ($missing) { throw "Missing in .github: $($missing -join ', ')." }
-    Add-Result -Check 'Workflows' -Status PASS -Reason 'platform.yml, its stages and the guard are in .github.'
+    Add-Result -Check 'Workflows' -Status PASS -Reason 'platform.yml and its guard and session actions are in .github.'
 }
 
 Invoke-Check -Name 'GitHub environment' -Fix 'Run ./scripts/Initialize-PlatformPipeline.ps1.' -Action {
