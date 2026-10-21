@@ -183,7 +183,7 @@ function Get-CallerAssignment {
 
 if ($subscriptions.Count -gt 0) {
     Invoke-Check -Name 'Account identity' -Action {
-        if ($account.user.type -eq 'user') {
+        if ($account.user.type -ne 'servicePrincipal') {
             $script:userId = (Invoke-AzureCli @('ad', 'signed-in-user', 'show')).id
         }
         else {

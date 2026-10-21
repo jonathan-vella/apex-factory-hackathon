@@ -73,7 +73,7 @@ function Invoke-AzureCli {
 function Get-CallerRoleName {
     param([string] $Scope)
     $account = Invoke-AzureCli -Arguments @('account', 'show')
-    if ($account.user.type -eq 'user') {
+    if ($account.user.type -ne 'servicePrincipal') {
         $userId = (Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show')).id
         return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--assignee', $userId, '--scope', $Scope,
                 '--include-inherited', '--include-groups') | ForEach-Object { $_.roleDefinitionName })

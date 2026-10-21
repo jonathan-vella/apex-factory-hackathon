@@ -1,0 +1,71 @@
+name: Platform
+
+# The one entry point for the platform pipeline. Run it from the Actions tab or with:
+#   gh workflow run platform.yml -f stage=whatif
+# Each stage runs in the gh-lab environment, where the reviewer approves it.
+# Pushes to ci-test/<stage>-* run that stage, so the pipeline can be tested before this file is on the
+# default branch (GitHub only dispatches a workflow from the default branch).
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: What to run
+        type: choice
+        default: whatif
+        options:
+          - whatif
+          - foundation
+          - all
+      member-index:
+        description: The member whose subscription is used
+        type: string
+        default: '1'
+  push:
+    branches: ['ci-test/**']
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: platform
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      stage: ${{ steps.stage.outputs.stage }}
+    steps:
+      - name: Pick the stage
+        id: stage
+        shell: bash
+        env:
+          INPUT_STAGE: ${{ inputs.stage }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          stage="$INPUT_STAGE"
+          if [ -z "$stage" ]; then
+            stage="${REF_NAME#ci-test/}"
+            stage="${stage%%-*}"
+          fi
+          case "$stage" in
+            whatif|foundation|all) ;;
+            *) echo "::error::Unknown stage '$stage'. Use whatif, foundation or all."; exit 1 ;;
+          esac
+          echo "stage=$stage" >> "$GITHUB_OUTPUT"
+
+  whatif:
+    needs: plan
+    if: needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'all'
+    uses: ./.github/workflows/platform-whatif.yml
+    with:
+      member-index: ${{ inputs.member-index || '1' }}
+
+  foundation:
+    needs: [plan, whatif]
+    if: ${{ !cancelled() && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'foundation' || needs.plan.outputs.stage == 'all') }}
+    uses: ./.github/workflows/platform-foundation.yml
+    with:
+      member-index: ${{ inputs.member-index || '1' }}

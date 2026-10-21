@@ -1,0 +1,56 @@
+name: Platform foundation
+
+# Deploys ALZ-lite (the management groups, hub, policies) as the pipeline's managed identity.
+# Called by platform.yml. The gh-lab environment's reviewer approves it. It takes 15 to 25 minutes.
+on:
+  workflow_call:
+    inputs:
+      member-index:
+        description: The member whose subscription the guard checks
+        type: string
+        default: '1'
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  KIT_DIR: .
+
+jobs:
+  foundation:
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ inputs.member-index }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Deploy ALZ-lite
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "ALZ-lite is deployed under ``$env:MG_PREFIX``. The firewall bills about `$1.30 an hour until the foundation is removed." |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append

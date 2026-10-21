@@ -38,6 +38,9 @@ Skip the required reviewer. It is also skipped, with a warning, when the repo's 
 anyone with write access can run the pipeline.
 .PARAMETER DenySettingsPath
 A settings file of subscriptions the pipeline must never touch (the guard refuses them), such as a live lab.
+Its management-group prefix (mgPrefix, default mg-factory) is denied too, unless -DeniedMgPrefix says otherwise.
+.PARAMETER DeniedMgPrefix
+Management-group prefixes the guard refuses.
 .PARAMETER SkipGitHub
 Create the Azure side only.
 .PARAMETER SmokeTest
@@ -74,6 +77,7 @@ param(
     [string] $ReviewerLogin = '',
     [switch] $NoReviewer,
     [string] $DenySettingsPath = '',
+    [string[]] $DeniedMgPrefix = @(),
     [int] $MemberIndex = 0,
     [switch] $SkipGitHub,
     [switch] $SmokeTest,
@@ -174,7 +178,9 @@ $denied = @()
 if ($DenySettingsPath -and (Test-Path $DenySettingsPath)) {
     $deny = Get-Content -Raw -Path $DenySettingsPath | ConvertFrom-Json
     $denied = @((Get-Setting $deny 'sharedSubscriptionId'), (Get-Setting $deny 'subscriptionId', 'workloadSubscriptionId') | Where-Object { $_ })
+    if (-not $DeniedMgPrefix) { $DeniedMgPrefix = @(if (Get-Setting $deny 'mgPrefix') { Get-Setting $deny 'mgPrefix' } else { 'mg-factory' }) }
 }
+if ($DeniedMgPrefix -contains $MgPrefix) { throw 'The management-group prefix is on the deny list. Refusing.' }
 if ($denied | Where-Object { $_ -in @($SharedSubscriptionId, $WorkloadSubscriptionId) }) {
     throw 'A subscription for this pipeline is also on the deny list. Refusing.'
 }
@@ -218,7 +224,16 @@ if ($sandbox) {
             $parent = Invoke-AzureCli -Arguments @('account', 'management-group', 'show', '--name', $ParentManagementGroupId, '--expand')
         }
     }
-    $present = @($parent.children | ForEach-Object { ($_.id -split '/')[-1] })
+    # Subscriptions that ALZ-lite and vending already moved into the kit's child groups still count as placed.
+    $parent = Invoke-AzureCli -Arguments @('account', 'management-group', 'show', '--name', $ParentManagementGroupId, '--expand', '--recurse') -AllowFailure
+    $present = [System.Collections.Generic.List[string]]::new()
+    $queue = [System.Collections.Generic.Queue[object]]::new()
+    if ($parent) { $queue.Enqueue($parent) }
+    while ($queue.Count -gt 0) {
+        foreach ($child in @($queue.Dequeue().children)) {
+            if ($child.type -like '*subscriptions') { $present.Add(($child.id -split '/')[-1]) } else { $queue.Enqueue($child) }
+        }
+    }
     foreach ($id in $SharedSubscriptionId, $WorkloadSubscriptionId) {
         if ($present -contains $id) { continue }
         if ($CreateParentManagementGroup -and $PSCmdlet.ShouldProcess('subscription', "Move into '$ParentManagementGroupId'")) {
@@ -241,7 +256,8 @@ if (-not $identity -and $PSCmdlet.ShouldProcess("$identityName in $resourceGroup
     $identity = Invoke-AzureCli -Arguments @('identity', 'create', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '-n', $identityName, '-l', $Location)
 }
 if ($identity) {
-    $credName = "gh-$Environment"
+    $credName = "gh-$($Repository -replace '[^A-Za-z0-9_-]', '-')-$Environment"
+    if ($credName.Length -gt 120) { $credName = $credName.Substring(0, 120) }
     $creds = @(Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'list', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '--identity-name', $identityName))
     $current = $creds | Where-Object { $_.name -eq $credName }
     if ($current -and $current.subject -ne $subject) {
@@ -307,21 +323,32 @@ if (-not $SkipGitHub) {
                 memberPrincipalId = if ($account.user.type -eq 'user') { Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show', '--query', 'id') } else { '' }
                 budgetEmail = if ($account.user.type -eq 'user') { $account.user.name } else { '' }
             })
-        $variables = [ordered]@{
+        # Identifiers are secrets, not variables: a public repo's workflow logs print variables, and secrets are masked.
+        $secrets = [ordered]@{
             AZURE_TENANT_ID = $TenantId
             AZURE_CLIENT_ID = $identity.clientId
             SHARED_SUBSCRIPTION_ID = $SharedSubscriptionId
             ALLOWED_SUBSCRIPTIONS = (@($SharedSubscriptionId, $WorkloadSubscriptionId) -join ',')
+            ROSTER_JSON = $roster
+        }
+        $variables = [ordered]@{
             LOCATION = $Location
             MG_PREFIX = $MgPrefix
         }
-        # A variable can't be empty: leave out what isn't set, and the workflows read a missing one as empty.
-        if ($denied) { $variables['DENIED_SUBSCRIPTIONS'] = $denied -join ',' }
+        # A value can't be empty: leave out what isn't set, and the workflows read a missing one as empty.
+        if ($denied) { $secrets['DENIED_SUBSCRIPTIONS'] = $denied -join ',' }
         if ($ParentManagementGroupId) { $variables['PARENT_MG'] = $ParentManagementGroupId }
+        if ($DeniedMgPrefix) { $variables['DENIED_MG_PREFIXES'] = $DeniedMgPrefix -join ',' }
         foreach ($name in $variables.Keys) {
             $null = Invoke-GitHubCli -Arguments @('variable', 'set', $name, '--env', $Environment, '--repo', $Repository, '--body', ([string] $variables[$name]))
         }
-        $null = Invoke-GitHubCli -Arguments @('secret', 'set', 'ROSTER_JSON', '--env', $Environment, '--repo', $Repository, '--body', $roster)
+        foreach ($name in $secrets.Keys) {
+            $null = Invoke-GitHubCli -Arguments @('secret', 'set', $name, '--env', $Environment, '--repo', $Repository, '--body', ([string] $secrets[$name]))
+        }
+        # Earlier versions kept identifiers in variables, which a public repo's logs print.
+        foreach ($legacy in 'AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'SHARED_SUBSCRIPTION_ID', 'ALLOWED_SUBSCRIPTIONS', 'DENIED_SUBSCRIPTIONS') {
+            $null = Invoke-GitHubCli -Arguments @('variable', 'delete', $legacy, '--env', $Environment, '--repo', $Repository) -AllowFailure
+        }
 
         # Verify the final state rather than trusting the calls.
         $state = Invoke-GitHubCli -Arguments @('api', $apiEnv)
@@ -329,13 +356,19 @@ if (-not $SkipGitHub) {
         if ($reviewerId -and -not $hasReviewer) { throw 'The environment has no required reviewer.' }
         if (-not $state.deployment_branch_policy.custom_branch_policies) { throw 'The environment has no deployment-branch policy.' }
         $haveVars = @(Invoke-GitHubCli -Arguments @('variable', 'list', '--env', $Environment, '--repo', $Repository, '--json', 'name', '--jq', '.[].name')) -split "`n"
-        $missing = @($variables.Keys | Where-Object { $_ -notin $haveVars })
-        if ($missing) { throw "Missing environment variables: $($missing -join ', ')" }
-        Write-Information "GitHub environment verified: $(if ($hasReviewer) { 'reviewer required' } else { 'no reviewer (write access is the gate)' }), branches $($AllowedBranch -join ', '), $($variables.Count) variables, ROSTER_JSON set."
+        $haveSecrets = @(Invoke-GitHubCli -Arguments @('secret', 'list', '--env', $Environment, '--repo', $Repository, '--json', 'name', '--jq', '.[].name')) -split "`n"
+        $missing = @($variables.Keys | Where-Object { $_ -notin $haveVars }) + @($secrets.Keys | Where-Object { $_ -notin $haveSecrets })
+        if ($missing) { throw "Missing environment variables or secrets: $($missing -join ', ')" }
+        Write-Information "GitHub environment verified: $(if ($hasReviewer) { 'reviewer required' } else { 'no reviewer (write access is the gate)' }), branches $($AllowedBranch -join ', '), $($variables.Count) variables, $($secrets.Count) secrets."
     }
 }
 
-# 5. Smoke test.
+# 5. Doctor check and smoke test.
+if (-not $WhatIfPreference -and -not $SkipGitHub) {
+    & (Join-Path $PSScriptRoot 'Test-PipelineSetup.ps1') -SettingsPath $SettingsPath -SharedSubscriptionId $SharedSubscriptionId `
+        -WorkloadSubscriptionId $WorkloadSubscriptionId -ParentManagementGroupId $ParentManagementGroupId -Repository $Repository -Environment $Environment
+    if ($LASTEXITCODE -ne 0) { throw 'Setup finished, but the doctor check found problems. Fix them as listed, then run ./scripts/Test-PipelineSetup.ps1.' }
+}
 if ($SmokeTest -and -not $WhatIfPreference -and -not $SkipGitHub) {
     $ref = (& git branch --show-current)
     $dispatched = Invoke-GitHubCli -Arguments @('workflow', 'run', 'platform-smoke.yml', '--repo', $Repository, '--ref', $ref) -AllowFailure
@@ -371,7 +404,9 @@ if ($SmokeTest -and -not $WhatIfPreference -and -not $SkipGitHub) {
 
 Write-Information @"
 
-Done. Next:
-  gh workflow run platform-smoke.yml --repo $Repository --ref <branch>   (smoke test and permission probe)
-To remove everything later: ./scripts/Remove-PlatformPipeline.ps1 (as an admin, after the platform's own teardown).
+Done. Next, the first check (read-only; approve it in the Actions tab):
+  gh workflow run platform.yml --repo $Repository -f stage=whatif
+Then the foundation: gh workflow run platform.yml --repo $Repository -f stage=foundation
+Check the setup any time with ./scripts/Test-PipelineSetup.ps1. To remove everything later, as an admin and
+after the platform's own teardown: ./scripts/Remove-PlatformPipeline.ps1
 "@

@@ -1,0 +1,51 @@
+name: Platform guard
+description: Fails closed unless the job only touches allowed subscriptions and the allowed management-group prefix.
+
+inputs:
+  subscription-ids:
+    description: Comma-separated subscriptions this job will use
+    required: true
+  mg-prefix:
+    description: The management-group prefix this job will use
+    required: true
+  allowed-subscriptions:
+    description: Comma-separated allowlist
+    required: true
+  denied-subscriptions:
+    description: Comma-separated deny list
+    required: false
+    default: ''
+  allowed-mg-prefix:
+    description: The only prefix allowed
+    required: true
+  denied-mg-prefixes:
+    description: Comma-separated prefixes that are never allowed
+    required: false
+    default: ''
+  kit-dir:
+    description: Folder that holds the kit's scripts
+    required: false
+    default: '.'
+
+runs:
+  using: composite
+  steps:
+    - name: Check the allowlist
+      shell: pwsh
+      working-directory: ${{ inputs.kit-dir }}
+      env:
+        GUARD_SUBSCRIPTIONS: ${{ inputs.subscription-ids }}
+        GUARD_PREFIX: ${{ inputs.mg-prefix }}
+        GUARD_ALLOWED: ${{ inputs.allowed-subscriptions }}
+        GUARD_DENIED: ${{ inputs.denied-subscriptions }}
+        GUARD_ALLOWED_PREFIX: ${{ inputs.allowed-mg-prefix }}
+        GUARD_DENIED_PREFIXES: ${{ inputs.denied-mg-prefixes }}
+      run: |
+        # Mask every ID so no later step can print one.
+        foreach ($id in "$env:GUARD_ALLOWED,$env:GUARD_DENIED,$env:GUARD_SUBSCRIPTIONS" -split ',') {
+          if ($id.Trim()) { Write-Host "::add-mask::$($id.Trim())" }
+        }
+        ./scripts/Assert-PipelineGuard.ps1 -SubscriptionId $env:GUARD_SUBSCRIPTIONS -AllowedSubscriptionId $env:GUARD_ALLOWED `
+          -DeniedSubscriptionId $env:GUARD_DENIED -MgPrefix $env:GUARD_PREFIX -AllowedMgPrefix $env:GUARD_ALLOWED_PREFIX `
+          -DeniedMgPrefix $env:GUARD_DENIED_PREFIXES
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
