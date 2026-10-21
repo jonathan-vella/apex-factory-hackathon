@@ -183,3 +183,5 @@ if ($failed.Count -gt 0) {
     throw "$($failed.Count) probe step(s) failed."
 }
 Write-Information 'All probe steps passed.'
+# A native command that failed on purpose above (a deleted group not found) must not leak its exit code.
+exit 0
