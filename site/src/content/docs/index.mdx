@@ -5,8 +5,6 @@ template: splash
 ---
 
 import { CardGrid, LinkCard } from "@astrojs/starlight/components";
-import JourneyMap from "../../components/JourneyMap.astro";
-import ArchitectureDiagram from "../../components/ArchitectureDiagram.astro";
 import LandingStyles from "../../components/LandingStyles.astro";
 
 <LandingStyles />
@@ -20,85 +18,35 @@ import LandingStyles from "../../components/LandingStyles.astro";
       <span>Factory</span>
     </h1>
     <p class="landing-hero__tagline">Modernize today. Enable AI tomorrow.</p>
-    <p class="landing-hero__purpose">Teams build a secure Azure foundation, adapt a CoE archetype with APEX and deploy it with azd, and modernize the app and database with GitHub Copilot and Azure Arc.</p>
-    <p class="landing-hero__purpose">They keep reusable assets for customer delivery.</p>
+    <p class="landing-hero__purpose">A two-day team challenge to build a secure Azure foundation, deploy a CoE archetype with APEX and azd, and modernize an app and its database with GitHub Copilot and Azure Arc.</p>
+    <p class="landing-hero__purpose">Start with the prerequisites, then work in your own repo. This site is your guide, not the repo you build in.</p>
     <div class="landing-hero__actions">
-      <a class="landing-button landing-button--primary" href="#before">Before the event: start here</a>
-      <a class="landing-button" href="#scenario">Explore the scenario</a>
+      <a class="landing-button landing-button--primary" href="/getting-started/prerequisites/">Start with the prerequisites</a>
+      <a class="landing-button" href="/getting-started/kit-at-a-glance/">The kit at a glance</a>
     </div>
+    <a class="landing-hero__scroll" href="#scenario"><span class="landing-hero__scroll-label">Scroll to explore</span></a>
   </div>
-  <aside class="landing-where" aria-labelledby="where-title">
-    <h2 id="where-title">Where do I run this?</h2>
-    <dl>
-      <div>
-        <dt><a href="/getting-started/prerequisites/#how-you-work-with-one-repo-and-one-dev-container">Dev container</a></dt>
-        <dd>In VS Code on your laptop, in your own repo. The kit's scripts run from <code>factory/</code>: C0 setup, the C2 foundation, C5 with APEX and azd, the C8 load and security checks.</dd>
-      </div>
-      <div>
-        <dt><a href="/guides/ghcp-upgrade/#switching-to-vm-dev01"><code>vm-dev01</code></a></dt>
-        <dd>Your workstation, through Bastion. From C3 the app work happens here, next to the private network. Never stop it.</dd>
-      </div>
-      <div>
-        <dt>Browser and Azure portal</dt>
-        <dd>The Azure Arc assessment (C3), the MI link (C7), Bastion connections and the C8 smoke checks.</dd>
-      </div>
-      <div>
-        <dt><a href="/challenges/c01-define-the-opportunity/#where-your-evidence-goes">Your own repo</a></dt>
-        <dd>Evidence goes in <code>factory/evidence/cNN/</code> on <code>main</code>: run <code>git pull</code> first. On <code>vm-dev01</code>, use your plain clone <code>C:\src\&lt;your-repo&gt;</code> and run <code>git pull --rebase</code> first. Your coach reads it.</dd>
-      </div>
-    </dl>
-  </aside>
-</section>
-
-<section id="before" class="start-banner not-content">
-  <div class="start-banner__head">
-    <div>
-      <div class="section-label">Before the event</div>
-      <h2>Start here</h2>
-    </div>
-    <div class="landing-hero__actions">
-      <a class="landing-button landing-button--primary" href="/getting-started/prerequisites/">Prerequisites</a>
-      <a class="landing-button" href="/challenges/c00-ready-to-hack/">C0: Ready to hack</a>
-    </div>
-  </div>
-  <ol class="start-banner__steps">
-    <li>
-      <span class="start-banner__when">By T-14</span>
-      <span>14 days before day one: finish the prerequisites and run C0's preflight.</span>
-    </li>
-    <li>
-      <span class="start-banner__when">By T-3</span>
-      <span>3 days before day one: the datacenter is deployed, <code>Test-Datacenter.ps1</code> passes for you (run before Arc onboarding), <code>vm-app01</code> is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and <code>vm-dev01</code> is set up with Copilot working in VS Code.</span>
-    </li>
-  </ol>
-  <p class="start-banner__note">The prerequisites take about 60 to 90 minutes. C0 takes about 150 minutes, plus about 30 for the VM setup, and is mandatory: every challenge builds on the datacenter. New terms are in the <a href="/reference/glossary/">glossary</a>.</p>
 </section>
 
 <section id="scenario" class="landing-section scenario-frame not-content">
   <div class="scenario-frame__head">
     <div class="section-label">Scenario</div>
     <h2>Modernize Contoso University</h2>
-    <p>A familiar legacy system becomes a reusable Azure modernization pattern.</p>
+    <p>One team. Two days. One legacy system that becomes a reusable Azure modernization pattern.</p>
   </div>
   <div class="scenario-frame__body">
     <div class="scenario-frame__columns">
       <div class="scenario-panel">
         <div class="scenario-panel__label">Starting point</div>
-        <p>Contoso University runs its student system on ASP.NET MVC and .NET Framework 4.8 on IIS and SQL Server in its own datacenter. It wants to move to Azure and modernize so its data is ready for future AI use cases.</p>
-        <dl class="shift">
-          <div><dt>App</dt><dd>.NET Framework 4.8 <b>to</b> .NET 10 and ASP.NET Core MVC</dd></div>
-          <div><dt>Hosting</dt><dd>IIS on <code>vm-app01</code> <b>to</b> a container image on App Service for Linux</dd></div>
-          <div><dt>Database</dt><dd>SQL Server <b>to</b> Azure SQL Managed Instance</dd></div>
-          <div><dt>Messaging</dt><dd>MSMQ <b>to</b> Azure Service Bus</dd></div>
-        </dl>
+        <p>Contoso University runs its student system on ASP.NET MVC and .NET Framework 4.8, on IIS and SQL Server in its own datacenter. It wants to move to Azure and modernize so its data is ready for future AI use cases.</p>
       </div>
       <div class="scenario-panel scenario-panel--tasks">
-        <div class="scenario-panel__label">What the team does</div>
+        <div class="scenario-panel__label">What your team must do</div>
         <ul class="scenario-checklist">
-          <li>Build a secure foundation.</li>
-          <li>Assess with GitHub Copilot and Azure Arc.</li>
+          <li>Build a secure Azure foundation.</li>
+          <li>Assess the source with GitHub Copilot and Azure Arc.</li>
           <li>Adapt the CoE archetype with APEX and deploy it with azd.</li>
-          <li>Modernize the app and migrate data to SQL Managed Instance.</li>
+          <li>Modernize the app and migrate the data to SQL Managed Instance.</li>
           <li>Optimize the database and package reusable assets.</li>
         </ul>
       </div>
@@ -106,61 +54,33 @@ import LandingStyles from "../../components/LandingStyles.astro";
   </div>
 </section>
 
-<section id="journey" class="landing-section scenario-frame not-content">
-  <div class="scenario-frame__head">
-    <div class="section-label">The journey</div>
-    <h2>Eleven challenges across pre-work and two days</h2>
-    <p>From a ready workstation to a reusable, AI-ready modernization pattern.</p>
-  </div>
-  <div class="scenario-frame__body">
-    <JourneyMap />
-    <p class="arch__lead">GHCP is GitHub Copilot. The MI link is the replication link from the source SQL Server to Azure SQL Managed Instance. The CoE archetype is a Center of Excellence's reference platform, built with APEX and deployed with azd. The <a href="/reference/glossary/">glossary</a> explains each term.</p>
-  </div>
-</section>
-
-<section id="end-state" class="landing-section scenario-frame not-content">
-  <div class="scenario-frame__head">
-    <div class="section-label">The end state</div>
-    <h2>What every member ends up with</h2>
-    <p>The team shares one hub. Each member has a datacenter, a spoke and a CoE archetype.</p>
-  </div>
-  <div class="scenario-frame__body">
-    <p class="arch__lead">Pick a challenge to see the parts it touches. C2 builds the foundation, C5 deploys the archetype, C7 links the database and C8 checks the result.</p>
-    <ArchitectureDiagram interactive name="landing-arch" caption="n is your member index (1–20). The suffix is the six-character string from your settings. Names and ranges are in the naming and IP plan under Reference, including the archetype resource names." />
-  </div>
-</section>
-
 <section class="landing-section scenario-frame explore-section not-content">
   <div class="scenario-frame__head">
-    <div class="section-label">Explore</div>
-    <h2>Explore the kit</h2>
+    <div class="section-label">Quick links</div>
+    <h2>Where to go next</h2>
+    <p>Pre-work comes first: the prerequisites are due 14 days before day one and C0 is due 3 days before it.</p>
   </div>
   <div class="scenario-frame__body">
     <CardGrid>
       <LinkCard
-        title="Getting Started"
-        description="Pre-work, setup, roles and how the event runs."
+        title="Getting started"
+        description="Prerequisites, pre-work, the kit at a glance, roles and the event agenda."
         href="/getting-started/"
       />
       <LinkCard
         title="Challenges"
-        description="The challenges in order, with time boxes and points."
+        description="Eleven challenges from C0 to C10, with time boxes and points."
         href="/challenges/"
       />
       <LinkCard
-        title="Guides"
-        description="Guides for ALZ-lite, GitHub Copilot, APEX and Azure Arc."
+        title="Guides and prompts"
+        description="Guides for ALZ-lite, GitHub Copilot, APEX and Azure Arc, and a prompt library."
         href="/guides/"
       />
       <LinkCard
         title="Reference"
         description="Glossary, naming, IP plan, cost and troubleshooting."
         href="/reference/"
-      />
-      <LinkCard
-        title="About"
-        description="Agenda, audience and feedback."
-        href="/about/"
       />
     </CardGrid>
   </div>

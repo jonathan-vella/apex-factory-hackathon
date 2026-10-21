@@ -1,0 +1,45 @@
+---
+title: The kit at a glance
+description: Where you run things, what changes, the eleven challenges and what you end up with.
+sidebar:
+  order: 1
+---
+
+import JourneyMap from "../../../components/JourneyMap.astro";
+import ArchitectureDiagram from "../../../components/ArchitectureDiagram.astro";
+
+This page is the big picture. Start with [Prerequisites](../prerequisites/) when you're ready to work. Terms you don't know are in the [glossary](../../reference/glossary/).
+
+## Where do I run this?
+
+| Where | What you do there |
+|---|---|
+| [Dev container](../prerequisites/#how-you-work-with-one-repo-and-one-dev-container) | VS Code on your laptop, in your own repo. The kit's scripts run from `factory/`: C0 setup, the C2 foundation, C5 with APEX and azd, the C8 load and security checks. |
+| [`vm-dev01`](../../guides/ghcp-upgrade/#switching-to-vm-dev01) | Your workstation, through Bastion. From C3 the app work happens here, next to the private network. Never stop it. |
+| Browser and Azure portal | The Azure Arc assessment (C3), the MI link (C7), Bastion connections and the C8 smoke checks. |
+| [Your own repo](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) | Evidence goes in `factory/evidence/cNN/` on `main`; run `git pull` first. On `vm-dev01`, use your plain clone `C:\src\<your-repo>` and run `git pull --rebase` first. Your coach reads it. |
+
+Each challenge page has a **Where to run** block that says which one to use.
+
+## What changes
+
+| Layer | From | To |
+|---|---|---|
+| App | .NET Framework 4.8 | .NET 10 and ASP.NET Core MVC |
+| Hosting | IIS on `vm-app01` | A container image on App Service for Linux |
+| Database | SQL Server | Azure SQL Managed Instance |
+| Messaging | MSMQ | Azure Service Bus |
+
+## The journey
+
+Eleven challenges across pre-work and two days: from a ready workstation to a reusable, AI-ready modernization pattern.
+
+<JourneyMap />
+
+GHCP is GitHub Copilot. The MI link is the replication link from the source SQL Server to Azure SQL Managed Instance. The CoE archetype is a Center of Excellence's reference platform, built with APEX and deployed with azd.
+
+## The end state
+
+The team shares one hub. Each member has a datacenter, a spoke and a CoE archetype. Pick a challenge to see the parts it touches: C2 builds the foundation, C5 deploys the archetype, C7 links the database and C8 checks the result.
+
+<ArchitectureDiagram interactive name="landing-arch" caption="n is your member index (1–20). The suffix is the six-character string from your settings. Names and ranges are in the naming and IP plan under Reference, including the archetype resource names." />

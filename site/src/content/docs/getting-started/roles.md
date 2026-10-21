@@ -2,7 +2,7 @@
 title: Roles
 description: Platform lead, members, coach and event owner, and who does what.
 sidebar:
-  order: 2
+  order: 5
 ---
 
 ## Platform lead
