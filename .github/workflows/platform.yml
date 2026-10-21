@@ -2,8 +2,9 @@ name: Platform
 
 # The one entry point for the platform pipeline. Run it from the Actions tab or with:
 #   gh workflow run platform.yml -f stage=whatif
-# The stages follow the event: the member's datacenter first (pre-work, T-3), ALZ-lite on day 1, then vending.
-# Each stage runs in the gh-lab environment, where the reviewer approves it. "all" runs them in that order.
+# The stages follow the event: every member's datacenter first (pre-work, T-3), ALZ-lite once for the team on day 1,
+# then vending for every member. A team has one shared services subscription and one workload subscription per member.
+# Each stage runs in the gh-lab environment, where the reviewer approves it once for the stage. "all" runs them in order.
 # Every job sits in this file because a reusable workflow can't read the environment's secrets.
 # Pushes to ci-test/<stage>-* run that stage (whatif, member, foundation, vending or all), so the pipeline can
 # be tested before this file is on the default branch (GitHub only dispatches a workflow from the default branch).
@@ -20,10 +21,10 @@ on:
           - foundation
           - vending
           - all
-      member-index:
-        description: The member whose subscription is used
+      members:
+        description: Member indexes, comma separated, for example 1,2,3. Empty means every member in the MEMBER_INDEXES variable.
         type: string
-        default: '1'
+        default: ''
   push:
     branches: ['ci-test/whatif-**', 'ci-test/member-**', 'ci-test/foundation-**', 'ci-test/vending-**', 'ci-test/all-**']
 
@@ -37,19 +38,26 @@ concurrency:
 
 env:
   KIT_DIR: .
-  MEMBER_INDEX: ${{ inputs.member-index || '1' }}
+  # The VMs download their configuration scripts from this repo and ref. In an attendee's repo Import-Kit sets
+  # them to the public kit, because the kit is under factory/ there and the attendee's repo may be private.
+  KIT_REPOSITORY: ${{ github.repository }}
+  KIT_REF: ${{ github.sha }}
 
 jobs:
   plan:
     runs-on: ubuntu-latest
     outputs:
-      stage: ${{ steps.stage.outputs.stage }}
+      stage: ${{ steps.plan.outputs.stage }}
+      members: ${{ steps.plan.outputs.members }}
+      member-list: ${{ steps.plan.outputs.member-list }}
     steps:
-      - name: Pick the stage
-        id: stage
+      - name: Pick the stage and the members
+        id: plan
         shell: bash
         env:
           INPUT_STAGE: ${{ inputs.stage }}
+          INPUT_MEMBERS: ${{ inputs.members }}
+          VAR_MEMBERS: ${{ vars.MEMBER_INDEXES }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
@@ -62,13 +70,30 @@ jobs:
             whatif|member|foundation|vending|all) ;;
             *) echo "::error::Unknown stage '$stage'. Use whatif, member, foundation, vending or all."; exit 1 ;;
           esac
+          list="${INPUT_MEMBERS:-${VAR_MEMBERS:-1}}"
+          list="${list// /}"
+          IFS=',' read -ra parts <<< "$list"
+          json="["; seen=","
+          for part in "${parts[@]}"; do
+            [[ "$part" =~ ^[0-9]+$ ]] && [ "$part" -ge 1 ] && [ "$part" -le 20 ] || { echo "::error::A member index must be a whole number from 1 to 20."; exit 1; }
+            [[ "$seen" != *",$part,"* ]] || { echo "::error::A member index is listed twice."; exit 1; }
+            seen="$seen$part,"
+            json="$json\"$part\","
+          done
+          json="${json%,}]"
           echo "stage=$stage" >> "$GITHUB_OUTPUT"
+          echo "members=$json" >> "$GITHUB_OUTPUT"
+          echo "member-list=$list" >> "$GITHUB_OUTPUT"
 
-  whatif:
+  preflight:
     needs: plan
     if: needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'all'
     runs-on: ubuntu-latest
     environment: gh-lab
+    strategy:
+      fail-fast: false
+      matrix:
+        member: ${{ fromJSON(needs.plan.outputs.members) }}
     steps:
       - uses: actions/checkout@v7
 
@@ -76,7 +101,7 @@ jobs:
         id: session
         uses: ./.github/actions/platform-session
         with:
-          member-index: ${{ env.MEMBER_INDEX }}
+          member-index: ${{ matrix.member }}
           roster-json: ${{ secrets.ROSTER_JSON }}
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -87,7 +112,7 @@ jobs:
           denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
           kit-dir: ${{ env.KIT_DIR }}
 
-      - name: Preflight
+      - name: Preflight for the member
         shell: pwsh
         working-directory: ${{ env.KIT_DIR }}
         env:
@@ -99,6 +124,27 @@ jobs:
           ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $env:WORKLOAD -SharedSubscriptionId $env:SHARED `
             -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  whatif:
+    needs: plan
+    if: needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'all'
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        uses: ./.github/actions/platform-session
+        with:
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
 
       - name: ALZ-lite what-if
         shell: pwsh
@@ -121,11 +167,16 @@ jobs:
           exit $LASTEXITCODE
 
   member:
-    needs: [plan, whatif]
-    if: ${{ !cancelled() && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'member' || needs.plan.outputs.stage == 'all') }}
+    needs: [plan, preflight, whatif]
+    if: ${{ !cancelled() && needs.preflight.result != 'failure' && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'member' || needs.plan.outputs.stage == 'all') }}
     runs-on: ubuntu-latest
     environment: gh-lab
     timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        member: ${{ fromJSON(needs.plan.outputs.members) }}
     steps:
       - uses: actions/checkout@v7
 
@@ -133,7 +184,7 @@ jobs:
         id: session
         uses: ./.github/actions/platform-session
         with:
-          member-index: ${{ env.MEMBER_INDEX }}
+          member-index: ${{ matrix.member }}
           roster-json: ${{ secrets.ROSTER_JSON }}
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -165,18 +216,16 @@ jobs:
         env:
           WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
           LOCATION: ${{ vars.LOCATION }}
-          REPO: ${{ github.repository }}
-          SCRIPTS_REF: ${{ github.sha }}
+          MEMBER_INDEX: ${{ matrix.member }}
         run: |
-          # The VMs download their configuration scripts from this exact commit.
           ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION `
-            -Repository $env:REPO -ScriptsRef $env:SCRIPTS_REF
+            -Repository $env:KIT_REPOSITORY -ScriptsRef $env:KIT_REF
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Refresh the login
         uses: ./.github/actions/platform-session
         with:
-          member-index: ${{ env.MEMBER_INDEX }}
+          member-index: ${{ matrix.member }}
           roster-json: ${{ secrets.ROSTER_JSON }}
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -192,15 +241,19 @@ jobs:
         working-directory: ${{ env.KIT_DIR }}
         env:
           WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          MEMBER_INDEX: ${{ matrix.member }}
         run: |
           # Before Arc: the in-VM checks use run commands, which stop working on vm-app01 afterwards.
-          ./scripts/Test-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # The output is the member's C0 evidence: it is kept in the job summary and the log.
+          ./scripts/Test-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX *>&1 | Tee-Object -FilePath $env:RUNNER_TEMP/test-datacenter.txt
+          $code = $LASTEXITCODE
+          "### Test-Datacenter, member $env:MEMBER_INDEX`n``````text`n$(Get-Content -Raw $env:RUNNER_TEMP/test-datacenter.txt)`n``````" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          exit $code
 
       - name: Refresh the login for Arc
         uses: ./.github/actions/platform-session
         with:
-          member-index: ${{ env.MEMBER_INDEX }}
+          member-index: ${{ matrix.member }}
           roster-json: ${{ secrets.ROSTER_JSON }}
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -217,10 +270,11 @@ jobs:
         env:
           WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
           LOCATION: ${{ vars.LOCATION }}
+          MEMBER_INDEX: ${{ matrix.member }}
         run: |
           ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Run vending after the foundation." |
+          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Vending comes after the foundation." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
   foundation:
@@ -233,10 +287,8 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Start the session
-        id: session
         uses: ./.github/actions/platform-session
         with:
-          member-index: ${{ env.MEMBER_INDEX }}
           roster-json: ${{ secrets.ROSTER_JSON }}
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -267,7 +319,7 @@ jobs:
     if: ${{ !cancelled() && needs.foundation.result != 'failure' && (needs.plan.outputs.stage == 'vending' || needs.plan.outputs.stage == 'all') }}
     runs-on: ubuntu-latest
     environment: gh-lab
-    timeout-minutes: 120
+    timeout-minutes: 360
     steps:
       - uses: actions/checkout@v7
 
@@ -275,7 +327,7 @@ jobs:
         id: session
         uses: ./.github/actions/platform-session
         with:
-          member-index: ${{ env.MEMBER_INDEX }}
+          all-members: 'true'
           roster-json: ${{ secrets.ROSTER_JSON }}
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
@@ -286,54 +338,25 @@ jobs:
           denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
           kit-dir: ${{ env.KIT_DIR }}
 
-      - name: Vend the member
+      - name: Vend the members, one after another
         shell: pwsh
         working-directory: ${{ env.KIT_DIR }}
         env:
-          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          ROSTER_JSON: ${{ secrets.ROSTER_JSON }}
+          MEMBERS: ${{ needs.plan.outputs.member-list }}
           SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
-          PRINCIPAL: ${{ steps.session.outputs.member-principal-id }}
-          BUDGET_EMAIL: ${{ steps.session.outputs.budget-email }}
+          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ALLOWED: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          DENIED: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          DENIED_PREFIXES: ${{ vars.DENIED_MG_PREFIXES }}
           PARENT_MG: ${{ vars.PARENT_MG }}
           MG_PREFIX: ${{ vars.MG_PREFIX }}
           LOCATION: ${{ vars.LOCATION }}
         run: |
-          if (-not $env:BUDGET_EMAIL) { throw 'The roster has no budget email for this member.' }
-          $arguments = @{
-            WorkloadSubscriptionId = $env:WORKLOAD; SharedSubscriptionId = $env:SHARED; MemberIndex = [int] $env:MEMBER_INDEX
-            MgPrefix = $env:MG_PREFIX; ParentManagementGroupId = $env:PARENT_MG; Location = $env:LOCATION; BudgetEmail = $env:BUDGET_EMAIL
-          }
-          if ($env:PRINCIPAL) { $arguments['MemberPrincipalId'] = $env:PRINCIPAL }
-          ./scripts/Deploy-Vending.ps1 @arguments
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Restart the VMs so they pick up the hub's DNS
-        shell: pwsh
-        env:
-          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
-        run: |
-          $PSNativeCommandUseErrorActionPreference = $true
-          foreach ($vm in 'vm-app01', 'vm-dev01') {
-            az vm restart --subscription $env:WORKLOAD -g rg-datacenter -n $vm --only-show-errors
-          }
-
-      - name: Record the datacenter's policy exemptions
-        shell: pwsh
-        working-directory: ${{ env.KIT_DIR }}
-        env:
-          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
-        run: |
-          ./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $env:WORKLOAD -Owner 'GitHub Actions pipeline'
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-
-      - name: Test connectivity
-        shell: pwsh
-        working-directory: ${{ env.KIT_DIR }}
-        env:
-          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
-          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
-        run: |
-          ./scripts/Test-Connectivity.ps1 -SubscriptionId $env:WORKLOAD -SharedSubscriptionId $env:SHARED -MemberIndex $env:MEMBER_INDEX
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          "Member $env:MEMBER_INDEX is vended and the datacenter reaches the hub. If the datacenter is ever redeployed, run this stage again: a redeploy resets its DNS and routes." |
-            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          # One approval covers the stage; members are vended strictly in order, because each run updates the firewall policy.
+          ./scripts/Invoke-PipelineVending.ps1 -RosterJson $env:ROSTER_JSON -MemberIndex ($env:MEMBERS -split ',') `
+            -SharedSubscriptionId $env:SHARED -ClientId $env:CLIENT_ID -TenantId $env:TENANT_ID -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -AllowedSubscriptionId ($env:ALLOWED -split ',') `
+            -DeniedSubscriptionId ($env:DENIED -split ',') -DeniedMgPrefix ($env:DENIED_PREFIXES -split ',')
+          exit $LASTEXITCODE

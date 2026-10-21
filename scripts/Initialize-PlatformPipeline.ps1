@@ -41,6 +41,12 @@ A settings file of subscriptions the pipeline must never touch (the guard refuse
 Its management-group prefix (mgPrefix, default mg-factory) is denied too, unless -DeniedMgPrefix says otherwise.
 .PARAMETER DeniedMgPrefix
 Management-group prefixes the guard refuses.
+.PARAMETER RosterPath
+The team's roster, JSON or CSV: one row per member with index, subscriptionId, memberPrincipalId and budgetEmail (or the
+event owner's headings: Member index, Workload subscription ID, Entra object ID, Budget email). A team has one shared
+services subscription and one workload subscription per member, so list every member. Without it, the settings hold one
+member. The roster goes into an environment secret, never into the repo. The object ID and address are only needed for
+vending, so you can run this again with the full roster in C2.
 .PARAMETER SkipGitHub
 Create the Azure side only.
 .PARAMETER SmokeTest
@@ -79,6 +85,7 @@ param(
     [string] $DenySettingsPath = '',
     [string[]] $DeniedMgPrefix = @(),
     [int] $MemberIndex = 0,
+    [string] $RosterPath = '',
     [switch] $SkipGitHub,
     [switch] $SmokeTest,
     [switch] $AutoApprove
@@ -147,7 +154,7 @@ if ($TenantId -ne $account.tenantId) {
     throw "The signed-in tenant is not the settings tenant. Run: az login --tenant $TenantId"
 }
 $SharedSubscriptionId = Read-Value ($SharedSubscriptionId ? $SharedSubscriptionId : (Get-Setting $settings 'sharedSubscriptionId')) 'Shared services subscription ID'
-$WorkloadSubscriptionId = Read-Value ($WorkloadSubscriptionId ? $WorkloadSubscriptionId : (Get-Setting $settings 'workloadSubscriptionId', 'subscriptionId')) 'Workload subscription ID'
+$WorkloadSubscriptionId = if ($WorkloadSubscriptionId) { $WorkloadSubscriptionId } else { Get-Setting $settings 'workloadSubscriptionId', 'subscriptionId' }
 $Location = if ($Location) { $Location } elseif (Get-Setting $settings 'location') { Get-Setting $settings 'location' } else { 'swedencentral' }
 $MgPrefix = if ($MgPrefix) { $MgPrefix } elseif (Get-Setting $settings 'mgPrefix') { Get-Setting $settings 'mgPrefix' } else { 'mg-factory' }
 $ParentManagementGroupId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { Get-Setting $settings 'sandboxManagementGroup', 'parentManagementGroup' }
@@ -155,6 +162,54 @@ if ($MemberIndex -eq 0) {
     $settingIndex = Get-Setting $settings 'memberIndex'
     $MemberIndex = if ($settingIndex) { [int] $settingIndex } else { 1 }
 }
+
+# The team's members: one workload subscription each. A roster file lists them all (JSON or CSV, with the event owner's
+# column names); without one, the settings hold a single member.
+function Import-Roster {
+    param([string] $Path)
+    $raw = Get-Content -Raw -Path $Path
+    $rows = if ($Path -match '\.csv$') { @($raw | ConvertFrom-Csv) } else { @($raw | ConvertFrom-Json) }
+    foreach ($row in $rows) {
+        $pick = {
+            param($Names)
+            foreach ($name in $Names) {
+                $property = $row.PSObject.Properties | Where-Object { $_.Name -ieq $name } | Select-Object -First 1
+                if ($property -and "$($property.Value)".Trim()) { return "$($property.Value)".Trim() }
+            }
+            return ''
+        }
+        [pscustomobject]@{
+            index = [int] (& $pick @('index', 'Member index'))
+            subscriptionId = (& $pick @('subscriptionId', 'Workload subscription ID'))
+            memberPrincipalId = (& $pick @('memberPrincipalId', 'Entra object ID'))
+            budgetEmail = (& $pick @('budgetEmail', 'Budget email'))
+        }
+    }
+}
+
+$members = if ($RosterPath) {
+    @(Import-Roster -Path $RosterPath)
+}
+else {
+    $WorkloadSubscriptionId = Read-Value $WorkloadSubscriptionId 'Workload subscription ID'
+    $account0 = if ($account.user.type -ne 'servicePrincipal') { $account } else { $null }
+    @([pscustomobject]@{
+            index = $MemberIndex
+            subscriptionId = $WorkloadSubscriptionId
+            memberPrincipalId = if ($account0) { Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show', '--query', 'id') } else { '' }
+            budgetEmail = if ($account0) { $account0.user.name } else { '' }
+        })
+}
+if ($members.Count -eq 0 -or $members.Count -gt 20) { throw 'A team has 1 to 20 members.' }
+$guidPattern = '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
+foreach ($member in $members) {
+    if ($member.index -lt 1 -or $member.index -gt 20) { throw 'Every member needs an index from 1 to 20.' }
+    if ($member.subscriptionId -notmatch $guidPattern) { throw "Member $($member.index) has no valid workload subscription ID." }
+    if ($member.subscriptionId -eq $SharedSubscriptionId) { throw "Member $($member.index) uses the shared services subscription: each member needs a workload subscription of their own." }
+}
+if (@($members.index | Sort-Object -Unique).Count -ne $members.Count) { throw 'Two members share an index. Each index sets the address ranges, so they must differ.' }
+if (@($members.subscriptionId | ForEach-Object { $_.ToLowerInvariant() } | Sort-Object -Unique).Count -ne $members.Count) { throw 'Two members share a workload subscription.' }
+$workloadIds = @($members.subscriptionId)
 if (-not $Repository -and -not $SkipGitHub) {
     $remote = (& git remote get-url origin 2>$null)
     if ($remote -match 'github\.com[:/]([^/]+/[^/.]+?)(\.git)?$') { $Repository = $Matches[1] }
@@ -181,7 +236,7 @@ if ($DenySettingsPath -and (Test-Path $DenySettingsPath)) {
     if (-not $DeniedMgPrefix) { $DeniedMgPrefix = @(if (Get-Setting $deny 'mgPrefix') { Get-Setting $deny 'mgPrefix' } else { 'mg-factory' }) }
 }
 if ($DeniedMgPrefix -contains $MgPrefix) { throw 'The management-group prefix is on the deny list. Refusing.' }
-if ($denied | Where-Object { $_ -in @($SharedSubscriptionId, $WorkloadSubscriptionId) }) {
+if ($denied | Where-Object { $_ -in (@($SharedSubscriptionId) + $workloadIds) }) {
     throw 'A subscription for this pipeline is also on the deny list. Refusing.'
 }
 
@@ -194,7 +249,8 @@ Platform pipeline setup:
   Repository         $Repository, environment $Environment, branches: $($AllowedBranch -join ', ')
   Identity           $identityName in $resourceGroupName (shared services subscription), federated credential for
                      $subject
-  Owner granted at   $(if ($sandbox) { "management group '$ParentManagementGroupId' and the two subscriptions (not at Tenant Root)" } else { 'the Tenant Root management group' })
+  Owner granted at   $(if ($sandbox) { "management group '$ParentManagementGroupId', the shared services subscription and $($workloadIds.Count) workload subscription(s) (not at Tenant Root)" } else { 'the Tenant Root management group' })
+  Members            $($members.Count) (indexes $($members.index -join ', ')); one workload subscription each, one shared services subscription for the team
   Reviewer           $(if ($NoReviewer) { 'none (-NoReviewer)' } else { $ReviewerLogin })
   Never touched      $($denied.Count) subscription(s) on the deny list
   Management groups  prefix $MgPrefix$(if ($sandbox) { " under '$ParentManagementGroupId'" })
@@ -202,7 +258,7 @@ Platform pipeline setup:
 "@
 
 # Subscriptions are in the signed-in tenant.
-foreach ($id in $SharedSubscriptionId, $WorkloadSubscriptionId) {
+foreach ($id in @($SharedSubscriptionId) + $workloadIds) {
     $sub = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $id)
     if ($sub.tenantId -ne $TenantId) { throw 'A subscription belongs to a different tenant.' }
 }
@@ -234,7 +290,7 @@ if ($sandbox) {
             if ($child.type -like '*subscriptions') { $present.Add(($child.id -split '/')[-1]) } else { $queue.Enqueue($child) }
         }
     }
-    foreach ($id in $SharedSubscriptionId, $WorkloadSubscriptionId) {
+    foreach ($id in @($SharedSubscriptionId) + $workloadIds) {
         if ($present -contains $id) { continue }
         if ($CreateParentManagementGroup -and $PSCmdlet.ShouldProcess('subscription', "Move into '$ParentManagementGroupId'")) {
             $null = Invoke-AzureCli -Arguments @('account', 'management-group', 'subscription', 'add', '--name', $ParentManagementGroupId, '--subscription', $id)
@@ -272,7 +328,7 @@ if ($identity) {
 
 # 3. Roles: Owner at the parent, and on both subscriptions when the parent is a sandbox group.
 $scopes = @($parentScope)
-if ($sandbox) { $scopes += "/subscriptions/$SharedSubscriptionId", "/subscriptions/$WorkloadSubscriptionId" }
+if ($sandbox) { $scopes += "/subscriptions/$SharedSubscriptionId"; $scopes += @($workloadIds | ForEach-Object { "/subscriptions/$_" }) }
 if ($identity) {
     foreach ($scope in $scopes) {
         $have = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $scope, '--role', 'Owner') | Where-Object { $_.principalId -eq $identity.principalId })
@@ -317,18 +373,17 @@ if (-not $SkipGitHub) {
             if ($policies -contains $branch) { continue }
             $null = Invoke-GitHubCli -Arguments @('api', '-X', 'POST', "$apiEnv/deployment-branch-policies", '-f', "name=$branch", '-f', 'type=branch')
         }
-        $roster = ConvertTo-Json -Compress -InputObject @(@{
-                index = $MemberIndex
-                subscriptionId = $WorkloadSubscriptionId
-                memberPrincipalId = if ($account.user.type -eq 'user') { Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show', '--query', 'id') } else { '' }
-                budgetEmail = if ($account.user.type -eq 'user') { $account.user.name } else { '' }
+        # Every member's subscription, index and, for vending, object ID and budget address. The workflows read it
+        # inside a gated job: a secret can't feed a job matrix.
+        $roster = ConvertTo-Json -Compress -InputObject @($members | ForEach-Object {
+                @{ index = $_.index; subscriptionId = $_.subscriptionId; memberPrincipalId = $_.memberPrincipalId; budgetEmail = $_.budgetEmail }
             })
         # Identifiers are secrets, not variables: a public repo's workflow logs print variables, and secrets are masked.
         $secrets = [ordered]@{
             AZURE_TENANT_ID = $TenantId
             AZURE_CLIENT_ID = $identity.clientId
             SHARED_SUBSCRIPTION_ID = $SharedSubscriptionId
-            ALLOWED_SUBSCRIPTIONS = (@($SharedSubscriptionId, $WorkloadSubscriptionId) -join ',')
+            ALLOWED_SUBSCRIPTIONS = (@($SharedSubscriptionId) + $workloadIds) -join ','
             ROSTER_JSON = $roster
         }
         $variables = [ordered]@{
@@ -345,6 +400,8 @@ if (-not $SkipGitHub) {
         foreach ($name in $secrets.Keys) {
             $null = Invoke-GitHubCli -Arguments @('secret', 'set', $name, '--env', $Environment, '--repo', $Repository, '--body', ([string] $secrets[$name]))
         }
+        # The member indexes aren't sensitive, and a job matrix can only read repository variables.
+        $null = Invoke-GitHubCli -Arguments @('variable', 'set', 'MEMBER_INDEXES', '--repo', $Repository, '--body', (@($members.index | Sort-Object) -join ','))
         # Earlier versions kept identifiers in variables, which a public repo's logs print.
         foreach ($legacy in 'AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'SHARED_SUBSCRIPTION_ID', 'ALLOWED_SUBSCRIPTIONS', 'DENIED_SUBSCRIPTIONS') {
             $null = Invoke-GitHubCli -Arguments @('variable', 'delete', $legacy, '--env', $Environment, '--repo', $Repository) -AllowFailure
@@ -366,7 +423,8 @@ if (-not $SkipGitHub) {
 # 5. Doctor check and smoke test.
 if (-not $WhatIfPreference -and -not $SkipGitHub) {
     & (Join-Path $PSScriptRoot 'Test-PipelineSetup.ps1') -SettingsPath $SettingsPath -SharedSubscriptionId $SharedSubscriptionId `
-        -WorkloadSubscriptionId $WorkloadSubscriptionId -ParentManagementGroupId $ParentManagementGroupId -Repository $Repository -Environment $Environment
+        -WorkloadSubscriptionId $workloadIds[0] -ParentManagementGroupId $ParentManagementGroupId -Repository $Repository -Environment $Environment `
+        -WorkloadSubscriptionIds $workloadIds
     if ($LASTEXITCODE -ne 0) { throw 'Setup finished, but the doctor check found problems. Fix them as listed, then run ./scripts/Test-PipelineSetup.ps1.' }
 }
 if ($SmokeTest -and -not $WhatIfPreference -and -not $SkipGitHub) {

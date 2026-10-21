@@ -188,6 +188,9 @@ export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }]
             New-Item -ItemType Directory -Path $workflowsTarget -Force | Out-Null
             foreach ($workflow in $pipelineWorkflows) {
                 $text = (Get-Content -Path $workflow.FullName -Raw) -replace '(?m)^(\s*KIT_DIR:\s*)\.\s*$', '${1}factory'
+                # The VMs download their scripts from the public kit, not from the attendee's (possibly private) repo.
+                $text = $text -replace '(?m)^(\s*KIT_REPOSITORY:).*$', "`${1} $KitRepository"
+                $text = $text -replace '(?m)^(\s*KIT_REF:).*$', "`${1} $Ref"
                 Set-Content -Path (Join-Path $workflowsTarget $workflow.Name) -Value $text -NoNewline
             }
             foreach ($action in 'guard', 'platform-session') {
