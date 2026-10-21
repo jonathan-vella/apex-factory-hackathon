@@ -30,6 +30,8 @@ Can a GitHub Actions workflow deploy the platform with a managed identity that h
 - **A native command that fails on purpose leaks its exit code** from a `pwsh -command` step, so the probe ends with an explicit `exit 0`.
 - **Environment gate:** with the owner as required reviewer, a run waits until approved. The gate works on `main`, `feat/*` and `ci-test/*` (the deployment-branch policy).
 - **Re-run:** running the setup again changes nothing.
+- **Identity-safe scripts pass as the identity.** In the same run `Test-Preflight.ps1` reported GO (the identity's object ID came from its token) and `Deploy-AlzLite.ps1` passed its "Owner at the parent" check. A user sign-in passes the same checks against the same parent.
+- **A first-time ALZ-lite `-WhatIf` can't run under a non-root parent.** The what-if has to authorize the nested deployment at `mg-factory-ci-corp`, which doesn't exist yet, so a principal without Tenant Root rights gets `Authorization failed ... Microsoft.Resources/deployments/write`. A user with Owner at Tenant Root doesn't see it. The real deployment creates the group first, so it should not hit this; B17 proves it. After the first deployment the what-if works, because the group exists.
 
 ## Decisions
 
@@ -40,7 +42,7 @@ Proposed, pending the owner (none changes the PRD yet):
 
 ## Evidence
 
-- Smoke and probe run: `ci-test/b16-6` (workflow run URL in the PR body), result success.
+- Smoke, identity-safe script checks and probe: workflow run on `ci-test/b16-7`, result success (URL in the PR body). Earlier runs on `b16-1` to `b16-6` found the issues listed above.
 - Setup output (scrubbed), `-WhatIf` and live, in the PR body.
 
 ## Follow-ups
