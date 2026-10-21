@@ -31,24 +31,20 @@ const headings = [
 
 const frontmatter = {
   title: data.title,
-  description: "Coach material. Hidden page, not for attendees.",
+  description: "Coach material: answers, scoring, lifelines and the run of show.",
   editUrl: false,
   lastUpdated: false,
   prev: false,
   next: false,
-  pagefind: false,
   tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 2 },
-  head: [
-    { tag: "meta", attrs: { name: "robots", content: "noindex, nofollow, noarchive" } },
-    { tag: "meta", attrs: { name: "googlebot", content: "noindex, nofollow" } },
-  ],
 } as const;
 ---
 
 <StarlightPage frontmatter={frontmatter} headings={headings}>
-  <div class="coach-sheet" data-pagefind-ignore>
+  <div class="coach-sheet">
     <aside class="coach-banner" role="note">
-      <strong>Coach material: contains the answers. Don't share with attendees.</strong>
+      <strong>Coach material: it contains the answers.</strong> If you're attending as a
+      participant, please don't read ahead. We run on trust.
     </aside>
 
     {isChallenge && (

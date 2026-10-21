@@ -9,6 +9,7 @@ const challenges = entries
   .sort((a, b) => a.id.localeCompare(b.id));
 const others = [
   entries.find((entry) => entry.id === "run-of-show"),
+  entries.find((entry) => entry.id === "automation-map"),
   entries.find((entry) => entry.id === "lifelines"),
 ].filter((entry) => entry !== undefined);
 
@@ -22,29 +23,25 @@ const points = (data: (typeof challenges)[number]["data"]) =>
 
 const frontmatter = {
   title: "Coach cheat sheets",
-  description: "Coach material. Hidden page, not for attendees.",
+  description: "Coach material: answers, scoring, lifelines and the run of show.",
   editUrl: false,
   lastUpdated: false,
   prev: false,
   next: false,
-  pagefind: false,
   tableOfContents: false,
-  head: [
-    { tag: "meta", attrs: { name: "robots", content: "noindex, nofollow, noarchive" } },
-    { tag: "meta", attrs: { name: "googlebot", content: "noindex, nofollow" } },
-  ],
 } as const;
 ---
 
 <StarlightPage frontmatter={frontmatter}>
-  <div class="coach-sheet" data-pagefind-ignore>
+  <div class="coach-sheet">
     <aside class="coach-banner" role="note">
-      <strong>Coach material: contains the answers. Don't share with attendees.</strong>
+      <strong>Coach material: it contains the answers.</strong> If you're attending as a
+      participant, please don't read ahead. We run on trust.
     </aside>
 
     <p>
       One cheat sheet per challenge, rendered from the <code>coach/</code> folder and the scoring
-      rubric. Edit the source files, not these pages. Nothing on the student site links here.
+      rubric. Edit the source files, not these pages.
     </p>
 
     <h2>Challenges</h2>

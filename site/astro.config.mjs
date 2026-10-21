@@ -33,8 +33,7 @@ export default defineConfig({
     }),
   },
   integrations: [
-    // Coach pages are hidden: keep them out of the sitemap.
-    sitemap({ filter: (page) => !new URL(page).pathname.startsWith("/coach/") }),
+    sitemap(),
     starlight({
       title: "Partner Modernization Factory",
       description:
@@ -84,6 +83,27 @@ export default defineConfig({
               items: [{ autogenerate: { directory: "prompts/vscode" } }],
             },
             { label: "Copilot app (best effort)", link: "/prompts/copilot-app/" },
+          ],
+        },
+        {
+          label: "Coach",
+          collapsed: true,
+          items: [
+            { label: "Overview", link: "/coach/" },
+            { label: "Automation map", link: "/coach/automation-map/" },
+            { label: "Run of show", link: "/coach/run-of-show/" },
+            { label: "Lifelines", link: "/coach/lifelines/" },
+            { label: "C0: Ready to hack", link: "/coach/c00/" },
+            { label: "C1: Define the opportunity", link: "/coach/c01/" },
+            { label: "C2: Secure, AI-ready foundation", link: "/coach/c02/" },
+            { label: "C3: Assess the source", link: "/coach/c03/" },
+            { label: "C4: Choose target states", link: "/coach/c04/" },
+            { label: "C5: Deploy the CoE archetype with APEX", link: "/coach/c05/" },
+            { label: "C6: Modernize with GHCP", link: "/coach/c06/" },
+            { label: "C7: Migrate and go live", link: "/coach/c07/" },
+            { label: "C8: Validate the pattern", link: "/coach/c08/" },
+            { label: "C9: Optimize the DB with GHCP", link: "/coach/c09/" },
+            { label: "C10: Package, hand over, review AI readiness", link: "/coach/c10/" },
           ],
         },
         {
