@@ -286,7 +286,7 @@ if ($sandbox) {
     $queue = [System.Collections.Generic.Queue[object]]::new()
     if ($parent) { $queue.Enqueue($parent) }
     while ($queue.Count -gt 0) {
-        foreach ($child in @($queue.Dequeue().children)) {
+        foreach ($child in @($queue.Dequeue().children | Where-Object { $_ })) {
             if ($child.type -like '*subscriptions') { $present.Add(($child.id -split '/')[-1]) } else { $queue.Enqueue($child) }
         }
     }
