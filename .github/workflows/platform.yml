@@ -48,6 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       stage: ${{ steps.plan.outputs.stage }}
+      profile: ${{ steps.plan.outputs.profile }}
       members: ${{ steps.plan.outputs.members }}
       member-list: ${{ steps.plan.outputs.member-list }}
     steps:
@@ -58,9 +59,11 @@ jobs:
           INPUT_STAGE: ${{ inputs.stage }}
           INPUT_MEMBERS: ${{ inputs.members }}
           VAR_MEMBERS: ${{ vars.MEMBER_INDEXES }}
+          VAR_PROFILE: ${{ vars.PIPELINE_PROFILE }}
           REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          profile="${VAR_PROFILE:-lead}"
           stage="$INPUT_STAGE"
           if [ -z "$stage" ]; then
             stage="${REF_NAME#ci-test/}"
@@ -70,6 +73,13 @@ jobs:
             whatif|member|foundation|vending|all) ;;
             *) echo "::error::Unknown stage '$stage'. Use whatif, member, foundation, vending or all."; exit 1 ;;
           esac
+          if [ "$profile" = "member" ]; then
+            case "$stage" in
+              whatif|member) ;;
+              *) echo "::error::This is a member pipeline: it runs only the whatif (your preflight) and member (your datacenter) stages. The foundation and vending belong to the platform lead's pipeline."; exit 1 ;;
+            esac
+          fi
+          echo "profile=$profile" >> "$GITHUB_OUTPUT"
           list="${INPUT_MEMBERS:-${VAR_MEMBERS:-1}}"
           list="${list// /}"
           IFS=',' read -ra parts <<< "$list"
@@ -127,7 +137,7 @@ jobs:
 
   whatif:
     needs: plan
-    if: needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'all'
+    if: needs.plan.outputs.profile == 'lead' && (needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'all')
     runs-on: ubuntu-latest
     environment: gh-lab
     steps:
@@ -249,6 +259,15 @@ jobs:
           $code = $LASTEXITCODE
           "### Test-Datacenter, member $env:MEMBER_INDEX`n``````text`n$(Get-Content -Raw $env:RUNNER_TEMP/test-datacenter.txt)`n``````" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
           exit $code
+
+      - name: Keep the Test-Datacenter output as C0 evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: c00-test-datacenter-member-${{ matrix.member }}
+          path: ${{ runner.temp }}/test-datacenter.txt
+          retention-days: 90
+          if-no-files-found: warn
 
       - name: Refresh the login for Arc
         uses: ./.github/actions/platform-session
