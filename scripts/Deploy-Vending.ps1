@@ -115,6 +115,9 @@ function Get-OptionalResource {
         return Invoke-AzureCli -Arguments $Arguments
     }
     catch {
+        # Say why a lookup failed, with IDs masked: a silent null looks like a missing hub.
+        $reason = ($_.Exception.Message -replace '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<id>')
+        Write-Warning "Lookup '$($Arguments | Select-Object -First 3 | Join-String -Separator ' ')' failed: $($reason.Substring(0, [Math]::Min(300, $reason.Length)))"
         return $null
     }
 }
