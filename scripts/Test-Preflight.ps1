@@ -5,7 +5,8 @@
 Checks an attendee's Azure prerequisites without deploying resources.
 .DESCRIPTION
 Reports automated and manual C0 checks. Only -Fix changes Azure: it registers
-missing resource providers and polls for up to 15 minutes per subscription, so run it once and wait.
+missing resource providers and the Microsoft.Network public IP feature, and polls for up to 15 minutes
+per subscription and step, so run it once and wait.
 -Fix does nothing while an earlier check (tools, sign-in, role, region) has a FAIL or the VM size is
 restricted; unregistered providers don't block it. The role check needs an unconditional Owner
 assignment: Contributor isn't accepted. Warnings and manual checks do not block GO, so read every WARN
@@ -22,7 +23,7 @@ The target Azure region, defaulting to swedencentral.
 .PARAMETER ParentManagementGroupId
 The management group the kit deploys under, instead of Tenant Root. The management-group check then looks for rights there.
 .PARAMETER Fix
-Register missing providers after the prerequisite checks pass.
+Register missing providers and the public IP feature after the prerequisite checks pass.
 .PARAMETER OutFile
 Also save the checks, verdict and failure count as JSON.
 .EXAMPLE
@@ -302,6 +303,36 @@ foreach ($subscription in $subscriptions) {
         }
         Add-Result -Check "Resource providers: $($subscription.Label)" -Status PASS -Reason 'All 18 required providers are registered.'
     } -Remedy 'Resolve prerequisite failures, then rerun with -Fix. If registration fails or times out, ask the subscription administrator.'
+}
+
+$featureNamespace = 'Microsoft.Network'
+$featureName = 'AllowBringYourOwnPublicIpAddress'
+foreach ($subscription in $subscriptions) {
+    Invoke-Check -Name "Public IP feature: $($subscription.Label)" -Action {
+        function Get-FeatureState {
+            (Invoke-AzureCli @('feature', 'show', '--namespace', $featureNamespace, '--name', $featureName, '--subscription', $subscription.Id)).properties.state
+        }
+        $state = Get-FeatureState
+        if ($state -ne 'Registered' -and $registerMissing -and $canRegister) {
+            if ($state -notin @('Registering', 'Pending')) {
+                $null = Invoke-AzureCli @('feature', 'register', '--namespace', $featureNamespace, '--name', $featureName, '--subscription', $subscription.Id) -AllowEmpty
+            }
+            $deadline = [datetime]::UtcNow.AddMinutes(15)
+            do {
+                $state = Get-FeatureState
+                if ($state -eq 'Registered' -or [datetime]::UtcNow -ge $deadline) { break }
+                Start-Sleep -Seconds 10
+            } while ($true)
+            if ($state -eq 'Registered') {
+                # The provider must be registered again before the feature takes effect.
+                $null = Invoke-AzureCli @('provider', 'register', '--namespace', $featureNamespace, '--subscription', $subscription.Id) -AllowEmpty
+            }
+        }
+        if ($state -ne 'Registered') {
+            throw "The $featureNamespace/$featureName feature is $state. Firewall, NAT and Bastion public IPs fail without it (SubscriptionNotRegisteredForFeature)."
+        }
+        Add-Result -Check "Public IP feature: $($subscription.Label)" -Status PASS -Reason "$featureNamespace/$featureName is registered."
+    } -Remedy 'Rerun with -Fix and wait; registration usually takes a few minutes. If it stays pending, ask the subscription administrator.'
 }
 
 Add-Result -Check 'MFA' -Status MANUAL -Reason 'Confirm MFA is registered for the account.'
