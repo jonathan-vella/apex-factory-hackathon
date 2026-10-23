@@ -35,6 +35,18 @@ sidebar:
 - **DNS stops resolving after vending changes a VNet's DNS servers:** running VMs cache their old DNS settings. The platform lead restarts both VMs at T-1; if yours were stopped or redeployed since, restart the VM, or run `ipconfig /renew` inside it.
 - **The datacenter shows as policy non-compliant:** expected until it has exemptions. Vending at T-1 records them with `New-DatacenterExemptions.ps1`, and you check them in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in C0.
 
+## Platform pipeline
+
+- **`gh workflow run` says the workflow wasn't found (HTTP 404):** GitHub dispatches a workflow only from the default branch. Merge the import to `main` first, or run the stage from the **Actions** tab.
+- **A run waits and nothing happens:** it's waiting for the reviewer. Open the run and choose **Review deployments**. On a private repo with no reviewer option there's no gate, so a run that sits queued has lost its runner: cancel it and run the stage again.
+- **Login fails with `AADSTS700213`:** the identity's credential doesn't match what your repo presents. Run `./scripts/Test-PipelineSetup.ps1` (add `-PipelineProfile Member` in your own repo): it names the failing check. Re-running `Initialize-PlatformPipeline.ps1` repairs the credential.
+- **The guard refuses a subscription:** it isn't on the pipeline's allowlist or is on its deny list. Check the roster and the repo's environment secrets with `Test-PipelineSetup.ps1`. Never add a subscription to the allowlist to get past this unless it's part of the event.
+- **`vm-app01 is already an Arc machine`:** the member stage never redeploys over Arc, because Arc can't be undone. Run the `teardown` stage for that member, then the `member` stage again.
+- **`Vending stopped at member N ... hub is incomplete`:** run the `foundation` stage first. Vending needs `vnet-hub`, `afw-hub`, `log-management` and `id-sqlmi-directory`.
+- **The ALZ-lite what-if prints "First deployment":** expected. The what-if can't compare against management groups that don't exist yet. Run the `foundation` stage.
+- **Teardown stops before the team step:** a member's removal failed. Fix it, run `teardown` again, and the finished members are skipped. Teardown also stops if a subscription under the Corp group isn't in the roster.
+- **A subscription ID shows in a public run log:** delete that run (`gh run delete <id>`), then check that the value is stored as an environment secret and not a variable.
+
 ## Modernizing the app
 
 - **The app falls back to a default connection after task 01:** task 01 resets the project's `UserSecretsId`. Re-enter your local user secrets afterward.
