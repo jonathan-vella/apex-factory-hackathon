@@ -1,0 +1,83 @@
+name: Platform smoke test
+
+# Logs in as the pipeline's managed identity (OIDC) and runs the permission probe.
+# workflow_dispatch only works once this file is on the default branch, so pushes to ci-test/** also run it.
+on:
+  workflow_dispatch:
+    inputs:
+      probe:
+        description: Also run the permission probe
+        type: boolean
+        default: true
+  push:
+    branches: ['ci-test/**']
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: platform-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    env:
+      ALLOWED_SUBSCRIPTIONS: ${{ vars.ALLOWED_SUBSCRIPTIONS }}
+      SHARED_SUBSCRIPTION_ID: ${{ vars.SHARED_SUBSCRIPTION_ID }}
+      DENIED_SUBSCRIPTIONS: ${{ vars.DENIED_SUBSCRIPTIONS }}
+      PARENT_MG: ${{ vars.PARENT_MG }}
+      MG_PREFIX: ${{ vars.MG_PREFIX }}
+      LOCATION: ${{ vars.LOCATION }}
+      RUN_PROBE: ${{ github.event_name == 'push' || inputs.probe }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check the allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$MG_PREFIX" =~ ^mg- ]] || { echo "MG_PREFIX must start with mg-"; exit 1; }
+          IFS=',' read -ra allowed <<< "$ALLOWED_SUBSCRIPTIONS"
+          [[ " ${allowed[*]} " == *" $SHARED_SUBSCRIPTION_ID "* ]] || { echo "The shared subscription is not on the allowlist"; exit 1; }
+          IFS=',' read -ra denied <<< "${DENIED_SUBSCRIPTIONS:-}"
+          for id in "${allowed[@]}"; do
+            for d in "${denied[@]}"; do
+              [[ -z "$d" || "$id" != "$d" ]] || { echo "An allowed subscription is on the deny list"; exit 1; }
+            done
+          done
+
+      - name: Log in with OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.SHARED_SUBSCRIPTION_ID }}
+
+      - name: Show who we are
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Signed in as: $(az account show --query user.type --output tsv)"
+
+      - name: Check the identity-safe scripts read-only
+        if: env.RUN_PROBE == 'true'
+        shell: pwsh
+        run: |
+          $workload = ($env:ALLOWED_SUBSCRIPTIONS -split ',' | Where-Object { $_ -and $_ -ne $env:SHARED_SUBSCRIPTION_ID }) | Select-Object -First 1
+          ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $workload -SharedSubscriptionId $env:SHARED_SUBSCRIPTION_ID `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
+          ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED_SUBSCRIPTION_ID -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -WhatIf
+          exit 0
+
+      - name: Run the permission probe
+        if: env.RUN_PROBE == 'true'
+        shell: pwsh
+        run: |
+          $workload = ($env:ALLOWED_SUBSCRIPTIONS -split ',' | Where-Object { $_ -and $_ -ne $env:SHARED_SUBSCRIPTION_ID }) | Select-Object -First 1
+          ./scripts/Test-PipelinePermissions.ps1 -WorkloadSubscriptionId $workload `
+            -ParentManagementGroupId $env:PARENT_MG -MgPrefix $env:MG_PREFIX -Location $env:LOCATION `
+            -DeniedSubscriptionId ($env:DENIED_SUBSCRIPTIONS -split ',')

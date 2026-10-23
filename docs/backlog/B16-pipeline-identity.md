@@ -81,3 +81,5 @@ feat: add the platform pipeline identity setup and identity-safe scripts
 - A same-tenant prefix isn't an authorization boundary. The guard in B17 and the roles are the controls.
 - Don't print IDs. Use `<subscription-id>` placeholders in the report.
 - Federated credentials take minutes to propagate; poll, don't sleep.
+- The OIDC subject can be immutable (`repo:owner@<id>/repo@<id>:environment:...`): read it from `actions/oidc/customization/sub`, never assume `repo:owner/repo`.
+- `workflow_dispatch` only works for a workflow on the default branch. Until the merge, run the smoke workflow by pushing a `ci-test/*` branch.

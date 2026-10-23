@@ -24,6 +24,9 @@ The Azure region. Fallback: germanywestcentral.
 Prefix of the kit's management groups, so several kits can coexist in one tenant.
 .PARAMETER AdditionalAllowedLocation
 Regions to allow at <MgPrefix>-corp besides Location and global, for example the fallback region.
+.PARAMETER ParentManagementGroupId
+The management group to deploy under, instead of Tenant Root. Use it for a sandbox group: you then need Owner there, not at Tenant Root.
+Leave it empty at an event. The script also accepts a service principal or managed identity (a pipeline).
 .PARAMETER SkipDefender
 Leave the subscription's Defender for Cloud plans as they are. Without it, every paid plan is turned off
 subscription-wide (Foundational CSPM only), including for resources the kit didn't create. Use it only in
@@ -44,6 +47,8 @@ param(
     [ValidatePattern('^[A-Za-z0-9-]{2,40}$')]
     [string] $MgPrefix = 'mg-factory',
     [string[]] $AdditionalAllowedLocation = @(),
+    [ValidatePattern('^$|^[A-Za-z0-9._()-]{1,90}$')]
+    [string] $ParentManagementGroupId = '',
     [switch] $SkipDefender
 )
 
@@ -65,18 +70,34 @@ function Invoke-AzureCli {
     }
 }
 
-function Assert-TenantRootOwner {
-    param([string] $TenantId)
-    $scope = "/providers/Microsoft.Management/managementGroups/$TenantId"
-    $userId = (Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show')).id
-    $roles = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--assignee', $userId, '--scope', $scope,
-            '--include-inherited', '--include-groups') | ForEach-Object { $_.roleDefinitionName })
+function Get-CallerRoleName {
+    param([string] $Scope)
+    $account = Invoke-AzureCli -Arguments @('account', 'show')
+    if ($account.user.type -eq 'user') {
+        $userId = (Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show')).id
+        return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--assignee', $userId, '--scope', $Scope,
+                '--include-inherited', '--include-groups') | ForEach-Object { $_.roleDefinitionName })
+    }
+    # A service principal or managed identity (a pipeline): take its object ID from the ARM token, so no Microsoft Graph call is needed.
+    $token = Invoke-AzureCli -Arguments @('account', 'get-access-token', '--resource', 'https://management.azure.com/', '--query', 'accessToken')
+    $payload = $token.Split('.')[1].Replace('-', '+').Replace('_', '/')
+    $payload += '=' * ((4 - $payload.Length % 4) % 4)
+    $objectId = ([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json).oid
+    return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $Scope, '--include-inherited') |
+            Where-Object { $_.principalId -eq $objectId } | ForEach-Object { $_.roleDefinitionName })
+}
+
+function Assert-ParentOwner {
+    param([string] $TenantId, [string] $ParentId)
+    $scope = "/providers/Microsoft.Management/managementGroups/$ParentId"
+    $where = if ($ParentId -eq $TenantId) { 'the Tenant Root management group' } else { "the management group '$ParentId'" }
+    $roles = @(Get-CallerRoleName -Scope $scope)
     if ($roles -notcontains 'Owner') {
         throw @"
-You need Owner at the Tenant Root management group to create management groups, move subscriptions and
+You need Owner at $where to create management groups, move subscriptions and
 assign policies there. You have: $(if ($roles) { $roles -join ', ' } else { 'no role' }).
 Ask a Global Administrator to elevate access (Microsoft Entra ID > Properties > Access management for
-Azure resources: Yes), then to give you Owner at Tenant Root:
+Azure resources: Yes), then to give you Owner at $where`:
   az role assignment create --assignee <your-object-id> --role Owner --scope $scope
 Sign out and in again (az logout; az login), then re-run this script.
 "@
@@ -85,9 +106,10 @@ Sign out and in again (az logout; az login), then re-run this script.
 
 $account = Invoke-AzureCli -Arguments @('account', 'show')
 $tenantId = $account.tenantId
+$parentId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { $tenantId }
 $null = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $SharedSubscriptionId)
-Assert-TenantRootOwner -TenantId $tenantId
-Write-Information 'Permissions: Owner at the Tenant Root management group.'
+Assert-ParentOwner -TenantId $tenantId -ParentId $parentId
+Write-Information "Permissions: Owner at $(if ($parentId -eq $tenantId) { 'the Tenant Root management group' } else { "the management group '$parentId'" })."
 
 Write-Information @"
 
@@ -120,7 +142,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "alz-lite-$([guid]
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
 
-$deploymentArgs = @('--management-group-id', $tenantId, '--name', "alz-lite-$MgPrefix", '--location', $Location,
+$deploymentArgs = @('--management-group-id', $parentId, '--name', "alz-lite-$MgPrefix", '--location', $Location,
     '--template-file', $template, '--parameters', "@$parametersFile")
 try {
     if (-not $PSCmdlet.ShouldProcess("Tenant Root management group, shared services subscription", 'Deploy ALZ-lite')) {
