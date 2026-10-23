@@ -6,8 +6,11 @@ name: Platform
 # then vending for every member. A team has one shared services subscription and one workload subscription per member.
 # Each stage runs in the gh-lab environment, where the reviewer approves it once for the stage. "all" runs them in order.
 # Every job sits in this file because a reusable workflow can't read the environment's secrets.
-# Pushes to ci-test/<stage>-* run that stage (whatif, member, foundation, vending or all), so the pipeline can
+# The teardown stage removes what the other stages built: every member's datacenter, then the team's foundation. It never
+# removes the pipeline identity: an admin runs scripts/Remove-PlatformPipeline.ps1 for that, afterwards.
+# Pushes to ci-test/<stage>-* run that stage (whatif, member, foundation, vending, teardown or all), so the pipeline can
 # be tested before this file is on the default branch (GitHub only dispatches a workflow from the default branch).
+# A push to ci-test/teardown-with-management-* also removes rg-management and id-sqlmi-directory (a full lab teardown).
 on:
   workflow_dispatch:
     inputs:
@@ -20,13 +23,18 @@ on:
           - member
           - foundation
           - vending
+          - teardown
           - all
+      include-management:
+        description: Teardown only. Also delete rg-management and id-sqlmi-directory, which a normal lab keeps (its Graph grant is lost).
+        type: boolean
+        default: false
       members:
         description: Member indexes, comma separated, for example 1,2,3. Empty means every member in the MEMBER_INDEXES variable.
         type: string
         default: ''
   push:
-    branches: ['ci-test/whatif-**', 'ci-test/member-**', 'ci-test/foundation-**', 'ci-test/vending-**', 'ci-test/all-**']
+    branches: ['ci-test/whatif-**', 'ci-test/member-**', 'ci-test/foundation-**', 'ci-test/vending-**', 'ci-test/teardown-**', 'ci-test/all-**']
 
 permissions:
   contents: read
@@ -49,6 +57,7 @@ jobs:
     outputs:
       stage: ${{ steps.plan.outputs.stage }}
       profile: ${{ steps.plan.outputs.profile }}
+      include-management: ${{ steps.plan.outputs.include-management }}
       members: ${{ steps.plan.outputs.members }}
       member-list: ${{ steps.plan.outputs.member-list }}
     steps:
@@ -58,6 +67,7 @@ jobs:
         env:
           INPUT_STAGE: ${{ inputs.stage }}
           INPUT_MEMBERS: ${{ inputs.members }}
+          INPUT_INCLUDE_MANAGEMENT: ${{ inputs.include-management }}
           VAR_MEMBERS: ${{ vars.MEMBER_INDEXES }}
           VAR_PROFILE: ${{ vars.PIPELINE_PROFILE }}
           REF_NAME: ${{ github.ref_name }}
@@ -70,16 +80,19 @@ jobs:
             stage="${stage%%-*}"
           fi
           case "$stage" in
-            whatif|member|foundation|vending|all) ;;
-            *) echo "::error::Unknown stage '$stage'. Use whatif, member, foundation, vending or all."; exit 1 ;;
+            whatif|member|foundation|vending|teardown|all) ;;
+            *) echo "::error::Unknown stage '$stage'. Use whatif, member, foundation, vending, teardown or all."; exit 1 ;;
           esac
           if [ "$profile" = "member" ]; then
             case "$stage" in
-              whatif|member) ;;
-              *) echo "::error::This is a member pipeline: it runs only the whatif (your preflight) and member (your datacenter) stages. The foundation and vending belong to the platform lead's pipeline."; exit 1 ;;
+              whatif|member|teardown) ;;
+              *) echo "::error::This is a member pipeline: it runs only the whatif (your preflight), member (your datacenter) and teardown (removes it) stages. The foundation and vending belong to the platform lead's pipeline."; exit 1 ;;
             esac
           fi
           echo "profile=$profile" >> "$GITHUB_OUTPUT"
+          include=false
+          if [ "$INPUT_INCLUDE_MANAGEMENT" = true ] || [[ "$REF_NAME" == ci-test/teardown-with-management* ]]; then include=true; fi
+          echo "include-management=$include" >> "$GITHUB_OUTPUT"
           list="${INPUT_MEMBERS:-${VAR_MEMBERS:-1}}"
           list="${list// /}"
           IFS=',' read -ra parts <<< "$list"
@@ -379,3 +392,95 @@ jobs:
             -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -AllowedSubscriptionId ($env:ALLOWED -split ',') `
             -DeniedSubscriptionId ($env:DENIED -split ',') -DeniedMgPrefix ($env:DENIED_PREFIXES -split ',')
           exit $LASTEXITCODE
+
+  teardown-member:
+    needs: plan
+    if: needs.plan.outputs.stage == 'teardown'
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        member: ${{ fromJSON(needs.plan.outputs.members) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ matrix.member }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Remove the member's datacenter, spoke and archetype
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          LOCATION: ${{ vars.LOCATION }}
+          MEMBER_INDEX: ${{ matrix.member }}
+        run: |
+          # Members are independent: each run touches only its own subscription. Without -Suffix, the script
+          # removes whatever rg-university-<suffix> groups that subscription holds.
+          ./scripts/Remove-FactoryEnvironment.ps1 -Scope Member -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX `
+            -Location $env:LOCATION -Force -Confirm:$false
+          exit 0
+
+  teardown-team:
+    needs: [plan, teardown-member]
+    if: ${{ needs.plan.outputs.stage == 'teardown' && needs.plan.outputs.profile == 'lead' && needs.teardown-member.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        uses: ./.github/actions/platform-session
+        with:
+          all-members: 'true'
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Remove the team's foundation
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          ROSTER_JSON: ${{ secrets.ROSTER_JSON }}
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          INCLUDE_MANAGEMENT: ${{ needs.plan.outputs.include-management }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          # The script moves and unlinks every subscription under the corp group: refuse if one isn't in the roster.
+          $listed = @($env:ROSTER_JSON | ConvertFrom-Json | ForEach-Object { $_.subscriptionId.ToLowerInvariant() })
+          $corp = & az account management-group show --name "$env:MG_PREFIX-corp" --expand --only-show-errors --output json 2>$null
+          if ($LASTEXITCODE -eq 0 -and $corp) {
+            $unknown = @(($corp | ConvertFrom-Json).children | Where-Object { $_ -and $_.name.ToLowerInvariant() -notin $listed })
+            if ($unknown.Count -gt 0) { Write-Error "$($unknown.Count) subscription(s) under $env:MG_PREFIX-corp are not in the roster. Nothing was removed."; exit 1 }
+          }
+          $arguments = @{ Scope = 'Team'; SharedSubscriptionId = $env:SHARED; MgPrefix = $env:MG_PREFIX; Force = $true; Confirm = $false }
+          if ($env:PARENT_MG) { $arguments.ReturnManagementGroupId = $env:PARENT_MG }
+          if ($env:INCLUDE_MANAGEMENT -eq 'true') { $arguments.IncludeManagementResources = $true }
+          ./scripts/Remove-FactoryEnvironment.ps1 @arguments
+          "The team's foundation is removed. An admin now runs scripts/Remove-PlatformPipeline.ps1 for the identity and its roles." |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          exit 0
