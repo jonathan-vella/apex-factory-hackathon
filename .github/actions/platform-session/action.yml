@@ -3,9 +3,13 @@ description: Reads the roster, runs the guard, then logs in as the pipeline's ma
 
 inputs:
   member-index:
-    description: The member whose subscription this job uses
+    description: The member whose subscription this job uses. Empty for a team-level job (the foundation).
     required: false
-    default: '1'
+    default: ''
+  all-members:
+    description: 'true when the job touches every member in the roster (vending)'
+    required: false
+    default: 'false'
   roster-json:
     description: The ROSTER_JSON secret
     required: true
@@ -17,7 +21,7 @@ inputs:
     description: The tenant ID
   shared-subscription-id:
     required: true
-    description: The shared services subscription
+    description: The team's shared services subscription
   allowed-subscriptions:
     required: true
     description: Comma-separated allowlist
@@ -39,8 +43,14 @@ inputs:
 
 outputs:
   workload-subscription-id:
-    description: The member's workload subscription (masked in logs)
+    description: The member's workload subscription (masked in logs); empty without a member index
     value: ${{ steps.roster.outputs.workload }}
+  member-principal-id:
+    description: The member's object ID from the roster (masked in logs), may be empty
+    value: ${{ steps.roster.outputs.principal }}
+  budget-email:
+    description: The budget alert address from the roster (masked in logs), may be empty
+    value: ${{ steps.roster.outputs.email }}
 
 runs:
   using: composite
@@ -58,16 +68,35 @@ runs:
       env:
         ROSTER_JSON: ${{ inputs.roster-json }}
         MEMBER_INDEX: ${{ inputs.member-index }}
+        ALL_MEMBERS: ${{ inputs.all-members }}
       run: |
-        $member = @($env:ROSTER_JSON | ConvertFrom-Json) | Where-Object { [string] $_.index -eq $env:MEMBER_INDEX } | Select-Object -First 1
-        if (-not $member -or -not $member.subscriptionId) { throw "Member $env:MEMBER_INDEX is not in the roster." }
-        Write-Host "::add-mask::$($member.subscriptionId)"
-        "workload=$($member.subscriptionId)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        $roster = @($env:ROSTER_JSON | ConvertFrom-Json)
+        # Every member's identifiers are masked, even when the job uses one member.
+        foreach ($entry in $roster) {
+          foreach ($value in $entry.subscriptionId, $entry.memberPrincipalId, $entry.budgetEmail) { if ($value) { Write-Host "::add-mask::$value" } }
+        }
+        $workload = ''
+        $principal = ''
+        $email = ''
+        $touched = @()
+        if ($env:MEMBER_INDEX) {
+          $member = $roster | Where-Object { [string] $_.index -eq $env:MEMBER_INDEX } | Select-Object -First 1
+          if (-not $member -or -not $member.subscriptionId) { throw "Member $env:MEMBER_INDEX is not in the roster." }
+          $workload = $member.subscriptionId
+          $principal = $member.memberPrincipalId
+          $email = $member.budgetEmail
+          $touched += $workload
+        }
+        if ($env:ALL_MEMBERS -eq 'true') { $touched += @($roster | ForEach-Object { $_.subscriptionId }) }
+        "workload=$workload" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "principal=$principal" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "email=$email" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        "touched=$($touched -join ',')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
     - name: Guard
       uses: ./.github/actions/guard
       with:
-        subscription-ids: ${{ inputs.shared-subscription-id }},${{ steps.roster.outputs.workload }}
+        subscription-ids: ${{ inputs.shared-subscription-id }},${{ steps.roster.outputs.touched }}
         mg-prefix: ${{ inputs.mg-prefix }}
         allowed-subscriptions: ${{ inputs.allowed-subscriptions }}
         denied-subscriptions: ${{ inputs.denied-subscriptions }}

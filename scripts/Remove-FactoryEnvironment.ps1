@@ -109,7 +109,8 @@ function Get-DirectSubscription {
     param([Parameter(Mandatory)][string] $ManagementGroupName)
 
     $managementGroup = Invoke-AzureCli -Arguments @('account', 'management-group', 'show', '--name', $ManagementGroupName, '--expand')
-    $children = @($managementGroup.children)
+    # An empty group has no children property: @($null) would count as one unexpected child.
+    $children = @($managementGroup.children | Where-Object { $_ })
     $unexpected = @($children | Where-Object { $_.type -notmatch 'subscription' })
     if ($unexpected.Count -gt 0) {
         throw "Management group '$ManagementGroupName' contains a child management group or an unexpected child. Review it manually; it will not be moved or deleted."
@@ -608,7 +609,8 @@ foreach ($group in $firewallGroups) {
         '--subscription', $SharedSubscriptionId,
         '--resource-group', 'rg-hub',
         '--policy-name', 'afwp-hub',
-        '--name', $group.name
+        '--name', $group.name,
+        '--yes'
     )
 }
 foreach ($peering in $hubPeerings) {
@@ -644,7 +646,7 @@ foreach ($managementGroupName in @($corpGroupName, $platformGroupName)) {
 }
 if ($managementGroupNames -contains $rootGroupName) {
     $remainingRoot = Invoke-AzureCli -Arguments @('account', 'management-group', 'show', '--name', $rootGroupName, '--expand')
-    if (@($remainingRoot.children).Count -gt 0) {
+    if (@($remainingRoot.children | Where-Object { $_ }).Count -gt 0) {
         throw "Kit management group '$rootGroupName' still has children. It was not deleted."
     }
     $null = Invoke-AzureCli -Arguments @('account', 'management-group', 'delete', '--name', $rootGroupName)

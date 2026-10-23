@@ -86,8 +86,14 @@ $violations = @($states | Group-Object -Property policyAssignmentId)
 $skipped = [System.Collections.Generic.List[string]]::new()
 $register = foreach ($violation in $violations) {
     $assignmentName = $violation.Group[0].policyAssignmentName
-    $assignment = Invoke-AzureCli -Arguments @('rest', '--method', 'get', '--uri',
-        "https://management.azure.com$($violation.Name)?api-version=2025-03-01")
+    # An assignment defined above this identity's scope (a tenant policy) can't be read. It isn't the kit's: skip it.
+    try {
+        $assignment = Invoke-AzureCli -Arguments @('rest', '--method', 'get', '--uri',
+            "https://management.azure.com$($violation.Name)?api-version=2025-03-01")
+    }
+    catch {
+        $assignment = $null
+    }
     $displayName = if ($assignment.properties.displayName) { $assignment.properties.displayName } else { $assignmentName }
     # Only the kit's own assignments, unless the member names another one.
     if (-not ($displayName -like 'ALZ-lite:*' -or $included -contains $assignmentName -or $included -contains $displayName)) {

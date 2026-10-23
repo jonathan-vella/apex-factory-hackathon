@@ -22,9 +22,9 @@
 
 ## Requirements
 
-1. A site page for students and coaches (`site/src/content/docs/`) with copy-paste commands for setup, the first run and the doctor check, a "what it grants and why" box, the manual script path as a fallback, and troubleshooting entries.
+1. A site page for students and coaches (`site/src/content/docs/`) with copy-paste commands for setup, the first run and the doctor check, a "what it grants and why" box, the manual script path as a fallback, and troubleshooting entries. It covers both profiles: the **member profile** (each member, in their own repo, for C0) and the **platform lead profile** (ALZ-lite and vending for the team), and says which runs when.
 2. `facilitator/platform-pipeline.md`: the coach page, with the accepted-risk entry for the pipeline identity, the gates, who can run what and the manual steps that remain (Graph grant, elevation, Arc assessment, subscription creation). Update `facilitator/automation-map.md`, `facilitator/cleanup.md` and `site/src/content/docs/reference/troubleshooting.md`.
-3. 🧑 HUMAN: the onboarding test. Create a throwaway repo from the template, import the kit and onboard exactly as a student would, using only the docs. Record every stumble and fix the docs or scripts.
+3. 🧑 HUMAN: the onboarding test. Create a throwaway repo from the template, import the kit and onboard exactly as a student would, using only the docs: once as a member (B21) and once as the platform lead. Record every stumble and fix the docs or scripts.
 4. azd spike: decide go or no-go for an azd wrapper on the datacenter (subscription scope only) and record the reasons.
 5. `versions.md` rows for `azure/login`, `actionlint` and the other new tools.
 

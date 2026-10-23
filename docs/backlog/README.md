@@ -42,6 +42,9 @@ Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR 
 | [B18](B18-pipeline-member-vending.md) | Build the member and vending stages | P6 | Both | B17 | Ready |
 | [B19](B19-pipeline-teardown.md) | Build the teardown stage and the identity finalizer | P6 | Both | B18 | Ready |
 | [B20](B20-pipeline-docs-onboarding-test.md) | Write the student and coach docs and run the fresh-repo onboarding test | P6 | Both | B19 | Ready |
+| [B21](B21-pipeline-member-profile.md) | Build the member profile: a pipeline in each member's own repo for C0 | P6 | Both | B18 | Ready |
+| [B22](B22-event-resequence.md) | Re-sequence the event: the platform lead deploys ALZ-lite and vending before the event | P6 | Both | B18 | Ready |
+| [B23](B23-preflight-public-ip-feature.md) | Preflight checks the public IP feature on new subscriptions | P6 | Agent | — | Ready |
 
 **Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps. **Status** is "Ready" when the spec is written; it isn't updated afterwards. Check the item's issue for its current state.
 
@@ -59,6 +62,8 @@ flowchart LR
   B09 --> B14
   B11 --> B15
   B16 --> B17 --> B18 --> B19 --> B20
+  B18 --> B21
+  B18 --> B22
   B06 --> B10
   B07 --> B11
   B08 --> B11

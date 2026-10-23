@@ -30,6 +30,7 @@ param(
     [string] $SharedSubscriptionId = '',
     [ValidatePattern('^$|^[0-9a-fA-F-]{36}$')]
     [string] $WorkloadSubscriptionId = '',
+    [string[]] $WorkloadSubscriptionIds = @(),
     [ValidatePattern('^$|^[A-Za-z0-9._()-]{1,90}$')]
     [string] $ParentManagementGroupId = '',
     [ValidatePattern('^$|^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$')]
@@ -41,6 +42,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 $environmentName = $Environment
+$workloadList = $WorkloadSubscriptionIds
 $identityName = 'id-factory-pipeline'
 $resourceGroupName = 'rg-cicd'
 $results = [System.Collections.Generic.List[object]]::new()
@@ -131,7 +133,11 @@ Invoke-Check -Name 'Roles' -Fix 'Run ./scripts/Initialize-PlatformPipeline.ps1 a
     if (-not $identity) { throw 'The identity is missing, so its roles can''t be checked.' }
     $parentScopeId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { $tenantId }
     $scopes = @("/providers/Microsoft.Management/managementGroups/$parentScopeId")
-    if ($ParentManagementGroupId) { $scopes += "/subscriptions/$SharedSubscriptionId"; if ($WorkloadSubscriptionId) { $scopes += "/subscriptions/$WorkloadSubscriptionId" } }
+    if ($ParentManagementGroupId) {
+        $scopes += "/subscriptions/$SharedSubscriptionId"
+        $members = if ($workloadList) { $workloadList } elseif ($WorkloadSubscriptionId) { @($WorkloadSubscriptionId) } else { @() }
+        $scopes += @($members | ForEach-Object { "/subscriptions/$_" })
+    }
     $missing = 0
     foreach ($scope in $scopes) {
         $have = @(Invoke-AzureCli @('role', 'assignment', 'list', '--scope', $scope, '--role', 'Owner') | Where-Object { $_.principalId -eq $identity.principalId })
@@ -160,6 +166,8 @@ Invoke-Check -Name 'GitHub environment' -Fix 'Run ./scripts/Initialize-PlatformP
     $vars = @((Invoke-GitHubCli @('variable', 'list', '--env', $environmentName, '--repo', $Repository, '--json', 'name', '--jq', '.[].name')) -split "`n")
     $secrets = @((Invoke-GitHubCli @('secret', 'list', '--env', $environmentName, '--repo', $Repository, '--json', 'name', '--jq', '.[].name')) -split "`n")
     $missing = @('LOCATION', 'MG_PREFIX' | Where-Object { $_ -notin $vars }) + @('AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'SHARED_SUBSCRIPTION_ID', 'ALLOWED_SUBSCRIPTIONS', 'ROSTER_JSON' | Where-Object { $_ -notin $secrets })
+    $repoVars = @((Invoke-GitHubCli @('variable', 'list', '--repo', $Repository, '--json', 'name', '--jq', '.[].name')) -split "`n")
+    if ('MEMBER_INDEXES' -notin $repoVars) { $missing += 'MEMBER_INDEXES (repository variable)' }
     if ($missing) { throw "Missing: $($missing -join ', ')." }
     Add-Result -Check 'GitHub environment' -Status PASS -Reason "Branch policy ($($branches -join ', ')), variables and secrets are set."
     if ([bool] ($state.protection_rules | Where-Object { $_.type -eq 'required_reviewers' })) {

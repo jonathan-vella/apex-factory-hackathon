@@ -115,6 +115,9 @@ function Get-OptionalResource {
         return Invoke-AzureCli -Arguments $Arguments
     }
     catch {
+        # Say why a lookup failed, with IDs masked: a silent null looks like a missing hub.
+        $reason = ($_.Exception.Message -replace '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<id>')
+        Write-Warning "Lookup '$($Arguments | Select-Object -First 3 | Join-String -Separator ' ')' failed: $($reason.Substring(0, [Math]::Min(300, $reason.Length)))"
         return $null
     }
 }
@@ -160,9 +163,9 @@ Assert-ParentOwner -TenantId $tenantId -ParentId $parentId
 # The hub, by the ALZ-lite names.
 $hubVnet = Get-OptionalResource -Arguments @('network', 'vnet', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-hub', '-n', 'vnet-hub')
 $firewall = Get-OptionalResource -Arguments @('resource', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-hub', '-n', 'afw-hub',
-    '--resource-type', 'Microsoft.Network/azureFirewalls')
+    '--resource-type', 'Microsoft.Network/azureFirewalls', '--api-version', '2024-05-01')
 $workspace = Get-OptionalResource -Arguments @('resource', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-management', '-n', 'log-management',
-    '--resource-type', 'Microsoft.OperationalInsights/workspaces')
+    '--resource-type', 'Microsoft.OperationalInsights/workspaces', '--api-version', '2025-07-01')
 $sqlMiIdentity = Get-OptionalResource -Arguments @('identity', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-management', '-n', 'id-sqlmi-directory')
 if (-not ($hubVnet -and $firewall -and $workspace -and $sqlMiIdentity)) {
     throw 'The hub is incomplete in the shared services subscription (vnet-hub, afw-hub, log-management or id-sqlmi-directory missing). Run scripts/Deploy-AlzLite.ps1 first.'
