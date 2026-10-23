@@ -1,0 +1,83 @@
+name: Platform session
+description: Reads the roster, runs the guard, then logs in as the pipeline's managed identity (OIDC).
+
+inputs:
+  member-index:
+    description: The member whose subscription this job uses
+    required: false
+    default: '1'
+  roster-json:
+    description: The ROSTER_JSON secret
+    required: true
+  client-id:
+    required: true
+    description: The identity's client ID
+  tenant-id:
+    required: true
+    description: The tenant ID
+  shared-subscription-id:
+    required: true
+    description: The shared services subscription
+  allowed-subscriptions:
+    required: true
+    description: Comma-separated allowlist
+  denied-subscriptions:
+    required: false
+    default: ''
+    description: Comma-separated deny list
+  mg-prefix:
+    required: true
+    description: The management-group prefix
+  denied-mg-prefixes:
+    required: false
+    default: ''
+    description: Comma-separated denied prefixes
+  kit-dir:
+    required: false
+    default: '.'
+    description: Folder that holds the kit's scripts
+
+outputs:
+  workload-subscription-id:
+    description: The member's workload subscription (masked in logs)
+    value: ${{ steps.roster.outputs.workload }}
+
+runs:
+  using: composite
+  steps:
+    - name: Mask the identifiers
+      shell: pwsh
+      env:
+        SESSION_IDS: ${{ inputs.client-id }},${{ inputs.tenant-id }},${{ inputs.shared-subscription-id }},${{ inputs.allowed-subscriptions }},${{ inputs.denied-subscriptions }}
+      run: |
+        foreach ($id in $env:SESSION_IDS -split ',') { if ($id.Trim()) { Write-Host "::add-mask::$($id.Trim())" } }
+
+    - name: Read the roster
+      id: roster
+      shell: pwsh
+      env:
+        ROSTER_JSON: ${{ inputs.roster-json }}
+        MEMBER_INDEX: ${{ inputs.member-index }}
+      run: |
+        $member = @($env:ROSTER_JSON | ConvertFrom-Json) | Where-Object { [string] $_.index -eq $env:MEMBER_INDEX } | Select-Object -First 1
+        if (-not $member -or -not $member.subscriptionId) { throw "Member $env:MEMBER_INDEX is not in the roster." }
+        Write-Host "::add-mask::$($member.subscriptionId)"
+        "workload=$($member.subscriptionId)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+    - name: Guard
+      uses: ./.github/actions/guard
+      with:
+        subscription-ids: ${{ inputs.shared-subscription-id }},${{ steps.roster.outputs.workload }}
+        mg-prefix: ${{ inputs.mg-prefix }}
+        allowed-subscriptions: ${{ inputs.allowed-subscriptions }}
+        denied-subscriptions: ${{ inputs.denied-subscriptions }}
+        allowed-mg-prefix: ${{ inputs.mg-prefix }}
+        denied-mg-prefixes: ${{ inputs.denied-mg-prefixes }}
+        kit-dir: ${{ inputs.kit-dir }}
+
+    - name: Log in with OIDC
+      uses: azure/login@v3
+      with:
+        client-id: ${{ inputs.client-id }}
+        tenant-id: ${{ inputs.tenant-id }}
+        subscription-id: ${{ inputs.shared-subscription-id }}

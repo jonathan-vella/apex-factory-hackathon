@@ -73,7 +73,7 @@ function Invoke-AzureCli {
 function Get-CallerRoleName {
     param([string] $Scope)
     $account = Invoke-AzureCli -Arguments @('account', 'show')
-    if ($account.user.type -eq 'user') {
+    if ($account.user.type -ne 'servicePrincipal') {
         $userId = (Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show')).id
         return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--assignee', $userId, '--scope', $Scope,
                 '--include-inherited', '--include-groups') | ForEach-Object { $_.roleDefinitionName })
@@ -85,6 +85,20 @@ function Get-CallerRoleName {
     $objectId = ([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json).oid
     return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $Scope, '--include-inherited') |
             Where-Object { $_.principalId -eq $objectId } | ForEach-Object { $_.roleDefinitionName })
+}
+
+function Initialize-ManagementGroup {
+    # Under a parent other than Tenant Root, ARM can't authorize a nested deployment at a group that the same
+    # template creates. Create the three groups first; the deployment then converges them.
+    param([string] $ParentId, [string] $Prefix)
+    foreach ($group in @(@{ Name = $Prefix; Parent = $ParentId }, @{ Name = "$Prefix-platform"; Parent = $Prefix }, @{ Name = "$Prefix-corp"; Parent = $Prefix })) {
+        $PSNativeCommandUseErrorActionPreference = $false
+        & az account management-group show --name $group.Name --only-show-errors --output none 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            $null = Invoke-AzureCli -Arguments @('account', 'management-group', 'create', '--name', $group.Name, '--display-name', $group.Name, '--parent', $group.Parent)
+            Write-Information "Created management group $($group.Name)."
+        }
+    }
 }
 
 function Assert-ParentOwner {
@@ -152,6 +166,7 @@ try {
     }
     $started = Get-Date
     Write-Information "Deployment started at $($started.ToString('HH:mm'))."
+    if ($parentId -ne $tenantId) { Initialize-ManagementGroup -ParentId $parentId -Prefix $MgPrefix }
     $deployment = Invoke-AzureCli -Arguments (@('deployment', 'mg', 'create') + $deploymentArgs)
 }
 finally {

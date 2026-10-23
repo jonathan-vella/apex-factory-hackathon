@@ -26,19 +26,20 @@
 ## Requirements
 
 1. `.github/actions/guard/action.yml`: a composite step that fails closed unless every subscription ID is in `ALLOWED_SUBSCRIPTIONS`, none is on the live-lab deny list, and `MG_PREFIX` matches the allowed pattern. It runs first in every job.
-2. `platform.yml` (`workflow_dispatch`) has a `stage` input: `whatif`, `foundation`, `member`, `vending`, `all`, `teardown`, plus a `members` input of non-sensitive indexes (default `[1]`). It calls reusable workflows (`platform-whatif.yml`, `platform-foundation.yml`; B18 and B19 add the rest). Member details come from `ROSTER_JSON` inside the gated job, because `secrets` can't be used in `strategy`.
+2. `platform.yml` (`workflow_dispatch`) has a `stage` input: `whatif`, `foundation`, `all`, plus a `member-index` input (default `1`). B18 and B19 add `member`, `vending` and `teardown`. Every job sits in this one file, because a reusable workflow can't read the environment's secrets (tested: they arrive empty). Member details come from the `ROSTER_JSON` secret inside the gated job, because `secrets` can't be used in `strategy`. The composite action `.github/actions/platform-session` reads the roster, runs the guard and logs in.
 3. Jobs use `azure/login` with OIDC (`id-token: write`, minimal `permissions`), run the kit's scripts from `factory/` (`working-directory`), never use `pull_request_target`, and use the `gh-lab` environment for gated stages.
-4. `platform-whatif.yml` is read-only: `Test-Preflight` and `-WhatIf` for ALZ-lite. `platform-foundation.yml` runs `Deploy-AlzLite.ps1` behind the reviewer gate.
-5. `scripts/Test-PipelineSetup.ps1`: a doctor check of identity, credential, roles, environment, variables and OIDC login, with a fix printed per failure in the style of `Test-Preflight.ps1`. `Initialize-PlatformPipeline.ps1` runs it last.
-6. `Import-Kit.ps1` installs the workflows and the guard into the repo root `.github/` (workflows run with `working-directory: factory`), adds them to the weekly sync `EXCLUDE_PATHS`, and keeps the lint ignores the first-commit flow needs. The kit repo's own copy runs in `factory/` too.
-7. Tests: the guard refuses a wrong prefix and a wrong subscription; the foundation stage deploys under `mg-factory-ci` in the sandbox; the identity can't read or write the live lab; the private-repo fallback (no reviewer) is tested.
-8. Workflows are clean under `actionlint`.
+4. The `whatif` stage is read-only: `Test-Preflight` and an ALZ-lite `-WhatIf` (skipped with a notice when the kit's groups don't exist yet under a non-root parent). The `foundation` stage runs `Deploy-AlzLite.ps1` behind the reviewer gate.
+5. `scripts/Test-PipelineSetup.ps1`: a doctor check of identity, credential, roles, workflows, environment, variables and secrets, with a fix printed per failure in the style of `Test-Preflight.ps1`. `Initialize-PlatformPipeline.ps1` runs it last. It can't prove the OIDC login itself: the first workflow run does.
+6. Identifiers (tenant, client, subscriptions, roster) are environment **secrets**, not variables: a public repo's logs print variables. The session action masks every ID. Only `LOCATION`, `MG_PREFIX`, `PARENT_MG` and `DENIED_MG_PREFIXES` are variables.
+7. `Import-Kit.ps1` installs the workflows and both actions into the repo root `.github/` (`KIT_DIR` becomes `factory`), adds them to the weekly sync `EXCLUDE_PATHS` and to `.prettierignore`. The kit repo's own copy runs in `.`.
+8. Tests: the guard refuses a wrong prefix and a wrong subscription (`test/Assert-PipelineGuard.Tests.ps1`); the foundation stage deploys under `mg-factory-ci` in the sandbox; the identity can't read or write the live lab; the private-repo fallback (no reviewer) is tested in B20's fresh-repo run.
+9. Workflows are clean under `actionlint`.
 
 ## Deliverables
 
-- `.github/actions/guard/action.yml`, `.github/workflows/platform.yml`, `platform-whatif.yml`, `platform-foundation.yml`.
-- `scripts/Test-PipelineSetup.ps1`; changes to `scripts/Import-Kit.ps1` and `scripts/Initialize-PlatformPipeline.ps1`.
-- Tests under `test/` where the repo's test setup allows; evidence in the PR body.
+- `.github/actions/guard/action.yml`, `.github/actions/platform-session/action.yml`, `.github/workflows/platform.yml`.
+- `scripts/Assert-PipelineGuard.ps1`, `scripts/Test-PipelineSetup.ps1`; changes to `scripts/Import-Kit.ps1` and `scripts/Initialize-PlatformPipeline.ps1`.
+- `test/Assert-PipelineGuard.Tests.ps1`; evidence in the PR body.
 
 ## Verify
 
@@ -65,5 +66,6 @@ feat: add the platform entry workflow, guard and onboarding
 
 ## Notes and traps
 
-- Environment secrets exist only inside a job, so the matrix can't read them.
+- Environment secrets exist only inside a job, so the matrix can't read them, and a reusable workflow can't read them at all.
+- Never put identifiers in variables or `echo` them: a public repo's logs are public.
 - Pin actions the way the repo's other workflows do.
