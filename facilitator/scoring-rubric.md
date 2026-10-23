@@ -53,12 +53,14 @@ This is the scoring single source of truth. The base contract is 80 team points 
 
 ### C2 — Secure, AI-ready foundation
 
+The platform lead deploys ALZ-lite at T-7 and vends every member at T-1, so C2 scores a "verify and explain" challenge on Day 1: the evidence comes from the work done before the event, and the team shows it understands it. The base points stay 35.
+
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
-| ALZ-lite management groups, hub and policies are shown in deployment evidence | 10 | 0 |
-| Vending output covers every member subscription and the expected network setup | 10 | 0 |
-| Datacenter exemptions have an owner, reason and expiry | 5 | 0 |
-| Connectivity probes pass every applicable check | 10 | 0 |
+| ALZ-lite management groups, hub and policies are shown in the T-7 deployment evidence, and the team answers the coach's questions on the core policies | 10 | 0 |
+| Vending output from T-1 covers every member subscription and the expected network setup | 10 | 0 |
+| Datacenter exemptions have an owner, reason and expiry, and the members explain them | 5 | 0 |
+| Connectivity probes pass every applicable check, re-run by each member on Day 1 | 10 | 0 |
 | **Total** | **35** | **0** |
 
 ### C3 — Assess the source

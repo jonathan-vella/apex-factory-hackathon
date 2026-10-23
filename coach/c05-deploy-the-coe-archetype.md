@@ -17,7 +17,7 @@ The one thing to watch for here is members trying this natively on Windows — i
 
 1. The member's repo and the archetype are already in place from the prerequisites (`Import-Kit.ps1`). If the archetype is missing, run `./factory/archetype/Import-Archetype.ps1 -Ref main` from the repo root.
 2. Open the repo in the dev container (never natively on Windows — `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`, and a Windows checkout corrupts the tree hash the governance check relies on).
-3. Run `/apex-adapt-archetype` in agent mode: it asks only for tenant ID, subscription ID and suffix, confirms C2's vended spoke exists (`rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe`, `snet-sqlmi`), runs its lightweight governance check, and stops at `azd provision --preview`.
+3. Run `/apex-adapt-archetype` in agent mode: it asks only for tenant ID, subscription ID and suffix, confirms the spoke that vending created before the event exists (`rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe`, `snet-sqlmi`), runs its lightweight governance check, and stops at `azd provision --preview`.
 4. Review the preview (see the "looks incomplete" hint below — it's expected to be partial), then run `azd provision` for real.
 5. Run agent `08-As-Built` to produce the deployed-state document.
 6. Confirm no public endpoints beyond the web app's front end and Application Insights ingestion (the member's `publicNetworkAccess` queries on Storage, Key Vault, Service Bus and ACR all return `Disabled`), naming convention followed, and the managed identity's roles present (ACR Pull, Key Vault Secrets User, Storage Blob Data Contributor, Service Bus Data Owner/Sender-Receiver as applicable, Monitoring Metrics Publisher — note #60 if this last one is missing; that's a known archetype gap, not something to fix here).
@@ -27,7 +27,7 @@ The one thing to watch for here is members trying this natively on Windows — i
 - Running `/apex-adapt-archetype` natively on Windows "because the dev container is slow to start" — this is the single most impactful mistake in C5; insist on the dev container every time.
 - Treating `azd provision --preview`'s partial output as a failure — it only lists resource types `azd` has display names for; SQL MI, the managed identity, role assignments and the maintenance schedule are created even though the preview doesn't name them.
 - Skipping the As-Built step because the deployment "obviously worked" — As-Built is graded evidence, not optional.
-- Trying to run `/apex-adapt-archetype` before C2's vending finished for that member — it fails fast with a clear "spoke not found" message; this is a sequencing issue, not a bug. A preflight that stops with "cannot be read" or a missing `assign/action` permission on `id-sqlmi-directory` means vending ran without the member's `-MemberPrincipalId`: the platform lead re-runs vending with it.
+- Trying to run `/apex-adapt-archetype` for a member who hasn't been vended yet (vending is the platform lead's T-1 run, or later for a member who finished C0 late) — it fails fast with a clear "spoke not found" message; this is a sequencing issue, not a bug. A preflight that stops with "cannot be read" or a missing `assign/action` permission on `id-sqlmi-directory` means vending ran without the member's `-MemberPrincipalId`: the platform lead re-runs vending with it.
 
 ## Partial credit
 

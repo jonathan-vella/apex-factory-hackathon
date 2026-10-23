@@ -15,20 +15,24 @@ The datacenter estimate is about **$2.30/hour running** without AHB. Turning AHB
 
 ## Event-window estimate
 
-Planning window: 120 elapsed hours from T-3 at 09:00 through cleanup at T+2 at 09:00. The datacenter is assumed to run 39 hours (4 hours of pre-work, 33 hours from Day 1 kickoff to the end of Day 2, because `vm-dev01` is never stopped during the event and `vm-app01` runs until the link is removed, and 2 hours during cleanup) and remain deployed but deallocated for 81 hours. The rate is per datacenter, so the estimate assumes both VMs run together. ALZ-lite is assumed deployed for 48 hours from Day 1 through cleanup; the archetype for 44 hours from its Day 1 deployment through cleanup.
+Planning window: 120 elapsed hours from T-3 at 09:00 through cleanup at T+2 at 09:00 for each member's datacenter and archetype. The datacenter is assumed to run 39 hours (4 hours of pre-work, 33 hours from Day 1 kickoff to the end of Day 2, because `vm-dev01` is never stopped during the event and `vm-app01` runs until the link is removed, and 2 hours during cleanup) and remain deployed but deallocated for 81 hours. The rate is per datacenter, so the estimate assumes both VMs run together. The T-1 vending, VM restart and probes fit in the 4 hours of pre-work, because the platform lead needs both VMs running for them.
+
+The shared foundation starts earlier. The platform lead deploys ALZ-lite at T-7 at 09:00, so it exists for 9 days to cleanup at T+2 at 09:00: 9 × 24 = 216 hours (96 hours from T-7 to T-3, then the 120-hour window). Vending, at T-1, adds only small per-member networking costs, because the firewall is already billing. The archetype is assumed deployed for 44 hours from its Day 1 deployment through cleanup.
 
 | Charge | Calculation | Estimate |
 |---|---|---:|
 | Datacenter per member | 39 × $1.55 + 81 × $0.78 | $123.63 |
 | Archetype per member | 44 × $1.83 | $80.52 |
 | Member total | Datacenter + archetype | **$204.15** |
-| Shared ALZ-lite foundation per team | 48 × $1.30 | **$62.40** |
+| Shared ALZ-lite foundation per team | 216 × $1.30 | **$280.80** |
 
 | Team size | Member charges | Shared foundation | Whole event |
 |---:|---:|---:|---:|
-| 3 members | 3 × $204.15 = $612.45 | $62.40 | **$674.85** |
-| 4 members | 4 × $204.15 = $816.60 | $62.40 | **$879.00** |
-| 5 members | 5 × $204.15 = $1,020.75 | $62.40 | **$1,083.15** |
+| 3 members | 3 × $204.15 = $612.45 | $280.80 | **$893.25** |
+| 4 members | 4 × $204.15 = $816.60 | $280.80 | **$1,097.40** |
+| 5 members | 5 × $204.15 = $1,020.75 | $280.80 | **$1,301.55** |
+
+Deploying ALZ-lite at T-7 instead of Day 1 adds 216 − 48 = 168 hours of firewall, which is 168 × $1.30 = $218.40 per team compared with the earlier plan (48 × $1.30 = $62.40). The member charges don't change. Every day ALZ-lite is deployed earlier or later moves the foundation by 24 × $1.30 = $31.20.
 
 For a four-member team, turning off AHB for the 39 assumed running hours adds about **$117**. If the datacenter runs longer, add $0.75 for each additional running hour per affected member. If a member leaves the archetype running longer, add $1.83 per additional hour. The MI schedule (Monday to Friday, 07:30 to 18:30, `W. Europe Standard Time` by default, set with the archetype's `sqlMiSchedule*` parameters) only applies after cutover removes the link; a linked MI cannot be stopped. A live APEX demo adds the archetype rate for as long as it runs (see the [APEX demo](apex-demo.md)).
 

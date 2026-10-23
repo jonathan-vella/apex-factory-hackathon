@@ -3,7 +3,7 @@
 > [!WARNING]
 > Coach material. This page has the answers to C0. Attendees work it out from the scripts and the pre-work instructions.
 
-C0 is pre-work: members do it before the event, on their own time, against their own workload subscription. There's no coach in the room for this one, so the evidence needs to be unambiguous when you review it at T-3 or on the morning of day one.
+C0 is pre-work: members do it before the event, on their own time, against their own workload subscription. There's no coach in the room for this one, so the evidence needs to be unambiguous when you review it at T-3. Review every member's C0 output before the platform lead vends at T-1: vending needs each member's datacenter and changes its DNS, so a datacenter that isn't reviewed isn't vended. A member who finishes after T-3 is vended as soon as their review is done.
 
 ## Expected evidence
 
@@ -24,7 +24,7 @@ Parameters come from the member's `.local/settings.json` (`$s`). `-WorkloadSubsc
 4. `./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location` — this is the kit's only Arc onboarding path; there's no portal fallback, by design (owner decision 2026-10-02).
 5. In the Arc resource's SQL Server blade, start (or review) the migration assessment.
 6. The member connects to `vm-dev01` through Bastion, opens VS Code, signs in to GitHub and sends a message in Copilot Chat.
-7. Before the event, the member may stop both VMs (`vm-app01`, `vm-dev01`) when not working, and must start them again before day one. During the event, never stop `vm-dev01`.
+7. Before the event, the member may stop both VMs (`vm-app01`, `vm-dev01`) when not working, and must start them again before the platform lead vends at T-1, because vending restarts both and the probes run inside them. During the event, never stop `vm-dev01`.
 
 ## Common mistakes
 
@@ -41,4 +41,4 @@ Parameters come from the member's `.local/settings.json` (`$s`). `-WorkloadSubsc
 
 ## Reset
 
-Re-running `Deploy-Datacenter.ps1` (same parameters as step 2) is safe before the datacenter is vended or Arc-onboarded. After either, there's no in-place reset: delete `rg-datacenter`, deploy it again, have the platform lead vend that member again, then re-run Arc onboarding. There is no `-Force` parameter.
+Re-running `Deploy-Datacenter.ps1` (same parameters as step 2) is safe before the datacenter is vended (T-1) or Arc-onboarded. After either, there's no in-place reset: delete `rg-datacenter`, deploy it again, have the platform lead vend that member again, then re-run Arc onboarding. There is no `-Force` parameter.

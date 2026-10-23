@@ -8,9 +8,9 @@ for points.
 
 | Role | Owns |
 |---|---|
-| Event owner | Copy and brand the kit, set dates and region, build the roster and assign member indexes, confirm access and logistics, lock the roster, handle escalations, own cleanup and the final record |
-| Coach | Give the live portal ALZ and APEX demos, review each member's C0 output at T-3, sign off evidence, hand out and apply lifelines, trigger and reverse the curveballs |
-| Platform lead | Deploy ALZ-lite once for the team, vend each member subscription, coordinate policy exemptions and shared network changes. Also a student: does every member challenge on their own workload subscription |
+| Event owner | Copy and brand the kit, set dates and region, build the roster and assign member indexes, capture every member's subscription ID, index, object ID and email at T-14, confirm access and logistics, book the Privileged Role Administrator for T-7, lock the roster, handle escalations, own cleanup and the final record |
+| Coach | Give the live portal ALZ and APEX demos, review each member's C0 output at T-3 (before vending), ask the C2 policy questions, sign off evidence, hand out and apply lifelines, trigger and reverse the curveballs |
+| Platform lead | Deploy ALZ-lite once for the team at T-7, vend each member subscription at T-1 (then restart the VMs, record exemptions and run the connectivity probes), and coordinate policy exemptions and shared network changes. Also a student: does every member challenge on their own workload subscription |
 | Member | Complete the individual challenges, review AI changes, keep evidence and run the app modernization work in their own repository |
 
 ## Timeline and gates
@@ -26,40 +26,54 @@ Attendees need the answers below before they can run preflight at T-14, so settl
   | Name | GitHub handle | Team | Role | Member index | Workload subscription ID | Entra object ID | Budget email |
   |---|---|---|---|---|---|---|---|
 
-  The platform lead collects the last four columns for every member in C2 (vending needs each member's subscription ID, index, object ID and email).
+  The event owner captures the last four columns for every member at T-14 (members read them from their `factory/.local/settings.json` and `az ad signed-in-user show --query id -o tsv` once preflight is green). The platform lead needs them for vending at T-1, and the pipeline's roster uses the same values.
 - Assign each member an index from 1 to 20 and tell them before T-14. `Initialize-Settings.ps1` asks for it and won't accept a value outside 1–20, and attendees are told to wait for the number rather than pick one. The index sets the member's address ranges (`10.10.n.0/24` for the datacenter, `10.20.n.0/24` for the spoke) and their peerings to the team's hub, so give every member of a team, the platform lead included, a different index. Don't confuse it with the six-character suffix that `Initialize-Settings.ps1` generates for resource names.
 - Pick one platform lead per team. They need a shared services subscription and Owner at Tenant Root, which a Global Administrator grants after elevating access (see the [ALZ-lite guide](../site/src/content/docs/guides/alz-lite.md) and `infra/foundation/README.md`, "Permissions").
 - Check that members can create private repos in the org. Each member works in one private repo of their own, created from `apex-accelerator`. Evidence is not collected in a shared repo.
 - Give coaches read access to each member's private repo, so they can review evidence. Attendees keep their evidence, and their C5 and C6 work, in their own repos.
 - Assign GitHub Copilot seats and check the org policies allow agent mode, MCP servers and Copilot CLI.
-- Book a Privileged Role Administrator (or Global Administrator) for each team for Day 1 around 10:15, right after ALZ-lite is deployed. They run `scripts/Grant-SqlMiDirectoryRead.ps1` once per team (see `infra/foundation/README.md`, "Event prep: SQL MI directory identity"). It can't happen earlier, because ALZ-lite creates `id-sqlmi-directory`, and C7 needs the grant. The grant is tenant-wide and read-only, and members can attach the identity to other resources during the event, so the tenant owner approves it first and names who deletes the identity afterwards (see [Accepted lab risks and adopter obligations](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)).
+- Book a Privileged Role Administrator (or Global Administrator) for each team for T-7, right after the platform lead deploys ALZ-lite. They run `scripts/Grant-SqlMiDirectoryRead.ps1` once per team (see `infra/foundation/README.md`, "Event prep: SQL MI directory identity"). It can't happen earlier, because ALZ-lite creates `id-sqlmi-directory`, and it must be done before C7. The grant is tenant-wide and read-only, and members can attach the identity to other resources during the event, so the tenant owner approves it first and names who deletes the identity afterwards (see [Accepted lab risks and adopter obligations](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)).
 - Decide the SQL MI start/stop schedule. It runs Monday to Friday, 07:30 to 18:30, `W. Europe Standard Time`, and applies only after cutover removes the link. For another time zone or for event days outside that window, set `sqlMiScheduleTimeZoneId`, `sqlMiScheduleStartTime`, `sqlMiScheduleStopTime` or `sqlMiScheduleDays` (day names such as `'Monday'`) before attendees deploy. `archetype/infra/bicep/university/main.bicepparam` doesn't set them today, so they take the defaults in `main.bicep`: either change those defaults, or add for example `param sqlMiScheduleStartTime = '08:00'` to the `.bicepparam` file. Attendees import that folder with `Import-Archetype.ps1`, so make the change in your event copy and have them import from it (see "Pointing the scripts at an event copy" below). If they import from upstream, they get the upstream schedule, and each attendee has to make the same change in their own `infra/bicep/university` before `azd provision`. Tell coaches that after cutover the MI can be stopped outside that window.
 - Decide who owns the APEX demo subscription and its cleanup (see the [APEX demo](apex-demo.md)).
 - Tell attendees that certifications follow the event: infra roles hold AZ-104, GH-300 and DP-300 within six months after it, and no exam is a gate for attending (see the [learning path](../site/src/content/docs/guides/learning-path.md)).
 
-### T-14: event owner and platform lead
+### T-14: event owner, platform lead and members
 
 - Confirm each team has one shared-services subscription and each member has a separate workload subscription.
-- Confirm the platform lead has the rights described in the [ALZ-lite guide](../site/src/content/docs/guides/alz-lite.md), including rights at Tenant Root to create management groups and move subscriptions.
-- Confirm the Privileged Role Administrator for each team is booked for day one.
+- Members run preflight (C0 task 1) and fix every FAIL. Capture every member's workload subscription ID, member index, Entra object ID and email in the private roster. Vending at T-1 can't run without those values. A member added or swapped after T-14 needs the same four values captured and a vending run.
+- Confirm the platform lead has the rights described in the [ALZ-lite guide](../site/src/content/docs/guides/alz-lite.md), including rights at Tenant Root to create management groups and move subscriptions. The platform lead deploys ALZ-lite a week later, so this is the last point to fix it.
+- Confirm the Privileged Role Administrator for each team is booked for T-7.
 - Check member MFA, resource-provider registration, quota, Copilot policies and access to the APEX runtime. Do not put tenant, subscription or object IDs in this public kit.
 - Confirm the attendees can use the approved Copilot features and extensions on the dev VM. Escalate organizational Copilot policy issues before the event.
 - Confirm the draft roster and publish the agenda, room details and escalation channel. The roster stays open until kickoff, so you can still swap or drop a member who can't get ready.
 
-### T-3: platform lead and members
+### T-7: platform lead and Privileged Role Administrator
 
-- Run the member preflight, deploy the datacenter with Azure Hybrid Benefit on by default, confirm the legacy app with `scripts/Test-Datacenter.ps1` while both VMs are running, then onboard `vm-app01` to Arc with `scripts/Connect-DatacenterArc.ps1` and run the first Arc SQL migration assessment. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks.
+- The platform lead deploys ALZ-lite for the team: run 1 of the optional platform pipeline (the `foundation` stage), or `scripts/Deploy-AlzLite.ps1` as the supported manual path (see C2, "Before the event"). It takes about 15 to 25 minutes and creates `id-sqlmi-directory`. The firewall bills about $1.30 an hour from here until cleanup.
+- Right after it, the Privileged Role Administrator runs `scripts/Grant-SqlMiDirectoryRead.ps1` for the team. Check it with `-WhatIf`: it prints that the three permissions are already granted.
+- Keep the output of both: it's C2's evidence.
+
+### T-3: members
+
+- Each member, platform lead included, does C0 in their own repo, from the terminal or with the optional member pipeline profile: run the preflight, deploy the datacenter with Azure Hybrid Benefit on by default, confirm the legacy app with `scripts/Test-Datacenter.ps1` while both VMs are running, then onboard `vm-app01` to Arc with `scripts/Connect-DatacenterArc.ps1`, then run the first Arc SQL migration assessment in the portal and set up `vm-dev01`. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks, so the test goes before Arc.
 - Have a coach review every member's C0 output (see the [C0 answer key](../coach/c00-ready-to-hack.md)). A member who isn't ready at the kickoff roster lock stays on the roster with partial C0 credit unless the event owner swaps or drops them first.
-- Keep the datacenter ready for the event. Idle VMs can be stopped before the event (Bastion Standard, disks and networking still incur charges), but start both before day one. During the event, never stop `vm-dev01`: it's each member's workstation.
+- Keep the datacenter ready for the event. Idle VMs can be stopped before the event (Bastion Standard, disks and networking still incur charges), but start both before the T-1 vending, which restarts them and runs probes inside them. During the event, never stop `vm-dev01`: it's each member's workstation.
 - A `vm-dev01` deployed before the sparse-checkout change still has the full kit clone, with `coach/` and `facilitator/` in it. Apply the "Slim an existing clone" block in `infra/datacenter/README.md` on that VM with the member. `Test-Datacenter.ps1` reports the full clone as a failed check until you do.
 - Check the private-network path and the exact region and naming values before the event. No availability zones are pinned or enabled.
 
+### T-1: platform lead
+
+- Vend every member, yourself included, in order: run 2 of the optional platform pipeline (the `vending` stage), or `scripts/Deploy-Vending.ps1` once per member as the supported manual path (see C2, "Before the event"). Then restart both VMs of each member, record the exemptions and run the connectivity probes. The pipeline's vending stage does these four steps in one run.
+- Vending comes after each member's `vm-dev01` setup and the coach's C0 review on purpose. It changes the datacenter's DNS servers to the hub firewall, and nothing before it tests that. The hard dependencies are only these: ALZ-lite and each member's datacenter before vending, and `Test-Datacenter.ps1` before Arc. The datacenter still exists before the subscription moves under the Corp group, so the exemptions lesson stays.
+- A restart ends a member's Bastion session, so tell members first. A member whose datacenter is redeployed after vending is vended again.
+- Post "vended" with each member's name and the shared services subscription ID in the team channel. Keep the vending output, the exemptions table and the probe output: they're C2's evidence.
+
 ### Kickoff and event days
 
-- Lock the roster at kickoff, after the T-3 review, and before scoring begins. Explain the evidence handoff. Don't announce lifelines: coaches decide when to use them.
+- Lock the roster at kickoff, after the T-3 review and the T-1 vending, and before scoring begins. Explain the evidence handoff. Don't announce lifelines: coaches decide when to use them.
 - Follow the [two-day agenda](agenda.md). The foundation and MI work deliberately overlap other challenges. Time boxes are pacing: coaches flex on the day, and the minutes and points don't change.
 - Staff at most one coach for every six attendees.
-- On Day 1 the platform lead starts ALZ-lite at 09:00. On Day 2 at 08:30, check both VMs are running and the Graph grant is done (`Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints "already granted"), then the members start the MI link.
+- Day 1 starts at C1 for everyone at 09:00: the foundation already exists, so nobody deploys anything. C2 verifies and explains it. On Day 2 at 08:30, check both VMs are running and the Graph grant is done (`Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints "already granted"), then the members start the MI link.
 - Record every score and bonus in the [scoreboard](scoreboard.md); do not change the base contract. Teams with the same team score share the rank. Each team's bonus is capped at 30 points and awarded in the order the bonuses appear in the [rubric](scoring-rubric.md) until the team reaches the cap.
 - Give the [curveballs](curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link spike](../docs/spikes/B07-arc-mi-link/README.md) abort path for the Day 2 curveball. The staged Day 2 abort is part of the event and earns no bonus.
 

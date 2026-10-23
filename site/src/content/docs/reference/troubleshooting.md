@@ -32,8 +32,8 @@ sidebar:
 ## ALZ-lite and vending
 
 - **Vending can't find the hub:** confirm ALZ-lite finished and the expected hub resource names exist (`vnet-hub`, `afw-hub`, `afwp-hub`, `rg-hub`) before running `Deploy-Vending.ps1`.
-- **DNS stops resolving after vending changes a VNet's DNS servers:** running VMs cache their old DNS settings. Restart the VM, or run `ipconfig /renew` inside it.
-- **The datacenter shows as policy non-compliant:** expected until each member runs `New-DatacenterExemptions.ps1` in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in C0.
+- **DNS stops resolving after vending changes a VNet's DNS servers:** running VMs cache their old DNS settings. The platform lead restarts both VMs at T-1; if yours were stopped or redeployed since, restart the VM, or run `ipconfig /renew` inside it.
+- **The datacenter shows as policy non-compliant:** expected until it has exemptions. Vending at T-1 records them with `New-DatacenterExemptions.ps1`, and you check them in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in C0.
 
 ## Modernizing the app
 

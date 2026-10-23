@@ -28,7 +28,7 @@ A credible C1 canvas for Contoso University looks like:
 ## Partial credit
 
 - Five of six dimensions covered well, one thin: partial credit, with a note to revisit the thin one before C4 needs it.
-- Canvas filled in by one member alone, without the team actually discussing it: accept it, but flag it — C2 is a better moment to confirm the whole team is aligned, since it runs in parallel anyway.
+- Canvas filled in by one member alone, without the team actually discussing it: accept it, but flag it — C2's walk-through is a better moment to confirm the whole team is aligned, since the whole team takes part in it.
 
 ## Reset
 
