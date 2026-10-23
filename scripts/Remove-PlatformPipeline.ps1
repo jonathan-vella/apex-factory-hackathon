@@ -10,7 +10,7 @@ pipeline identity: an identity can't reliably remove the roles it runs with. In 
 1. removes the identity's Owner role assignments at the parent management group, Tenant Root and both
    subscriptions;
 2. deletes the federated credential and the identity, then rg-cicd (only if nothing else is in it);
-3. deletes the GitHub environment with its variables and secret;
+3. deletes the GitHub environment with its variables and secrets, and the repository variables MEMBER_INDEXES and PIPELINE_PROFILE;
 4. verifies with queries that each is gone, and reports anything left.
 It prompts once before changing anything; -Force skips the prompt and -WhatIf only prints the plan. It
 does not delete subscriptions, the sandbox group or anything the pipeline deployed: use
@@ -60,6 +60,7 @@ $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 $identityName = 'id-factory-pipeline'
 $resourceGroupName = 'rg-cicd'
+$repositoryVariables = @('MEMBER_INDEXES', 'PIPELINE_PROFILE')
 
 function Invoke-AzureCli {
     param([string[]] $Arguments, [switch] $AllowFailure)
@@ -133,7 +134,7 @@ if ((Invoke-AzureCli -Arguments @('group', 'exists', '--subscription', $identity
     $extra = @($rgContent | Where-Object { $_.name -ne $identityName })
     if ($extra.Count -gt 0) { $plan.Add("Keep $resourceGroupName ($($extra.Count) other resource(s) in it)") } else { $plan.Add("Delete the resource group $resourceGroupName") }
 }
-if (-not $SkipGitHub) { $plan.Add("Delete the GitHub environment $Environment on $Repository, with its variables and secret") }
+if (-not $SkipGitHub) { $plan.Add("Delete the GitHub environment $Environment on $Repository, with its variables and secrets, and the repository variables MEMBER_INDEXES and PIPELINE_PROFILE") }
 
 Write-Information "Plan:`n  $($plan -join "`n  ")"
 if ($WhatIfPreference) { Write-Information 'WhatIf: nothing was changed.'; return }
@@ -157,6 +158,7 @@ if ((Invoke-AzureCli -Arguments @('group', 'exists', '--subscription', $identity
 if (-not $SkipGitHub) {
     $PSNativeCommandUseErrorActionPreference = $false
     & gh api -X DELETE "repos/$Repository/environments/$Environment" 2>$null | Out-Null
+    foreach ($variable in $repositoryVariables) { & gh variable delete $variable --repo $Repository 2>$null | Out-Null }
 }
 
 # Verify.
@@ -173,6 +175,10 @@ if ($identity) {
 if (-not $SkipGitHub) {
     & gh api "repos/$Repository/environments/$Environment" 2>$null | Out-Null
     if ($LASTEXITCODE -eq 0) { $problems.Add("The GitHub environment $Environment still exists.") }
+    foreach ($variable in $repositoryVariables) {
+        & gh api "repos/$Repository/actions/variables/$variable" 2>$null | Out-Null
+        if ($LASTEXITCODE -eq 0) { $problems.Add("The repository variable $variable still exists.") }
+    }
 }
 if ($problems.Count -gt 0) { throw "Not everything was removed:`n  $($problems -join "`n  ")" }
-Write-Information 'Verified: the identity, its roles, rg-cicd and the GitHub environment are gone.'
+Write-Information 'Verified: the identity, its roles, rg-cicd, the GitHub environment and the repository variables are gone.'
