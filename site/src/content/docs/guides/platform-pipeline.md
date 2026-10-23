@@ -15,7 +15,7 @@ This guide is optional. Everything it does, you can also do by running the kit's
 | T-7 | Platform lead | Lead | ALZ-lite (the `foundation` stage). A Privileged Role Administrator then runs the Graph grant, which no pipeline does. |
 | T-3 | Each member | Member | Preflight, then datacenter, `Test-Datacenter`, and Arc onboarding (the `member` stage), in the member's own repo. |
 | T-1 | Platform lead | Lead | Vending for every member, in order (the `vending` stage). |
-| After the event | Platform lead, members, an admin | both | The `teardown` stage, then the finalizer. |
+| After the event | Platform lead, members, an admin | both | The `teardown` stage, then the cleanup script for the identity. |
 
 A **member** pipeline lives in your own repo and can touch only your own workload subscription. A **lead** pipeline lives in the platform lead's repo and touches the team's shared services subscription and every member's workload subscription. They are two separate setups. Nobody needs the other's access.
 
@@ -26,11 +26,11 @@ Setup creates a managed identity called `id-factory-pipeline` in a resource grou
 - **Member profile:** Owner on your own workload subscription. Nothing else.
 - **Lead profile:** Owner at Tenant Root, so it can create the kit's management groups and move subscriptions (in a test lab, at a sandbox management group instead).
 
-Why Owner: the kit assigns roles and policies, which Contributor can't do. The risk is real, so know it: anyone who can run a workflow in the environment can use that identity. Three guards limit it. The environment accepts only the branches you list. A required reviewer approves each run where your GitHub plan offers it (on a private repo without that feature, write access to the repo is the gate, so keep the repo private and the writers few). And a guard step refuses any subscription that isn't on its allowlist. Use only a non-production tenant. The [coach page](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/facilitator/platform-pipeline.md) records the accepted risk.
+Why Owner: the kit assigns roles and policies, which Contributor can't do. The risk is real, so know it: anyone who can run a workflow in the environment can use that identity. Three guards limit it. The environment accepts only the branches you list. A required reviewer approves each run where your GitHub plan offers it (on a private repo without that feature, write access to the repo is the gate, so keep the repo private and the writers few). And a guard step refuses any subscription that isn't on its approved list. Use only a non-production tenant. The [coach page](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/facilitator/platform-pipeline.md) records the accepted risk.
 
 Subscription IDs and your roster are stored as environment secrets, never in the repo or its logs.
 
-## Member: set up and run C0
+## Member: Set up and run C0
 
 Prerequisites are done and `factory/.local/settings.json` exists. From `factory/` in your own repo, signed in with `az login` and `gh auth login`:
 
@@ -61,7 +61,7 @@ Check the setup any time:
 ./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member
 ```
 
-## Platform lead: set up and run the foundation
+## Platform lead: Set up and run the foundation
 
 You need your repo with the kit imported, `factory/.local/settings.json` including your shared services subscription, and the roster file from the event owner. From `factory/`:
 
@@ -90,7 +90,7 @@ Every stage is a kit script you can run yourself: `Deploy-Datacenter.ps1`, `Depl
 
 ## Taking it down
 
-Both profiles have a `teardown` stage and a finalizer, so nothing billable or privileged is left behind.
+Both profiles have a `teardown` stage and a cleanup script for the identity, so nothing billable or privileged is left behind.
 
 ```bash
 gh workflow run platform.yml -f stage=teardown
@@ -98,7 +98,7 @@ gh workflow run platform.yml -f stage=teardown
 
 A member's run removes that member's datacenter, spoke and archetype. A lead's run removes every member first, then the team's foundation and management groups, and returns the subscriptions to the parent group. Tick `include-management` only for a lab you are retiring completely: it also deletes `rg-management` and `id-sqlmi-directory`, so a later event needs the Graph grant again.
 
-The workflow can't remove its own identity. When it ends, run the finalizer yourself as an admin:
+The workflow can't remove its own identity. When it ends, run the identity cleanup script yourself as an admin:
 
 ```powershell
 ./scripts/Remove-PlatformPipeline.ps1            # lead
