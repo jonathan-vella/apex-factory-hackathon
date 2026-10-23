@@ -355,7 +355,7 @@ if ($identity) {
 
 # 3. Roles. Platform lead: Owner at the parent (Tenant Root, or the sandbox group plus every subscription). Member: Owner on
 # their own workload subscription and nowhere else.
-$scopes = if ($member0Profile) { @("/subscriptions/$($workloadIds[0])") } else { @($parentScope) }
+$scopes = @(if ($member0Profile) { "/subscriptions/$($workloadIds[0])" } else { $parentScope })
 if ($sandbox) { $scopes += "/subscriptions/$SharedSubscriptionId"; $scopes += @($workloadIds | ForEach-Object { "/subscriptions/$_" }) }
 if ($identity) {
     foreach ($scope in $scopes) {
