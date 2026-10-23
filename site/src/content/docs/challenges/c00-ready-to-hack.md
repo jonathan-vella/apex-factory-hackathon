@@ -110,7 +110,7 @@ Commit with a conventional commit message such as `docs: C0 evidence`, and push.
 - Your Azure Hybrid Benefit confirmation (task 6): on for `vm-app01`'s Windows Server license, or why it isn't (you deployed with `-NoHybridBenefit` and your coach agreed). Add a screenshot of `az vm list -g rg-datacenter -d -o table` showing both VMs and their power state.
 - A screenshot of Copilot Chat answering in VS Code on `vm-dev01`, signed in to GitHub (task 7). Take it on the VM and save it in `C:\src\<your-repo>\factory\evidence\c00\`, then commit and push from there as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
 
-## Optional: run tasks 2 to 4 from GitHub Actions
+## Optional: Run tasks 2 to 4 from GitHub Actions
 
 If your coach offers it, your own repo can deploy the datacenter, test it and onboard Arc for you, unattended (about 45 minutes), instead of running the scripts by hand. It does the same work with the same checks.
 
