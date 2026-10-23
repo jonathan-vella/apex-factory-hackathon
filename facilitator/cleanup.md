@@ -14,6 +14,20 @@ Member cleanup deletes `rg-datacenter`, which removes `vm-dev01` and its `C:\src
 
 The members' GitHub repos aren't touched by cleanup. Decide with the partner how long to keep them.
 
+## Cleanup from the pipeline (optional)
+
+If the team used the [platform pipeline](platform-pipeline.md), its `teardown` stage runs both scopes below for you, with the same script:
+
+```bash
+gh workflow run platform.yml -f stage=teardown
+```
+
+In the platform lead's repo it removes every member in the roster first (members run in parallel, because each touches only its own subscription), then runs the Team scope once and returns the subscriptions to the pipeline's parent group (Tenant Root, or the sandbox group in a test lab). It skips the Team scope if any member's removal failed, and refuses if a subscription under the Corp group isn't in the roster. Each of the two steps needs its own approval. In a member's repo it removes that member's datacenter, spoke and archetype only. Without a suffix, the script removes every `rg-university-<suffix>` group in the member's subscription.
+
+Tick `include-management` (or push a branch named `ci-test/teardown-with-management-*` in a test lab) only to retire the lab completely: it also deletes `rg-management` and `id-sqlmi-directory`. See Post-event access below.
+
+The workflow never removes the pipeline's identity. Afterwards an admin runs `./scripts/Remove-PlatformPipeline.ps1` (with `-Profile Member` for a member's own pipeline). It removes the identity's roles, the identity, `rg-cicd`, the GitHub environment and the repository variables, and verifies each is gone. Then continue with the verification below.
+
 ## Member cleanup
 
 Each member runs Member scope from the `factory/` folder of their own repo, in their own dev container, using their own workload subscription, member index and archetype suffix. If the event owner runs it for a member, use the values that member noted and an account with Owner on their subscription:
@@ -50,7 +64,7 @@ Team cleanup removes the named kit policy assignments and datacenter exemptions,
 
 ## Post-event access
 
-Preserving the identity is opt-out, not a requirement. The grant gives `id-sqlmi-directory` the tenant-wide application permissions `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All` in the partner's tenant, and it stays after the event. Members hold Managed Identity Operator on it during the event, so they could attach it to other resources and read directory data (see [Accepted lab risks and adopter obligations](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)). Delete it as soon as the last SQL Managed Instance that uses it is gone, unless a later event will reuse the tenant. To delete it, remove `rg-management` in the shared services subscription once team cleanup has finished; that deletes the identity and its permissions with it (see the header of `scripts/Grant-SqlMiDirectoryRead.ps1`). A later event then needs the grant again. Name the person who does this and the date before the event starts.
+Preserving the identity is opt-out, not a requirement. The grant gives `id-sqlmi-directory` the tenant-wide application permissions `User.Read.All`, `GroupMember.Read.All` and `Application.Read.All` in the partner's tenant, and it stays after the event. Members hold Managed Identity Operator on it during the event, so they could attach it to other resources and read directory data (see [Accepted lab risks and adopter obligations](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)). Delete it as soon as the last SQL Managed Instance that uses it is gone, unless a later event will reuse the tenant. To delete it, run the Team scope with `-IncludeManagementResources`, or remove `rg-management` in the shared services subscription once team cleanup has finished; that deletes the identity and its permissions with it (see the header of `scripts/Grant-SqlMiDirectoryRead.ps1`). A later event then needs the grant again. Name the person who does this and the date before the event starts.
 
 Also remove access that was only needed for the event: the platform lead's Owner at Tenant Root, the elevated access a Global Administrator used to give it, and any Privileged Role Administrator activation or assignment made for the Graph grant.
 

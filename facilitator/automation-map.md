@@ -33,12 +33,12 @@ The platform pipeline runs the same scripts from GitHub Actions instead of a ter
 
 | Piece | What it is |
 |---|---|
-| `.github/workflows/platform.yml` | The one workflow, with a `stage` input: `whatif`, `member`, `foundation`, `vending`, `teardown` or `all`. Each stage runs in the `gh-lab` environment and needs one approval |
+| `.github/workflows/platform.yml` | The one workflow, with a `stage` input: `whatif`, `member`, `foundation`, `vending`, `teardown` or `all`. Each stage runs in the `gh-lab` environment and needs an approval (`teardown` needs two: members, then the team) |
 | `scripts/Initialize-PlatformPipeline.ps1` | Sets the pipeline up once per repo: the managed identity, its federated credential, its roles and the `gh-lab` environment. `-Profile Member` is for a member's own repo (preflight, datacenter, test and Arc); the default platform lead profile is for the lead's repo (ALZ-lite and vending for the roster) |
 | `scripts/Invoke-PipelineVending.ps1` | Vends each member in order, restarts both VMs, records the exemptions and runs the connectivity probes |
 | `scripts/Assert-PipelineGuard.ps1`, `Test-PipelineSetup.ps1`, `Test-PipelinePermissions.ps1`, `Get-PipelineEvidence.ps1`, `Remove-PlatformPipeline.ps1` | The fail-closed guard, setup and permission checks, the C0 evidence download and the identity removal |
 
-In the new order, the platform lead's repo runs the `foundation` stage at T-7 (run 1) and the `vending` stage at T-1 (run 2). Members can run the `whatif` and `member` stages in their own repos for C0 at T-3. The page `facilitator/platform-pipeline.md` will hold the coach details (B20).
+In the new order, the platform lead's repo runs the `foundation` stage at T-7 (run 1) and the `vending` stage at T-1 (run 2). Members can run the `whatif` and `member` stages in their own repos for C0 at T-3. The [platform pipeline page](platform-pipeline.md) holds the coach details: the accepted risk, the gates, who can run what, the manual steps that remain and what was tested. After the event, the `teardown` stage and then `Remove-PlatformPipeline.ps1` remove everything (see [cleanup](cleanup.md)).
 
 ## Where attendees stall
 
