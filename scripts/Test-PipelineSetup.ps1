@@ -204,5 +204,5 @@ if ($failed.Count -gt 0) {
     foreach ($f in $failed) { Write-Information "  $($f.Check): $($f.Fix)" }
     exit 1
 }
-Write-Information 'READY. Run the first check: gh workflow run platform.yml -f stage=whatif   (then approve it in the Actions tab)'
+Write-Information 'READY. Run the first check: gh workflow run platform.yml -f stage=whatif   (then approve it in the Actions tab if GitHub asks)'
 exit 0

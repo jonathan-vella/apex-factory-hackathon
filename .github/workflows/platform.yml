@@ -97,7 +97,7 @@ jobs:
 
   preflight:
     needs: plan
-    if: needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'all'
+    if: needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'member' || needs.plan.outputs.stage == 'all'
     runs-on: ubuntu-latest
     environment: gh-lab
     strategy:
@@ -132,7 +132,7 @@ jobs:
           LOCATION: ${{ vars.LOCATION }}
         run: |
           ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $env:WORKLOAD -SharedSubscriptionId $env:SHARED `
-            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -Fix
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   whatif:

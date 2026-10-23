@@ -115,7 +115,7 @@ Commit with a conventional commit message such as `docs: C0 evidence`, and push.
 If your coach offers it, your own repo can deploy the datacenter, test it and onboard Arc for you, unattended (about 45 minutes), instead of running the scripts by hand. It does the same work with the same checks.
 
 1. Set up the member pipeline once: `./scripts/Initialize-PlatformPipeline.ps1 -Profile Member`. It reads your settings file and creates a managed identity that is Owner on your own workload subscription only.
-2. Run your preflight, then your datacenter, from the Actions tab or with `gh workflow run platform.yml -f stage=whatif` and `-f stage=member`. Approve the run when GitHub asks.
+2. Run your preflight, then your datacenter, from the Actions tab or with `gh workflow run platform.yml -f stage=whatif` and `-f stage=member`. Approve the run when GitHub asks. On a new subscription the preflight registers the Azure providers and the public IP feature for you, which can take a few minutes.
 3. Save the test output as evidence: `./scripts/Get-PipelineEvidence.ps1` puts `test-datacenter.txt` in `evidence/c00/`. Commit it as above.
 
 Don't run the member stage twice: once `vm-app01` is Arc-enabled, the datacenter can't be redeployed.

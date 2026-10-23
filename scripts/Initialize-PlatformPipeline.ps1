@@ -492,7 +492,7 @@ if ($SmokeTest -and -not $WhatIfPreference -and -not $SkipGitHub) {
 Write-Information $(if ($member0Profile) {
         @"
 
-Done. Next, the first check (read-only; approve it in the Actions tab): your preflight
+Done. Next, your preflight (it also registers any Azure providers and features your subscription is missing; approve it in the Actions tab if GitHub asks)
   gh workflow run platform.yml --repo $Repository -f stage=whatif
 Then your datacenter, test and Arc onboarding (C0 tasks 2 to 4, about 45 minutes, unattended):
   gh workflow run platform.yml --repo $Repository -f stage=member
@@ -504,7 +504,7 @@ Check the setup any time with ./scripts/Test-PipelineSetup.ps1 -PipelineProfile 
     else {
         @"
 
-Done. Next, the first check (read-only; approve it in the Actions tab):
+Done. Next, the preflight (it also registers any Azure providers and features the subscriptions are missing; approve it in the Actions tab if GitHub asks):
   gh workflow run platform.yml --repo $Repository -f stage=whatif
 Then the foundation: gh workflow run platform.yml --repo $Repository -f stage=foundation
 Check the setup any time with ./scripts/Test-PipelineSetup.ps1. To remove everything later, as an admin and

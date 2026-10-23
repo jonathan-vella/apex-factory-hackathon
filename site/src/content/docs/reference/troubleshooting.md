@@ -19,6 +19,7 @@ sidebar:
 
 - **Preflight reports FAIL on Owner:** you have no unconditional Owner assignment on your workload subscription. Contributor doesn't pass. If Owner is eligible through Privileged Identity Management, activate it first; otherwise ask your coach.
 - **Preflight fails on a resource provider:** re-run `Test-Preflight.ps1 -Fix` and wait up to 15 minutes for the registration to propagate before re-checking.
+- **Preflight fails on the public IP feature, or a deployment stops with `SubscriptionNotRegisteredForFeature`:** a new subscription hasn't registered `Microsoft.Network/AllowBringYourOwnPublicIpAddress`, which the firewall, NAT and Bastion public IPs need. Run `Test-Preflight.ps1 -Fix` and wait a few minutes; it registers the feature and then `Microsoft.Network` again. The Actions preflight does this for you.
 
 ## C0 datacenter and Arc
 
