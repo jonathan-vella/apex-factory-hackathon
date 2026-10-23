@@ -19,6 +19,8 @@ This guide is optional. Everything it does, you can also do by running the kit's
 
 A **member** pipeline lives in your own repo and can touch only your own workload subscription. A **lead** pipeline lives in the platform lead's repo and touches the team's shared services subscription and every member's workload subscription. They are two separate setups. Nobody needs the other's access.
 
+The platform lead is also a member, but a repo can have only one profile. In the lead's repo, set up the lead profile and don't run `-Profile Member`. Do the lead's own C0 with the scripts in the dev container as [C0](../../challenges/c00-ready-to-hack/) describes, or run the lead pipeline's `member` stage for your own index (`gh workflow run platform.yml -f stage=member -f members=1`). Every other member uses the member profile in their own repo.
+
 ## What it grants, and why
 
 Setup creates a managed identity called `id-factory-pipeline` in a resource group called `rg-cicd`. GitHub proves who it is with a short-lived OIDC token, so there is no password or secret to leak. The identity is trusted only for one GitHub environment, `gh-lab`, in one repo.
