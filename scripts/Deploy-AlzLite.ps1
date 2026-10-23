@@ -95,7 +95,18 @@ function Initialize-ManagementGroup {
         $PSNativeCommandUseErrorActionPreference = $false
         & az account management-group show --name $group.Name --only-show-errors --output none 2>$null
         if ($LASTEXITCODE -ne 0) {
-            $null = Invoke-AzureCli -Arguments @('account', 'management-group', 'create', '--name', $group.Name, '--display-name', $group.Name, '--parent', $group.Parent)
+            # A new group, or a role granted minutes ago, can take a while to be authorized: retry before giving up.
+            for ($attempt = 1; $true; $attempt++) {
+                try {
+                    $null = Invoke-AzureCli -Arguments @('account', 'management-group', 'create', '--name', $group.Name, '--display-name', $group.Name, '--parent', $group.Parent)
+                    break
+                }
+                catch {
+                    if ($attempt -ge 5) { throw }
+                    Write-Information "Creating $($group.Name) failed (attempt $attempt of 5); waiting 30 seconds for the authorization to propagate."
+                    Start-Sleep -Seconds 30
+                }
+            }
             Write-Information "Created management group $($group.Name)."
         }
     }
