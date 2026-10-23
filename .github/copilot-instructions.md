@@ -2,7 +2,12 @@
 
 This repo holds Contoso University, a legacy ASP.NET MVC 5 app on .NET Framework 4.8 in `app/ContosoUniversity`. It's being modernized to .NET 10 and ASP.NET Core MVC, packaged as a container image and run on Azure App Service for Linux.
 
-## Scope
+## Which rules apply
+
+- **Modernizing the app** (the Upgrade agent, C3 to C8, anything under `app/ContosoUniversity`): follow the rules below.
+- **Building or changing the kit** (`scripts/`, `infra/`, `.github/workflows/`, `docs/`, `site/`, `facilitator/`, `coach/`, `archetype/`): the Scope section below doesn't apply. Follow [AGENTS.md](../AGENTS.md) at the repo root, and for backlog items [docs/backlog/AGENTS.md](../docs/backlog/AGENTS.md). Check the event order in [facilitator/guide.md](../facilitator/guide.md) before you sequence anything.
+
+## Scope (app modernization only)
 
 - Change only `app/ContosoUniversity` and the Upgrade agent's artifacts under `.github/upgrades/`. Never edit other files: the rest of the repo is kit material.
 - Build, run and test only `app/ContosoUniversity`. Don't run the repo's PowerShell or npm scripts.
