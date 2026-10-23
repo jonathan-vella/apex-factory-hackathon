@@ -19,7 +19,7 @@ Member. **120 min**.
 
 ## Inputs
 
-- C5's deployed SQL Managed Instance, with its directory read access granted: the Microsoft Graph read grant made in C2 by a Privileged Role Administrator. Ask your coach to confirm it before you start, or `CREATE USER` fails in task 5.
+- C5's deployed SQL Managed Instance, with its directory read access granted: the Microsoft Graph read grant a Privileged Role Administrator made at T-7 (C2 task 4 checks it). Ask your coach to confirm it before you start, or `CREATE USER` fails in task 5.
 - C6's modernized, packaged app (image tag `c6`), not yet pointed at App Service.
 - `vm-app01` running, with its Azure Arc entry **Connected**. C3 had you start it; run `az vm start` for it if it's stopped. The portal shows the instance only while the machine is connected.
 
@@ -27,7 +27,7 @@ Start the link at 08:30 on Day 2 (the agenda's "Reconnect and start the MI link"
 
 ## What the kit already did for you
 
-The datacenter deployment turned on availability groups on `vm-app01`'s SQL Server, set the startup trace flags `-T1800` and `-T9567`, made `NT AUTHORITY\SYSTEM` a sysadmin and onboarded the instance to Azure Arc (C0). C2's vending opened the network path between `vm-app01` and your managed instance's subnet. Task 1 does the rest of what the link needs on the source: a Windows Firewall rule for port 5022, a database master key, the Azure root certificates and a full backup.
+The datacenter deployment turned on availability groups on `vm-app01`'s SQL Server, set the startup trace flags `-T1800` and `-T9567`, made `NT AUTHORITY\SYSTEM` a sysadmin and onboarded the instance to Azure Arc (C0). Vending opened the network path between `vm-app01` and your managed instance's subnet. Task 1 does the rest of what the link needs on the source: a Windows Firewall rule for port 5022, a database master key, the Azure root certificates and a full backup.
 
 ## Where to run
 
@@ -259,7 +259,7 @@ Then start the link again from task 2.
 <details>
 <summary>CREATE USER fails</summary>
 
-Before cutover, the replica is read-only, so the user creation step only works after cutover completes (task 4, step 6). If it still fails afterward with a permissions error on the server's Entra identity, ask your coach: the MI's primary identity needs Microsoft Graph read access, set up once per team in C2.
+Before cutover, the replica is read-only, so the user creation step only works after cutover completes (task 4, step 6). If it still fails afterward with a permissions error on the server's Entra identity, ask your coach: the MI's primary identity needs Microsoft Graph read access, set up once per team at T-7 (C2 task 4 checks it).
 </details>
 
 <details>

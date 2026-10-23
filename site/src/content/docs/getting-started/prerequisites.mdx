@@ -10,8 +10,10 @@ import PrepTimeline from "../../../components/PrepTimeline.astro";
 :::danger[C0 is mandatory pre-work: finish it before the event]
 This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not** event-day tasks. Every attendee, including the platform lead, completes both **before the event starts**. The two deadlines count back from day one of the event: **T-14** is 14 days before it and **T-3** is 3 days before it.
 
-- **By T-14:** this page, plus C0's preflight.
+- **By T-14:** this page, plus C0's preflight. Then send the event owner the values for the roster (see the settings step below).
 - **By T-3:** the datacenter is deployed, `Test-Datacenter.ps1` passes for you (run before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and you have a fully set up `vm-dev01` (C0 task 7), with Copilot working in VS Code.
+
+Your platform lead vends your subscription at T-1, after a coach has reviewed your C0 output. Keep both VMs running then.
 
 If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, plus about 30 for the VM setup, and the deployments run unattended for part of that. Raise any blocker with your coach now. The [event overview](../event-overview/#pre-work) has the full T-14 and T-3 gates.
 :::
@@ -45,7 +47,7 @@ Your evidence lives in your own repo, under `factory/evidence/`; you set that up
 | Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group). If it's eligible through Privileged Identity Management (PIM, which grants a role for a limited time after you activate it), [activate it first](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles). Preflight fails without it, and vending and the Arc script assume it. There is no fallback: Contributor, with or without Resource Policy Contributor, doesn't pass. If your organization blocks Owner, raise it with your coach well before T-14. |
 | MFA | Registered for your Azure identity. Set it up at [aka.ms/mysecurityinfo](https://aka.ms/mysecurityinfo) if it isn't. |
 | Region quota | Enough regional vCPU quota in `swedencentral` for two Standard_D8as_v6 VMs (8 vCPU each: `vm-app01` and `vm-dev01`), and quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. You check the vCPU quota later on this page; for the other two, open your subscription in the Azure portal, choose **Usage + quotas** and filter by `swedencentral`. |
-| Platform lead only | A **second** subscription (shared services) plus Owner at Tenant Root, which is the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for the Owner assignment to be possible, so ask for it early. The platform lead is also a member: they still need their own workload subscription, and do C0 on it like everyone else. |
+| Platform lead only | A **second** subscription (shared services) plus Owner at Tenant Root, which is the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for the Owner assignment to be possible, so ask for it early: you deploy ALZ-lite at T-7. The platform lead is also a member: they still need their own workload subscription, and do C0 on it like everyone else. |
 
 ## Install on your machine
 
@@ -148,9 +150,11 @@ The script asks for five things: your tenant ID and workload subscription ID (it
 
 **Member index:** your coach assigns you a number from 1 to 20 from the event roster, unique within your team. Ask your coach if you don't have one; don't pick your own. It isn't the same as the six-character suffix the script generates for you. Later pages show these two values as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
 
-**Shared services subscription (members):** press Enter to skip it for now. The platform lead shares its ID in the team channel at the start of C2, and you add it then by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`. Re-running never changes your other values.
+**Shared services subscription (members):** press Enter to skip it for now. The platform lead shares its ID in the team channel when they vend you at T-1, and you add it by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'` (C2 task 1). Re-running never changes your other values.
 
-**Shared services subscription (platform lead):** enter it now (**Subscriptions** in the portal has the ID). C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not on day one.
+**Shared services subscription (platform lead):** enter it now (**Subscriptions** in the portal has the ID). C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not at T-7, when you deploy ALZ-lite.
+
+**Roster values:** once preflight is green, send the event owner these four values in the private event channel, never in a repo or issue: your workload subscription ID (`$s.subscriptionId`), your member index (`$s.memberIndex`), your Entra object ID (`az ad signed-in-user show --query id -o tsv`) and your work email. The platform lead needs them to vend you at T-1.
 
 `factory/.local/` is git-ignored: your IDs never go to GitHub. Run every script from the `factory/` folder.
 

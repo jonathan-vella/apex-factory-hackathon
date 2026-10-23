@@ -5,11 +5,11 @@ description: The team scopes the modernization opportunity and a six-dimension p
 
 ## Goal
 
-Agree, as a team, what "modernized" means for Contoso University and write it down before any infrastructure exists.
+Agree, as a team, what "modernized" means for Contoso University and write it down before any app or data work starts.
 
 ## Scope and time box
 
-Team. **45 min**. The platform lead starts ALZ-lite at 09:00, so it deploys during C1 (see [C2](../c02-secure-ai-ready-foundation/), task 3); C1 needs no Azure access, so don't wait for it. Members start C3 later, at 10:15 (see [C3](../c03-assess-the-source/)).
+Team. **45 min**. Everyone starts here at 09:00, the platform lead included: the foundation was deployed before the event, so there's nothing to deploy and C1 needs no Azure access. Members start C3 later, at 10:15 (see [C3](../c03-assess-the-source/)).
 
 The one-time evidence set-up below takes about 5 minutes and tasks 2 to 5 add up to 35, so the 45 minutes leave little slack. Do the set-up while teammates read the canvas template, and keep to the times given.
 
@@ -61,7 +61,7 @@ The dev container of your own repo, and only there: it has the tools and the Git
 
 2. **Business case (5 min).** Name the sponsor (a role, for example "the university's CIO") and write one or two sentences on the problem modernizing Contoso University solves for them.
 3. **Current pain (5 min).** List at least three concrete problems with today's app: for example a framework that's no longer evolving, IIS and Windows patching on a VM, MSMQ with no managed equivalent, manual deployment. Say whether each is cost, risk, agility or support burden.
-4. **Six dimensions (20 min).** For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed shape as the target where it applies: .NET 10 on Azure App Service, SQL Managed Instance, private-by-default networking, central logging, and cost tracked against the vending budget (the budget alert that vending creates for each member in C2).
+4. **Six dimensions (20 min).** For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed shape as the target where it applies: .NET 10 on Azure App Service, SQL Managed Instance, private-by-default networking, central logging, and cost tracked against the vending budget (the budget alert that vending created for each member before the event).
 5. **Target outcome (5 min).** Fill in the **Target outcome** section, which is third in the canvas but easiest to write last. Write one sentence a sponsor would accept as "done" at the end of day two, and make sure every teammate can say it from memory.
 6. **Open questions.** Record any disagreement under "Open questions" with the people holding each view, then move on. C4 decides.
 7. **Commit.** The person who typed runs `git pull`, then commits. The typist posts the final file in the team channel. Then every teammate runs `git pull`, saves the file unchanged as `factory/evidence/c01/opportunity-canvas.md` in their own repo and commits it.
@@ -111,4 +111,4 @@ None for C1.
 
 ## Where to go next
 
-Continue with [C2: Secure, AI-ready foundation](../c02-secure-ai-ready-foundation/). The platform lead has been deploying ALZ-lite while you worked on C1. Members start [C3: Assess the source](../c03-assess-the-source/) at 10:15.
+Continue with [C2: Secure, AI-ready foundation](../c02-secure-ai-ready-foundation/): the coach's live portal demo, then the platform lead walks the team through the foundation they deployed before the event. Members start [C3: Assess the source](../c03-assess-the-source/) at 10:15.

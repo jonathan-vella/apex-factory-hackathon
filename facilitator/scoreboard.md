@@ -8,6 +8,8 @@ Copy one scoreboard per team. Lock the roster at kickoff and enter every member,
 |---|---:|---:|---:|---:|---:|---:|---|
 | `<team>` |  |  |  |  |  |  |  |
 
+Enter C2's 35 points after the Day 1 walk-through: the evidence is the platform lead's T-7 ALZ-lite and T-1 vending output, the members' exemptions tables and their own probe runs, plus the team's answers to the coach's policy questions (see the rubric's C2 rows).
+
 ## Member scores
 
 | Member | C0 / 10 | C3 / 15 | C4 / 10 | C5 / 15 | C6 / 30 | C7 / 20 | C8 / 10 | C9 / 10 | Member base / 120 | Member bonus | Lifelines used | Coach sign-off |

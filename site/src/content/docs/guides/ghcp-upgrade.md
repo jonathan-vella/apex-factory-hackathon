@@ -9,7 +9,7 @@ This guide covers the mechanics of working on `vm-dev01` and running GitHub Copi
 
 ## Switching to vm-dev01
 
-You set up `vm-dev01` in C0 task 7 and reconnect to it in C2. From C3 you leave the dev container for the app work, because the Upgrade agent's **Local** harness has to run next to the app and the datacenter's private network. (A harness is where the agent runs. **Local** runs it on this VM.) The steps below are the setup you do once, in C0 task 7, so that C3 opens on a ready VM. Never stop or deallocate `vm-dev01` during the event: it's your workstation for the rest of the event.
+You set up `vm-dev01` in C0 task 7 and reconnect to it whenever a restart ends your session. From C3 you leave the dev container for the app work, because the Upgrade agent's **Local** harness has to run next to the app and the datacenter's private network. (A harness is where the agent runs. **Local** runs it on this VM.) The steps below are the setup you do once, in C0 task 7, so that C3 opens on a ready VM. Never stop or deallocate `vm-dev01` during the event: it's your workstation for the rest of the event.
 
 On `vm-dev01` you have two folders. Keep them apart:
 
