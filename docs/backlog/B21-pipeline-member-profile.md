@@ -62,5 +62,8 @@ feat: add the member profile for the platform pipeline
 
 ## Notes and traps
 
+- Evidence (requirement 6): the `member` stage uploads `Test-Datacenter` output as the artifact `c00-test-datacenter-member-<n>` (90 days), and `Get-PipelineEvidence.ps1` downloads it. An artifact needs no write access to the repo's branches and no pull request.
+- The profile is the repository variable `PIPELINE_PROFILE` (the plan job has no environment, so it can't read an environment variable). With `member`, the plan job rejects the `foundation`, `vending` and `all` stages and the ALZ-lite what-if is skipped.
+- The identity's object ID comes from the ARM token `oid`, not Graph, which can hit a CAE challenge.
 - A private repo on a free plan has no required reviewers and limited Actions minutes.
 - Arc can't be undone: the stage must refuse to redeploy over it.

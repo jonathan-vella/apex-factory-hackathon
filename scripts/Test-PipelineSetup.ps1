@@ -17,10 +17,13 @@ The parent used at setup. Empty means Tenant Root.
 owner/name of the GitHub repo. Defaults to the git remote.
 .PARAMETER Environment
 The GitHub environment. Default gh-lab.
+.PARAMETER PipelineProfile
+Lead (default) or Member: which pipeline to check. Member looks for the identity in your own workload subscription and
+for Owner on that subscription only.
 .EXAMPLE
 ./scripts/Test-PipelineSetup.ps1
 .EXAMPLE
-./scripts/Test-PipelineSetup.ps1 -SettingsPath .local/ci-lab.json
+./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member
 #>
 
 [CmdletBinding()]
@@ -36,7 +39,10 @@ param(
     [ValidatePattern('^$|^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$')]
     [string] $Repository = '',
     [ValidatePattern('^[A-Za-z0-9._-]+$')]
-    [string] $Environment = 'gh-lab'
+    [string] $Environment = 'gh-lab',
+    [Alias('Profile')]
+    [ValidateSet('Lead', 'Member')]
+    [string] $PipelineProfile = 'Lead'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -95,14 +101,18 @@ if (-not $Repository) {
 }
 $tenantId = ''
 $identity = $null
+$memberProfile = $PipelineProfile -eq 'Member'
+# The identity lives in the shared services subscription for the platform lead, in your own workload subscription for a member.
+$identitySubscription = if ($memberProfile) { $WorkloadSubscriptionId } else { $SharedSubscriptionId }
+$identityWhere = if ($memberProfile) { 'workload' } else { 'shared services' }
 
-Invoke-Check -Name 'Azure sign-in' -Fix 'Run az login in the tenant, then az account set --subscription <shared-services-subscription-id>.' -Action {
+Invoke-Check -Name 'Azure sign-in' -Fix 'Run az login in the tenant, then az account set --subscription <subscription-id>.' -Action {
     $account = Invoke-AzureCli @('account', 'show')
     $script:tenantId = $account.tenantId
-    if (-not $SharedSubscriptionId) { throw 'The shared services subscription is not in the settings. Run Initialize-Settings.ps1 or pass -SharedSubscriptionId.' }
-    $sub = Invoke-AzureCli @('account', 'show', '--subscription', $SharedSubscriptionId)
-    if ($sub.tenantId -ne $tenantId) { throw 'The shared services subscription is in another tenant.' }
-    Add-Result -Check 'Azure sign-in' -Status PASS -Reason 'Signed in, and the shared services subscription is in the tenant.'
+    if (-not $identitySubscription) { throw "The $identityWhere subscription is not in the settings. Run Initialize-Settings.ps1 or pass it as a parameter." }
+    $sub = Invoke-AzureCli @('account', 'show', '--subscription', $identitySubscription)
+    if ($sub.tenantId -ne $tenantId) { throw "The $identityWhere subscription is in another tenant." }
+    Add-Result -Check 'Azure sign-in' -Status PASS -Reason "Signed in, and the $identityWhere subscription is in the tenant."
 }
 
 Invoke-Check -Name 'GitHub sign-in' -Fix 'Run gh auth login as an admin of the repo.' -Action {
@@ -112,7 +122,7 @@ Invoke-Check -Name 'GitHub sign-in' -Fix 'Run gh auth login as an admin of the r
 }
 
 Invoke-Check -Name 'Managed identity' -Fix 'Run ./scripts/Initialize-PlatformPipeline.ps1.' -Action {
-    $script:identity = Invoke-AzureCli @('identity', 'show', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '-n', $identityName)
+    $script:identity = Invoke-AzureCli @('identity', 'show', '--subscription', $identitySubscription, '-g', $resourceGroupName, '-n', $identityName)
     if (-not $identity) { throw "$identityName is missing in $resourceGroupName." }
     Add-Result -Check 'Managed identity' -Status PASS -Reason "$identityName exists in $resourceGroupName."
 }
@@ -122,7 +132,7 @@ Invoke-Check -Name 'Federated credential' -Fix 'Run ./scripts/Initialize-Platfor
     if ($oidc.use_default -eq $false) { throw 'The repo customizes its OIDC subject claim. Reset it to the default.' }
     $prefix = if ($oidc.sub_claim_prefix) { $oidc.sub_claim_prefix } else { "repo:$Repository" }
     $expected = "${prefix}:environment:${environmentName}"
-    $creds = @(Invoke-AzureCli @('identity', 'federated-credential', 'list', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '--identity-name', $identityName))
+    $creds = @(Invoke-AzureCli @('identity', 'federated-credential', 'list', '--subscription', $identitySubscription, '-g', $resourceGroupName, '--identity-name', $identityName))
     if (-not ($creds | Where-Object { $_.subject -eq $expected -and $_.issuer -eq 'https://token.actions.githubusercontent.com' })) {
         throw 'No federated credential matches this repo and environment.'
     }
@@ -131,12 +141,17 @@ Invoke-Check -Name 'Federated credential' -Fix 'Run ./scripts/Initialize-Platfor
 
 Invoke-Check -Name 'Roles' -Fix 'Run ./scripts/Initialize-PlatformPipeline.ps1 as an Owner where the pipeline will deploy.' -Action {
     if (-not $identity) { throw 'The identity is missing, so its roles can''t be checked.' }
-    $parentScopeId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { $tenantId }
-    $scopes = @("/providers/Microsoft.Management/managementGroups/$parentScopeId")
-    if ($ParentManagementGroupId) {
-        $scopes += "/subscriptions/$SharedSubscriptionId"
-        $members = if ($workloadList) { $workloadList } elseif ($WorkloadSubscriptionId) { @($WorkloadSubscriptionId) } else { @() }
-        $scopes += @($members | ForEach-Object { "/subscriptions/$_" })
+    if ($memberProfile) {
+        $scopes = @("/subscriptions/$WorkloadSubscriptionId")
+    }
+    else {
+        $parentScopeId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { $tenantId }
+        $scopes = @("/providers/Microsoft.Management/managementGroups/$parentScopeId")
+        if ($ParentManagementGroupId) {
+            $scopes += "/subscriptions/$SharedSubscriptionId"
+            $members = if ($workloadList) { $workloadList } elseif ($WorkloadSubscriptionId) { @($WorkloadSubscriptionId) } else { @() }
+            $scopes += @($members | ForEach-Object { "/subscriptions/$_" })
+        }
     }
     $missing = 0
     foreach ($scope in $scopes) {
@@ -144,7 +159,8 @@ Invoke-Check -Name 'Roles' -Fix 'Run ./scripts/Initialize-PlatformPipeline.ps1 a
         if ($have.Count -eq 0) { $missing++ }
     }
     if ($missing -gt 0) { throw "The identity lacks Owner at $missing of $($scopes.Count) scope(s)." }
-    Add-Result -Check 'Roles' -Status PASS -Reason "The identity is Owner at $($scopes.Count) scope(s): $(if ($ParentManagementGroupId) { 'the sandbox group and both subscriptions' } else { 'Tenant Root' })."
+    $where = if ($memberProfile) { 'your workload subscription only' } elseif ($ParentManagementGroupId) { 'the sandbox group and the subscriptions' } else { 'Tenant Root' }
+    Add-Result -Check 'Roles' -Status PASS -Reason "The identity is Owner at $($scopes.Count) scope(s): $where."
 }
 
 Invoke-Check -Name 'Workflows' -Fix 'In an imported repo, run Import-Kit.ps1 again (-Force); it installs them. Then commit and push to the default branch.' -Action {
@@ -165,9 +181,11 @@ Invoke-Check -Name 'GitHub environment' -Fix 'Run ./scripts/Initialize-PlatformP
     if ($branches.Count -eq 0) { throw 'No branch may deploy to the environment.' }
     $vars = @((Invoke-GitHubCli @('variable', 'list', '--env', $environmentName, '--repo', $Repository, '--json', 'name', '--jq', '.[].name')) -split "`n")
     $secrets = @((Invoke-GitHubCli @('secret', 'list', '--env', $environmentName, '--repo', $Repository, '--json', 'name', '--jq', '.[].name')) -split "`n")
-    $missing = @('LOCATION', 'MG_PREFIX' | Where-Object { $_ -notin $vars }) + @('AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'SHARED_SUBSCRIPTION_ID', 'ALLOWED_SUBSCRIPTIONS', 'ROSTER_JSON' | Where-Object { $_ -notin $secrets })
+    $needSecrets = @('AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'ALLOWED_SUBSCRIPTIONS', 'ROSTER_JSON')
+    if (-not $memberProfile) { $needSecrets += 'SHARED_SUBSCRIPTION_ID' }
+    $missing = @('LOCATION', 'MG_PREFIX' | Where-Object { $_ -notin $vars }) + @($needSecrets | Where-Object { $_ -notin $secrets })
     $repoVars = @((Invoke-GitHubCli @('variable', 'list', '--repo', $Repository, '--json', 'name', '--jq', '.[].name')) -split "`n")
-    if ('MEMBER_INDEXES' -notin $repoVars) { $missing += 'MEMBER_INDEXES (repository variable)' }
+    foreach ($repoVar in 'MEMBER_INDEXES', 'PIPELINE_PROFILE') { if ($repoVar -notin $repoVars) { $missing += "$repoVar (repository variable)" } }
     if ($missing) { throw "Missing: $($missing -join ', ')." }
     Add-Result -Check 'GitHub environment' -Status PASS -Reason "Branch policy ($($branches -join ', ')), variables and secrets are set."
     if ([bool] ($state.protection_rules | Where-Object { $_.type -eq 'required_reviewers' })) {

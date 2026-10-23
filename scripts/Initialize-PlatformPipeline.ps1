@@ -47,6 +47,11 @@ event owner's headings: Member index, Workload subscription ID, Entra object ID,
 services subscription and one workload subscription per member, so list every member. Without it, the settings hold one
 member. The roster goes into an environment secret, never into the repo. The object ID and address are only needed for
 vending, so you can run this again with the full roster in C2.
+.PARAMETER PipelineProfile
+Lead (default) sets up the platform lead pipeline: the identity lives in the shared services subscription and the
+roster covers the team. Member (-Profile Member) sets up your own C0 pipeline in your own repo: the identity lives in your
+workload subscription and is Owner there only; there is no shared subscription, management group or roster. Run it from
+your own repo, with your own az login and gh login.
 .PARAMETER SkipGitHub
 Create the Azure side only.
 .PARAMETER SmokeTest
@@ -87,6 +92,9 @@ param(
     [int] $MemberIndex = 0,
     [string] $RosterPath = '',
     [switch] $SkipGitHub,
+    [Alias('Profile')]
+    [ValidateSet('Lead', 'Member')]
+    [string] $PipelineProfile = 'Lead',
     [switch] $SmokeTest,
     [switch] $AutoApprove
 )
@@ -153,11 +161,20 @@ $TenantId = if ($TenantId) { $TenantId } elseif (Get-Setting $settings 'tenantId
 if ($TenantId -ne $account.tenantId) {
     throw "The signed-in tenant is not the settings tenant. Run: az login --tenant $TenantId"
 }
-$SharedSubscriptionId = Read-Value ($SharedSubscriptionId ? $SharedSubscriptionId : (Get-Setting $settings 'sharedSubscriptionId')) 'Shared services subscription ID'
+$member0Profile = $PipelineProfile -eq 'Member'
+if ($member0Profile) {
+    # A member's pipeline has no shared services subscription, no management groups and no roster.
+    $SharedSubscriptionId = ''
+    $ParentManagementGroupId = ''
+    if ($RosterPath) { throw '-PipelineProfile Member covers one member (you). A roster is for the platform lead profile.' }
+}
+else {
+    $SharedSubscriptionId = Read-Value ($SharedSubscriptionId ? $SharedSubscriptionId : (Get-Setting $settings 'sharedSubscriptionId')) 'Shared services subscription ID'
+}
 $WorkloadSubscriptionId = if ($WorkloadSubscriptionId) { $WorkloadSubscriptionId } else { Get-Setting $settings 'workloadSubscriptionId', 'subscriptionId' }
 $Location = if ($Location) { $Location } elseif (Get-Setting $settings 'location') { Get-Setting $settings 'location' } else { 'swedencentral' }
 $MgPrefix = if ($MgPrefix) { $MgPrefix } elseif (Get-Setting $settings 'mgPrefix') { Get-Setting $settings 'mgPrefix' } else { 'mg-factory' }
-$ParentManagementGroupId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { Get-Setting $settings 'sandboxManagementGroup', 'parentManagementGroup' }
+$ParentManagementGroupId = if ($member0Profile) { '' } elseif ($ParentManagementGroupId) { $ParentManagementGroupId } else { Get-Setting $settings 'sandboxManagementGroup', 'parentManagementGroup' }
 if ($MemberIndex -eq 0) {
     $settingIndex = Get-Setting $settings 'memberIndex'
     $MemberIndex = if ($settingIndex) { [int] $settingIndex } else { 1 }
@@ -192,12 +209,19 @@ $members = if ($RosterPath) {
 }
 else {
     $WorkloadSubscriptionId = Read-Value $WorkloadSubscriptionId 'Workload subscription ID'
-    $account0 = if ($account.user.type -ne 'servicePrincipal') { $account } else { $null }
+    # Your object ID comes from the ARM token, so no Microsoft Graph call is needed (and none can be challenged).
+    $callerOid = ''
+    if ($account.user.type -ne 'servicePrincipal') {
+        $armToken = Invoke-AzureCli -Arguments @('account', 'get-access-token', '--resource', 'https://management.azure.com/', '--query', 'accessToken')
+        $tokenPayload = $armToken.Split('.')[1].Replace('-', '+').Replace('_', '/')
+        $tokenPayload += '=' * ((4 - $tokenPayload.Length % 4) % 4)
+        $callerOid = ([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($tokenPayload)) | ConvertFrom-Json).oid
+    }
     @([pscustomobject]@{
             index = $MemberIndex
             subscriptionId = $WorkloadSubscriptionId
-            memberPrincipalId = if ($account0) { Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show', '--query', 'id') } else { '' }
-            budgetEmail = if ($account0) { $account0.user.name } else { '' }
+            memberPrincipalId = $callerOid
+            budgetEmail = if ($callerOid) { $account.user.name } else { '' }
         })
 }
 if ($members.Count -eq 0 -or $members.Count -gt 20) { throw 'A team has 1 to 20 members.' }
@@ -210,6 +234,9 @@ foreach ($member in $members) {
 if (@($members.index | Sort-Object -Unique).Count -ne $members.Count) { throw 'Two members share an index. Each index sets the address ranges, so they must differ.' }
 if (@($members.subscriptionId | ForEach-Object { $_.ToLowerInvariant() } | Sort-Object -Unique).Count -ne $members.Count) { throw 'Two members share a workload subscription.' }
 $workloadIds = @($members.subscriptionId)
+# The identity lives where the pipeline's own resources go: the shared services subscription for the platform lead,
+# the member's own workload subscription for a member.
+$identitySubscription = if ($member0Profile) { $workloadIds[0] } else { $SharedSubscriptionId }
 if (-not $Repository -and -not $SkipGitHub) {
     $remote = (& git remote get-url origin 2>$null)
     if ($remote -match 'github\.com[:/]([^/]+/[^/.]+?)(\.git)?$') { $Repository = $Matches[1] }
@@ -245,20 +272,20 @@ $ReviewerLogin = if ($ReviewerLogin) { $ReviewerLogin } else { $callerLogin }
 
 Write-Information @"
 
-Platform pipeline setup:
+Platform pipeline setup ($PipelineProfile profile):
   Repository         $Repository, environment $Environment, branches: $($AllowedBranch -join ', ')
-  Identity           $identityName in $resourceGroupName (shared services subscription), federated credential for
+  Identity           $identityName in $resourceGroupName ($(if ($member0Profile) { 'your own workload subscription' } else { 'shared services subscription' })), federated credential for
                      $subject
-  Owner granted at   $(if ($sandbox) { "management group '$ParentManagementGroupId', the shared services subscription and $($workloadIds.Count) workload subscription(s) (not at Tenant Root)" } else { 'the Tenant Root management group' })
-  Members            $($members.Count) (indexes $($members.index -join ', ')); one workload subscription each, one shared services subscription for the team
+  Owner granted at   $(if ($member0Profile) { 'your workload subscription only: no management group, no other subscription' } elseif ($sandbox) { "management group '$ParentManagementGroupId', the shared services subscription and $($workloadIds.Count) workload subscription(s) (not at Tenant Root)" } else { 'the Tenant Root management group' })
+  Members            $($members.Count) (indexes $($members.index -join ', ')); $(if ($member0Profile) { 'just you' } else { 'one workload subscription each, one shared services subscription for the team' })
   Reviewer           $(if ($NoReviewer) { 'none (-NoReviewer)' } else { $ReviewerLogin })
   Never touched      $($denied.Count) subscription(s) on the deny list
-  Management groups  prefix $MgPrefix$(if ($sandbox) { " under '$ParentManagementGroupId'" })
+$(if (-not $member0Profile) { "  Management groups  prefix $MgPrefix$(if ($sandbox) { " under '$ParentManagementGroupId'" })" })
 
 "@
 
 # Subscriptions are in the signed-in tenant.
-foreach ($id in @($SharedSubscriptionId) + $workloadIds) {
+foreach ($id in @(@($SharedSubscriptionId) + $workloadIds | Where-Object { $_ })) {
     $sub = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $id)
     if ($sub.tenantId -ne $TenantId) { throw 'A subscription belongs to a different tenant.' }
 }
@@ -302,32 +329,33 @@ if ($sandbox) {
 }
 
 # 2. Resource group, identity, federated credential.
-$providerState = Invoke-AzureCli -Arguments @('provider', 'show', '--subscription', $SharedSubscriptionId, '--namespace', 'Microsoft.ManagedIdentity', '--query', 'registrationState')
+$providerState = Invoke-AzureCli -Arguments @('provider', 'show', '--subscription', $identitySubscription, '--namespace', 'Microsoft.ManagedIdentity', '--query', 'registrationState')
 if ($providerState -ne 'Registered' -and $PSCmdlet.ShouldProcess('Microsoft.ManagedIdentity', 'Register the resource provider')) {
-    $null = Invoke-AzureCli -Arguments @('provider', 'register', '--subscription', $SharedSubscriptionId, '--namespace', 'Microsoft.ManagedIdentity', '--wait')
+    $null = Invoke-AzureCli -Arguments @('provider', 'register', '--subscription', $identitySubscription, '--namespace', 'Microsoft.ManagedIdentity', '--wait')
 }
-$identity = Invoke-AzureCli -Arguments @('identity', 'show', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '-n', $identityName) -AllowFailure
+$identity = Invoke-AzureCli -Arguments @('identity', 'show', '--subscription', $identitySubscription, '-g', $resourceGroupName, '-n', $identityName) -AllowFailure
 if (-not $identity -and $PSCmdlet.ShouldProcess("$identityName in $resourceGroupName", 'Create the resource group and the managed identity')) {
-    $null = Invoke-AzureCli -Arguments @('group', 'create', '--subscription', $SharedSubscriptionId, '-n', $resourceGroupName, '-l', $Location, '--tags', 'purpose=platform-pipeline')
-    $identity = Invoke-AzureCli -Arguments @('identity', 'create', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '-n', $identityName, '-l', $Location)
+    $null = Invoke-AzureCli -Arguments @('group', 'create', '--subscription', $identitySubscription, '-n', $resourceGroupName, '-l', $Location, '--tags', 'purpose=platform-pipeline')
+    $identity = Invoke-AzureCli -Arguments @('identity', 'create', '--subscription', $identitySubscription, '-g', $resourceGroupName, '-n', $identityName, '-l', $Location)
 }
 if ($identity) {
     $credName = "gh-$($Repository -replace '[^A-Za-z0-9_-]', '-')-$Environment"
     if ($credName.Length -gt 120) { $credName = $credName.Substring(0, 120) }
-    $creds = @(Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'list', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '--identity-name', $identityName))
+    $creds = @(Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'list', '--subscription', $identitySubscription, '-g', $resourceGroupName, '--identity-name', $identityName))
     $current = $creds | Where-Object { $_.subject -eq $subject -and $_.issuer -eq $issuer } | Select-Object -First 1
     $stale = $creds | Where-Object { $_.name -eq $credName -and -not ($_.subject -eq $subject -and $_.issuer -eq $issuer) }
     if ($stale) {
-        $null = Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'delete', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName, '--identity-name', $identityName, '--name', $credName, '--yes')
+        $null = Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'delete', '--subscription', $identitySubscription, '-g', $resourceGroupName, '--identity-name', $identityName, '--name', $credName, '--yes')
     }
     if (-not $current -and $PSCmdlet.ShouldProcess($subject, 'Create the federated credential')) {
-        $null = Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'create', '--subscription', $SharedSubscriptionId, '-g', $resourceGroupName,
+        $null = Invoke-AzureCli -Arguments @('identity', 'federated-credential', 'create', '--subscription', $identitySubscription, '-g', $resourceGroupName,
             '--identity-name', $identityName, '--name', $credName, '--issuer', $issuer, '--subject', $subject, '--audiences', 'api://AzureADTokenExchange')
     }
 }
 
-# 3. Roles: Owner at the parent, and on both subscriptions when the parent is a sandbox group.
-$scopes = @($parentScope)
+# 3. Roles. Platform lead: Owner at the parent (Tenant Root, or the sandbox group plus every subscription). Member: Owner on
+# their own workload subscription and nowhere else.
+$scopes = @(if ($member0Profile) { "/subscriptions/$($workloadIds[0])" } else { $parentScope })
 if ($sandbox) { $scopes += "/subscriptions/$SharedSubscriptionId"; $scopes += @($workloadIds | ForEach-Object { "/subscriptions/$_" }) }
 if ($identity) {
     foreach ($scope in $scopes) {
@@ -382,10 +410,10 @@ if (-not $SkipGitHub) {
         $secrets = [ordered]@{
             AZURE_TENANT_ID = $TenantId
             AZURE_CLIENT_ID = $identity.clientId
-            SHARED_SUBSCRIPTION_ID = $SharedSubscriptionId
-            ALLOWED_SUBSCRIPTIONS = (@($SharedSubscriptionId) + $workloadIds) -join ','
+            ALLOWED_SUBSCRIPTIONS = (@($SharedSubscriptionId) + $workloadIds | Where-Object { $_ }) -join ','
             ROSTER_JSON = $roster
         }
+        if (-not $member0Profile) { $secrets['SHARED_SUBSCRIPTION_ID'] = $SharedSubscriptionId }
         $variables = [ordered]@{
             LOCATION = $Location
             MG_PREFIX = $MgPrefix
@@ -400,8 +428,9 @@ if (-not $SkipGitHub) {
         foreach ($name in $secrets.Keys) {
             $null = Invoke-GitHubCli -Arguments @('secret', 'set', $name, '--env', $Environment, '--repo', $Repository, '--body', ([string] $secrets[$name]))
         }
-        # The member indexes aren't sensitive, and a job matrix can only read repository variables.
+        # The member indexes and the profile aren't sensitive, and the plan job (no environment) can only read repository variables.
         $null = Invoke-GitHubCli -Arguments @('variable', 'set', 'MEMBER_INDEXES', '--repo', $Repository, '--body', (@($members.index | Sort-Object) -join ','))
+        $null = Invoke-GitHubCli -Arguments @('variable', 'set', 'PIPELINE_PROFILE', '--repo', $Repository, '--body', $PipelineProfile.ToLowerInvariant())
         # Earlier versions kept identifiers in variables, which a public repo's logs print.
         foreach ($legacy in 'AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'SHARED_SUBSCRIPTION_ID', 'ALLOWED_SUBSCRIPTIONS', 'DENIED_SUBSCRIPTIONS') {
             $null = Invoke-GitHubCli -Arguments @('variable', 'delete', $legacy, '--env', $Environment, '--repo', $Repository) -AllowFailure
@@ -424,7 +453,7 @@ if (-not $SkipGitHub) {
 if (-not $WhatIfPreference -and -not $SkipGitHub) {
     & (Join-Path $PSScriptRoot 'Test-PipelineSetup.ps1') -SettingsPath $SettingsPath -SharedSubscriptionId $SharedSubscriptionId `
         -WorkloadSubscriptionId $workloadIds[0] -ParentManagementGroupId $ParentManagementGroupId -Repository $Repository -Environment $Environment `
-        -WorkloadSubscriptionIds $workloadIds
+        -WorkloadSubscriptionIds $workloadIds -PipelineProfile $PipelineProfile
     if ($LASTEXITCODE -ne 0) { throw 'Setup finished, but the doctor check found problems. Fix them as listed, then run ./scripts/Test-PipelineSetup.ps1.' }
 }
 if ($SmokeTest -and -not $WhatIfPreference -and -not $SkipGitHub) {
@@ -460,7 +489,20 @@ if ($SmokeTest -and -not $WhatIfPreference -and -not $SkipGitHub) {
     Write-Information 'Smoke test passed: the workflow logged in as the pipeline identity.'
 }
 
-Write-Information @"
+Write-Information $(if ($member0Profile) {
+        @"
+
+Done. Next, the first check (read-only; approve it in the Actions tab): your preflight
+  gh workflow run platform.yml --repo $Repository -f stage=whatif
+Then your datacenter, test and Arc onboarding (C0 tasks 2 to 4, about 45 minutes, unattended):
+  gh workflow run platform.yml --repo $Repository -f stage=member
+Fetch the C0 evidence afterwards with ./scripts/Get-PipelineEvidence.ps1.
+Check the setup any time with ./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member. To remove the identity later:
+./scripts/Remove-PlatformPipeline.ps1 -PipelineProfile Member
+"@
+    }
+    else {
+        @"
 
 Done. Next, the first check (read-only; approve it in the Actions tab):
   gh workflow run platform.yml --repo $Repository -f stage=whatif
@@ -468,3 +510,4 @@ Then the foundation: gh workflow run platform.yml --repo $Repository -f stage=fo
 Check the setup any time with ./scripts/Test-PipelineSetup.ps1. To remove everything later, as an admin and
 after the platform's own teardown: ./scripts/Remove-PlatformPipeline.ps1
 "@
+    })

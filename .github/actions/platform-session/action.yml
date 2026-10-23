@@ -20,8 +20,9 @@ inputs:
     required: true
     description: The tenant ID
   shared-subscription-id:
-    required: true
-    description: The team's shared services subscription
+    required: false
+    default: ''
+    description: The team's shared services subscription. Empty in a member's pipeline, which has none.
   allowed-subscriptions:
     required: true
     description: Comma-separated allowlist
@@ -109,4 +110,4 @@ runs:
       with:
         client-id: ${{ inputs.client-id }}
         tenant-id: ${{ inputs.tenant-id }}
-        subscription-id: ${{ inputs.shared-subscription-id }}
+        subscription-id: ${{ inputs.shared-subscription-id || steps.roster.outputs.workload }}
