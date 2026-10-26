@@ -13,7 +13,10 @@ factory/.gitignore keeps factory/.local/ (your subscription IDs) out of git. It 
 workflows and actions in the repo's .github/ (they run the kit from factory/; set up with Initialize-PlatformPipeline.ps1). It also keeps factory/ out of the repo's
 ESLint, Prettier and markdownlint checks (a nested factory/eslint.config.mjs and factory/.markdownlint-cli2.jsonc, plus a
 factory/ line in .prettierignore) and adds factory/ and .prettierignore to the weekly upstream sync's EXCLUDE_PATHS, so
-neither the pre-commit hooks nor the sync touch the kit.
+neither the pre-commit hooks nor the sync touch the kit. With the archetype, it also excludes infra/bicep/university from the
+template's iac-security-baseline hook (a lefthook.yml exclude, kept out of the sync), because the archetype's two accepted
+lab findings (Key Vault purge protection off, the public web app) would otherwise block every commit that touches it; other
+Bicep and Terraform stay checked.
 Refuses to overwrite an existing factory/ folder unless -Force. -Force replaces only the imported kit
 folders: factory/.local (your settings, suffix and datacenter credentials) and your archetype work in the
 repo root are kept, unless you also pass -ReplaceArchetype. The site, docs, backlog and coach
@@ -84,6 +87,28 @@ function Add-SyncExclusion {
     $newLines = @($lines[0..$end]) + @($missing | ForEach-Object { "$indent$_" }) + @($lines[($end + 1)..($lines.Count - 1)])
     Set-Content -Path $Path -Value ($newLines -join $newline) -NoNewline
     Write-Host "Added $($missing -join ', ') to EXCLUDE_PATHS in weekly-upstream-sync.yml."
+}
+
+function Add-HookExclusion {
+    # The imported CoE archetype carries two accepted lab findings that the template's iac-security-baseline
+    # pre-commit hook rejects (Key Vault purge protection off, public web app). Keep the archetype out of that
+    # hook's trigger glob, idempotently; any other Bicep or Terraform stays checked.
+    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string]$Exclude)
+
+    if (-not (Test-Path $Path)) { Write-Warning "lefthook.yml was not found. Commits that touch $Exclude may fail the iac-security-baseline hook; use LEFTHOOK_EXCLUDE=iac-security-baseline for those commits."; return }
+    $raw = Get-Content -Path $Path -Raw
+    $newline = if ($raw -match "`r`n") { "`r`n" } else { "`n" }
+    $text = $raw -replace "`r`n", "`n"
+    $pattern = '(?m)^(?<indent>[ \t]+)iac-security-baseline:\n(?<body>(?:\k<indent>[ \t]+[^\n]*\n|[ \t]*\n)*)'
+    $match = [regex]::Match($text, $pattern)
+    if (-not $match.Success) { Write-Warning "lefthook.yml has no iac-security-baseline command. Nothing to exclude."; return }
+    if ($match.Groups['body'].Value -match "(?m)^\s+exclude:") { return }
+    $glob = [regex]::Match($match.Groups['body'].Value, '(?m)^(?<pad>[ \t]+)glob:[^\n]*\n')
+    if (-not $glob.Success) { Write-Warning "The iac-security-baseline command in lefthook.yml has no glob line. Nothing to exclude."; return }
+    $insertAt = $match.Groups['body'].Index + $glob.Index + $glob.Length
+    $text = $text.Insert($insertAt, "$($glob.Groups['pad'].Value)exclude: `"$Exclude`"`n")
+    Set-Content -Path $Path -Value $text.Replace("`n", $newline) -NoNewline
+    Write-Information "Excluded $Exclude from the iac-security-baseline hook in lefthook.yml." -InformationAction Continue
 }
 
 if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
@@ -223,6 +248,12 @@ export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }]
             $archetypeArguments = @{ Ref = $Ref; Destination = $Destination; Force = $ReplaceArchetype }
             if ($KitRepository -ne 'jonathan-vella/apex-factory-hackathon') { $archetypeArguments['KitRepository'] = $KitRepository }
             & $archetypeImport @archetypeArguments
+        }
+
+        # Runs on a fresh import and on a re-run alike, since the hook is repo config and not part of the archetype copy.
+        if ((Test-Path (Join-Path $Destination 'infra/bicep/university')) -and $PSCmdlet.ShouldProcess((Join-Path $Destination 'lefthook.yml'), 'Exclude the archetype from the iac-security-baseline hook')) {
+            Add-HookExclusion -Path (Join-Path $Destination 'lefthook.yml') -Exclude 'infra/bicep/university/**'
+            Add-SyncExclusion -Path (Join-Path $Destination '.github/workflows/weekly-upstream-sync.yml') -Entries @('lefthook.yml')
         }
     }
 
