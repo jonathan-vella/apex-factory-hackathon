@@ -19,31 +19,20 @@ The order of events is fixed. Take it from [facilitator/guide.md](facilitator/gu
 
 | When | Who | What | Notes |
 |---|---|---|---|
-| T-14 | Members, platform lead | `Test-Preflight.ps1` is GO | Access, quota, Copilot policy |
-| T-3 | **Each member**, in their own repo and their own workload subscription | `Deploy-Datacenter.ps1`, then `Test-Datacenter.ps1`, then `Connect-DatacenterArc.ps1` (C0) | The test goes **before** Arc: Arc turns off the run commands the test uses. Never redeploy the datacenter after Arc |
-| Day 1, 09:00 | Platform lead | `Deploy-AlzLite.ps1` (C2), once per team | Needs Owner at Tenant Root, or at the parent group |
-| Day 1, about 10:15 | A Privileged Role Administrator | `Grant-SqlMiDirectoryRead.ps1`, once per team | Manual, tenant-wide. Can't happen before ALZ-lite creates `id-sqlmi-directory` |
-| Day 1, C2 | Platform lead | `Deploy-Vending.ps1` for every member, one after another, then VM restart, `New-DatacenterExemptions.ps1`, `Test-Connectivity.ps1` | Needs the datacenter **and** the foundation. The member's subscription ID, index, object ID and email are collected here. A datacenter redeploy requires vending again |
-| Day 1, C5 | Each member | The CoE archetype with `azd provision` | Out of scope for the platform pipeline until it is proven |
-| T+2 | Platform lead | `Remove-FactoryEnvironment.ps1`: every member scope first, then the team scope | |
+| T-14 | Event owner, members | The event owner captures every subscription ID, index, object ID and email. Members run `Test-Preflight.ps1` | Access, quota, Copilot policy |
+| T-7 | Platform lead (their repo, lead profile) | `Deploy-AlzLite.ps1` (the pipeline's `foundation` stage), once per team | Needs Owner at Tenant Root, or at the parent group. Creates `id-sqlmi-directory` |
+| T-7, after ALZ-lite | A Privileged Role Administrator | `Grant-SqlMiDirectoryRead.ps1`, once per team | Manual, tenant-wide. Can't happen before ALZ-lite, and must happen before C7 |
+| T-3 | **Each member**, in their own repo and their own workload subscription | `Deploy-Datacenter.ps1`, then `Test-Datacenter.ps1`, then `Connect-DatacenterArc.ps1` (C0), or the pipeline's `member` stage | The test goes **before** Arc: Arc turns off the run commands the test uses. Never redeploy the datacenter after Arc. Then the portal assessment and `vm-dev01` setup |
+| T-1 | Platform lead | `Deploy-Vending.ps1` for every member, one after another, then VM restart, `New-DatacenterExemptions.ps1`, `Test-Connectivity.ps1` (the pipeline's `vending` stage) | Needs every member's datacenter **and** the foundation, and comes after the coach's C0 review and `vm-dev01` setup. A datacenter redeploy requires vending again |
+| Day 1 | Everyone | Start at C1. C2 verifies and explains the foundation | C2 keeps its 35 team points |
+| Day 1, C5 | Each member | The CoE archetype with `azd provision` | Out of scope for the platform pipeline |
+| T+2 | Platform lead, members, an admin | The `teardown` stage (or `Remove-FactoryEnvironment.ps1`: every member scope first, then the team scope), then `Remove-PlatformPipeline.ps1` | |
 
-So: **datacenter, then ALZ-lite, then vending, then the archetype.** Foundation before datacenter is wrong. If a design or
+So: **datacenter before vending, ALZ-lite before vending, vending before the archetype.** The only hard dependencies are
+ALZ-lite and each datacenter before vending, `Test-Datacenter` before Arc, and the Graph grant after ALZ-lite and before C7.
+Vending comes after `vm-dev01` setup. A team has **one shared services subscription and one workload subscription per
+member**, and one Entra tenant. The pipeline is optional: the scripts stay the supported manual path. If a design or
 workflow puts steps in another order, stop and check the guide.
-
-### Planned order with the platform pipeline (P6, adopted by the owner on 2026-10-21; the docs above follow in B22)
-
-The shared platform moves before the event, and each member still deploys their own datacenter:
-
-| When | Who | What |
-|---|---|---|
-| T-14 | Event owner, members | Capture every subscription ID, index, object ID and email. Members run preflight |
-| T-7 | Platform lead (their repo, platform lead profile) | `Deploy-AlzLite.ps1`, which creates `id-sqlmi-directory`. A Privileged Role Administrator runs the Graph grant |
-| T-3 | Each member (own repo; the member profile or the terminal) | Preflight, datacenter, `Test-Datacenter`, then Arc; then the portal assessment and `vm-dev01` setup |
-| T-1 | Platform lead | Vending for every member in order, VM restart, exemptions, connectivity |
-| Day 1 | Everyone | Start at C1. C2 verifies and explains the foundation |
-
-The only hard dependencies are: ALZ-lite and each datacenter before vending, `Test-Datacenter` before Arc, and the Graph grant after ALZ-lite and before C7. Vending comes after `vm-dev01` setup. A team has **one shared services subscription and one workload subscription per member**, and one Entra tenant. Until B22 lands, the guide and the challenge pages still describe the v1 order above.
-
 Roles: the **event owner** plans and cleans up; **coaches** demo and sign off; the **platform lead** deploys ALZ-lite and
 vends every member (and is also a member); **members** run their own C0 and everything after C2. There is no shared team repo:
 each member keeps evidence in `factory/evidence/` of their own repo.
@@ -78,6 +67,6 @@ each member keeps evidence in `factory/evidence/` of their own repo.
 ## Git and PRs
 
 - Branch per item, conventional commits, short messages, with the Copilot trailers. The owner squash-merges. Open PRs as drafts, never merge or push to `main`, and mark an in-progress PR "do not merge".
-- **The platform pipeline work (P6, backlog B16 to B23) is isolated.** Its pull requests target `p6/platform-pipeline`, never `main`, and stack on each other. `main` and `p6/platform-pipeline` are protected by rulesets (pull request required, no force pushes, no deletion). Only the owner decides when the trunk is proposed for `main`. The `gh-lab` environment doesn't allow `main` to deploy.
+- **Pipeline changes** (.github/workflows/platform.yml, the pipeline scripts) are tested in a lab you may delete, never against the owner's live subscriptions, and each live run needs the owner's approval. Never approve a gate for an action the owner hasn't authorized.
 - Always name a PR or issue by its number when you ask the owner anything.
 - Never commit to a branch another PR depends on without saying so. Stacked PRs target the previous branch.
