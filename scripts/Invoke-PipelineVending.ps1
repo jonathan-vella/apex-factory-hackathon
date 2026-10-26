@@ -117,9 +117,11 @@ foreach ($index in $MemberIndex) {
         $restartExit = @($restarts | Wait-Job | Receive-Job | Where-Object { $_ -is [int] })
         $restarts | Remove-Job -Force
         if ($restartExit.Count -ne 2 -or ($restartExit | Where-Object { $_ -ne 0 })) { throw 'Restarting the VMs failed.' }
-        Invoke-Native -Step 'The policy exemptions' -Command {
-            & (Join-Path $PSScriptRoot 'New-DatacenterExemptions.ps1') -SubscriptionId $workload -Owner 'GitHub Actions pipeline'
-        }
+        # New-DatacenterExemptions.ps1 signals failure by throwing, and its nothing-to-do path returns with whatever
+        # $LASTEXITCODE an earlier az call left behind, so its exit code isn't checked.
+        Write-Information 'The policy exemptions'
+        & (Join-Path $PSScriptRoot 'New-DatacenterExemptions.ps1') -SubscriptionId $workload -Owner 'GitHub Actions pipeline'
+        $global:LASTEXITCODE = 0
         Invoke-Native -Step 'The connectivity test' -Command {
             & (Join-Path $PSScriptRoot 'Test-Connectivity.ps1') -SubscriptionId $workload -SharedSubscriptionId $SharedSubscriptionId -MemberIndex $index
         }
