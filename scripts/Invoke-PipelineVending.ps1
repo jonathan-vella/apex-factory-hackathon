@@ -107,9 +107,16 @@ foreach ($index in $MemberIndex) {
         if ($member.memberPrincipalId) { $vending['MemberPrincipalId'] = [string] $member.memberPrincipalId }
         & (Join-Path $PSScriptRoot 'Deploy-Vending.ps1') @vending
 
-        foreach ($vm in 'vm-app01', 'vm-dev01') {
-            Invoke-Native -Step "Restarting $vm" -Command { az vm restart --subscription $workload -g rg-datacenter -n $vm --only-show-errors }
+        # Both VMs restart at once (the restart of the SQL VM can take many minutes); the exemptions need them back up.
+        $restarts = foreach ($vm in 'vm-app01', 'vm-dev01') {
+            Start-ThreadJob -Name $vm -ScriptBlock {
+                & az vm restart --subscription $using:workload -g rg-datacenter -n $using:vm --only-show-errors
+                $LASTEXITCODE
+            }
         }
+        $restartExit = @($restarts | Wait-Job | Receive-Job | Where-Object { $_ -is [int] })
+        $restarts | Remove-Job -Force
+        if ($restartExit.Count -ne 2 -or ($restartExit | Where-Object { $_ -ne 0 })) { throw 'Restarting the VMs failed.' }
         Invoke-Native -Step 'The policy exemptions' -Command {
             & (Join-Path $PSScriptRoot 'New-DatacenterExemptions.ps1') -SubscriptionId $workload -Owner 'GitHub Actions pipeline'
         }
