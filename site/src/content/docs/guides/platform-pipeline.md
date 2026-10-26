@@ -80,7 +80,7 @@ The roster is a JSON file the event owner gives you (or you write from the event
 ]
 ```
 
-Setup stores it as an environment secret, and the pipeline reads its members only from there: it never discovers them in Azure, and the allowlist guard accepts only these subscriptions. To add or change a member, edit the file and run `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json` again. Then:
+Setup stores it as an environment secret, and the pipeline reads its members only from there: it never discovers them in Azure, and the guard accepts only these subscriptions. To add or change a member, edit the file and run `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json` again. Then:
 
 ```bash
 gh workflow run platform.yml -f stage=whatif
