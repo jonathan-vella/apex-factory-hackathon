@@ -97,7 +97,7 @@ function Invoke-AzureCli {
         $message = ($output | ForEach-Object { $_.ToString() }) -join ' '
         throw "Azure CLI '$operation' failed (exit $LASTEXITCODE): $message"
     }
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if ($text.Trim()) {
         return $text | ConvertFrom-Json
     }

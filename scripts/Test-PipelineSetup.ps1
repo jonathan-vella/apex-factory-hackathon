@@ -63,7 +63,7 @@ function Invoke-AzureCli {
     $PSNativeCommandUseErrorActionPreference = $false
     $output = & az @Arguments --only-show-errors --output json 2>&1
     if ($LASTEXITCODE -ne 0) { throw 'Azure CLI call failed.' }
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if ($text.Trim()) { return $text | ConvertFrom-Json }
 }
 

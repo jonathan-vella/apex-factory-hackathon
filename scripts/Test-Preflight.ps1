@@ -84,7 +84,7 @@ function Invoke-AzureCli {
         $operation = ($Arguments | Select-Object -First 2) -join ' '
         throw "Azure CLI '$operation' failed (exit $LASTEXITCODE). Check sign-in, access and arguments."
     }
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if ($AsText) {
         return $text
     }

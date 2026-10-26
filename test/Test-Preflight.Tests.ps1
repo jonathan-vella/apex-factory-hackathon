@@ -70,6 +70,8 @@ function global:az {
         return '{"value":[{"name":"swedencentral","displayName":"Sweden Central"}]}'
     }
     if ($command -like 'provider show*') {
+        # A Python SyntaxWarning on stderr must not corrupt the JSON on stdout.
+        if ($scenario -eq 'stderr-warning') { Write-Error 'SyntaxWarning: invalid escape sequence' -ErrorAction Continue }
         if ($scenario -eq 'no-mi') { return '{"resourceTypes":[]}' }
         return '{"resourceTypes":[{"resourceType":"managedInstances","locations":["Sweden Central"]}]}'
     }
@@ -122,9 +124,9 @@ $scenarios = @(
     'missing-subscription', 'invalid-id', 'wrong-tenant', 'no-owner', 'duplicate',
     'missing-region', 'no-mi', 'missing-provider', 'fix', 'registration-error',
     'old-cli', 'old-bicep', 'cli-error', 'invalid-json', 'output-error',
-    'no-feature', 'fix-feature'
+    'no-feature', 'fix-feature', 'stderr-warning'
 )
-$passing = @('healthy', 'member', 'zone-only', 'location', 'missing-sku', 'mg-unknown', 'fix', 'fix-feature')
+$passing = @('healthy', 'stderr-warning', 'member', 'zone-only', 'location', 'missing-sku', 'mg-unknown', 'fix', 'fix-feature')
 foreach ($scenario in $scenarios) {
     $report = [System.IO.Path]::GetTempFileName()
     $calls = [System.IO.Path]::GetTempFileName()
