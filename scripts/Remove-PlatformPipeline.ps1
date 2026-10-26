@@ -173,11 +173,21 @@ if ($identity) {
     }
 }
 if (-not $SkipGitHub) {
-    & gh api "repos/$Repository/environments/$Environment" 2>$null | Out-Null
-    if ($LASTEXITCODE -eq 0) { $problems.Add("The GitHub environment $Environment still exists.") }
-    foreach ($variable in $repositoryVariables) {
-        & gh api "repos/$Repository/actions/variables/$variable" 2>$null | Out-Null
-        if ($LASTEXITCODE -eq 0) { $problems.Add("The repository variable $variable still exists.") }
+    $PSNativeCommandUseErrorActionPreference = $false
+    # Only a 404 proves a resource is gone: a 401 or 403 (a token without admin rights) means it could not be checked.
+    function Get-GitHubState {
+        param([string] $Path)
+        $text = (& gh api $Path 2>&1 | Out-String)
+        if ($LASTEXITCODE -eq 0) { return 'exists' }
+        if ($text -match 'HTTP 404|Not Found') { return 'gone' }
+        return 'unknown'
+    }
+    foreach ($check in @(@{ Name = "The GitHub environment $Environment"; Path = "repos/$Repository/environments/$Environment" }) +
+            @($repositoryVariables | ForEach-Object { @{ Name = "The repository variable $_"; Path = "repos/$Repository/actions/variables/$_" } })) {
+        switch (Get-GitHubState -Path $check.Path) {
+            'exists' { $problems.Add("$($check.Name) still exists. Sign in with gh as an admin of $Repository and run this again.") }
+            'unknown' { $problems.Add("$($check.Name) could not be checked: gh was refused. Sign in with gh as an admin of $Repository and run this again.") }
+        }
     }
 }
 if ($problems.Count -gt 0) { throw "Not everything was removed:`n  $($problems -join "`n  ")" }
