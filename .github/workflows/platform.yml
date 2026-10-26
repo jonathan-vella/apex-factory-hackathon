@@ -180,8 +180,8 @@ jobs:
         run: |
           $PSNativeCommandUseErrorActionPreference = $false
           & az account management-group show --name "$env:MG_PREFIX-corp" --only-show-errors --output none 2>$null
-          if ($LASTEXITCODE -ne 0 -and $env:PARENT_MG) {
-            # Under a parent other than Tenant Root, the what-if can't authorize a group that doesn't exist yet.
+          if ($LASTEXITCODE -ne 0) {
+            # The what-if can't authorize a group that doesn't exist yet, under any parent, Tenant Root included.
             Write-Host "::notice::First deployment: $env:MG_PREFIX-corp does not exist yet, so there is nothing to compare. Run the foundation stage."
             exit 0
           }
