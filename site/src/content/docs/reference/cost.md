@@ -18,7 +18,7 @@ The full stack for one member is about $3.38 per hour running: the datacenter ($
 
 ## Per team
 
-ALZ-lite, the shared services subscription's hub (Azure Firewall Standard with DNS proxy), the central private DNS zones and the Log Analytics workspace, costs about $1.30 per hour. It is shared once per team, not per member. Vending's per-member networking (VNet peering, UDRs) adds little. A UDR is a user-defined route, a rule that sends a subnet's traffic through the hub firewall.
+ALZ-lite, the shared services subscription's hub (Azure Firewall Standard with DNS proxy), the central private DNS zones and the Log Analytics workspace, costs about $1.30 per hour. It is shared once per team, not per member. It exists from T-7, when the platform lead deploys it, until cleanup, so it bills for days before the event starts. Vending's per-member networking (VNet peering, UDRs) adds little. A UDR is a user-defined route, a rule that sends a subnet's traffic through the hub firewall.
 
 Your coach has the total for a whole event.
 

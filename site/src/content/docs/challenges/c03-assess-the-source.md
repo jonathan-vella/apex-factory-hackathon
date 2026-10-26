@@ -9,7 +9,7 @@ Turn raw assessment output into a reviewed, human-authorized list of findings, e
 
 ## Scope and time box
 
-Member. **60 min** (pacing). C3 starts at 10:15 on Day 1, while the platform lead vends in C2. If the Upgrade agent runs are slow, do the Arc review (task 2) while they run. Your VM is already set up (C0 task 7), so none of the 60 minutes goes on setup.
+Member. **60 min** (pacing). C3 starts at 10:15 on Day 1, while the team walks through the foundation in C2. If the Upgrade agent runs are slow, do the Arc review (task 2) while they run. Your VM is already set up (C0 task 7), so none of the 60 minutes goes on setup.
 
 ## Points
 
@@ -17,9 +17,9 @@ Member. **60 min** (pacing). C3 starts at 10:15 on Day 1, while the platform lea
 
 ## Inputs
 
-C0's first Arc migration assessment, and a ready `vm-dev01` from C0 task 7. C2's foundation doesn't need to be finished to start this challenge. Both datacenter VMs must be running: in your dev container (with `$s` loaded, as in C0), `az vm list -g rg-datacenter -d -o table` shows their power state, and `az vm start -g rg-datacenter -n vm-app01 --subscription $s.subscriptionId`, then the same with `-n vm-dev01`, starts them if you stopped them.
+C0's first Arc migration assessment, and a ready `vm-dev01` from C0 task 7. C2's verification doesn't need to be finished to start this challenge. Both datacenter VMs must be running: in your dev container (with `$s` loaded, as in C0), `az vm list -g rg-datacenter -d -o table` shows their power state, and `az vm start -g rg-datacenter -n vm-app01 --subscription $s.subscriptionId`, then the same with `-n vm-dev01`, starts them if you stopped them.
 
-If the platform lead vends your subscription while you work, `vm-dev01` loses DNS until you restart it, and your Bastion session drops. **Restart `vm-dev01` only when no agent run is in progress.** Stop at a clean point, for example right after the `app: assess and plan` commit, do C2 tasks 6 and 7 when the lead posts "vended" (see [C2](../c02-secure-ai-ready-foundation/)), then come back.
+Your subscription was vended at T-1, so `vm-dev01` already uses the hub's DNS. C2 tasks 6 and 7 (about 15 minutes) are yours to do at a clean point in C3, for example right after the `app: assess and plan` commit (see [C2](../c02-secure-ai-ready-foundation/)). **Restart `vm-dev01` only when no agent run is in progress:** a restart ends your Bastion session and the run in it.
 
 Terms you meet here: the **harness** is where the Upgrade agent runs (**Local** means on `vm-dev01`); a **scenario** is the agent's workflow (`dotnet-version-upgrade`); a **gate** is a point where the agent stops so you can review before it continues (the playbook's Step 1 shows each one); the **dashboard** is the Upgrade view in VS Code, with an **Assessment** tab.
 

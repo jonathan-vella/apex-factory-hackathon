@@ -1,0 +1,486 @@
+name: Platform
+
+# The one entry point for the platform pipeline. Run it from the Actions tab or with:
+#   gh workflow run platform.yml -f stage=whatif
+# The stages follow the event: every member's datacenter first (pre-work, T-3), ALZ-lite once for the team on day 1,
+# then vending for every member. A team has one shared services subscription and one workload subscription per member.
+# Each stage runs in the gh-lab environment, where the reviewer approves it once for the stage. "all" runs them in order.
+# Every job sits in this file because a reusable workflow can't read the environment's secrets.
+# The teardown stage removes what the other stages built: every member's datacenter, then the team's foundation. It never
+# removes the pipeline identity: an admin runs scripts/Remove-PlatformPipeline.ps1 for that, afterwards.
+# Pushes to ci-test/<stage>-* run that stage (whatif, member, foundation, vending, teardown or all), so the pipeline can
+# be tested before this file is on the default branch (GitHub only dispatches a workflow from the default branch).
+# A push to ci-test/teardown-with-management-* also removes rg-management and id-sqlmi-directory (a full lab teardown).
+on:
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: What to run
+        type: choice
+        default: whatif
+        options:
+          - whatif
+          - member
+          - foundation
+          - vending
+          - teardown
+          - all
+      include-management:
+        description: Teardown only. Also delete rg-management and id-sqlmi-directory, which a normal lab keeps (its Graph grant is lost).
+        type: boolean
+        default: false
+      members:
+        description: Member indexes, comma separated, for example 1,2,3. Empty means every member in the MEMBER_INDEXES variable.
+        type: string
+        default: ''
+  push:
+    branches: ['ci-test/whatif-**', 'ci-test/member-**', 'ci-test/foundation-**', 'ci-test/vending-**', 'ci-test/teardown-**', 'ci-test/all-**']
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: platform
+  cancel-in-progress: false
+
+env:
+  KIT_DIR: .
+  # The VMs download their configuration scripts from this repo and ref. In an attendee's repo Import-Kit sets
+  # them to the public kit, because the kit is under factory/ there and the attendee's repo may be private.
+  KIT_REPOSITORY: ${{ github.repository }}
+  KIT_REF: ${{ github.sha }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      stage: ${{ steps.plan.outputs.stage }}
+      profile: ${{ steps.plan.outputs.profile }}
+      include-management: ${{ steps.plan.outputs.include-management }}
+      members: ${{ steps.plan.outputs.members }}
+      member-list: ${{ steps.plan.outputs.member-list }}
+    steps:
+      - name: Pick the stage and the members
+        id: plan
+        shell: bash
+        env:
+          INPUT_STAGE: ${{ inputs.stage }}
+          INPUT_MEMBERS: ${{ inputs.members }}
+          INPUT_INCLUDE_MANAGEMENT: ${{ inputs.include-management }}
+          VAR_MEMBERS: ${{ vars.MEMBER_INDEXES }}
+          VAR_PROFILE: ${{ vars.PIPELINE_PROFILE }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          profile="${VAR_PROFILE:-lead}"
+          stage="$INPUT_STAGE"
+          if [ -z "$stage" ]; then
+            stage="${REF_NAME#ci-test/}"
+            stage="${stage%%-*}"
+          fi
+          case "$stage" in
+            whatif|member|foundation|vending|teardown|all) ;;
+            *) echo "::error::Unknown stage '$stage'. Use whatif, member, foundation, vending, teardown or all."; exit 1 ;;
+          esac
+          if [ "$profile" = "member" ]; then
+            case "$stage" in
+              whatif|member|teardown) ;;
+              *) echo "::error::This is a member pipeline: it runs only the whatif (your preflight), member (your datacenter) and teardown (removes it) stages. The foundation and vending belong to the platform lead's pipeline."; exit 1 ;;
+            esac
+          fi
+          echo "profile=$profile" >> "$GITHUB_OUTPUT"
+          include=false
+          if [ "$INPUT_INCLUDE_MANAGEMENT" = true ] || [[ "$REF_NAME" == ci-test/teardown-with-management* ]]; then include=true; fi
+          echo "include-management=$include" >> "$GITHUB_OUTPUT"
+          list="${INPUT_MEMBERS:-${VAR_MEMBERS:-1}}"
+          list="${list// /}"
+          IFS=',' read -ra parts <<< "$list"
+          json="["; seen=","
+          for part in "${parts[@]}"; do
+            [[ "$part" =~ ^[0-9]+$ ]] && [ "$part" -ge 1 ] && [ "$part" -le 20 ] || { echo "::error::A member index must be a whole number from 1 to 20."; exit 1; }
+            [[ "$seen" != *",$part,"* ]] || { echo "::error::A member index is listed twice."; exit 1; }
+            seen="$seen$part,"
+            json="$json\"$part\","
+          done
+          json="${json%,}]"
+          echo "stage=$stage" >> "$GITHUB_OUTPUT"
+          echo "members=$json" >> "$GITHUB_OUTPUT"
+          echo "member-list=$list" >> "$GITHUB_OUTPUT"
+
+  preflight:
+    needs: plan
+    if: needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'member' || needs.plan.outputs.stage == 'all'
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    strategy:
+      fail-fast: false
+      matrix:
+        member: ${{ fromJSON(needs.plan.outputs.members) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ matrix.member }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Preflight for the member
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $env:WORKLOAD -SharedSubscriptionId $env:SHARED `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -Fix
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  whatif:
+    needs: plan
+    if: needs.plan.outputs.profile == 'lead' && (needs.plan.outputs.stage == 'whatif' || needs.plan.outputs.stage == 'all')
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        uses: ./.github/actions/platform-session
+        with:
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: ALZ-lite what-if
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          & az account management-group show --name "$env:MG_PREFIX-corp" --only-show-errors --output none 2>$null
+          if ($LASTEXITCODE -ne 0 -and $env:PARENT_MG) {
+            # Under a parent other than Tenant Root, the what-if can't authorize a group that doesn't exist yet.
+            Write-Host "::notice::First deployment: $env:MG_PREFIX-corp does not exist yet, so there is nothing to compare. Run the foundation stage."
+            exit 0
+          }
+          ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -WhatIf
+          exit $LASTEXITCODE
+
+  member:
+    needs: [plan, preflight, whatif]
+    if: ${{ !cancelled() && needs.preflight.result != 'failure' && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'member' || needs.plan.outputs.stage == 'all') }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        member: ${{ fromJSON(needs.plan.outputs.members) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ matrix.member }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Refuse to redeploy over Arc
+        shell: pwsh
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+        run: |
+          # After Arc onboarding, run commands stop working on vm-app01, so a redeploy can't recover it.
+          $PSNativeCommandUseErrorActionPreference = $false
+          $id = "/subscriptions/$env:WORKLOAD/resourceGroups/rg-datacenter/providers/Microsoft.HybridCompute/machines/vm-app01"
+          & az resource show --ids $id --only-show-errors --output none 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Error 'vm-app01 is already an Arc machine. The datacenter can not be deployed over it. Remove the member (teardown), then run this stage again.'
+            exit 1
+          }
+          exit 0
+
+      - name: Deploy the datacenter
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          LOCATION: ${{ vars.LOCATION }}
+          MEMBER_INDEX: ${{ matrix.member }}
+        run: |
+          ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION `
+            -Repository $env:KIT_REPOSITORY -ScriptsRef $env:KIT_REF
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Refresh the login
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ matrix.member }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Test the datacenter
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          MEMBER_INDEX: ${{ matrix.member }}
+        run: |
+          # Before Arc: the in-VM checks use run commands, which stop working on vm-app01 afterwards.
+          # The output is the member's C0 evidence: it is kept in the job summary and the log.
+          ./scripts/Test-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX *>&1 | Tee-Object -FilePath $env:RUNNER_TEMP/test-datacenter.txt
+          $code = $LASTEXITCODE
+          "### Test-Datacenter, member $env:MEMBER_INDEX`n``````text`n$(Get-Content -Raw $env:RUNNER_TEMP/test-datacenter.txt)`n``````" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          exit $code
+
+      - name: Keep the Test-Datacenter output as C0 evidence
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: c00-test-datacenter-member-${{ matrix.member }}
+          path: ${{ runner.temp }}/test-datacenter.txt
+          retention-days: 90
+          if-no-files-found: warn
+
+      - name: Refresh the login for Arc
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ matrix.member }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Onboard vm-app01 to Azure Arc
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          LOCATION: ${{ vars.LOCATION }}
+          MEMBER_INDEX: ${{ matrix.member }}
+        run: |
+          ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Vending comes after the foundation." |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+  foundation:
+    needs: [plan, member]
+    if: ${{ !cancelled() && needs.member.result != 'failure' && (needs.plan.outputs.stage == 'foundation' || needs.plan.outputs.stage == 'all') }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        uses: ./.github/actions/platform-session
+        with:
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Deploy ALZ-lite
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "ALZ-lite is deployed under ``$env:MG_PREFIX``. The firewall bills about `$1.30 an hour until the foundation is removed." |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+
+  vending:
+    needs: [plan, foundation]
+    if: ${{ !cancelled() && needs.foundation.result != 'failure' && (needs.plan.outputs.stage == 'vending' || needs.plan.outputs.stage == 'all') }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          all-members: 'true'
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Vend the members, one after another
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          ROSTER_JSON: ${{ secrets.ROSTER_JSON }}
+          MEMBERS: ${{ needs.plan.outputs.member-list }}
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          ALLOWED: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          DENIED: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          DENIED_PREFIXES: ${{ vars.DENIED_MG_PREFIXES }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          LOCATION: ${{ vars.LOCATION }}
+        run: |
+          # One approval covers the stage; members are vended strictly in order, because each run updates the firewall policy.
+          ./scripts/Invoke-PipelineVending.ps1 -RosterJson $env:ROSTER_JSON -MemberIndex ($env:MEMBERS -split ',') `
+            -SharedSubscriptionId $env:SHARED -ClientId $env:CLIENT_ID -TenantId $env:TENANT_ID -MgPrefix $env:MG_PREFIX `
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -AllowedSubscriptionId ($env:ALLOWED -split ',') `
+            -DeniedSubscriptionId ($env:DENIED -split ',') -DeniedMgPrefix ($env:DENIED_PREFIXES -split ',')
+          exit $LASTEXITCODE
+
+  teardown-member:
+    needs: plan
+    if: needs.plan.outputs.stage == 'teardown'
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        member: ${{ fromJSON(needs.plan.outputs.members) }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        id: session
+        uses: ./.github/actions/platform-session
+        with:
+          member-index: ${{ matrix.member }}
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Remove the member's datacenter, spoke and archetype
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
+          LOCATION: ${{ vars.LOCATION }}
+          MEMBER_INDEX: ${{ matrix.member }}
+        run: |
+          # Members are independent: each run touches only its own subscription. Without -Suffix, the script
+          # removes whatever rg-university-<suffix> groups that subscription holds.
+          ./scripts/Remove-FactoryEnvironment.ps1 -Scope Member -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX `
+            -Location $env:LOCATION -Force -Confirm:$false
+          exit 0
+
+  teardown-team:
+    needs: [plan, teardown-member]
+    if: ${{ needs.plan.outputs.stage == 'teardown' && needs.plan.outputs.profile == 'lead' && needs.teardown-member.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: gh-lab
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Start the session
+        uses: ./.github/actions/platform-session
+        with:
+          all-members: 'true'
+          roster-json: ${{ secrets.ROSTER_JSON }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          shared-subscription-id: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          allowed-subscriptions: ${{ secrets.ALLOWED_SUBSCRIPTIONS }}
+          denied-subscriptions: ${{ secrets.DENIED_SUBSCRIPTIONS }}
+          mg-prefix: ${{ vars.MG_PREFIX }}
+          denied-mg-prefixes: ${{ vars.DENIED_MG_PREFIXES }}
+          kit-dir: ${{ env.KIT_DIR }}
+
+      - name: Remove the team's foundation
+        shell: pwsh
+        working-directory: ${{ env.KIT_DIR }}
+        env:
+          ROSTER_JSON: ${{ secrets.ROSTER_JSON }}
+          SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          PARENT_MG: ${{ vars.PARENT_MG }}
+          MG_PREFIX: ${{ vars.MG_PREFIX }}
+          INCLUDE_MANAGEMENT: ${{ needs.plan.outputs.include-management }}
+        run: |
+          $PSNativeCommandUseErrorActionPreference = $false
+          # The script moves and unlinks every subscription under the corp group: refuse if one isn't in the roster.
+          $listed = @($env:ROSTER_JSON | ConvertFrom-Json | ForEach-Object { $_.subscriptionId.ToLowerInvariant() })
+          $corp = & az account management-group show --name "$env:MG_PREFIX-corp" --expand --only-show-errors --output json 2>$null
+          if ($LASTEXITCODE -eq 0 -and $corp) {
+            $unknown = @(($corp | ConvertFrom-Json).children | Where-Object { $_ -and $_.name.ToLowerInvariant() -notin $listed })
+            if ($unknown.Count -gt 0) { Write-Error "$($unknown.Count) subscription(s) under $env:MG_PREFIX-corp are not in the roster. Nothing was removed."; exit 1 }
+          }
+          $arguments = @{ Scope = 'Team'; SharedSubscriptionId = $env:SHARED; MgPrefix = $env:MG_PREFIX; Force = $true; Confirm = $false }
+          if ($env:PARENT_MG) { $arguments.ReturnManagementGroupId = $env:PARENT_MG }
+          if ($env:INCLUDE_MANAGEMENT -eq 'true') { $arguments.IncludeManagementResources = $true }
+          ./scripts/Remove-FactoryEnvironment.ps1 @arguments
+          "The team's foundation is removed. An admin now runs scripts/Remove-PlatformPipeline.ps1 for the identity and its roles." |
+            Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
+          exit 0

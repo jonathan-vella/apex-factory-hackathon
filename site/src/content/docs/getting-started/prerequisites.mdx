@@ -10,8 +10,10 @@ import PrepTimeline from "../../../components/PrepTimeline.astro";
 :::danger[C0 is mandatory pre-work: finish it before the event]
 This page and [C0: Ready to hack](../../challenges/c00-ready-to-hack/) are **not** event-day tasks. Every attendee, including the platform lead, completes both **before the event starts**. The two deadlines count back from day one of the event: **T-14** is 14 days before it and **T-3** is 3 days before it.
 
-- **By T-14:** this page, plus C0's preflight.
+- **By T-14:** this page, plus C0's preflight. Then send the event owner the values for the roster (see the settings step below).
 - **By T-3:** the datacenter is deployed, `Test-Datacenter.ps1` passes for you (run before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and you have a fully set up `vm-dev01` (C0 task 7), with Copilot working in VS Code.
+
+Your platform lead vends your subscription at T-1, after a coach has reviewed your C0 output. Keep both VMs running then.
 
 If you arrive without a deployed, Arc-connected datacenter (`vm-app01` and `vm-dev01`), you can't take part in the event's challenges, because every one of them builds on it. C0 takes about 150 minutes, plus about 30 for the VM setup, and the deployments run unattended for part of that. Raise any blocker with your coach now. The [event overview](../event-overview/#pre-work) has the full T-14 and T-3 gates.
 :::
@@ -45,7 +47,7 @@ Your evidence lives in your own repo, under `factory/evidence/`; you set that up
 | Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group). If it's eligible through Privileged Identity Management (PIM, which grants a role for a limited time after you activate it), [activate it first](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles). Preflight fails without it, and vending and the Arc script assume it. There is no fallback: Contributor, with or without Resource Policy Contributor, doesn't pass. If your organization blocks Owner, raise it with your coach well before T-14. |
 | MFA | Registered for your Azure identity. Set it up at [aka.ms/mysecurityinfo](https://aka.ms/mysecurityinfo) if it isn't. |
 | Region quota | Enough regional vCPU quota in `swedencentral` for two Standard_D8as_v6 VMs (8 vCPU each: `vm-app01` and `vm-dev01`), and quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. You check the vCPU quota later on this page; for the other two, open your subscription in the Azure portal, choose **Usage + quotas** and filter by `swedencentral`. |
-| Platform lead only | A **second** subscription (shared services) plus Owner at Tenant Root, which is the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for the Owner assignment to be possible, so ask for it early. The platform lead is also a member: they still need their own workload subscription, and do C0 on it like everyone else. |
+| Platform lead only | A **second** subscription (shared services) plus Owner at Tenant Root, which is the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for the Owner assignment to be possible, so ask for it early: you deploy ALZ-lite at T-7. The platform lead is also a member: they still need their own workload subscription, and do C0 on it like everyone else. |
 
 ## Install on your machine
 
@@ -83,6 +85,10 @@ Allow outbound HTTPS to these hosts:
 ## Create your repo and import the kit
 
 1. Open the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template, choose **Use this template** > **Create a new repository**, set the owner to your partner org, and make it **Private**. Then add your coach as a collaborator (**Settings** > **Collaborators**), so they can read your evidence. That also confirms you can create private repos in the partner's org (manual check 9).
+
+   :::caution[Ignore the template's own README]
+   Your new repo opens on the template's README, which has its own Quick Start. Follow this page instead. From that README you need only repo creation (the step above) and opening the dev container (steps 2 and 3 below). **Don't run** `npm run setup` (it creates an Entra app registration with Reader at your management group and Contributor on your subscription), **don't** change the Actions pull request permission, and **don't** run the Weekly Maintenance or Governance Policy Baseline workflows. The kit doesn't use them. `npm run init` is optional and harmless. Because those workflows aren't set up, the template's scheduled workflows may show failed runs on Mondays: ignore them. If you work for Microsoft and the container build fails on package feeds, start VS Code with the template's `.devcontainer/open-microsoft.ps1` launcher (see that README); partners don't need it.
+   :::
 2. Clone it with VS Code. On Windows 11, press `F1` > `WSL: Connect to WSL` first, so VS Code runs inside Ubuntu. Then press `F1` > `Git: Clone`, choose **Clone from GitHub**, sign in when VS Code asks, pick your repo and a folder in your home folder, and choose **Open** when VS Code offers it. VS Code signs you in to GitHub for you; there is no password prompt.
 3. When VS Code offers it, choose **Reopen in Container** (or press `F1` > `Dev Containers: Reopen in Container`). The first build takes about 10 minutes. It's done when a terminal prompt appears in the dev container. If the build fails, see [Troubleshooting](../../reference/troubleshooting/#prerequisites).
 4. In the dev container terminal, at the repo root, import the kit. Paste these three lines as they are:
@@ -94,7 +100,7 @@ Allow outbound HTTPS to these hosts:
    ```
 
    This creates `factory/` (scripts, infra, app, db, templates, archetype) and imports the CoE archetype's APEX project into the repo root. It refuses to overwrite an existing `factory/` unless you add `-Force`. If a run fails, the third line has already deleted the script, so repeat all three lines, and add `-Force` to the second one (`pwsh ./Import-Kit.ps1 -Force`) when the script says `factory/` exists (a failed run can leave a partial one). `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
-5. Commit the result to a new branch. Don't use `/apex-git-commit` for this: it skips `agent-output/` and `infra/`, which hold the imported archetype, and it won't commit on `main`. If Copilot Chat asks you to sign in, do it from the Accounts menu at the bottom left of VS Code. Then paste this prompt into Copilot Chat in Agent mode:
+5. Set your git identity in the dev container, once: `git config --global user.name "<your name>"` and `git config --global user.email "<your email>"`. A new dev container has none, and the commit fails with "Author identity unknown" without it. Commit the result to a new branch, never to `main`. If you commit by hand instead of with the prompt below, run `git switch -c feat/import-kit` first and check that `git branch --show-current` does not print `main` before you run `git commit`. Don't use `/apex-git-commit` for this: it skips `agent-output/` and `infra/`, which hold the imported archetype, and it won't commit on `main`. If Copilot Chat asks you to sign in, do it from the Accounts menu at the bottom left of VS Code. Then paste this prompt into Copilot Chat in Agent mode:
 
    ```text
    Commit and push all my changes to a new branch. Do not use the apex-git-commit skill or its path exclusions: I want every change committed, including agent-output/, infra/ and factory/.
@@ -110,7 +116,7 @@ Allow outbound HTTPS to these hosts:
    6. Push with `git push -u origin <branch>`, then show me the commit hash, the branch name and the number of files committed.
    ```
 
-   The import keeps `factory/` out of the repo's linters and formatters (ESLint, Prettier, markdownlint) and out of the weekly upstream sync, so the commit hook doesn't check the kit's files. Later commits that touch the Bicep hit the same two `iac-security-baseline` findings; the prompt handles them the same way.
+   The import keeps `factory/` out of the repo's linters and formatters (ESLint, Prettier, markdownlint) and out of the weekly upstream sync, so the commit hook doesn't check the kit's files. It also excludes the imported archetype (`infra/bicep/university`) from the template's `iac-security-baseline` hook, because the archetype's two accepted lab findings (Key Vault purge protection off, public web app) would otherwise block every commit that touches it. Other Bicep and Terraform you add stay checked. If you imported before this change, or the hook still blocks a commit that only touches the archetype, re-run the import with `-Force` or use the prompt's exception: the prompt handles those two findings by itself.
 
 Done when `ls factory` in the dev container lists `scripts`, `infra`, `app`, `db`, `templates` and `archetype`, and your `feat/...` branch and its commit are on GitHub.
 
@@ -133,7 +139,7 @@ az account set --subscription '<subscription-id>'
 az account show --output table
 ```
 
-If `--use-device-code` is blocked in your tenant, run `az login --tenant '<tenant-id>'` and finish the sign-in in the browser window that opens. Check that `az account show` prints your workload subscription: `Initialize-Settings.ps1` offers whatever is selected, and a wrong choice only shows up in C0.
+If `--use-device-code` is blocked in your tenant, run `az login --tenant '<tenant-id>'` and finish the sign-in in the browser window that opens. Check that `az account show` prints your workload subscription: `Initialize-Settings.ps1` offers whatever is selected, and a wrong choice only shows up in C0. Compare the **subscription ID** (`az account show --query id -o tsv`) with the one in the portal, not the name: the CLI caches names, so a renamed subscription can show its old name for a while. `az account list --refresh --output table` updates them.
 
 Then sign in to GitHub so `git push` and `gh` commands work in the container. Choose **GitHub.com**, **HTTPS** and **Login with a web browser**: `gh` prints a one-time code, which you enter at `github.com/login/device` on your own computer. The `gh auth login` flags answer those questions for you:
 
@@ -148,9 +154,11 @@ The script asks for five things: your tenant ID and workload subscription ID (it
 
 **Member index:** your coach assigns you a number from 1 to 20 from the event roster, unique within your team. Ask your coach if you don't have one; don't pick your own. It isn't the same as the six-character suffix the script generates for you. Later pages show these two values as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
 
-**Shared services subscription (members):** press Enter to skip it for now. The platform lead shares its ID in the team channel at the start of C2, and you add it then by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`. Re-running never changes your other values.
+**Shared services subscription (members):** press Enter to skip it for now. The platform lead shares its ID in the team channel when they vend you at T-1, and you add it by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'` (C2 task 1). Re-running never changes your other values.
 
-**Shared services subscription (platform lead):** enter it now (**Subscriptions** in the portal has the ID). C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not on day one.
+**Shared services subscription (platform lead):** enter it now (**Subscriptions** in the portal has the ID). The script prints its name on a `Shared:` line: check that it is your shared services subscription and not another one you own. C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not at T-7, when you deploy ALZ-lite.
+
+**Roster values:** once preflight is green, send the event owner these four values in the private event channel, never in a repo or issue: your workload subscription ID (`$s.subscriptionId`), your member index (`$s.memberIndex`), your Entra object ID (`az ad signed-in-user show --query id -o tsv`) and your work email. The platform lead needs them to vend you at T-1.
 
 `factory/.local/` is git-ignored: your IDs never go to GitHub. Run every script from the `factory/` folder.
 

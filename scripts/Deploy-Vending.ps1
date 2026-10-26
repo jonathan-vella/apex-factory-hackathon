@@ -33,6 +33,8 @@ The member index n, 1-20.
 The Azure region. Fallback: germanywestcentral.
 .PARAMETER MgPrefix
 Prefix of the kit's management groups, as passed to Deploy-AlzLite.ps1.
+.PARAMETER ParentManagementGroupId
+The management group the kit's groups sit under, as passed to Deploy-AlzLite.ps1. Empty means Tenant Root. The script also accepts a service principal or managed identity (a pipeline).
 .PARAMETER MemberPrincipalId
 Object ID of the member (user or group), who gets Owner on the workload subscription, Reader on the shared
 services subscription and Managed Identity Operator on id-sqlmi-directory, so the archetype can attach it
@@ -68,6 +70,8 @@ param(
     [string] $Location = 'swedencentral',
     [ValidatePattern('^[A-Za-z0-9-]{2,40}$')]
     [string] $MgPrefix = 'mg-factory',
+    [ValidatePattern('^$|^[A-Za-z0-9._()-]{1,90}$')]
+    [string] $ParentManagementGroupId = '',
     [ValidatePattern('^$|^[0-9a-fA-F-]{36}$')]
     [string] $MemberPrincipalId = '',
     [ValidateRange(1, 1000000)]
@@ -93,7 +97,7 @@ function Invoke-AzureCli {
         $message = ($output | ForEach-Object { $_.ToString() }) -join ' '
         throw "Azure CLI '$operation' failed (exit $LASTEXITCODE): $message"
     }
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if ($text.Trim()) {
         return $text | ConvertFrom-Json
     }
@@ -111,19 +115,38 @@ function Get-OptionalResource {
         return Invoke-AzureCli -Arguments $Arguments
     }
     catch {
+        # Say why a lookup failed, with IDs masked: a silent null looks like a missing hub.
+        $reason = ($_.Exception.Message -replace '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<id>')
+        Write-Warning "Lookup '$($Arguments | Select-Object -First 3 | Join-String -Separator ' ')' failed: $($reason.Substring(0, [Math]::Min(300, $reason.Length)))"
         return $null
     }
 }
 
-function Assert-TenantRootOwner {
-    param([string] $TenantId)
-    $scope = "/providers/Microsoft.Management/managementGroups/$TenantId"
-    $userId = (Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show')).id
-    $roles = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--assignee', $userId, '--scope', $scope,
-            '--include-inherited', '--include-groups') | ForEach-Object { $_.roleDefinitionName })
+function Get-CallerRoleName {
+    param([string] $Scope)
+    $account = Invoke-AzureCli -Arguments @('account', 'show')
+    if ($account.user.type -ne 'servicePrincipal') {
+        $userId = (Invoke-AzureCli -Arguments @('ad', 'signed-in-user', 'show')).id
+        return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--assignee', $userId, '--scope', $Scope,
+                '--include-inherited', '--include-groups') | ForEach-Object { $_.roleDefinitionName })
+    }
+    # A service principal or managed identity (a pipeline): take its object ID from the ARM token, so no Microsoft Graph call is needed.
+    $token = Invoke-AzureCli -Arguments @('account', 'get-access-token', '--resource', 'https://management.azure.com/', '--query', 'accessToken')
+    $payload = $token.Split('.')[1].Replace('-', '+').Replace('_', '/')
+    $payload += '=' * ((4 - $payload.Length % 4) % 4)
+    $objectId = ([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json).oid
+    return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $Scope, '--include-inherited') |
+            Where-Object { $_.principalId -eq $objectId } | ForEach-Object { $_.roleDefinitionName })
+}
+
+function Assert-ParentOwner {
+    param([string] $TenantId, [string] $ParentId)
+    $scope = "/providers/Microsoft.Management/managementGroups/$ParentId"
+    $where = if ($ParentId -eq $TenantId) { 'the Tenant Root management group' } else { "the management group '$ParentId'" }
+    $roles = @(Get-CallerRoleName -Scope $scope)
     if ($roles -notcontains 'Owner') {
         throw @"
-You need Owner at the Tenant Root management group to move the workload subscription and write to
+You need Owner at $where to move the workload subscription and write to
 both subscriptions. You have: $(if ($roles) { $roles -join ', ' } else { 'no role' }).
 The platform lead runs vending; see scripts/Deploy-AlzLite.ps1 for how to get the role.
 "@
@@ -132,16 +155,17 @@ The platform lead runs vending; see scripts/Deploy-AlzLite.ps1 for how to get th
 
 $account = Invoke-AzureCli -Arguments @('account', 'show')
 $tenantId = $account.tenantId
+$parentId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { $tenantId }
 $null = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $WorkloadSubscriptionId)
 $null = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $SharedSubscriptionId)
-Assert-TenantRootOwner -TenantId $tenantId
+Assert-ParentOwner -TenantId $tenantId -ParentId $parentId
 
 # The hub, by the ALZ-lite names.
 $hubVnet = Get-OptionalResource -Arguments @('network', 'vnet', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-hub', '-n', 'vnet-hub')
 $firewall = Get-OptionalResource -Arguments @('resource', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-hub', '-n', 'afw-hub',
-    '--resource-type', 'Microsoft.Network/azureFirewalls')
+    '--resource-type', 'Microsoft.Network/azureFirewalls', '--api-version', '2024-05-01')
 $workspace = Get-OptionalResource -Arguments @('resource', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-management', '-n', 'log-management',
-    '--resource-type', 'Microsoft.OperationalInsights/workspaces')
+    '--resource-type', 'Microsoft.OperationalInsights/workspaces', '--api-version', '2025-07-01')
 $sqlMiIdentity = Get-OptionalResource -Arguments @('identity', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-management', '-n', 'id-sqlmi-directory')
 if (-not ($hubVnet -and $firewall -and $workspace -and $sqlMiIdentity)) {
     throw 'The hub is incomplete in the shared services subscription (vnet-hub, afw-hub, log-management or id-sqlmi-directory missing). Run scripts/Deploy-AlzLite.ps1 first.'
@@ -208,7 +232,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "vending-$([guid]:
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
 
-$deploymentArgs = @('--management-group-id', $tenantId, '--name', "vending-$MgPrefix-$MemberIndex", '--location', $Location,
+$deploymentArgs = @('--management-group-id', $parentId, '--name', "vending-$MgPrefix-$MemberIndex", '--location', $Location,
     '--template-file', $template, '--parameters', "@$parametersFile")
 try {
     if (-not $PSCmdlet.ShouldProcess("workload subscription of member $MemberIndex", 'Vend and connect to the hub')) {

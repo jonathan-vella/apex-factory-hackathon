@@ -13,7 +13,7 @@ soft-deleted Key Vault.
 The team scope discovers workload subscriptions only as direct children of <MgPrefix>-corp and the
 shared subscription only as a direct child of <MgPrefix>-platform. It removes named vending and policy
 artifacts, deletes rg-hub and the log-management workspace, preserves rg-management/id-sqlmi-directory
-and its Microsoft Graph grant, moves the discovered subscriptions to the return management group, and
+and its Microsoft Graph grant (unless -IncludeManagementResources), moves the discovered subscriptions to the return management group, and
 deletes only <MgPrefix>-corp, <MgPrefix>-platform and <MgPrefix>. It refuses to delete those groups
 if unexpected children remain. The active Azure CLI tenant must match the shared-services subscription.
 
@@ -30,11 +30,15 @@ The workload subscription for -Scope Member.
 .PARAMETER MemberIndex
 The member index, 1-20, for -Scope Member.
 .PARAMETER Suffix
-The archetype suffix, 4-6 lowercase letters or digits, for -Scope Member.
+The archetype suffix, 4-6 lowercase letters or digits, for -Scope Member. Without it, every rg-university-<suffix>
+group in the member's subscription is treated as that member's archetype (the pipeline doesn't know the suffix).
 .PARAMETER SharedSubscriptionId
 The team's shared-services subscription for -Scope Team.
 .PARAMETER MgPrefix
 The kit management-group prefix for -Scope Team. Defaults to mg-factory.
+.PARAMETER IncludeManagementResources
+For -Scope Team: also delete rg-management, with id-sqlmi-directory, which a normal lab keeps on purpose. Use it only
+for a lab you tear down completely. The Microsoft Graph grant on the identity is removed with it; a new identity needs a new grant.
 .PARAMETER ReturnManagementGroupId
 Management-group name to return the kit subscriptions to. Defaults to Tenant Root.
 .PARAMETER Location
@@ -60,6 +64,7 @@ param(
     [ValidatePattern('^[A-Za-z0-9-]{2,40}$')]
     [string] $MgPrefix = 'mg-factory',
     [string] $ReturnManagementGroupId,
+    [switch] $IncludeManagementResources,
     [string] $Location = 'swedencentral',
     [switch] $Force
 )
@@ -79,7 +84,8 @@ function Invoke-AzureCli {
         throw "Azure CLI '$operation' failed (exit $LASTEXITCODE): $detail"
     }
 
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    # Warnings arrive on stderr; keep them out of the JSON.
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if (-not $text.Trim()) {
         return $null
     }
@@ -109,7 +115,8 @@ function Get-DirectSubscription {
     param([Parameter(Mandatory)][string] $ManagementGroupName)
 
     $managementGroup = Invoke-AzureCli -Arguments @('account', 'management-group', 'show', '--name', $ManagementGroupName, '--expand')
-    $children = @($managementGroup.children)
+    # An empty group has no children property: @($null) would count as one unexpected child.
+    $children = @($managementGroup.children | Where-Object { $_ })
     $unexpected = @($children | Where-Object { $_.type -notmatch 'subscription' })
     if ($unexpected.Count -gt 0) {
         throw "Management group '$ManagementGroupName' contains a child management group or an unexpected child. Review it manually; it will not be moved or deleted."
@@ -250,26 +257,34 @@ if ($Scope -eq 'Member') {
     if ($MemberIndex -lt 1 -or $MemberIndex -gt 20) {
         throw 'For -Scope Member, -MemberIndex must be between 1 and 20.'
     }
-    if ($Suffix -notmatch '^[a-z0-9]{4,6}$') {
+    if ($Suffix -and $Suffix -cnotmatch '^[a-z0-9]{4,6}$') {
         throw 'For -Scope Member, -Suffix must contain 4-6 lowercase letters or digits.'
     }
 
     $null = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $SubscriptionId)
-    $archetypeGroup = "rg-university-$Suffix"
-    $vaultName = "kv-university-$Suffix"
-    $archetypeLocation = $Location
-
-    if (Test-ResourceGroup -TargetSubscription $SubscriptionId -Name $archetypeGroup) {
-        $resourceGroup = Invoke-AzureCli -Arguments @('group', 'show', '--subscription', $SubscriptionId, '--name', $archetypeGroup)
-        if ($resourceGroup.location) {
-            $archetypeLocation = $resourceGroup.location
+    # With -Suffix, only that archetype; without it, every rg-university-<suffix> group in this member's subscription.
+    $archetypes = [System.Collections.Generic.List[object]]::new()
+    $existingGroups = @(Invoke-AzureCli -Arguments @('group', 'list', '--subscription', $SubscriptionId))
+    $archetypeNames = @($existingGroups | ForEach-Object { $_.name } | Where-Object {
+        $_ -cmatch '^rg-university-[a-z0-9]{4,6}$' -and (-not $Suffix -or $_ -ceq "rg-university-$Suffix")
+    })
+    $suffixes = if ($Suffix) { @($Suffix) } else { @($archetypeNames | ForEach-Object { $_.Substring('rg-university-'.Length) }) }
+    $deletedVaults = @(Invoke-AzureCli -Arguments @('keyvault', 'list-deleted', '--subscription', $SubscriptionId))
+    foreach ($item in $suffixes) {
+        $archetypeLocation = $Location
+        $archetypeGroup = "rg-university-$item"
+        $vaultName = "kv-university-$item"
+        if ($archetypeGroup -in $archetypeNames) {
+            $resourceGroup = Invoke-AzureCli -Arguments @('group', 'show', '--subscription', $SubscriptionId, '--name', $archetypeGroup)
+            if ($resourceGroup.location) {
+                $archetypeLocation = $resourceGroup.location
+            }
+            Add-CleanupPlan "Delete resource group $archetypeGroup in the member workload subscription, then purge only its matching soft-deleted Key Vault if present."
         }
-        Add-CleanupPlan "Delete resource group $archetypeGroup in the member workload subscription, then purge only its matching soft-deleted Key Vault if present."
-    }
-    $deletedArchetypeVaults = @(Invoke-AzureCli -Arguments @('keyvault', 'list-deleted', '--subscription', $SubscriptionId) |
-        Where-Object { $_.name -eq $vaultName })
-    if ($deletedArchetypeVaults.Count -gt 0) {
-        Add-CleanupPlan "Purge only the matching soft-deleted Key Vault $vaultName."
+        if (@($deletedVaults | Where-Object { $_.name -eq $vaultName }).Count -gt 0) {
+            Add-CleanupPlan "Purge only the matching soft-deleted Key Vault $vaultName."
+        }
+        [void] $archetypes.Add([pscustomobject]@{ Group = $archetypeGroup; Vault = $vaultName; Location = $archetypeLocation })
     }
 
     if (Test-ResourceGroup -TargetSubscription $SubscriptionId -Name 'rg-spoke') {
@@ -483,6 +498,9 @@ else {
         Add-CleanupPlan 'Delete the kit-owned rg-hub after removing the named firewall rules and peerings.'
     }
 
+    if ($managementGroupExists -and $IncludeManagementResources) {
+        Add-CleanupPlan 'Delete rg-management with id-sqlmi-directory and the log-management workspace (-IncludeManagementResources).'
+    }
     $workspaceResources = @()
     if ($managementGroupExists) {
         $workspaceResources = @(Invoke-AzureCli -Arguments @(
@@ -545,8 +563,10 @@ if ($Scope -eq 'Member') {
         }
     }
 
-    Invoke-ResourceGroupDeletionAndWait -TargetSubscription $SubscriptionId -Name "rg-university-$Suffix"
-    Invoke-SoftDeletedArchetypeVaultPurge -TargetSubscription $SubscriptionId -VaultName "kv-university-$Suffix" -FallbackLocation $archetypeLocation
+    foreach ($archetype in $archetypes) {
+        Invoke-ResourceGroupDeletionAndWait -TargetSubscription $SubscriptionId -Name $archetype.Group
+        Invoke-SoftDeletedArchetypeVaultPurge -TargetSubscription $SubscriptionId -VaultName $archetype.Vault -FallbackLocation $archetype.Location
+    }
     Wait-ForSqlSubnetRelease -TargetSubscription $SubscriptionId
     Invoke-ResourceGroupDeletionAndWait -TargetSubscription $SubscriptionId -Name 'rg-spoke'
     Invoke-ResourceGroupDeletionAndWait -TargetSubscription $SubscriptionId -Name 'rg-datacenter'
@@ -608,7 +628,8 @@ foreach ($group in $firewallGroups) {
         '--subscription', $SharedSubscriptionId,
         '--resource-group', 'rg-hub',
         '--policy-name', 'afwp-hub',
-        '--name', $group.name
+        '--name', $group.name,
+        '--yes'
     )
 }
 foreach ($peering in $hubPeerings) {
@@ -624,6 +645,9 @@ foreach ($workspace in $workspaceResources) {
     $null = Invoke-AzureCli -Arguments @('resource', 'delete', '--ids', $workspace.id)
 }
 Invoke-ResourceGroupDeletionAndWait -TargetSubscription $SharedSubscriptionId -Name 'rg-hub'
+if ($IncludeManagementResources) {
+    Invoke-ResourceGroupDeletionAndWait -TargetSubscription $SharedSubscriptionId -Name 'rg-management'
+}
 
 foreach ($targetSubscription in $teamSubscriptions) {
     $null = Invoke-AzureCli -Arguments @(
@@ -644,10 +668,11 @@ foreach ($managementGroupName in @($corpGroupName, $platformGroupName)) {
 }
 if ($managementGroupNames -contains $rootGroupName) {
     $remainingRoot = Invoke-AzureCli -Arguments @('account', 'management-group', 'show', '--name', $rootGroupName, '--expand')
-    if (@($remainingRoot.children).Count -gt 0) {
+    if (@($remainingRoot.children | Where-Object { $_ }).Count -gt 0) {
         throw "Kit management group '$rootGroupName' still has children. It was not deleted."
     }
     $null = Invoke-AzureCli -Arguments @('account', 'management-group', 'delete', '--name', $rootGroupName)
 }
 
-Write-Output 'Team cleanup completed. rg-management and id-sqlmi-directory were preserved. Work through the verification checklist in facilitator/cleanup.md in the kit repository (it is not copied into factory/).'
+$kept = if ($IncludeManagementResources) { 'rg-management and id-sqlmi-directory were removed.' } else { 'rg-management and id-sqlmi-directory were preserved.' }
+Write-Output "Team cleanup completed. $kept Work through the verification checklist in facilitator/cleanup.md in the kit repository (it is not copied into factory/)."

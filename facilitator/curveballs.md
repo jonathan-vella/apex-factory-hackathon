@@ -2,9 +2,9 @@
 
 The coach controls both exercises. Announce the trigger, give teams only the information below, and record the evidence in the normal challenge rubric. Curveballs do not change the base points on the challenge pages; eligible bonus evidence still uses the shared 30-point ceiling.
 
-## Day 1: a deny policy lands during the build
+## Day 1: a deny policy lands on the existing foundation
 
-**Trigger:** during C2, after ALZ-lite is deployed and the members are vended, and before the first archetype resource is provisioned.
+**Trigger:** during C2 on Day 1, after the team has walked through the foundation and its core policies (C2 task 3) and the members have run their probes (task 7), and before the first archetype resource is provisioned. The foundation has existed since T-7 and every member has been vended since T-1, so this shows how a new policy lands on a landing zone that is already running.
 
 **Coach action:** assign the built-in Allowed locations policy with Deny effect at the kit's Corp management group. The golden path uses `swedencentral` or the documented `germanywestcentral` fallback, plus `global` where required, so compliant deployments continue. A shortcut that silently selects another region is denied.
 
@@ -22,7 +22,7 @@ The parameters and scope are examples for the default `mg-factory` prefix. If th
 
 **Team task:** the coach asks the platform lead to try creating any small resource, for example a storage account, in a region outside the approved list (such as westeurope) in a vended subscription. Capture the denial message and its location, explain why the golden path is compliant, and keep the selected approved region instead of weakening or bypassing the policy. Capture the policy assignment and the resulting decision in the C2 evidence.
 
-**Evidence and points:** the denial belongs with the C2 policy evidence, which is worth 10 team points. It earns no bonus on its own. The C2 bonus is the negative tests on the C2 page (a public storage account denied, a NIC with a public IP denied, a private endpoint registering in the central DNS zone), under the shared bonus cap.
+**Evidence and points:** the denial belongs with the C2 policy evidence, which is part of the first C2 row (10 team points). It earns no bonus on its own. The C2 bonus is the negative tests on the C2 page (a container registry with public network access denied, a NIC with a public IP denied, a private endpoint registering in the central DNS zone), under the shared bonus cap.
 
 **Reverse after sign-off:** remove only `curveball-allowed-locations` from the same `mg-factory-corp` scope:
 

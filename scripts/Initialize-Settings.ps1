@@ -132,6 +132,16 @@ if ($account) {
         Write-Warning "Your az login can't see subscription $SubscriptionId. Check the ID, or run: az login --tenant <tenant-id>, then az account set --subscription <subscription-id>."
     }
 
+    if ($SharedSubscriptionId) {
+        $sharedJson = & az account show --subscription $SharedSubscriptionId --output json 2>$null
+        if ($LASTEXITCODE -eq 0 -and $sharedJson) {
+            Write-Information "Shared:       $(($sharedJson | ConvertFrom-Json).name) ($SharedSubscriptionId)" -InformationAction Continue
+        }
+        else {
+            Write-Warning "Your az login can't see the shared services subscription $SharedSubscriptionId. Check the ID."
+        }
+    }
+
     $fromAzDefaults = -not $current['subscriptionId'] -and
         -not $PSBoundParameters.ContainsKey('SubscriptionId') -and -not $PSBoundParameters.ContainsKey('TenantId') -and
         ($SubscriptionId -eq $account.id -or $TenantId -eq $account.tenantId)

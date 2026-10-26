@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-This guide covers the mechanics of the kit's landing zone. [C2](../../challenges/c02-secure-ai-ready-foundation/) is the what, the commands and the acceptance bar.
+This guide covers the mechanics of the kit's landing zone. [C2](../../challenges/c02-secure-ai-ready-foundation/) is the what, the commands the platform lead runs before the event, and the acceptance bar for the day-one walk-through.
 
 ## The two-subscription model
 
@@ -24,7 +24,7 @@ In most tenants nobody has that role by default. A Global Administrator first el
 
 ## What the deploy creates
 
-`Deploy-AlzLite.ps1` deploys at Tenant Root, against the shared services subscription. Run it with `-WhatIf` first to see the changes without deploying. [C2](../../challenges/c02-secure-ai-ready-foundation/) has the commands.
+`Deploy-AlzLite.ps1` deploys at Tenant Root, against the shared services subscription. The platform lead runs it at T-7, before the event. Run it with `-WhatIf` first to see the changes without deploying. [C2](../../challenges/c02-secure-ai-ready-foundation/#before-the-event) has the commands.
 
 - **Management groups:** `mg-factory` under Tenant Root, with `mg-factory-platform` (holds the shared services subscription) and `mg-factory-corp` (holds the members' workload subscriptions) beneath it. `-MgPrefix` changes the `mg-factory` prefix, so several kits can share a tenant.
 - **`rg-management`:** the `log-management` workspace (30-day retention) and the identity `id-sqlmi-directory`.
@@ -39,11 +39,11 @@ By default the deploy turns every paid Defender for Cloud plan off on the shared
 
 :::
 
-Vending then connects each member's workload subscription and datacenter to the hub. See [C2](../../challenges/c02-secure-ai-ready-foundation/) for the command and the [naming and IP plan](../../reference/naming-and-ip-plan/) for the addresses.
+Vending then connects each member's workload subscription and datacenter to the hub. The platform lead runs it at T-1, after each member's `vm-dev01` setup and the coach's C0 review, because it changes the datacenter's DNS to the hub firewall. See [C2](../../challenges/c02-secure-ai-ready-foundation/#before-the-event) for the command and the [naming and IP plan](../../reference/naming-and-ip-plan/) for the addresses.
 
 ## One step that needs a directory role
 
-ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up the web app's identity in C7. Once per team, right after `Deploy-AlzLite.ps1`, someone with the **Privileged Role Administrator** (or Global Administrator) Microsoft Entra directory role grants it Microsoft Graph read permissions (the three read-only application permissions that let SQL Managed Instance look up Entra users and apps) with `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <shared-services-subscription-id>`. The platform lead usually doesn't hold that role, so it's a platform lead task done with a role holder: the platform lead asks the coach, who brings that person. The role holder runs the script from their own computer, in the kit's `factory/` folder, signed in as themselves, not in the platform lead's signed-in terminal. The grant is tenant-wide and read-only, and members can attach the identity to other resources during the event, so tell your coach before you ask for it: the coach agrees it with the tenant owner and the event owner, who also arrange for the identity to be deleted afterward ([details](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)). [C2](../../challenges/c02-secure-ai-ready-foundation/) has the exact step.
+ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up the web app's identity in C7. Once per team, right after `Deploy-AlzLite.ps1`, someone with the **Privileged Role Administrator** (or Global Administrator) Microsoft Entra directory role grants it Microsoft Graph read permissions (the three read-only application permissions that let SQL Managed Instance look up Entra users and apps) with `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <shared-services-subscription-id>`. The platform lead usually doesn't hold that role, so it's a platform lead task done with a role holder: the event owner books that person for T-7, and they run it right after ALZ-lite. The role holder runs the script from their own computer, in the kit's `factory/` folder, signed in as themselves, not in the platform lead's signed-in terminal. The grant is tenant-wide and read-only, and members can attach the identity to other resources during the event, so the event owner agrees it with the tenant owner first, and they also arrange for the identity to be deleted afterward ([details](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)). [C2](../../challenges/c02-secure-ai-ready-foundation/#before-the-event) has the exact step, and the team checks the grant on day one.
 
 ## Fixed values
 

@@ -9,10 +9,14 @@ public repo; it needs api.github.com and codeload.github.com through the firewal
 infra/, archetype/, app/, db/, templates/, .github/modernization/ and .github/skills/
 into <Destination>/factory/. It then imports the archetype's APEX project into the repo root by
 running factory/archetype/Import-Archetype.ps1 at the same -Ref (skip with -SkipArchetype).
-factory/.gitignore keeps factory/.local/ (your subscription IDs) out of git. It also keeps factory/ out of the repo's
+factory/.gitignore keeps factory/.local/ (your subscription IDs) out of git. It also installs the platform pipeline's
+workflows and actions in the repo's .github/ (they run the kit from factory/; set up with Initialize-PlatformPipeline.ps1). It also keeps factory/ out of the repo's
 ESLint, Prettier and markdownlint checks (a nested factory/eslint.config.mjs and factory/.markdownlint-cli2.jsonc, plus a
 factory/ line in .prettierignore) and adds factory/ and .prettierignore to the weekly upstream sync's EXCLUDE_PATHS, so
-neither the pre-commit hooks nor the sync touch the kit.
+neither the pre-commit hooks nor the sync touch the kit. With the archetype, it also excludes infra/bicep/university from the
+template's iac-security-baseline hook (a lefthook.yml exclude, kept out of the sync), because the archetype's two accepted
+lab findings (Key Vault purge protection off, the public web app) would otherwise block every commit that touches it; other
+Bicep and Terraform stay checked.
 Refuses to overwrite an existing factory/ folder unless -Force. -Force replaces only the imported kit
 folders: factory/.local (your settings, suffix and datacenter credentials) and your archetype work in the
 repo root are kept, unless you also pass -ReplaceArchetype. The site, docs, backlog and coach
@@ -83,6 +87,28 @@ function Add-SyncExclusion {
     $newLines = @($lines[0..$end]) + @($missing | ForEach-Object { "$indent$_" }) + @($lines[($end + 1)..($lines.Count - 1)])
     Set-Content -Path $Path -Value ($newLines -join $newline) -NoNewline
     Write-Host "Added $($missing -join ', ') to EXCLUDE_PATHS in weekly-upstream-sync.yml."
+}
+
+function Add-HookExclusion {
+    # The imported CoE archetype carries two accepted lab findings that the template's iac-security-baseline
+    # pre-commit hook rejects (Key Vault purge protection off, public web app). Keep the archetype out of that
+    # hook's trigger glob, idempotently; any other Bicep or Terraform stays checked.
+    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string]$Exclude)
+
+    if (-not (Test-Path $Path)) { Write-Warning "lefthook.yml was not found. Commits that touch $Exclude may fail the iac-security-baseline hook; use LEFTHOOK_EXCLUDE=iac-security-baseline for those commits."; return }
+    $raw = Get-Content -Path $Path -Raw
+    $newline = if ($raw -match "`r`n") { "`r`n" } else { "`n" }
+    $text = $raw -replace "`r`n", "`n"
+    $pattern = '(?m)^(?<indent>[ \t]+)iac-security-baseline:\n(?<body>(?:\k<indent>[ \t]+[^\n]*\n|[ \t]*\n)*)'
+    $match = [regex]::Match($text, $pattern)
+    if (-not $match.Success) { Write-Warning "lefthook.yml has no iac-security-baseline command. Nothing to exclude."; return }
+    if ($match.Groups['body'].Value -match "(?m)^\s+exclude:") { return }
+    $glob = [regex]::Match($match.Groups['body'].Value, '(?m)^(?<pad>[ \t]+)glob:[^\n]*\n')
+    if (-not $glob.Success) { Write-Warning "The iac-security-baseline command in lefthook.yml has no glob line. Nothing to exclude."; return }
+    $insertAt = $match.Groups['body'].Index + $glob.Index + $glob.Length
+    $text = $text.Insert($insertAt, "$($glob.Groups['pad'].Value)exclude: `"$Exclude`"`n")
+    Set-Content -Path $Path -Value $text.Replace("`n", $newline) -NoNewline
+    Write-Information "Excluded $Exclude from the iac-security-baseline hook in lefthook.yml." -InformationAction Continue
 }
 
 if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
@@ -178,6 +204,38 @@ export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }]
         # The weekly upstream sync removes everything upstream doesn't have, except EXCLUDE_PATHS: without
         # factory/ there, it deletes the kit; without .prettierignore, it reverts the line added above.
         Add-SyncExclusion -Path (Join-Path $Destination '.github/workflows/weekly-upstream-sync.yml') -Entries @('factory/', '.prettierignore')
+
+        # The platform pipeline's workflows must sit in the repo root .github/, not in factory/. They run the kit's
+        # scripts from factory/ (KIT_DIR), and the sync and Prettier must leave them alone.
+        $pipelineWorkflows = @(Get-ChildItem -Path (Join-Path $kitRoot '.github/workflows') -Filter 'platform*.yml' -File -ErrorAction SilentlyContinue)
+        if ($pipelineWorkflows.Count -gt 0) {
+            $workflowsTarget = Join-Path $Destination '.github/workflows'
+            New-Item -ItemType Directory -Path $workflowsTarget -Force | Out-Null
+            foreach ($workflow in $pipelineWorkflows) {
+                $text = (Get-Content -Path $workflow.FullName -Raw) -replace '(?m)^(\s*KIT_DIR:\s*)\.\s*$', '${1}factory'
+                # The VMs download their scripts from the public kit, not from the attendee's (possibly private) repo.
+                $text = $text -replace '(?m)^(\s*KIT_REPOSITORY:).*$', "`${1} $KitRepository"
+                $text = $text -replace '(?m)^(\s*KIT_REF:).*$', "`${1} $Ref"
+                Set-Content -Path (Join-Path $workflowsTarget $workflow.Name) -Value $text -NoNewline
+            }
+            foreach ($action in 'guard', 'platform-session') {
+                $actionTarget = Join-Path $Destination ".github/actions/$action"
+                if (Test-Path $actionTarget) { Remove-Item -Path $actionTarget -Recurse -Force }
+                New-Item -ItemType Directory -Path (Split-Path $actionTarget -Parent) -Force | Out-Null
+                Copy-Item -Path (Join-Path $kitRoot ".github/actions/$action") -Destination $actionTarget -Recurse -Force
+            }
+            $pipelineEntries = @($pipelineWorkflows | ForEach-Object { ".github/workflows/$($_.Name)" }) + @('.github/actions/guard/', '.github/actions/platform-session/')
+            Add-SyncExclusion -Path (Join-Path $Destination '.github/workflows/weekly-upstream-sync.yml') -Entries $pipelineEntries
+            if (Test-Path $prettierIgnore) {
+                $existing = Get-Content -Path $prettierIgnore -Raw
+                $missingIgnore = @($pipelineEntries | Where-Object { $existing -notmatch "(?m)^$([regex]::Escape($_))\s*$" })
+                if ($missingIgnore) {
+                    $lead = if ($existing.EndsWith("`n")) { '' } else { "`n" }
+                    Add-Content -Path $prettierIgnore -Value "${lead}`n# Platform pipeline (Import-Kit.ps1)`n$($missingIgnore -join "`n")`n" -NoNewline
+                }
+            }
+            Write-Information "Installed the platform pipeline workflows in .github/ (they run the kit from factory/). Set it up with ./scripts/Initialize-PlatformPipeline.ps1." -InformationAction Continue
+        }
     }
 
     if (-not $SkipArchetype) {
@@ -190,6 +248,12 @@ export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }]
             $archetypeArguments = @{ Ref = $Ref; Destination = $Destination; Force = $ReplaceArchetype }
             if ($KitRepository -ne 'jonathan-vella/apex-factory-hackathon') { $archetypeArguments['KitRepository'] = $KitRepository }
             & $archetypeImport @archetypeArguments
+        }
+
+        # Runs on a fresh import and on a re-run alike, since the hook is repo config and not part of the archetype copy.
+        if ((Test-Path (Join-Path $Destination 'infra/bicep/university')) -and $PSCmdlet.ShouldProcess((Join-Path $Destination 'lefthook.yml'), 'Exclude the archetype from the iac-security-baseline hook')) {
+            Add-HookExclusion -Path (Join-Path $Destination 'lefthook.yml') -Exclude 'infra/bicep/university/**'
+            Add-SyncExclusion -Path (Join-Path $Destination '.github/workflows/weekly-upstream-sync.yml') -Entries @('lefthook.yml')
         }
     }
 

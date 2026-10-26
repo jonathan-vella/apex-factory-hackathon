@@ -69,7 +69,7 @@ function Invoke-AzureCli {
         $operation = ($Arguments | Select-Object -First 3) -join ' '
         throw "Azure CLI '$operation' failed (exit $LASTEXITCODE)."
     }
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if ($text.Trim()) {
         return $text | ConvertFrom-Json
     }
@@ -147,7 +147,7 @@ function Test-Peering {
 
 Write-Output "Checking member $MemberIndex's connectivity through the hub. The in-VM checks take a few minutes."
 
-$firewall = Get-OptionalResource -Subscription $SharedSubscriptionId -Arguments @('resource', 'show', '-g', 'rg-hub', '-n', 'afw-hub', '--resource-type', 'Microsoft.Network/azureFirewalls')
+$firewall = Get-OptionalResource -Subscription $SharedSubscriptionId -Arguments @('resource', 'show', '-g', 'rg-hub', '-n', 'afw-hub', '--resource-type', 'Microsoft.Network/azureFirewalls', '--api-version', '2024-05-01')
 if (-not $firewall) {
     Add-Result -Check 'azure: afw-hub exists' -Pass $false -Detail 'not found in the shared services subscription. Deploy ALZ-lite first.'
 }
@@ -234,7 +234,7 @@ if ($results.Count -eq 0) {
         Role = 'app'; FirewallIp = $firewallIp; Zones = $zones; MiSubnet = $miSubnet
         MiHost = if ($mi) { $mi.fullyQualifiedDomainName } else { 'none' }
     }
-    $arcMachine = Get-OptionalResource -Arguments @('resource', 'show', '-g', $datacenterRg, '-n', 'vm-app01', '--resource-type', 'Microsoft.HybridCompute/machines')
+    $arcMachine = Get-OptionalResource -Arguments @('resource', 'show', '-g', $datacenterRg, '-n', 'vm-app01', '--resource-type', 'Microsoft.HybridCompute/machines', '--api-version', '2025-01-13')
     try {
         if ($arcMachine -and $arcMachine.properties.status -eq 'Connected') {
             Invoke-ArcProbe -MachineId $arcMachine.id -Location $arcMachine.location -Parameters $appParameters

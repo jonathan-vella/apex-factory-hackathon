@@ -5,7 +5,8 @@
 Checks an attendee's Azure prerequisites without deploying resources.
 .DESCRIPTION
 Reports automated and manual C0 checks. Only -Fix changes Azure: it registers
-missing resource providers and polls for up to 15 minutes per subscription, so run it once and wait.
+missing resource providers and the Microsoft.Network public IP feature, and polls for up to 15 minutes
+per subscription and step, so run it once and wait.
 -Fix does nothing while an earlier check (tools, sign-in, role, region) has a FAIL or the VM size is
 restricted; unregistered providers don't block it. The role check needs an unconditional Owner
 assignment: Contributor isn't accepted. Warnings and manual checks do not block GO, so read every WARN
@@ -19,8 +20,10 @@ The team's shared services subscription. Only the platform lead passes this: it 
 subscription's tenant, Owner and resource provider checks, and with -Fix registers its providers.
 .PARAMETER Location
 The target Azure region, defaulting to swedencentral.
+.PARAMETER ParentManagementGroupId
+The management group the kit deploys under, instead of Tenant Root. The management-group check then looks for rights there.
 .PARAMETER Fix
-Register missing providers after the prerequisite checks pass.
+Register missing providers and the public IP feature after the prerequisite checks pass.
 .PARAMETER OutFile
 Also save the checks, verdict and failure count as JSON.
 .EXAMPLE
@@ -36,6 +39,8 @@ param(
     [string] $WorkloadSubscriptionId,
     [string] $SharedSubscriptionId,
     [string] $Location = 'swedencentral',
+    [ValidatePattern('^$|^[A-Za-z0-9._()-]{1,90}$')]
+    [string] $ParentManagementGroupId = '',
     [switch] $Fix,
     [string] $OutFile
 )
@@ -79,7 +84,7 @@ function Invoke-AzureCli {
         $operation = ($Arguments | Select-Object -First 2) -join ' '
         throw "Azure CLI '$operation' failed (exit $LASTEXITCODE). Check sign-in, access and arguments."
     }
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if ($AsText) {
         return $text
     }
@@ -162,22 +167,48 @@ foreach ($target in $targets) {
 }
 
 $userId = $null
+$callerIsUser = $true
+function Get-CallerAssignment {
+    param([string] $Scope, [string] $Subscription)
+    if ($callerIsUser) {
+        return @(Invoke-AzureCli @(
+            'role', 'assignment', 'list', '--assignee', $userId, '--scope', $Scope, '--subscription', $Subscription,
+            '--include-inherited', '--include-groups'
+        ))
+    }
+    # A service principal or managed identity has no group lookup; list the scope and keep its own assignments.
+    return @(Invoke-AzureCli @(
+        'role', 'assignment', 'list', '--scope', $Scope, '--subscription', $Subscription, '--include-inherited'
+    ) | Where-Object { $_.principalId -eq $userId })
+}
+
 if ($subscriptions.Count -gt 0) {
     Invoke-Check -Name 'Account identity' -Action {
-        $script:userId = (Invoke-AzureCli @('ad', 'signed-in-user', 'show')).id
-        if (-not $userId) { throw 'Cannot resolve the signed-in user.' }
-        Add-Result -Check 'Account identity' -Status PASS -Reason 'Signed-in user resolved for group-aware role checks.'
+        if ($account.user.type -ne 'servicePrincipal') {
+            $script:userId = (Invoke-AzureCli @('ad', 'signed-in-user', 'show')).id
+        }
+        else {
+            # A pipeline identity: take its object ID from the ARM token, so no Microsoft Graph call is needed.
+            $script:callerIsUser = $false
+            $token = Invoke-AzureCli @('account', 'get-access-token', '--resource', 'https://management.azure.com/', '--query', 'accessToken')
+            $payload = $token.Split('.')[1].Replace('-', '+').Replace('_', '/')
+            $payload += '=' * ((4 - $payload.Length % 4) % 4)
+            $script:userId = ([System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($payload)) | ConvertFrom-Json).oid
+        }
+        if (-not $userId) { throw 'Cannot resolve the signed-in identity.' }
+        if ($callerIsUser) {
+            Add-Result -Check 'Account identity' -Status PASS -Reason 'Signed-in user resolved for group-aware role checks.'
+        }
+        else {
+            Add-Result -Check 'Account identity' -Status PASS -Reason 'Pipeline identity resolved from its token; group assignments are not checked.'
+        }
     } -Remedy 'Sign in as an attendee user and ensure Microsoft Graph can read the user and group membership.'
 }
 
 foreach ($subscription in $subscriptions) {
     Invoke-Check -Name "Role: $($subscription.Label)" -Action {
         if (-not $userId) { throw 'Cannot verify Owner without the signed-in user identity.' }
-        $roles = @(Invoke-AzureCli @(
-            'role', 'assignment', 'list', '--assignee', $userId,
-            '--scope', "/subscriptions/$($subscription.Id)", '--subscription', $subscription.Id,
-            '--include-inherited', '--include-groups'
-        ))
+        $roles = Get-CallerAssignment -Scope "/subscriptions/$($subscription.Id)" -Subscription $subscription.Id
         if (-not ($roles | Where-Object { $_.roleDefinitionName -eq 'Owner' -and -not $_.condition })) {
             throw 'No unconditional Owner assignment found, including inherited and group assignments.'
         }
@@ -188,11 +219,8 @@ foreach ($subscription in $subscriptions) {
 if ($SharedSubscriptionId) {
     try {
         if (-not $userId -or -not $account) { throw 'Identity or tenant is unavailable.' }
-        $roles = @(Invoke-AzureCli @(
-            'role', 'assignment', 'list', '--assignee', $userId,
-            '--scope', "/providers/Microsoft.Management/managementGroups/$($account.tenantId)",
-            '--subscription', $SharedSubscriptionId, '--include-inherited', '--include-groups'
-        ))
+        $parentId = if ($ParentManagementGroupId) { $ParentManagementGroupId } else { $account.tenantId }
+        $roles = Get-CallerAssignment -Scope "/providers/Microsoft.Management/managementGroups/$parentId" -Subscription $SharedSubscriptionId
         $rootManager = $roles | Where-Object {
             $_.roleDefinitionName -in @('Owner', 'Contributor', 'Management Group Contributor') -and -not $_.condition
         }
@@ -275,6 +303,36 @@ foreach ($subscription in $subscriptions) {
         }
         Add-Result -Check "Resource providers: $($subscription.Label)" -Status PASS -Reason 'All 18 required providers are registered.'
     } -Remedy 'Resolve prerequisite failures, then rerun with -Fix. If registration fails or times out, ask the subscription administrator.'
+}
+
+$featureNamespace = 'Microsoft.Network'
+$featureName = 'AllowBringYourOwnPublicIpAddress'
+foreach ($subscription in $subscriptions) {
+    Invoke-Check -Name "Public IP feature: $($subscription.Label)" -Action {
+        function Get-FeatureState {
+            (Invoke-AzureCli @('feature', 'show', '--namespace', $featureNamespace, '--name', $featureName, '--subscription', $subscription.Id)).properties.state
+        }
+        $state = Get-FeatureState
+        if ($state -ne 'Registered' -and $registerMissing -and $canRegister) {
+            if ($state -notin @('Registering', 'Pending')) {
+                $null = Invoke-AzureCli @('feature', 'register', '--namespace', $featureNamespace, '--name', $featureName, '--subscription', $subscription.Id) -AllowEmpty
+            }
+            $deadline = [datetime]::UtcNow.AddMinutes(15)
+            do {
+                $state = Get-FeatureState
+                if ($state -eq 'Registered' -or [datetime]::UtcNow -ge $deadline) { break }
+                Start-Sleep -Seconds 10
+            } while ($true)
+            if ($state -eq 'Registered') {
+                # The provider must be registered again before the feature takes effect.
+                $null = Invoke-AzureCli @('provider', 'register', '--namespace', $featureNamespace, '--subscription', $subscription.Id) -AllowEmpty
+            }
+        }
+        if ($state -ne 'Registered') {
+            throw "The $featureNamespace/$featureName feature is $state. Firewall, NAT and Bastion public IPs fail without it (SubscriptionNotRegisteredForFeature)."
+        }
+        Add-Result -Check "Public IP feature: $($subscription.Label)" -Status PASS -Reason "$featureNamespace/$featureName is registered."
+    } -Remedy 'Rerun with -Fix and wait; registration usually takes a few minutes. If it stays pending, ask the subscription administrator.'
 }
 
 Add-Result -Check 'MFA' -Status MANUAL -Reason 'Confirm MFA is registered for the account.'

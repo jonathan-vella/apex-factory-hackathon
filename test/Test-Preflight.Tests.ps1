@@ -16,6 +16,7 @@ $pwsh = Join-Path $PSHOME $(if ($IsWindows) { 'pwsh.exe' } else { 'pwsh' })
 $runner = @'
 $ErrorActionPreference = 'Stop'
 $global:providerReads = 0
+$global:featureReads = 0
 function global:az {
     $global:LASTEXITCODE = 0
     $command = $args -join ' '
@@ -69,6 +70,8 @@ function global:az {
         return '{"value":[{"name":"swedencentral","displayName":"Sweden Central"}]}'
     }
     if ($command -like 'provider show*') {
+        # A Python SyntaxWarning on stderr must not corrupt the JSON on stdout.
+        if ($scenario -eq 'stderr-warning') { Write-Error 'SyntaxWarning: invalid escape sequence' -ErrorAction Continue }
         if ($scenario -eq 'no-mi') { return '{"resourceTypes":[]}' }
         return '{"resourceTypes":[{"resourceType":"managedInstances","locations":["Sweden Central"]}]}'
     }
@@ -79,6 +82,16 @@ function global:az {
         }
         return
     }
+    if ($command -like 'feature show*') {
+        $global:featureReads++
+        $state = switch ($scenario) {
+            'no-feature' { 'NotRegistered' }
+            'fix-feature' { if ($global:featureReads -le 2) { 'NotRegistered' } else { 'Registered' } }
+            default { 'Registered' }
+        }
+        return (@{properties=@{state=$state}} | ConvertTo-Json)
+    }
+    if ($command -like 'feature register*') { return }
     if ($command -like 'provider list*') {
         $global:providerReads++
         $names = 'Compute','Network','Storage','Sql','Web','ContainerRegistry','ServiceBus','KeyVault',
@@ -98,7 +111,7 @@ function global:az {
 function global:Start-Sleep { param([int] $Seconds) }
 $parameters = @{ WorkloadSubscriptionId='11111111-1111-1111-1111-111111111111'; OutFile=$report }
 if ($scenario -ne 'member') { $parameters.SharedSubscriptionId='22222222-2222-2222-2222-222222222222' }
-if ($scenario -in @('fix','registration-error','no-owner')) { $parameters.Fix=$true }
+if ($scenario -in @('fix','registration-error','no-owner','fix-feature')) { $parameters.Fix=$true }
 if ($scenario -eq 'duplicate') { $parameters.SharedSubscriptionId=$parameters.WorkloadSubscriptionId }
 if ($scenario -eq 'invalid-id') { $parameters.WorkloadSubscriptionId='not-a-guid' }
 if ($scenario -eq 'output-error') { $parameters.OutFile=Join-Path $report 'missing/report.json' }
@@ -110,9 +123,10 @@ $scenarios = @(
     'healthy', 'member', 'zone-only', 'location', 'missing-sku', 'mg-unknown',
     'missing-subscription', 'invalid-id', 'wrong-tenant', 'no-owner', 'duplicate',
     'missing-region', 'no-mi', 'missing-provider', 'fix', 'registration-error',
-    'old-cli', 'old-bicep', 'cli-error', 'invalid-json', 'output-error'
+    'old-cli', 'old-bicep', 'cli-error', 'invalid-json', 'output-error',
+    'no-feature', 'fix-feature', 'stderr-warning'
 )
-$passing = @('healthy', 'member', 'zone-only', 'location', 'missing-sku', 'mg-unknown', 'fix')
+$passing = @('healthy', 'stderr-warning', 'member', 'zone-only', 'location', 'missing-sku', 'mg-unknown', 'fix', 'fix-feature')
 foreach ($scenario in $scenarios) {
     $report = [System.IO.Path]::GetTempFileName()
     $calls = [System.IO.Path]::GetTempFileName()
@@ -137,10 +151,20 @@ foreach ($scenario in $scenarios) {
         if ($failures | Where-Object { -not $_.Fix }) { throw "$scenario FAIL is missing a remedy." }
         $commands = Get-Content -LiteralPath $calls
         if ($commands -match 'quota|account set|deployment| create ') { throw "$scenario attempted an out-of-scope command." }
-        if ($scenario -notin @('fix','registration-error') -and ($commands -match '^provider register')) {
+        if ($scenario -notin @('fix','registration-error','fix-feature') -and ($commands -match '^provider register')) {
             throw "$scenario registered providers without eligible -Fix."
         }
         if ($scenario -eq 'fix' -and @($commands -match '^provider list').Count -lt 3) { throw 'Registration was not polled.' }
+        if ($scenario -notin @('fix-feature') -and ($commands -match '^feature register')) {
+            throw "$scenario registered the feature without eligible -Fix."
+        }
+        if ($scenario -eq 'fix-feature' -and (-not ($commands -match '^feature register') -or -not ($commands -match '^provider register --namespace Microsoft.Network'))) {
+            throw 'The feature was not registered and Microsoft.Network re-registered.'
+        }
+        $feature = @($data.Checks | Where-Object { $_.Check -like 'Public IP feature*' })
+        if ($scenario -eq 'healthy' -and $feature.Count -ne 2) { throw 'The public IP feature must be checked for both subscriptions.' }
+        if ($scenario -eq 'member' -and $feature.Count -ne 1) { throw 'A member checks the public IP feature once.' }
+        if ($scenario -in @('no-feature') -and -not ($feature | Where-Object Status -EQ 'FAIL')) { throw "$scenario should fail the feature check." }
         $vm = $data.Checks | Where-Object Check -EQ 'VM size'
         if ($scenario -eq 'zone-only' -and ($vm.Status -ne 'PASS' -or $vm.Reason -notmatch 'non-zonally')) { throw 'Zone-only restriction should pass non-zonally.' }
         if ($scenario -eq 'location' -and $vm.Status -ne 'WARN') { throw 'Location restriction should warn.' }

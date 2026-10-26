@@ -4,7 +4,7 @@ description: Pre-work. Preflight, datacenter, Arc onboarding, the first migratio
 ---
 
 :::danger[Pre-work: finish before the event]
-C0 is done **before the event starts**: preflight by T-14, datacenter and Arc onboarding by T-3. Complete [Prerequisites](../../getting-started/prerequisites/) first: your own repo from the `apex-accelerator` template, the dev container, the kit imported into `factory/` and merged into `main`, and `.local/settings.json` written. Every command below runs from there.
+C0 is done **before the event starts**: preflight by T-14, datacenter and Arc onboarding by T-3. A coach reviews your C0 output, and then your platform lead vends your subscription at T-1 (see [C2](../c02-secure-ai-ready-foundation/)). Complete [Prerequisites](../../getting-started/prerequisites/) first: your own repo from the `apex-accelerator` template, the dev container, the kit imported into `factory/` and merged into `main`, and `.local/settings.json` written. Every command below runs from there.
 :::
 
 ## Goal
@@ -50,7 +50,7 @@ If `az account show` fails, sign in again with `az login --use-device-code`. `$s
 
    **Platform lead only:** also check the shared services subscription and your Tenant Root rights. (Tenant Root is the top management group of your Microsoft Entra tenant, and a management group is a container above subscriptions that policy and access flow down from.) Your settings already hold the shared services subscription ID from Prerequisites, so just add `-SharedSubscriptionId $s.sharedSubscriptionId` to the command above. If `$s.sharedSubscriptionId` is empty, record the ID once with `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`, which asks nothing, then reload `$s`. Treat a WARN on the "Management groups" row as a blocker too: tell your coach before the event.
 
-   Fix every FAIL it reports (the Owner role on your subscription is an automated check, not a manual one). Work through the five MANUAL rows yourself: MFA, GitHub Copilot, GitHub repositories, APEX and Azure Hybrid Benefit. The manual checks in [Prerequisites](../../getting-started/prerequisites/) say how to confirm each. Then re-run with `-Fix` to let it register missing resource providers (it waits up to 15 minutes). Done when the verdict is GO and no row is FAIL.
+   Fix every FAIL it reports (the Owner role on your subscription is an automated check, not a manual one). Work through the five MANUAL rows yourself: MFA, GitHub Copilot, GitHub repositories, APEX and Azure Hybrid Benefit. The manual checks in [Prerequisites](../../getting-started/prerequisites/) say how to confirm each. Then re-run with `-Fix` to let it register missing resource providers (it waits up to 15 minutes). Done when the verdict is GO and no row is FAIL. Then send the event owner, in the private event channel and never in a repo, your workload subscription ID, member index, Entra object ID (`az ad signed-in-user show --query id -o tsv`) and email: the platform lead needs them to vend you at T-1.
 2. **Deploy your datacenter (30 to 60 min, unattended).** Azure Hybrid Benefit, a discount for Windows Server licenses you already own, is on by default for `vm-app01`. If you don't hold eligible licenses, tell your coach and add `-NoHybridBenefit` to the command and to the one in task 3. It covers `vm-app01` only, so ask your coach what to do for the SQL Managed Instance in C5. The rule is on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page. Run:
 
    ```powershell
@@ -110,6 +110,16 @@ Commit with a conventional commit message such as `docs: C0 evidence`, and push.
 - Your Azure Hybrid Benefit confirmation (task 6): on for `vm-app01`'s Windows Server license, or why it isn't (you deployed with `-NoHybridBenefit` and your coach agreed). Add a screenshot of `az vm list -g rg-datacenter -d -o table` showing both VMs and their power state.
 - A screenshot of Copilot Chat answering in VS Code on `vm-dev01`, signed in to GitHub (task 7). Take it on the VM and save it in `C:\src\<your-repo>\factory\evidence\c00\`, then commit and push from there as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
 
+## Optional: Run tasks 2 to 4 from GitHub Actions
+
+If your coach offers it, your own repo can deploy the datacenter, test it and onboard Arc for you, unattended (about 45 minutes), instead of running the scripts by hand. It does the same work with the same checks.
+
+1. Set up the member pipeline once: `./scripts/Initialize-PlatformPipeline.ps1 -Profile Member`. It reads your settings file and creates a managed identity that is Owner on your own workload subscription only.
+2. Run your preflight, then your datacenter, from the Actions tab or with `gh workflow run platform.yml -f stage=whatif` and `-f stage=member`. Approve the run when GitHub asks. On a new subscription the preflight registers the Azure providers and the public IP feature for you, which can take a few minutes.
+3. Save the test output as evidence: `./scripts/Get-PipelineEvidence.ps1` puts `test-datacenter.txt` in `evidence/c00/`. Commit it as above.
+
+Don't run the member stage twice: once `vm-app01` is Arc-enabled, the datacenter can't be redeployed.
+
 ## Hints
 
 <details>
@@ -129,12 +139,12 @@ If onboarding didn't finish, there are two ways out. Message your coach, who may
 <details>
 <summary>Save money between sessions</summary>
 
-Before the event you can stop both VMs when you're not working: `az vm deallocate -g rg-datacenter -n vm-app01`, then the same with `-n vm-dev01`. Deallocating releases the VM's compute and stops its compute billing. Shutting Windows down from inside the VM does not. Start both again before day one: `az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`. Don't re-run `Test-Datacenter.ps1` after Arc: it needs the run commands. During the event, never stop `vm-dev01`: it's your workstation.
+Before the event you can stop both VMs when you're not working: `az vm deallocate -g rg-datacenter -n vm-app01`, then the same with `-n vm-dev01`. Deallocating releases the VM's compute and stops its compute billing. Shutting Windows down from inside the VM does not. Start both again before your platform lead vends you at T-1 (`az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`), because vending restarts them and the connectivity probes run inside them. Don't re-run `Test-Datacenter.ps1` after Arc: it needs the run commands. During the event, never stop `vm-dev01`: it's your workstation.
 </details>
 
 ## If you need to start over
 
-Run `Deploy-Datacenter.ps1` again to repair the datacenter after a failure: it converges to the same result. If your datacenter was already vended (C2), the re-run resets its DNS servers and routes, so your platform lead must vend you again, and you restart both VMs. `Connect-DatacenterArc.ps1` can't be re-run: it refuses once `vm-app01` is an Arc machine or its guest agent is off. If onboarding didn't finish, or you need to start over after Arc, delete `rg-datacenter` and deploy again (see the hint "Arc onboarding doesn't finish"). That removes `vm-app01`, `vm-dev01` and everything on them, so you repeat tasks 2 to 7. Ask your coach before you do either.
+Run `Deploy-Datacenter.ps1` again to repair the datacenter after a failure: it converges to the same result. If your datacenter was already vended (at T-1 or later), the re-run resets its DNS servers and routes, so your platform lead must vend you again, and you restart both VMs. `Connect-DatacenterArc.ps1` can't be re-run: it refuses once `vm-app01` is an Arc machine or its guest agent is off. If onboarding didn't finish, or you need to start over after Arc, delete `rg-datacenter` and deploy again (see the hint "Arc onboarding doesn't finish"). That removes `vm-app01`, `vm-dev01` and everything on them, so you repeat tasks 2 to 7. Ask your coach before you do either.
 
 ## Bonus
 

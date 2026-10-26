@@ -19,7 +19,7 @@ Member. **90 min** (30 min demo + 60 min hands-on). The 60 minutes are your hand
 
 ## Inputs
 
-C2's vended spoke: your platform lead vended it for you with your Entra object ID. C4's platform ADR. Your own repo, created in [Prerequisites](../../getting-started/prerequisites/) with the kit imported.
+The spoke your platform lead vended for you at T-1, with your Entra object ID (C2 verifies it). C4's platform ADR. Your own repo, created in [Prerequisites](../../getting-started/prerequisites/) with the kit imported.
 
 ## Where to run
 
@@ -42,7 +42,7 @@ When the skill runs its commands, Copilot opens a terminal in VS Code's **Termin
 
 ## What this deploys
 
-The highlighted parts are what C5 adds to the spoke that C2 vended: the resources in `rg-university-<suffix>`, their private endpoints in `snet-pe`, the web app's VNet integration and the SQL Managed Instance in `snet-sqlmi`.
+The highlighted parts are what C5 adds to the spoke that vending created at T-1: the resources in `rg-university-<suffix>`, their private endpoints in `snet-pe`, the web app's VNet integration and the SQL Managed Instance in `snet-sqlmi`.
 
 <ArchitectureDiagram highlight="c5" name="c5-arch" caption="Highlighted: what C5 deploys. n is your member index and the suffix is yours from settings." />
 
@@ -94,7 +94,7 @@ Save screenshots and output as files in `factory/evidence/c05/` of your own repo
 <details>
 <summary>/apex-adapt-archetype won't find a vended spoke</summary>
 
-It looks for `rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe` and `snet-sqlmi` by the naming convention in the [naming and IP plan](../../reference/naming-and-ip-plan/). Confirm C2's vending ran for your member index before retrying. If the skill says the spoke is missing, your platform lead has to vend your subscription (C2); members can't.
+It looks for `rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe` and `snet-sqlmi` by the naming convention in the [naming and IP plan](../../reference/naming-and-ip-plan/). Confirm vending ran for your member index (C2 task 5 shows it) before retrying. If the skill says the spoke is missing, your platform lead has to vend your subscription; members can't.
 </details>
 
 <details>
@@ -106,7 +106,7 @@ It looks for `rg-spoke`, `vnet-spoke`, `snet-app`, `snet-pe` and `snet-sqlmi` by
 <details>
 <summary>Preflight says the managed identity "cannot be read" or lacks the assign permission</summary>
 
-Your vending ran without your Entra object ID, so you don't have Managed Identity Operator on `id-sqlmi-directory`. Only the platform lead can fix it: ask them to run the vending again for you (C2, task 5). This message comes from the archetype's own `./scripts/preflight.ps1`, not from C0's preflight.
+Your vending ran without your Entra object ID, so you don't have Managed Identity Operator on `id-sqlmi-directory`. Only the platform lead can fix it: ask them to run the vending again for you (C2, "Before the event"). This message comes from the archetype's own `./scripts/preflight.ps1`, not from C0's preflight.
 </details>
 
 <details>

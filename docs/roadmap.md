@@ -13,11 +13,13 @@ There's no event date yet, so the phases have no dates. Event gates are relative
 | P3 Build | Build the reusable assets | B08–B10 | ALZ-lite, vending, probes and exemptions work across the two subscriptions. Archetype deploys from only tenant ID, subscription ID and suffix. Playbook, skills and lifelines published |
 | P4 Content | Write what attendees and coaches use | B11, B12, B15 | C0–C10 with attendee templates. Facilitator kit complete. Partner learning path (B15) written and published on the site; it isn't on `main` yet |
 | P5 Pilot and v1.0 | Validate end to end in partner-like conditions | B13 | Dry run meets the PRD success metrics. Time boxes and points tuned. `versions.md` validated. v1.0 release notes ready |
+| P6 Platform automation (post-v1) | Students and coaches deploy the platform from GitHub Actions, with easy onboarding, and the event is re-sequenced so the platform lead deploys the shared platform before it starts. Built and tested on a branch in a second, separate team so the working lab is untouched | B16–B23 | One command sets up the pipeline and one workflow runs it, in two profiles: the member's own repo (their datacenter, C0) and the platform lead's repo (ALZ-lite and vending for the team). The guard refuses a wrong subscription or prefix. ALZ-lite, vending and the datacenter deploy and tear down from Actions in the test lab. A fresh template repo onboards using only the docs. The identity risk is documented and its removal is scripted and verified. The event docs and rubric match the new order |
 
 ## Later
 
 Candidates after v1, taken from the PRD non-goals when there's demand:
 
+- The same Actions approach for the CoE archetype in the student's repo, once P6 is proven.
 - AKS archetype.
 - WebForms and WCF app tracks.
 - An "Enable AI tomorrow" module that deploys AI services on the modernized platform.

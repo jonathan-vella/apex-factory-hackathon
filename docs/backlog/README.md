@@ -37,6 +37,14 @@ Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR 
 | [B13](B13-dry-run-v1.md) | Dry run, tune and release v1.0 | P5 | Both | B12 | Ready |
 | [B14](B14-archetype-adopt.md) | Build the archetype adoption agent (not needed for v1) | P3 | Both | B09 | Ready |
 | [B15](B15-learning-path.md) | Publish the partner learning path | P4 | Agent | B11 | Ready |
+| [B16](B16-pipeline-identity.md) | Spike: pipeline identity, privilege model and identity-safe scripts | P6 | Both | — | Ready |
+| [B17](B17-pipeline-onboarding.md) | Build the entry workflow, guard, onboarding and the what-if and foundation stages | P6 | Both | B16 | Ready |
+| [B18](B18-pipeline-member-vending.md) | Build the member and vending stages | P6 | Both | B17 | Ready |
+| [B19](B19-pipeline-teardown.md) | Build the teardown stage and the identity finalizer | P6 | Both | B18 | Ready |
+| [B20](B20-pipeline-docs-onboarding-test.md) | Write the student and coach docs and run the fresh-repo onboarding test | P6 | Both | B19 | Ready |
+| [B21](B21-pipeline-member-profile.md) | Build the member profile: a pipeline in each member's own repo for C0 | P6 | Both | B18 | Ready |
+| [B22](B22-event-resequence.md) | Re-sequence the event: the platform lead deploys ALZ-lite and vending before the event | P6 | Both | B18 | Ready |
+| [B23](B23-preflight-public-ip-feature.md) | Preflight checks the public IP feature on new subscriptions | P6 | Agent | — | Ready |
 
 **Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps. **Status** is "Ready" when the spec is written; it isn't updated afterwards. Check the item's issue for its current state.
 
@@ -53,6 +61,9 @@ flowchart LR
   B08 --> B09 --> B10
   B09 --> B14
   B11 --> B15
+  B16 --> B17 --> B18 --> B19 --> B20
+  B18 --> B21
+  B18 --> B22
   B06 --> B10
   B07 --> B11
   B08 --> B11

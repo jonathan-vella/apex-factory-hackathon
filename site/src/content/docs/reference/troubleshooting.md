@@ -8,6 +8,7 @@ sidebar:
 ## Prerequisites
 
 - **`az login` signs you in to the wrong tenant or subscription:** sign in again with `az login --tenant '<tenant-id>' --use-device-code`, list your subscriptions with `az account list --output table`, then run `az account set --subscription '<subscription-id>'`. Find the tenant ID in the Azure portal under **Microsoft Entra ID** > **Overview**. Then run `./scripts/Initialize-Settings.ps1` again and read the subscription name it shows before you accept it.
+- **`git commit` says "Author identity unknown":** the dev container has no git identity. Run `git config --global user.name "<your name>"` and `git config --global user.email "<your email>"`, then commit again.
 - **`git clone` asks for a password:** don't clone from a terminal. Use VS Code: press `F1` > `Git: Clone`, choose **Clone from GitHub** and sign in when VS Code asks. On Windows 11, press `F1` > `WSL: Connect to WSL` first.
 - **The dev container won't build:** check the network allow-list first. The container pulls images and features from `ghcr.io`, `mcr.microsoft.com` and `docker.io`, and installs packages through `packagefeedproxy.microsoft.io`. If Docker Desktop won't start, check WSL 2 is on, as in [Prerequisites](../../getting-started/prerequisites/#windows-11-from-scratch).
 - **`docker: command not found` in Ubuntu, or Reopen in Container says Docker isn't found:** open Docker Desktop **Settings** > **Resources** > **WSL integration** and switch on **Ubuntu**, then restart VS Code.
@@ -19,6 +20,7 @@ sidebar:
 
 - **Preflight reports FAIL on Owner:** you have no unconditional Owner assignment on your workload subscription. Contributor doesn't pass. If Owner is eligible through Privileged Identity Management, activate it first; otherwise ask your coach.
 - **Preflight fails on a resource provider:** re-run `Test-Preflight.ps1 -Fix` and wait up to 15 minutes for the registration to propagate before re-checking.
+- **Preflight fails on the public IP feature, or a deployment stops with `SubscriptionNotRegisteredForFeature`:** a new subscription hasn't registered `Microsoft.Network/AllowBringYourOwnPublicIpAddress`, which the firewall, NAT and Bastion public IPs need. Run `Test-Preflight.ps1 -Fix` and wait a few minutes; it registers the feature and then `Microsoft.Network` again. The Actions preflight does this for you.
 
 ## C0 datacenter and Arc
 
@@ -31,8 +33,22 @@ sidebar:
 ## ALZ-lite and vending
 
 - **Vending can't find the hub:** confirm ALZ-lite finished and the expected hub resource names exist (`vnet-hub`, `afw-hub`, `afwp-hub`, `rg-hub`) before running `Deploy-Vending.ps1`.
-- **DNS stops resolving after vending changes a VNet's DNS servers:** running VMs cache their old DNS settings. Restart the VM, or run `ipconfig /renew` inside it.
-- **The datacenter shows as policy non-compliant:** expected until each member runs `New-DatacenterExemptions.ps1` in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in C0.
+- **DNS stops resolving after vending changes a VNet's DNS servers:** running VMs cache their old DNS settings. The platform lead restarts both VMs at T-1; if yours were stopped or redeployed since, restart the VM, or run `ipconfig /renew` inside it.
+- **The datacenter shows as policy non-compliant:** expected until it has exemptions. Vending at T-1 records them with `New-DatacenterExemptions.ps1`, and you check them in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in C0.
+
+## Platform pipeline
+
+- **`gh workflow run` says the workflow wasn't found (HTTP 404):** GitHub dispatches a workflow only from the default branch. Merge the import to `main` first, or run the stage from the **Actions** tab.
+- **A run waits and nothing happens:** it's waiting for the reviewer. Open the run and choose **Review deployments**. On a private repo with no reviewer option there's no gate, so a run that sits queued has lost its runner: cancel it and run the stage again.
+- **Login fails with `AADSTS700213`:** the identity's credential doesn't match what your repo presents. Run `./scripts/Test-PipelineSetup.ps1` (add `-PipelineProfile Member` in your own repo): it names the failing check. Re-running `Initialize-PlatformPipeline.ps1` repairs the credential.
+- **The guard refuses a subscription:** it isn't on the pipeline's approved list or is on its deny list. Check the roster and the repo's environment secrets with `Test-PipelineSetup.ps1`. Never add a subscription to the approved list to get past this unless it's part of the event.
+- **`vm-app01 is already an Arc machine`:** the member stage never redeploys over Arc, because Arc can't be undone. Run the `teardown` stage for that member, then the `member` stage again.
+- **`Vending stopped at member N ... hub is incomplete`:** run the `foundation` stage first. Vending needs `vnet-hub`, `afw-hub`, `log-management` and `id-sqlmi-directory`.
+- **The ALZ-lite what-if prints "First deployment":** expected. The what-if can't compare against management groups that don't exist yet. Run the `foundation` stage.
+- **Removal stops before the team step:** a member's removal failed. Fix it, run `teardown` again, and the finished members are skipped. It also stops if a subscription under the Corp group isn't in the roster.
+- **Preflight or another script fails with "Azure CLI returned an invalid JSON response":** an older kit copy merged Azure CLI warnings into its JSON (the dev container's Python 3.15 prints a `SyntaxWarning` on every run). Re-import the kit (`Import-Kit.ps1 -Force`, commit and merge it) to get the fix. In the meantime `$env:PYTHONWARNINGS = 'ignore'` in that terminal works around it.
+- **`Remove-PlatformPipeline.ps1` says it could not check the GitHub environment:** `gh` was refused, so the script can't tell whether it is gone. Sign in with `gh auth login` as an admin of the repo and run it again.
+- **A subscription ID shows in a public run log:** delete that run (`gh run delete <id>`), then check that the value is stored as an environment secret and not a variable.
 
 ## Modernizing the app
 

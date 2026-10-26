@@ -159,7 +159,7 @@ const label =
             <ArchNode name="log-management" meta="Central Log Analytics workspace." ch={["c2"]} />
             <ArchNode
               name="id-sqlmi-directory"
-              meta="Identity of every member's SQL MI. Graph read granted in C2."
+              meta="Identity of every member's SQL MI. Graph read granted at T-7."
               ch={["c2", "c7"]}
             />
           </div>
@@ -241,7 +241,7 @@ const label =
           <div class="frame frame--rg">
             <div class="frame__head">
               <span class="frame__title">rg-spoke</span>
-              <span class="frame__sub">vended in C2</span>
+              <span class="frame__sub">vended at T-1</span>
             </div>
             <div class="frame frame--vnet">
               <div class="frame__head">
@@ -298,7 +298,7 @@ const label =
       <li>
         Management groups: <code>mg-factory</code> contains <code>mg-factory-platform</code> (the
         shared services subscription) and <code>mg-factory-corp</code> (every member's workload
-        subscription and the core policies). C2 creates them.
+        subscription and the core policies). C2 verifies them.
       </li>
       <li>
         Shared services subscription, one per team (C2). Resource group <code>rg-hub</code> holds
@@ -319,7 +319,7 @@ const label =
         <code>nat-datacenter</code> provides outbound internet.
       </li>
       <li>
-        Resource group <code>rg-spoke</code> (vended in C2) holds <code>vnet-spoke</code>{" "}
+        Resource group <code>rg-spoke</code> (vended at T-1) holds <code>vnet-spoke</code>{" "}
         (10.20.n.0/24) with
         <code>snet-app</code> (10.20.n.0/26, web app VNet integration), <code>snet-pe</code>{" "}
         (10.20.n.64/26, private endpoints) and <code>snet-sqlmi</code> (10.20.n.128/26, SQL Managed
