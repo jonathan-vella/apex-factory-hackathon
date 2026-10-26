@@ -8,6 +8,7 @@ sidebar:
 ## Prerequisites
 
 - **`az login` signs you in to the wrong tenant or subscription:** sign in again with `az login --tenant '<tenant-id>' --use-device-code`, list your subscriptions with `az account list --output table`, then run `az account set --subscription '<subscription-id>'`. Find the tenant ID in the Azure portal under **Microsoft Entra ID** > **Overview**. Then run `./scripts/Initialize-Settings.ps1` again and read the subscription name it shows before you accept it.
+- **`git commit` says "Author identity unknown":** the dev container has no git identity. Run `git config --global user.name "<your name>"` and `git config --global user.email "<your email>"`, then commit again.
 - **`git clone` asks for a password:** don't clone from a terminal. Use VS Code: press `F1` > `Git: Clone`, choose **Clone from GitHub** and sign in when VS Code asks. On Windows 11, press `F1` > `WSL: Connect to WSL` first.
 - **The dev container won't build:** check the network allow-list first. The container pulls images and features from `ghcr.io`, `mcr.microsoft.com` and `docker.io`, and installs packages through `packagefeedproxy.microsoft.io`. If Docker Desktop won't start, check WSL 2 is on, as in [Prerequisites](../../getting-started/prerequisites/#windows-11-from-scratch).
 - **`docker: command not found` in Ubuntu, or Reopen in Container says Docker isn't found:** open Docker Desktop **Settings** > **Resources** > **WSL integration** and switch on **Ubuntu**, then restart VS Code.
