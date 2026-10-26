@@ -135,7 +135,7 @@ if ($account) {
     if ($SharedSubscriptionId) {
         $sharedJson = & az account show --subscription $SharedSubscriptionId --output json 2>$null
         if ($LASTEXITCODE -eq 0 -and $sharedJson) {
-            Write-Host "Shared:       $(($sharedJson | ConvertFrom-Json).name) ($SharedSubscriptionId)"
+            Write-Information "Shared:       $(($sharedJson | ConvertFrom-Json).name) ($SharedSubscriptionId)" -InformationAction Continue
         }
         else {
             Write-Warning "Your az login can't see the shared services subscription $SharedSubscriptionId. Check the ID."
