@@ -115,9 +115,15 @@ function Get-OptionalResource {
         return Invoke-AzureCli -Arguments $Arguments
     }
     catch {
-        # Say why a lookup failed, with IDs masked: a silent null looks like a missing hub.
         $reason = ($_.Exception.Message -replace '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<id>')
-        Write-Warning "Lookup '$($Arguments | Select-Object -First 3 | Join-String -Separator ' ')' failed: $($reason.Substring(0, [Math]::Min(300, $reason.Length)))"
+        $what = $Arguments | Select-Object -First 3 | Join-String -Separator ' '
+        # A resource that isn't there yet is the normal state on a first vend: say so without a warning. Any other failure
+        # (a refused call, a throttled one) still warns, because a silent null looks like a missing hub.
+        if ($reason -match 'ResourceGroupNotFound|ResourceNotFound|\(NotFound\)|Not Found|No budget found') {
+            Write-Information "Not there yet: $what (it is created now)."
+            return $null
+        }
+        Write-Warning "Lookup '$what' failed: $($reason.Substring(0, [Math]::Min(300, $reason.Length)))"
         return $null
     }
 }
