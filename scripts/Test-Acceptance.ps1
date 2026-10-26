@@ -70,7 +70,7 @@ function Invoke-AzureCli {
         $operation = ($Arguments | Select-Object -First 2) -join ' '
         throw "Azure CLI '$operation' failed (exit $LASTEXITCODE). Check sign-in, the resource group name and your access."
     }
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if ([string]::IsNullOrWhiteSpace($text)) {
         return $null
     }

@@ -32,7 +32,7 @@ The shared foundation starts earlier. The platform lead deploys ALZ-lite at T-7 
 | 4 members | 4 × $204.15 = $816.60 | $280.80 | **$1,097.40** |
 | 5 members | 5 × $204.15 = $1,020.75 | $280.80 | **$1,301.55** |
 
-Deploying ALZ-lite at T-7 instead of Day 1 adds 216 − 48 = 168 hours of firewall, which is 168 × $1.30 = $218.40 per team compared with the earlier plan (48 × $1.30 = $62.40). The member charges don't change. Every day ALZ-lite is deployed earlier or later moves the foundation by 24 × $1.30 = $31.20.
+Deploying ALZ-lite at T-7 instead of Day 1 adds 216 − 48 = 168 hours of firewall, which is 168 × $1.30 = $218.40 per team compared with the earlier plan (48 × $1.30 = $62.40). The member charges don't change. The owner accepted this extra cost on 2026-10-26: the foundation stays at T-7 and the B22 spec's earlier figure of about $90 (a T-3 start) is superseded. Every day ALZ-lite is deployed earlier or later moves the foundation by 24 × $1.30 = $31.20.
 
 For a four-member team, turning off AHB for the 39 assumed running hours adds about **$117**. If the datacenter runs longer, add $0.75 for each additional running hour per affected member. If a member leaves the archetype running longer, add $1.83 per additional hour. The MI schedule (Monday to Friday, 07:30 to 18:30, `W. Europe Standard Time` by default, set with the archetype's `sqlMiSchedule*` parameters) only applies after cutover removes the link; a linked MI cannot be stopped. A live APEX demo adds the archetype rate for as long as it runs (see the [APEX demo](apex-demo.md)).
 

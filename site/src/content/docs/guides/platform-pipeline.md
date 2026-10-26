@@ -19,6 +19,8 @@ This guide is optional. Everything it does, you can also do by running the kit's
 
 A **member** pipeline lives in your own repo and can touch only your own workload subscription. A **lead** pipeline lives in the platform lead's repo and touches the team's shared services subscription and every member's workload subscription. They are two separate setups. Nobody needs the other's access.
 
+The platform lead is also a member, but a repo can have only one profile. In the lead's repo, set up the lead profile and don't run `-Profile Member`. Do the lead's own C0 with the scripts in the dev container as [C0](../../challenges/c00-ready-to-hack/) describes, or run the lead pipeline's `member` stage for your own index (`gh workflow run platform.yml -f stage=member -f members=1`). Every other member uses the member profile in their own repo.
+
 ## What it grants, and why
 
 Setup creates a managed identity called `id-factory-pipeline` in a resource group called `rg-cicd`. GitHub proves who it is with a short-lived OIDC token, so there is no password or secret to leak. The identity is trusted only for one GitHub environment, `gh-lab`, in one repo.
@@ -69,7 +71,16 @@ You need your repo with the kit imported, `factory/.local/settings.json` includi
 ./scripts/Initialize-PlatformPipeline.ps1 -RosterPath <roster file>
 ```
 
-The roster holds one row per member (`index`, `subscriptionId`, `memberPrincipalId`, `budgetEmail`). It goes into a secret. Then:
+The roster is a JSON file the event owner gives you (or you write from the event owner's list), kept in `factory/.local/roster.json` so it stays out of git. It holds one row per member, you included:
+
+```json
+[
+  { "index": 1, "subscriptionId": "<workload-subscription-id>", "memberPrincipalId": "<entra-object-id>", "budgetEmail": "<email>" },
+  { "index": 2, "subscriptionId": "<workload-subscription-id>", "memberPrincipalId": "<entra-object-id>", "budgetEmail": "<email>" }
+]
+```
+
+Setup stores it as an environment secret, and the pipeline reads its members only from there: it never discovers them in Azure, and the guard accepts only these subscriptions. To add or change a member, edit the file and run `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json` again. Then:
 
 ```bash
 gh workflow run platform.yml -f stage=whatif
@@ -82,7 +93,7 @@ gh workflow run platform.yml -f stage=foundation
 gh workflow run platform.yml -f stage=vending
 ```
 
-Vending runs members strictly one after another, because each run updates the shared firewall policy. One approval covers the stage.
+Vending runs members strictly one after another, because each run updates the shared firewall policy. One approval covers the stage. Allow 20 to 40 minutes per member: each VM restart (both run at once) can take many minutes, then the policy scan and the connectivity probe follow. A member already vended is quick on a re-run, so if one member fails, fix the cause and run `-f stage=vending -f members=<n>` for that member only.
 
 ## If you prefer the scripts, or something breaks
 

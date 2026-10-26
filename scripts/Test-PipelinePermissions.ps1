@@ -64,7 +64,7 @@ function Invoke-AzureCli {
         $detail = (($output | ForEach-Object { $_.ToString() }) -join ' ') -replace '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<id>'
         throw "Azure CLI '$operation' failed: $detail"
     }
-    $text = ($output | ForEach-Object { $_.ToString() }) -join "`n"
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
     if ($text.Trim()) {
         return $text | ConvertFrom-Json
     }
