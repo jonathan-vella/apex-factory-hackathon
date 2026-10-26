@@ -93,7 +93,7 @@ gh workflow run platform.yml -f stage=foundation
 gh workflow run platform.yml -f stage=vending
 ```
 
-Vending runs members strictly one after another, because each run updates the shared firewall policy. One approval covers the stage. Allow 20 to 40 minutes per member: each VM restart (both run at once) can take many minutes, then the policy scan and the connectivity probe follow. A member already vended is quick on a re-run, so if one member fails, fix the cause and run `-f stage=vending -f members=<n>` for that member only.
+Vending runs members strictly one after another, because each run updates the shared firewall policy. One approval covers the stage. Plan on about 5 minutes per member to vend, then one wait of about 25 minutes while every VM restarts at once (the SQL VM is the slow one), then the policy scan and the connectivity probes for everyone in parallel: about an hour for three members and about 75 minutes for six. A member already vended is quick on a re-run, so if one member fails, fix the cause and run `-f stage=vending -f members=<n>` for that member only.
 
 ## If you prefer the scripts, or something breaks
 
