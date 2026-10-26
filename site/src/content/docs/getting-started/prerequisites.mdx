@@ -156,7 +156,7 @@ The script asks for five things: your tenant ID and workload subscription ID (it
 
 **Shared services subscription (members):** press Enter to skip it for now. The platform lead shares its ID in the team channel when they vend you at T-1, and you add it by re-running `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'` (C2 task 1). Re-running never changes your other values.
 
-**Shared services subscription (platform lead):** enter it now (**Subscriptions** in the portal has the ID). C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not at T-7, when you deploy ALZ-lite.
+**Shared services subscription (platform lead):** enter it now (**Subscriptions** in the portal has the ID). The script prints its name on a `Shared:` line: check that it is your shared services subscription and not another one you own. C0's preflight then also checks it and your Tenant Root rights (`-SharedSubscriptionId`), so a missing role shows up at T-14 and not at T-7, when you deploy ALZ-lite.
 
 **Roster values:** once preflight is green, send the event owner these four values in the private event channel, never in a repo or issue: your workload subscription ID (`$s.subscriptionId`), your member index (`$s.memberIndex`), your Entra object ID (`az ad signed-in-user show --query id -o tsv`) and your work email. The platform lead needs them to vend you at T-1.
 
