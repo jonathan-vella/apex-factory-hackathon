@@ -8,7 +8,7 @@
 | Depends on | B18 |
 | Unblocks | The CoE archetype with Actions (later) |
 | Effort | 4–6 days elapsed, mostly owner decisions and page rewrites |
-| Cost | About $90 more per team for the firewall running earlier |
+| Cost | About $218 more per team for the firewall running from T-7 (216 hours at $1.30, against 48 hours on Day 1). The owner accepted this on 2026-10-26; the $90 first estimated assumed a T-3 start |
 | Teardown | None |
 | PRD | §2 Sequencing; §4; §5 |
 

@@ -46,6 +46,8 @@ sidebar:
 - **`Vending stopped at member N ... hub is incomplete`:** run the `foundation` stage first. Vending needs `vnet-hub`, `afw-hub`, `log-management` and `id-sqlmi-directory`.
 - **The ALZ-lite what-if prints "First deployment":** expected. The what-if can't compare against management groups that don't exist yet. Run the `foundation` stage.
 - **Removal stops before the team step:** a member's removal failed. Fix it, run `teardown` again, and the finished members are skipped. It also stops if a subscription under the Corp group isn't in the roster.
+- **Preflight or another script fails with "Azure CLI returned an invalid JSON response":** an older kit copy merged Azure CLI warnings into its JSON (the dev container's Python 3.15 prints a `SyntaxWarning` on every run). Re-import the kit (`Import-Kit.ps1 -Force`, commit and merge it) to get the fix. In the meantime `$env:PYTHONWARNINGS = 'ignore'` in that terminal works around it.
+- **`Remove-PlatformPipeline.ps1` says it could not check the GitHub environment:** `gh` was refused, so the script can't tell whether it is gone. Sign in with `gh auth login` as an admin of the repo and run it again.
 - **A subscription ID shows in a public run log:** delete that run (`gh run delete <id>`), then check that the value is stored as an environment secret and not a variable.
 
 ## Modernizing the app
