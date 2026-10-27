@@ -1,0 +1,191 @@
+/*
+ * Calm document style. Loaded last, so it wins on equal specificity. One font, larger body text, a narrower column,
+ * flat collapsibles, quieter asides, task cards and evidence boxes. The landing page keeps its own look.
+ */
+
+body:not(:has(.landing-hero)) {
+  --font-display: "Inter Variable", "Inter", system-ui, sans-serif;
+  --font-body: "Inter Variable", "Inter", system-ui, sans-serif;
+  --sl-font: var(--font-body);
+  --sl-text-body: 1.0625rem;
+  --sl-line-height: 1.7;
+  --sl-line-height-headings: 1.25;
+  --sl-content-width: 46rem;
+  --sl-text-h1: 2.125rem;
+  --sl-text-h2: 1.5rem;
+  --sl-text-h3: 1.2rem;
+  --sl-text-h4: 1.05rem;
+}
+
+body:not(:has(.landing-hero)) .main-pane :is(h1, h2, h3, h4) {
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+
+body:not(:has(.landing-hero)) .main-pane h1 {
+  line-height: 1.2;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper.level-h2 {
+  margin-top: 2.75rem;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper.level-h3 {
+  margin-top: 2rem;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content > * + * {
+  margin-top: 1.1rem;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content :is(ul, ol) li + li {
+  margin-top: 0.35rem;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content a:not(.sl-anchor-link) {
+  text-underline-offset: 0.18em;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content :not(pre) > code {
+  font-size: 0.875em;
+}
+
+body:not(:has(.landing-hero)) .expressive-code {
+  --ec-codeFontSize: 0.875rem;
+}
+
+/* Asides: a thin rule and plain text instead of a filled box. */
+body:not(:has(.landing-hero)) .starlight-aside {
+  background: transparent;
+  border: 0;
+  border-inline-start: 2px solid var(--sl-color-asides-text-accent);
+  border-radius: 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+}
+
+body:not(:has(.landing-hero)) .starlight-aside__title {
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Collapsible sections: flat rows with a hairline, not boxes. Use them for "Why" and "Details". */
+body:not(:has(.landing-hero)) .sl-markdown-content details {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content details + details {
+  margin-top: 0;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content details:not(:has(+ details)) {
+  border-bottom: 1px solid var(--sl-color-gray-5);
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content details summary {
+  padding-block: 0.8rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content details summary::marker {
+  color: var(--sl-color-gray-3);
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content details[open] {
+  padding-block-end: 0.75rem;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content details > :not(summary) {
+  margin-top: 0.6rem;
+}
+
+/* Task lists: a quiet number and a left rule instead of cards. */
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li {
+  padding: 0.5rem 0 0.5rem 3rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li::before {
+  left: 0.25rem;
+  top: 0.55rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1.5px solid var(--sl-color-accent);
+  background: transparent;
+  color: var(--sl-color-accent-high);
+  font-weight: 600;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li :not(pre) > code {
+  background: var(--sl-color-gray-6);
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li.is-done::before {
+  border-color: var(--task-done);
+  background: var(--task-done);
+  color: #fff;
+}
+
+/* Evidence: a plain list with a rule, not an accent box. */
+body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#evidence) + ul {
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  border: 0;
+  border-inline-start: 2px solid var(--sl-color-gray-4);
+  border-radius: 0;
+  background: transparent;
+}
+
+/* Tables: hairlines only. */
+body:not(:has(.landing-hero)) .sl-markdown-content table {
+  font-size: 0.9375rem;
+}
+
+/* Diagrams (the Diagram component) */
+.doc-figure {
+  margin: 1.75rem 0;
+}
+
+.doc-figure__link {
+  display: block;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.5rem;
+  background: #fff;
+  overflow: hidden;
+}
+
+.doc-figure__link img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+.doc-figure figcaption {
+  margin-top: 0.6rem;
+  color: var(--sl-color-gray-2);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.doc-figure figcaption a {
+  white-space: nowrap;
+}
+
+/* A wide diagram may use more than the text column on a large screen. */
+@media (min-width: 72rem) {
+  .doc-figure--wide {
+    width: min(64rem, calc(100vw - var(--sl-sidebar-width) - 6rem));
+    max-width: none;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
