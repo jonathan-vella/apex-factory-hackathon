@@ -48,7 +48,7 @@ Done when `factory/evidence/c04/` in your repo holds four ADR files (two team AD
 
 Save the files in `factory/evidence/c04/` of your own repo, on `main`. In the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\c04\` (the plain clone of your own repo) and run `git pull --rebase` first. Commit with a conventional message (for example `docs: C4 target-state decisions`) and run `git push`.
 
-- The ADRs: platform and migration method (team, scored from the platform lead's copy), app and data (each member). Each has a decision, an alternative considered, and a consequence.
+- The ADRs: platform and migration method (team, scored from the team lead's copy), app and data (each member). Each has a decision, an alternative considered, and a consequence.
 - The deferred-work register, with every deferred C3 finding present and the trace-flag removal step explicitly listed for each member.
 
 ## Hints

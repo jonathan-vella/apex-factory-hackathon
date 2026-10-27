@@ -1,15 +1,6 @@
 ---
 const steps = [
   {
-    id: "C0",
-    title: "Ready to hack",
-    scope: "Member",
-    min: 150,
-    pts: 10,
-    day: "Pre",
-    href: "/challenges/c00-ready-to-hack/",
-  },
-  {
     id: "C1",
     title: "Define the opportunity",
     scope: "Team",
@@ -102,15 +93,18 @@ const steps = [
   },
 ];
 const phases = [
-  { label: "Prepare", start: 0 },
-  { label: "Foundation", start: 1 },
-  { label: "Assess and deploy", start: 3 },
-  { label: "Modernize", start: 6 },
-  { label: "Optimize and hand over", start: 9 },
+  { label: "Foundation", start: 0 },
+  { label: "Assess and deploy", start: 2 },
+  { label: "Modernize", start: 5 },
+  { label: "Optimize and hand over", start: 8 },
 ];
 ---
 
 <div class="jmap not-content">
+  <p class="jmap__gate">
+    <span class="jmap__gate-label">Readiness</span>A check before day one, with no points.
+    <a href="/deploy/">See how to deploy</a>.
+  </p>
   <p class="jmap__legend">
     <span class="jmap__key jmap__key--team">Team</span>
     <span class="jmap__key jmap__key--member">Member</span>
@@ -152,6 +146,19 @@ const phases = [
   :global(:root[data-theme="light"]) .jmap {
     --j-team: #b35f00;
     --j-member: #0b6bbd;
+  }
+
+  .jmap__gate {
+    margin: 0 0 0.75rem;
+    color: var(--lp-muted, var(--sl-color-gray-2));
+    font-size: 0.85rem;
+  }
+
+  .jmap__gate-label {
+    margin-right: 0.4rem;
+    color: var(--lp-accent-text, var(--sl-color-accent-high));
+    font-family: var(--font-display, inherit);
+    font-weight: 700;
   }
 
   .jmap__legend {

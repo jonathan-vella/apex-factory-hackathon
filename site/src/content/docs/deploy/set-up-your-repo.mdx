@@ -1,0 +1,200 @@
+---
+title: Set up your repo
+description: Create your own repo, import the kit, sign in and write your settings file. About 60 to 90 minutes, mostly downloads and the first dev container build.
+sidebar:
+  order: 2
+---
+
+import { Steps } from "@astrojs/starlight/components";
+import Diagram from "../../../components/Diagram.astro";
+
+Do this once, by T-14, before you run the [member steps](../member-steps/). It gives you a repo with the kit on `main`, a signed-in `az` and `gh`, and a settings file. GitHub runs a workflow only from the default branch, so the kit must be merged to `main` before anything deploys. You need the accounts, access and tools from [Requirements](../../getting-started/requirements/) first.
+
+## How you work
+
+- **One repo of your own.** A private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. It brings the **APEX agents**, Copilot custom agents that appear in Copilot Chat's agent picker.
+- **One dev container.** A ready-made Linux workspace that VS Code opens inside Docker, so every member has the same tools: Azure CLI, PowerShell 7, Git, `azd` and Bicep.
+- **One import.** A single command copies the kit into a `factory/` folder in your repo. Run every script and command from `factory/`, inside the dev container.
+- **One exception.** `vm-dev01`, which you set up in the [member steps](../member-steps/#set-up-vm-dev01). From C3 the app work happens there (C3, C6, C7 and C9). C4, C5 and C10 run in the dev container again, and C8 uses both. Each challenge page has a **Where to run** block.
+- **Evidence** lives in your own repo, under `factory/evidence/`. There is no shared team repo.
+
+<Diagram
+  name="diagram-11-github-repositories"
+  alt="Each member's private repository is created from the public apex-accelerator template. Import-Kit.ps1 copies the published hackathon kit into its factory/ folder, which also holds the member's evidence. A coach reads that evidence in the member's repo."
+  caption="Your repo comes from the template. The kit is imported into its factory/ folder."
+/>
+
+## Create your repo
+
+<Steps>
+
+1. **Create the repo.** Open the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template, choose **Use this template** > **Create a new repository**, set the owner to your partner org, and make it **Private**. Add your coach as a collaborator (**Settings** > **Collaborators**) so they can read your evidence.
+
+2. **Clone it with VS Code.** On Windows 11, press `F1` > `WSL: Connect to WSL` first, so VS Code runs inside Ubuntu. Then press `F1` > `Git: Clone`, choose **Clone from GitHub**, sign in when asked, pick your repo and a folder in your home folder, and choose **Open**.
+
+3. **Reopen in the dev container.** Choose **Reopen in Container** when VS Code offers it (or press `F1` > `Dev Containers: Reopen in Container`). The first build takes about 10 minutes. It's done when a terminal prompt appears. If it fails, see [Troubleshooting](../../reference/troubleshooting/).
+
+</Steps>
+
+<details>
+<summary>Ignore the template's own README</summary>
+
+Your new repo opens on the template's README and its Quick Start. Follow this page instead. From that README you need only the dev container. Don't run `npm run setup`, don't change the Actions pull request permission, and don't run the Weekly Maintenance or Governance Policy Baseline workflows: the kit doesn't use them. The template's scheduled workflows may show failed runs on Mondays: ignore them. If you work for Microsoft and the container build fails on package feeds, start VS Code with the template's `.devcontainer/open-microsoft.ps1` launcher.
+
+</details>
+
+Done when a terminal prompt opens inside the dev container.
+
+## Import the kit
+
+<Steps>
+
+1. **Import.** In the dev container terminal, at the repo root, paste these three lines as they are:
+
+   ```bash
+   curl -fsSLO https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Import-Kit.ps1
+   pwsh ./Import-Kit.ps1
+   rm Import-Kit.ps1
+   ```
+
+   This creates `factory/` and imports the CoE archetype's APEX project into the repo root.
+
+2. **Set your git identity, once.** A new dev container has none, and the commit fails with "Author identity unknown" without it.
+
+   ```bash
+   git config --global user.name "<your name>"
+   git config --global user.email "<your email>"
+   ```
+
+3. **Commit the import to a new branch, never to `main`.** If Copilot Chat asks you to sign in, use the Accounts menu at the bottom left of VS Code. Then paste this prompt into Copilot Chat in Agent mode:
+
+   ```text
+   Commit and push all my changes to a new branch. Do not use the apex-git-commit skill or its path exclusions: I want every change committed, including agent-output/, infra/ and factory/.
+
+   1. Run `git status --short`. If the current branch is main, create and switch to a new branch named feat/<two or three words describing the changes>. Otherwise stay on the current branch.
+   2. Stage everything with `git add -A`.
+   3. Commit with a conventional message, type: Subject (types: feat, fix, docs, chore), for example `chore: Import the factory kit`. The repo's hooks run on commit.
+   4. If a hook fails, read its output and fix the cause if it is in a file you changed, then commit again. The one exception: if the only failing hook is iac-security-baseline and it reports only these two findings, retry once with `LEFTHOOK_EXCLUDE=iac-security-baseline git commit ...`:
+      - keyvault.bicep: purge protection must be enabled
+      - web-app.bicep: public network access
+      Those two are accepted lab risks in the archetype (purge protection stays off so the lab can be torn down, and the web app is public on purpose). Do not edit the Bicep to silence them. For any other failure, stop and show me the output.
+   5. Never use --no-verify, never force-push, and never commit to main.
+   6. Push with `git push -u origin <branch>`, then show me the commit hash, the branch name and the number of files committed.
+   ```
+
+</Steps>
+
+Done when `ls factory` lists `scripts`, `infra`, `app`, `db`, `templates` and `archetype`, and your `feat/...` branch and its commit are on GitHub.
+
+<details>
+<summary>If the import or the commit fails</summary>
+
+- The import refuses to overwrite an existing `factory/` unless you add `-Force`. If a run fails, the third line has already deleted the script, so repeat all three lines, and add `-Force` to the second one (`pwsh ./Import-Kit.ps1 -Force`) when the script says `factory/` exists. `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
+- If you commit by hand, run `git switch -c feat/import-kit` first and check that `git branch --show-current` does not print `main`. Don't use `/apex-git-commit`: it skips `agent-output/` and `infra/`, which hold the imported archetype.
+- The import keeps `factory/` out of the repo's linters and the weekly upstream sync, and excludes the imported archetype (`infra/bicep/university`) from the template's `iac-security-baseline` hook, because its two accepted lab findings would otherwise block every commit that touches it. If the hook still blocks a commit that only touches the archetype, re-run the import with `-Force`, or use the prompt's exception.
+- The archetype was built against APEX commit `c209d8b` (recorded in `archetype/README.md`). If the APEX agents behave differently from the C5 instructions, tell your coach.
+
+</details>
+
+## Sign in and settings
+
+<Steps>
+
+1. **Start PowerShell.** The dev container terminal starts in bash.
+
+   ```bash
+   pwsh
+   ```
+
+2. **Sign in to Azure.** Find your **tenant ID** (Azure portal, **Microsoft Entra ID** > **Overview**) and your **subscription ID** (**Subscriptions**). `az login` prints a code: enter it at `microsoft.com/devicelogin` in a browser on your own computer.
+
+   ```powershell
+   az login --tenant '<tenant-id>' --use-device-code
+   az account set --subscription '<subscription-id>'
+   az account show --output table
+   ```
+
+   Check that `az account show` prints your workload subscription, and compare its **subscription ID** with the portal, not the name: the CLI caches names. If `--use-device-code` is blocked in your tenant, run `az login --tenant '<tenant-id>'` and finish in the browser.
+
+3. **Sign in to GitHub.** Choose **GitHub.com**, **HTTPS** and **Login with a web browser**. `gh` prints a one-time code: enter it at `github.com/login/device`.
+
+   ```powershell
+   gh auth login --hostname github.com --git-protocol https --web
+   gh auth setup-git
+   ```
+
+4. **Create your settings file.** Run it from `factory/`.
+
+   ```powershell
+   cd factory
+   ./scripts/Initialize-Settings.ps1
+   ```
+
+   It asks for your tenant ID and workload subscription ID (it offers the ones from your `az login`), your member index, your location (press Enter for `swedencentral`) and the shared services subscription. It shows the subscription name it is about to save: answer `Y` only when that name is yours.
+
+5. **Check your vCPU quota.**
+
+   ```powershell
+   az vm list-usage --location swedencentral --output table
+   ```
+
+   For the rows `Total Regional vCPUs` and `Standard Dasv6 Family vCPUs`, `CurrentValue + 16` must be no larger than `Limit`. If not, ask for a quota increase under **Usage + quotas** and tell your coach.
+
+</Steps>
+
+Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`, `location`, `memberIndex` and `suffix`, and the quota check passes. `factory/.local/` is git-ignored, so your IDs never go to GitHub. Run every script from the `factory/` folder.
+
+<details>
+<summary>About the settings questions</summary>
+
+- **Member index:** your team lead assigns you a number from 1 to 20, unique within your team. Ask your lead if you don't have one, and don't pick your own. It isn't the six-character suffix the script generates. Later pages show these as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
+- **Shared services subscription, members:** press Enter to skip it. The team lead shares its ID when they connect you at T-1, and you add it with `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'` (C2 task 1). Re-running never changes your other values.
+- **Shared services subscription, team lead:** enter it now. The script prints its name on a `Shared:` line: check it is your shared services subscription and not another one you own. Preflight then also checks your Tenant Root rights, so a missing role shows up at T-14 and not at T-7.
+- **Wrong subscription name:** `az account list --refresh --output table` updates the cached names. `Initialize-Settings.ps1` can't tell a mistyped but valid ID from a real one, so read the name it shows.
+
+</details>
+
+## Manual checks
+
+The preflight (the `whatif` stage in the [member steps](../member-steps/#t-14-preflight)) prints five MANUAL rows because it can't verify these. Confirm them yourself before T-14. The **Preflight row** column shows which MANUAL row each check belongs to.
+
+| # | Check | How to verify | Preflight row |
+| --- | --- | --- | --- |
+| 1 | Copilot Chat responds in VS Code | Open Copilot Chat, send "hello". | GitHub Copilot |
+| 2 | The APEX custom agents appear | In Copilot Chat's agent picker, `01-Orchestrator` and `08-As-Built` are listed. | GitHub Copilot |
+| 3 | The agents' models are permitted | The picker lets you select and run them (no policy block message). | GitHub Copilot |
+| 4 | The MCP servers in `.mcp.json` (repo root) load | VS Code shows them started and authenticated. Your organization's Copilot policy must also allow MCP servers and Copilot CLI. | GitHub Copilot |
+| 5 | Dev container opens | You can run `az version` and `pwsh --version` in its terminal. | APEX |
+| 6 | One subscription per member | Ask your coach to confirm that no other member uses yours. | Not a MANUAL row |
+| 7 | Your roles match your kit role | Team lead: Tenant Root Owner and a separate shared services subscription. Members: Owner on your own workload subscription. | Not a MANUAL row |
+| 8 | MFA is registered | Sign in to the Azure portal and confirm your MFA method works. | MFA |
+| 9 | You can create private repos in the partner's GitHub org | You did this when you created your repo above. | GitHub repositories |
+| 10 | Azure Hybrid Benefit | You hold eligible Windows Server licenses with Software Assurance. If you don't, follow the rule on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page. | Azure Hybrid Benefit |
+
+See the [ALZ-lite guide](../../guides/alz-lite/) for why the model needs two kinds of subscription.
+
+## Merge your import
+
+Your import is still on the `feat/...` branch. Merge it, so `main` holds the kit and everything that follows runs on `main`.
+
+<Steps>
+
+1. On GitHub, open your repo. Choose **Compare & pull request** for the `feat/...` branch (or **Pull requests** > **New pull request**), then **Create pull request**, **Merge pull request** and **Confirm merge**. This is the only branch you merge into `main`. If a rule blocks the merge, tell your coach.
+2. In the dev container, bring `main` up to date:
+
+   ```powershell
+   git switch main && git pull
+   ```
+
+</Steps>
+
+Done when `factory/` is visible on `main` on GitHub and `git branch --show-current` prints `main`.
+
+From now on, all your work is on `main`, except the `vm-dev01-work` branch on `vm-dev01`, which you never merge. Evidence follows one rule everywhere:
+
+- **Dev container:** evidence goes in `factory/evidence/` on `main`. Run `git pull` first.
+- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`. Run `git pull --rebase` first.
+
+Each member keeps evidence in their own repo. For a team document, one person types it, then every teammate saves the final file under the same name in their own `factory/evidence/cNN/`.
+
+Next: the [member steps](../member-steps/), starting with the preflight.

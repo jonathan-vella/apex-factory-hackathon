@@ -1,24 +1,23 @@
 # Scoring rubric
 
-This is the scoring single source of truth. The base contract is 80 team points and 120 member points: 200 total before bonuses. Challenge minutes and base points match the challenge pages.
+This is the scoring single source of truth. The base contract is 80 team points and 110 member points: 190 total before bonuses. Challenge minutes and base points match the challenge pages. The readiness check before the event has no points: it is a gate, described on the [readiness gate page](../coach/readiness.md).
 
 ## Scoring rules
 
 - Lock the roster at kickoff. The member average includes every person on that roster; a missing or unverified item scores zero. Do not remove an absent member from the denominator after kickoff.
 - Award team evidence once per team. Award member evidence separately for each member.
-- Base team score = team base points + the arithmetic mean of member base points. The maximum base score is 200.
+- Base team score = team base points + the arithmetic mean of member base points. The maximum base score is 190.
 - Score each evidence row independently. Full points require the listed evidence. Award half the row value, rounded down, when evidence is present but one verifiable subcomponent is incomplete; award zero when evidence is absent, unverified or materially incorrect. Record the reason for partial credit. Never exceed a row's maximum or move unused points between rows.
 - Lifelines cap the affected challenge only; later challenges remain eligible. Record the branch or image in the scoreboard. C6 use of L1, L2, L3, L4 caps C6 at **15 of 30 member points**. C7 use of L5, or of the known-good image at go-live, caps C7 at **10 of 20 member points**. Ordinary hints and coach discussion do not trigger a cap.
 - Challenge bonus tasks and badges draw from one bonus allowance per team, capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. Award the bonuses in the order they appear in this rubric until the team reaches the cap. Once a team has reached it, further eligible bonus evidence is recorded but adds no points.
 - Rank teams by team score. Teams with the same score share the rank.
 - Team score = team base points + average member base points + awarded team bonus + average awarded member bonus, with combined bonus capped at 30. The scoreboard shows the components separately.
-- Coaches sign off evidence and the event owner resolves scoring disagreements against this rubric. Coaches read each member's own repo (evidence is in `factory/evidence/cNN/`). Score team items once per team, from the platform lead's copy; the other members' copies must match it. Redact secrets and tenant, subscription and object IDs before sharing evidence publicly.
+- Coaches sign off evidence and the event owner resolves scoring disagreements against this rubric. Coaches read each member's own repo (evidence is in `factory/evidence/cNN/`). Score team items once per team, from the team lead's copy; the other members' copies must match it. Redact secrets and tenant, subscription and object IDs before sharing evidence publicly.
 
 ## Base points by challenge
 
 | Challenge | Scope | Minutes | Team points | Member points |
 |---|---|---:|---:|---:|
-| C0 Ready to hack | Member | 150 | 0 | 10 |
 | C1 Define the opportunity | Team | 45 | 10 | 0 |
 | C2 Secure, AI-ready foundation | Team | 120 | 35 | 0 |
 | C3 Assess the source | Member | 60 | 0 | 15 |
@@ -29,19 +28,9 @@ This is the scoring single source of truth. The base contract is 80 team points 
 | C8 Validate the pattern | Member | 45 | 0 | 10 |
 | C9 Optimize the DB with GHCP | Member | 60 | 0 | 10 |
 | C10 Package, hand over, review AI readiness | Team | 60 | 20 | 0 |
-| **Total** |  | **975** | **80** | **120** |
+| **Total** |  | **825** | **80** | **110** |
 
 ## Evidence points
-
-### C0 — Ready to hack
-
-| Evidence item | Team pts | Member pts |
-|---|---:|---:|
-| Preflight output is green and the member confirms the Azure Hybrid Benefit check | 0 | 2 |
-| Datacenter test output is green, or a coach-approved failure is explained | 0 | 3 |
-| `vm-app01` is Arc-connected and the SQL Server extension reports its instance | 0 | 3 |
-| First Arc SQL migration assessment is captured | 0 | 2 |
-| **Total** | **0** | **10** |
 
 ### C1 — Define the opportunity
 
@@ -53,7 +42,7 @@ This is the scoring single source of truth. The base contract is 80 team points 
 
 ### C2 — Secure, AI-ready foundation
 
-The platform lead deploys ALZ-lite at T-7 and vends every member at T-1, so C2 scores a "verify and explain" challenge on Day 1: the evidence comes from the work done before the event, and the team shows it understands it. The base points stay 35.
+The team lead deploys ALZ-lite at T-7 and vends every member at T-1, so C2 scores a "verify and explain" challenge on Day 1: the evidence comes from the work done before the event, and the team shows it understands it. The base points stay 35.
 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
@@ -159,6 +148,6 @@ Each badge adds 5 team bonus points when its evidence is signed off. Badges shar
 
 ## Challenge bonus tasks
 
-Use the bonus opportunities on the challenge pages: C2, C3, C5, C6, C7 and C8 offer up to 5 points each; C10 offers up to 10. C0, C1, C4 and C9 have no bonus task. Award only documented evidence and apply the shared 30-point ceiling.
+Use the bonus opportunities on the challenge pages: C2, C3, C5, C6, C7 and C8 offer up to 5 points each; C10 offers up to 10. C1, C4 and C9 have no bonus task. Award only documented evidence and apply the shared 30-point ceiling.
 
 The C7 bonus (clean reseed after an abort) applies only to a real, unplanned abort. The coach-staged Day 2 abort is part of the event and earns no bonus.

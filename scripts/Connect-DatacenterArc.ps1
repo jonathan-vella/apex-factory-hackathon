@@ -4,7 +4,7 @@
 .SYNOPSIS
 Onboards vm-app01 to Azure Arc unattended, with your own sign-in. Lab only.
 .DESCRIPTION
-The member's Arc onboarding (C0), the only onboarding path. Arc on an Azure VM is a lab-only pattern, never a customer
+The member's Arc onboarding (the readiness check), the only onboarding path. Arc on an Azure VM is a lab-only pattern, never a customer
 pattern. Run it from Azure Cloud Shell or your own computer, signed in with az login. It uses your
 Azure Resource Manager access token, not a service principal, so your account needs Virtual Machine
 Contributor on vm-app01 and Azure Connected Machine Resource Administrator (or Contributor) on

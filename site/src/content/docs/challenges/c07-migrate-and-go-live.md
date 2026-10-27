@@ -9,6 +9,27 @@ Move the database to SQL Managed Instance with no data loss, then put the modern
 
 The MI link is a database mirror from `vm-app01` to your managed instance. It keeps a read-only copy in sync until you cut over, and then the managed instance takes over as the live database.
 
+<figure class="doc-figure">
+  <a class="doc-figure__link" href="/diagrams/diagram-10-migration-cutover.svg" target="_blank" rel="noopener">
+    <img src="/diagrams/diagram-10-migration-cutover.svg" alt="The migration in three stages. Before migration, the source SQL Server on vm-app01 is read and write and SQL Managed Instance waits in its subnet. During replication the MI link copies the database through the hub firewall to a read-only replica, and validation of row counts, checksums, objects and lag leads to a go or no-go decision. After a planned cutover the legacy app and workload generator are stopped and the managed instance is the live read and write database for the modernized app on App Service." width="3840" height="2160" loading="lazy" decoding="async" />
+  </a>
+  <figcaption>The migration from seed to cutover. <a href="/diagrams/diagram-10-migration-cutover.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
+</figure>
+
+<details>
+<summary>How the app's identities and secrets fit together</summary>
+
+Tasks 5 and 6 depend on which identity does what. The web app's own identity reads the Key Vault secret and signs in to the database. A separate shared identity lets SQL Managed Instance look up Microsoft Entra users.
+
+<figure class="doc-figure">
+  <a class="doc-figure__link" href="/diagrams/diagram-09-identities-secrets-telemetry.svg" target="_blank" rel="noopener">
+    <img src="/diagrams/diagram-09-identities-secrets-telemetry.svg" alt="The web app's user-assigned identity gets data roles on the container registry, Blob Storage, Service Bus, Key Vault and Application Insights, and signs in to the database as a contained user with no password using the Key Vault connection string. SQL Managed Instance uses the separate shared identity id-sqlmi-directory with Microsoft Graph read permissions for directory searches. For local work on vm-dev01 the app uses the member's Azure CLI sign-in." width="3840" height="2160" loading="lazy" decoding="async" />
+  </a>
+  <figcaption>Identities, secrets and telemetry. <a href="/diagrams/diagram-09-identities-secrets-telemetry.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
+</figure>
+
+</details>
+
 ## Scope and time box
 
 Member. **120 min**.
@@ -27,7 +48,7 @@ Start the link at 08:30 on Day 2 (the agenda's "Reconnect and start the MI link"
 
 ## What the kit already did for you
 
-The datacenter deployment turned on availability groups on `vm-app01`'s SQL Server, set the startup trace flags `-T1800` and `-T9567`, made `NT AUTHORITY\SYSTEM` a sysadmin and onboarded the instance to Azure Arc (C0). Vending opened the network path between `vm-app01` and your managed instance's subnet. Task 1 does the rest of what the link needs on the source: a Windows Firewall rule for port 5022, a database master key, the Azure root certificates and a full backup.
+The datacenter deployment turned on availability groups on `vm-app01`'s SQL Server, set the startup trace flags `-T1800` and `-T9567`, made `NT AUTHORITY\SYSTEM` a sysadmin and onboarded the instance to Azure Arc (the readiness check). Vending opened the network path between `vm-app01` and your managed instance's subnet. Task 1 does the rest of what the link needs on the source: a Windows Firewall rule for port 5022, a database master key, the Azure root certificates and a full backup.
 
 ## Where to run
 
@@ -42,7 +63,7 @@ The datacenter deployment turned on availability groups on `vm-app01`'s SQL Serv
 
 Connect to a VM through Bastion in the portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. To paste into a Bastion session, use Ctrl+V and allow the browser's clipboard prompt if it asks. To open an Administrator PowerShell on `vm-app01`, select **Start**, type `powershell`, right-click **Windows PowerShell** and choose **Run as administrator**.
 
-`<n>` is your member index, the `memberIndex` value in your settings. In your dev container, from `factory/`, this prints the passwords you need and the exact command for task 1 with your `<n>` filled in:
+`<n>` is your member index, the `memberIndex` value in your settings. In your dev container, from `factory/`, this prints the passwords you need (they come from the credentials file `.local/<subscription-id>/datacenter.json`, which the readiness check created) and the exact command for task 1 with your `<n>` filled in:
 
 ```powershell
 $s = Get-Content .local/settings.json | ConvertFrom-Json

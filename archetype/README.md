@@ -16,7 +16,7 @@
 An [APEX](https://github.com/jonathan-vella/apex-accelerator) project that designs and deploys the
 private-by-default Azure platform for the modernized Contoso University web app: App Service, a
 container registry, a SQL Managed Instance, Blob storage, Service Bus, Key Vault and Application
-Insights, in a Corp landing zone spoke that already exists (your platform lead runs the `vending` stage at T-1). It does not deploy or
+Insights, in a Corp landing zone spoke that already exists (your team lead runs the `vending` stage at T-1). It does not deploy or
 modernize the app itself: that is the separate app- and database-modernization work (C6 to C9).
 
 As a member you need only **Deploy it**, **Inputs**, **Cost** and **Public-endpoint exceptions**. The sections
@@ -58,10 +58,10 @@ repo and continue from there.
 ### With APEX + azd (primary)
 
 1. Create your repo from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator)
-   template, as described on the site's Prerequisites page. There's no pinned tag or release: the
+   template, as described on the site's [Set up your repo](https://factory.apexops.pro/deploy/set-up-your-repo/) page. There's no pinned tag or release: the
    kit always imports from `main`.
 2. Import this folder into that repo. Members normally don't run this by hand:
-   `scripts/Import-Kit.ps1` (see the site's Prerequisites page) imports the kit into `factory/` and
+   `scripts/Import-Kit.ps1` (see the site's [Set up your repo](https://factory.apexops.pro/deploy/set-up-your-repo/) page) imports the kit into `factory/` and
    then runs this script for them. To redo only the archetype import, run this from your repo root
    (inside the dev container):
 
@@ -90,7 +90,7 @@ repo and continue from there.
    --use-device-code` (azd keeps its own sign-in, separate from `az login`). It's self-contained:
    it reads the tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks
    you to confirm them (it asks for them if the file is missing), checks that a spoke is already
-   vended (your platform lead runs the `vending` stage at T-1; if it isn't, ask them to run it), runs a lightweight governance check
+   vended (your team lead runs the `vending` stage at T-1; if it isn't, ask them to run it), runs a lightweight governance check
    (live Deny-effect discovery, compared against the packaged policy set by policy definition and
    resource type, stopping only on a genuinely new deny; never overwriting the tracked
    `04-governance-*` files or running drift routing/Step 4-5 re-emission), creates the `azd`

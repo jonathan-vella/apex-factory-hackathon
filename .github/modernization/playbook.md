@@ -40,7 +40,7 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
 
 **Goal:** a ready VM: signed in, your two folders in place, a clean legacy tree and the Upgrade agent ready in the Local harness.
 
-You set this up once, in C0 task 7. The steps (sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the kit clone, the `member` remote and your `vm-dev01-work` branch, your plain clone for evidence, VS Code, the Upgrade agent) are in the guide: [Switching to vm-dev01](https://factory.apexops.pro/guides/ghcp-upgrade/#switching-to-vm-dev01). Don't repeat them here. Before Step 1, check in PowerShell 7 on `vm-dev01`:
+You set this up once, in the `vm-dev01` setup of the [member steps](https://factory.apexops.pro/deploy/member-steps/#set-up-vm-dev01). The steps (sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the kit clone, the `member` remote and your `vm-dev01-work` branch, your plain clone for evidence, VS Code, the Upgrade agent) are in the guide: [Switching to vm-dev01](https://factory.apexops.pro/guides/ghcp-upgrade/#switching-to-vm-dev01). Don't repeat them here. Before Step 1, check in PowerShell 7 on `vm-dev01`:
 
 ```powershell
 Set-Location C:\src\factory

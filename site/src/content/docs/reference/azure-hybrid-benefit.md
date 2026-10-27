@@ -9,7 +9,7 @@ Azure Hybrid Benefit (AHB) lets you use a Windows Server or SQL Server license y
 
 ## The rule
 
-**If you don't hold eligible licenses:** run C0's `member` stage with `no-hybrid-benefit`, so `vm-app01` is deployed and tested without Hybrid Benefit: `gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`. Tell your coach, and ask your coach what to do for the SQL Managed Instance in C5. The input covers `vm-app01` only.
+**If you don't hold eligible licenses:** run the `member` stage with `no-hybrid-benefit` in the [readiness check](../../deploy/member-steps/#t-3-deploy-your-datacenter), so `vm-app01` is deployed and tested without Hybrid Benefit: `gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`. Tell your coach, and ask your coach what to do for the SQL Managed Instance in C5. The input covers `vm-app01` only.
 
 If you do hold eligible licenses, leave AHB on.
 

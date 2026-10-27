@@ -1,23 +1,24 @@
 ---
 title: The kit at a glance
-description: Where you run things, what changes, the eleven challenges and what you end up with.
+description: Where you run things, what changes, the ten challenges and what you end up with.
 sidebar:
   order: 1
 ---
 
 import JourneyMap from "../../../components/JourneyMap.astro";
 import ArchitectureDiagram from "../../../components/ArchitectureDiagram.astro";
+import Diagram from "../../../components/Diagram.astro";
 
-This page is the big picture. Start with [Prerequisites](../prerequisites/) when you're ready to work. Terms you don't know are in the [glossary](../../reference/glossary/).
+This page is the big picture. When you're ready to work, start with [Requirements](../requirements/). Terms you don't know are in the [glossary](../../reference/glossary/).
 
 ## Where do I run this?
 
 | Where | What you do there |
 |---|---|
-| [Dev container](../prerequisites/#how-you-work-with-one-repo-and-one-dev-container) | VS Code on your laptop, in your own repo. The kit's scripts run from `factory/`: C0 setup and evidence, the platform pipeline's setup, C5 with APEX and azd, the C8 load and security checks. You deploy the datacenter and the foundation (T-7 and T-1, which C2 verifies) with GitHub Actions, which is [set up and triggered](../../guides/deploy-with-actions/) from here too. |
+| Dev container | VS Code on your laptop, in your own repo. You trigger your deployments from here with GitHub Actions, and run the readiness setup, C5 with APEX and `azd`, and the C8 load and security checks. [Set up your repo](../../deploy/set-up-your-repo/) creates it. |
 | [`vm-dev01`](../../guides/ghcp-upgrade/#switching-to-vm-dev01) | Your workstation, through Bastion. From C3 the app work happens here, next to the private network. Never stop it. |
-| Browser and Azure portal | The Azure Arc assessment (first run in C0 task 5, triaged in C3), the MI link (C7), Bastion connections and the C8 smoke checks. |
-| [Your own repo](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) | Evidence goes in `factory/evidence/cNN/` on `main`; run `git pull` first. On `vm-dev01`, use your plain clone `C:\src\<your-repo>` and run `git pull --rebase` first. Your coach reads it. |
+| Browser and Azure portal | The Azure Arc assessment (first run in the readiness check, triaged in C3), the MI link (C7), Bastion connections and the C8 smoke checks. |
+| [Your own repo](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) | Evidence goes in `factory/evidence/` on `main`; run `git pull` first. On `vm-dev01`, use your plain clone `C:\src\<your-repo>` and run `git pull --rebase` first. Your coach reads it. |
 
 Each challenge page has a **Where to run** block that says which one to use.
 
@@ -32,14 +33,27 @@ Each challenge page has a **Where to run** block that says which one to use.
 
 ## The journey
 
-Eleven challenges across pre-work and two days: from a ready workstation to a reusable, AI-ready modernization pattern.
+Ten challenges across two days, from a defined opportunity to a reusable, AI-ready modernization pattern. Before day one, a readiness check confirms your datacenter and workstation are ready. It has no points and isn't a challenge: the steps are in [Deploy](../../deploy/).
 
 <JourneyMap />
 
-GHCP is GitHub Copilot. The MI link is the replication link from the source SQL Server to Azure SQL Managed Instance. The CoE archetype is a Center of Excellence's reference platform, built with APEX and deployed with azd.
+GHCP is GitHub Copilot. The MI link is the replication link from the source SQL Server to Azure SQL Managed Instance. The CoE archetype is a Center of Excellence's reference platform, built with APEX and deployed with `azd`.
 
 ## The end state
 
-The team shares one hub. Each member has a datacenter, a spoke and a CoE archetype. Pick a challenge to see the parts it touches: The foundation is deployed at T-7 and T-1 and C2 verifies it, C5 deploys the archetype, C7 links the database and C8 checks the result. [Deploy with GitHub Actions](../../guides/deploy-with-actions/#what-gets-deployed) shows how the subscriptions and management groups fit together, and which stage builds each part.
+The team shares one hub. Each member has a datacenter, a spoke and a CoE archetype. The foundation is deployed at T-7 and T-1 and C2 verifies it, C5 deploys the archetype, C7 links the database and C8 checks the result.
+
+<Diagram
+  name="diagram-02-end-to-end-overview"
+  alt="From the simulated datacenter to the modernized application. A shared services subscription holds the hub network, Azure Firewall, central private DNS zones and Log Analytics. Each member subscription holds a simulated datacenter (vm-app01 with the legacy app and SQL Server, vm-dev01, Bastion and a NAT gateway), a vended spoke network, and the CoE archetype: SQL Managed Instance, container registry, Blob Storage, Service Bus, Key Vault, App Service and Application Insights. Networks are peered through the hub, and the MI link runs from the source SQL Server to SQL Managed Instance during C7."
+  caption="The team hub, one member's datacenter and spoke, and the archetype."
+/>
+
+<details>
+<summary>Explore the architecture by challenge</summary>
+
+Pick a challenge to see the parts it touches. [How it works](../../deploy/how-it-works/) shows which stage builds each part.
 
 <ArchitectureDiagram interactive name="landing-arch" caption="n is your member index (1–20). The suffix is the six-character string from your settings. Names and ranges are in the naming and IP plan under Reference, including the archetype resource names." />
+
+</details>

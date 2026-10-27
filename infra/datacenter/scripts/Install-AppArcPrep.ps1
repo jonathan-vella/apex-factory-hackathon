@@ -4,7 +4,7 @@ Places the Arc prep script on vm-app01, without running it.
 .DESCRIPTION
 Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM. Downloads Prepare-ArcOnAzureVm.ps1 from
 the deployment's git ref to C:\LabTools\arc. It doesn't run it: Connect-DatacenterArc.ps1 does, during Arc
-onboarding (C0). Don't run it by hand first, because it turns off the guest agent and so ends run commands.
+onboarding (the readiness check). Don't run it by hand first, because it turns off the guest agent and so ends run commands.
 .PARAMETER PrepScriptUrl
 Download URL of Prepare-ArcOnAzureVm.ps1 at the deployment's git ref.
 .PARAMETER RunId

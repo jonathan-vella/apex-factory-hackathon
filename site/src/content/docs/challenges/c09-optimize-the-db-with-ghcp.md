@@ -37,7 +37,7 @@ $ev = 'C:\src\<your-repo>\factory\evidence\c09'
 New-Item -ItemType Directory -Force $ev | Out-Null
 ```
 
-`$mi` is your SQL Managed Instance's host name. If it's empty, copy it from the portal instead: the managed instance's **Overview** > **Host**. Use the standard host name, not an IP address or a `privatelink` name. `$ev` is your evidence folder: the fix scripts and the numbers go there as you go. Save it in your plain clone at `C:\src\<your-repo>` (set up in C0 task 7), and run `git pull --rebase` there first, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
+`$mi` is your SQL Managed Instance's host name. If it's empty, copy it from the portal instead: the managed instance's **Overview** > **Host**. Use the standard host name, not an IP address or a `privatelink` name. `$ev` is your evidence folder: the fix scripts and the numbers go there as you go. Save it in your plain clone at `C:\src\<your-repo>` (set up as in [set up `vm-dev01`](../../deploy/member-steps/#set-up-vm-dev01)), and run `git pull --rebase` there first, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
 
 **Query Store** is SQL Server's built-in record of every query's duration, reads and plans. You'll read it in SSMS, which shows it in reports.
 

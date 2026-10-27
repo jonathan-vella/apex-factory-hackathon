@@ -5,7 +5,6 @@ import { fileURLToPath } from "node:url";
 const defaultRoot = fileURLToPath(new URL("..", import.meta.url));
 const textExtensions = new Set([".astro", ".md", ".mdx", ".yml", ".yaml"]);
 const challengeContract = [
-  ["C0", "c00-ready-to-hack.md", 150, 10, 0, 10],
   ["C1", "c01-define-the-opportunity.md", 45, 10, 10, 0],
   ["C2", "c02-secure-ai-ready-foundation.mdx", 120, 35, 35, 0],
   ["C3", "c03-assess-the-source.md", 60, 15, 0, 15],
@@ -17,18 +16,17 @@ const challengeContract = [
   ["C9", "c09-optimize-the-db-with-ghcp.md", 60, 10, 0, 10],
   ["C10", "c10-package-hand-over-review-ai-readiness.md", 60, 20, 20, 0],
 ];
-const expectedChallengeCount = 11;
-const expectedMinutes = 975;
-const expectedPoints = 200;
+const expectedChallengeCount = 10;
+const expectedMinutes = 825;
+const expectedPoints = 190;
 const expectedTeamPoints = 80;
-const expectedMemberPoints = 120;
+const expectedMemberPoints = 110;
 const evidenceRule = [
   "- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.",
   "- **`vm-dev01`:** evidence goes in `C:\\src\\<your-repo>\\factory\\evidence\\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.",
 ];
 const evidenceRulePages = [
-  "site/src/content/docs/getting-started/prerequisites.md",
-  "site/src/content/docs/challenges/c00-ready-to-hack.md",
+  "site/src/content/docs/deploy/member-steps.mdx",
   "site/src/content/docs/challenges/c01-define-the-opportunity.md",
   "site/src/content/docs/guides/ghcp-upgrade.md",
 ];
@@ -91,8 +89,13 @@ async function checkEvidenceRule(root) {
     try {
       text = await readFile(join(root, page), "utf8");
     } catch (error) {
-      if (error.code === "ENOENT") continue;
-      throw error;
+      if (error.code !== "ENOENT") throw error;
+      try {
+        text = await readFile(join(root, page.replace(/\.md$/, ".mdx")), "utf8");
+      } catch (mdxError) {
+        if (mdxError.code === "ENOENT") continue;
+        throw mdxError;
+      }
     }
     const lines = text.split(/\r?\n/);
     for (const bullet of evidenceRule) {

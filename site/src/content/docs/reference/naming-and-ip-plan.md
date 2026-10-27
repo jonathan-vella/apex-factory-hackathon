@@ -33,7 +33,7 @@ sidebar:
 
 Two different values name member-scoped things. Both are saved in `factory/.local/settings.json`, and later pages show them as `$s.memberIndex` and `$s.suffix`:
 
-- The **member index** `n` (1 to 20) is a number the event owner assigns and your coach relays to you. It sets your IP ranges and appears in names such as `rcg-member-<n>`, your firewall rule collection group in the hub. It is unique within a team.
+- The **member index** `n` (1 to 20) is a number your team lead assigns (1 to 20, usually 1 to 5 with the lead as 1). It sets your IP ranges and appears in names such as `rcg-member-<n>`, your firewall rule collection group in the hub. It is unique within a team.
 - The **suffix** is a random six-character string that `Initialize-Settings.ps1` generates once and never changes. It names your archetype resources, for example `rg-university-<suffix>`.
 
 ## IP address plan
@@ -52,6 +52,34 @@ Two different values name member-scoped things. Both are saved in `factory/.loca
 
 `snet-sqlmi` has the network security group `nsg-sqlmi` and the route table `rt-sqlmi`. Vending creates both once, empty, and SQL MI's network intent policy then adds its own rules and routes. Don't redeploy them inline, because that would remove the MI's rules. The kit adds its MI link rules as separate child resources.
 
+<details>
+<summary>How you reach the VMs and how they reach the internet</summary>
+
+Bastion is the only way in to the datacenter VMs, and the NAT gateway only carries their outbound traffic. Traffic from the datacenter to the spoke doesn't use the NAT gateway: it goes through the hub firewall.
+
+<figure class="doc-figure">
+  <a class="doc-figure__link" href="/diagrams/diagram-06-bastion-vs-nat.svg" target="_blank" rel="noopener">
+    <img src="/diagrams/diagram-06-bastion-vs-nat.svg" alt="Two separate paths in the datacenter network. Azure Bastion Standard gives administrators remote desktop access to vm-app01 and vm-dev01 over public HTTPS from the portal, with no direct public RDP. A NAT Gateway attached to the server subnet carries the VMs' outbound internet traffic only. Datacenter-to-spoke traffic uses a route to the hub firewall, not the NAT Gateway." width="3840" height="2160" loading="lazy" decoding="async" />
+  </a>
+  <figcaption>Bastion brings you in, the NAT gateway takes VM traffic out. <a href="/diagrams/diagram-06-bastion-vs-nat.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
+</figure>
+
+</details>
+
+<details>
+<summary>How private names resolve</summary>
+
+Your apps and VMs use the standard service host names. The hub firewall acts as the DNS server, and central private DNS zones answer with the private endpoint address. Never use `privatelink` names or IP addresses.
+
+<figure class="doc-figure">
+  <a class="doc-figure__link" href="/diagrams/diagram-07-private-dns.svg" target="_blank" rel="noopener">
+    <img src="/diagrams/diagram-07-private-dns.svg" alt="How a standard service name resolves to a private address. A caller on the datacenter network or the spoke asks the hub firewall's DNS proxy, which forwards the query to Azure-provided DNS in the hub network. The central private DNS zones for Blob, Service Bus, the container registry and Key Vault supply the private endpoint record, and the caller then connects to a private address in the private endpoint subnet. SQL Managed Instance has no private endpoint and is reached by its standard host name." width="3840" height="2160" loading="lazy" decoding="async" />
+  </a>
+  <figcaption>Standard service names resolve through central private DNS. <a href="/diagrams/diagram-07-private-dns.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
+</figure>
+
+</details>
+
 ## Where to go next
 
-See the [glossary](../glossary/) for the terms used here, or go back to [Prerequisites](../../getting-started/prerequisites/).
+See the [glossary](../glossary/) for the terms used here, or go back to [Requirements](../../getting-started/requirements/).

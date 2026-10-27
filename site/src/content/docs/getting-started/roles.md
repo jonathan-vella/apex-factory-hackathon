@@ -1,28 +1,60 @@
 ---
 title: Roles
-description: Platform lead, members, coach and event owner, and who does what.
+description: What a member, the team lead and a coach each do, and when.
 sidebar:
-  order: 5
+  order: 4
 ---
 
-## Platform lead
+There are three roles. Every attendee is a **member**. One member per team is also the **team lead**. **Coaches** support the teams but are not part of them.
 
-One per team. Holds the shared services subscription and the Owner role at Tenant Root (the top management group of your tenant), which is needed to create management groups and move subscriptions. Deploys ALZ-lite at T-7 (see [C2](../../challenges/c02-secure-ai-ready-foundation/#before-the-event)), asks someone with the Privileged Role Administrator role in your tenant (the event owner books them for T-7) to run `Grant-SqlMiDirectoryRead.ps1` right after it, and at T-1 vends every member, themselves included, restarts their VMs, records the exemptions and runs the connectivity probes. Vending connects a member's subscription to the team's shared foundation. On day one the platform lead walks the team through all of it in C2.
+## Member
 
-The platform lead is also a student. They hold their own workload subscription and a member index, do C0 like everyone else, and do every member challenge (C0, C3, C5, C6, C7, C8, C9) on it, as well as the team challenges (C1, C2, C4, C10). C4 has a team part and a member part.
+Everyone on the team, the team lead included. A team is 3 to 5 people.
 
-## Members
+Each member has their own workload subscription and a member index, and works in their own repo. You:
 
-Everyone else on the team: teams have three to five people, platform lead included. Each member has their own workload subscription and a member index (1 to 20), runs the member challenges independently, and joins the team challenges together with the rest of the team. Evidence goes in each member's own repo, on `main`; there is no shared team repo. C1 sets it up and gives the rule for where to commit it.
+- run the checks and deployments for your own subscription before the event: preflight by T-14, then your datacenter, the readiness check and `vm-dev01` by T-3,
+- share your roster values with the team lead (see below),
+- do the member challenges (C3, C5, C6, C7, C8 and C9) on your own, and the team challenges (C1, C2, C4 and C10) together with your team,
+- keep your evidence in your own repo, on `main`. There is no shared team repo.
+
+The steps are in [Member steps](../../deploy/member-steps/). Set up your repo first with [Set up your repo](../../deploy/set-up-your-repo/).
+
+### Roster values
+
+The team lead needs four values from each member to connect your subscription to the team's foundation: your workload subscription ID, your member index, your Microsoft Entra object ID and your work email. Share them privately with the team lead. Never put them in a repo, an issue or a channel that others can read.
+
+## Team lead
+
+A colleague your team nominates. One per team. The team lead is also a member and does everything above, on their own workload subscription.
+
+On top of that, the team lead looks after the team's shared foundation:
+
+1. **Before T-7:** collects the roster values from every member and gives each member a distinct member index from 1 to 20. Indexes 1 to 5 are enough for a team of five, with the team lead as 1.
+2. **T-7:** deploys the foundation, which is the team's shared hub network, policies and central services. Asks someone with the Privileged Role Administrator role in your tenant to grant the SQL MI identity its Graph read.
+3. **T-1:** vends every member, themselves included. Vending connects a member's subscription to the foundation. Only members whose readiness record a coach has approved are vended.
+4. **Day one:** walks the team through the foundation in C2.
+
+The team lead needs a second subscription for shared services and the Owner role at Tenant Root. [Requirements](../requirements/#accounts-and-access) lists both. The steps are in [Team lead steps](../../deploy/team-lead-steps/).
+
+<details>
+<summary>Why the team lead role exists</summary>
+
+The foundation is shared, so one person builds it once for the team instead of every member building their own. It also needs rights that only a few people hold: Owner at Tenant Root and a Privileged Role Administrator for the Graph grant.
+
+</details>
 
 ## Coach
 
-Not a team member. Gives the live portal ALZ demo in C2 and the APEX archetype demo before C5, reviews your C0 output at T-3 (before your platform lead vends you), asks the policy questions in C2, signs off evidence and scores, runs the curveballs, relays your member index (the event owner assigns it), decides when and how to unblock a stuck member or team, and answers the kind of question a member genuinely can't resolve alone. A coach doesn't do the work for the team: ask your coach for help, not for the answer. Your coach is also your first contact at T-14 and T-3.
+Not a team member. A coach supports several teams. The coach:
 
-## Event owner
+- reviews your readiness record at T-3, before the team lead vends your subscription,
+- gives the live portal demo of an Azure landing zone in C2 and the APEX archetype demo before C5,
+- asks the policy questions in C2, signs off evidence and scores, and runs the curveballs,
+- decides when and how to unblock a stuck member or team.
 
-The partner practice lead who runs the event. Sets the dates, region and team size, builds the roster, captures every member's subscription ID, index, object ID and email at T-14, names the platform leads, books the Privileged Role Administrator for T-7, handles escalations that coaches pass up (such as a gate missed at T-14 or T-3), signs off the final scores and owns cleanup. If you can't reach your coach, contact the event owner through the escalation channel published with the agenda.
+A coach doesn't do the work for the team. Ask your coach for help, not for the answer. Your coach is also your first contact at T-14 and T-3.
 
-## Where to go next
+## Next
 
-Continue with [Prerequisites](../prerequisites/).
+Go to [Deploy](../../deploy/) for the steps and the order they run in. Terms you don't know are in the [glossary](../../reference/glossary/).

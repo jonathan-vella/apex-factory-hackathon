@@ -5,18 +5,18 @@ sidebar:
   order: 5
 ---
 
-This guide covers the mechanics of working on `vm-dev01` and running GitHub Copilot's Upgrade agent against Contoso University. It's the how. [C0](../../challenges/c00-ready-to-hack/) task 7 sends you here to set up the VM once. [C3](../../challenges/c03-assess-the-source/) and [C6](../../challenges/c06-modernize-with-ghcp/) are the what and the acceptance bar.
+This guide covers the mechanics of working on `vm-dev01` and running GitHub Copilot's Upgrade agent against Contoso University. It's the how. [Member steps](../../deploy/member-steps/#set-up-vm-dev01) sends you here to set up the VM once. [C3](../../challenges/c03-assess-the-source/) and [C6](../../challenges/c06-modernize-with-ghcp/) are the what and the acceptance bar.
 
 ## Switching to vm-dev01
 
-You set up `vm-dev01` in C0 task 7 and reconnect to it whenever a restart ends your session. From C3 you leave the dev container for the app work, because the Upgrade agent's **Local** harness has to run next to the app and the datacenter's private network. (A harness is where the agent runs. **Local** runs it on this VM.) The steps below are the setup you do once, in C0 task 7, so that C3 opens on a ready VM. Never stop or deallocate `vm-dev01` during the event: it's your workstation for the rest of the event.
+You set up `vm-dev01` in the [readiness check](../../deploy/member-steps/#set-up-vm-dev01) and reconnect to it whenever a restart ends your session. From C3 you leave the dev container for the app work, because the Upgrade agent's **Local** harness has to run next to the app and the datacenter's private network. (A harness is where the agent runs. **Local** runs it on this VM.) The steps below are the setup you do once, in the readiness check, so that C3 opens on a ready VM. Never stop or deallocate `vm-dev01` during the event: it's your workstation for the rest of the event.
 
 On `vm-dev01` you have two folders. Keep them apart:
 
 | Folder | What it is | Branch | Use it for |
 | --- | --- | --- | --- |
 | `C:\src\factory` | A clone of the public kit (its `origin`), with your own repo added as a second remote named `member` | `vm-dev01-work` | Code: the app and the Upgrade agent's changes. You push to `member`. |
-| `C:\src\<your-repo>` | A plain clone of your own repo (the one from Prerequisites) | `main` | Evidence: files in `factory\evidence\`. |
+| `C:\src\<your-repo>` | A plain clone of your own repo (the one from [Set up your repo](../../deploy/set-up-your-repo/)) | `main` | Evidence: files in `factory\evidence\`. |
 
 A remote is a saved name for a repository's URL. `<your-org>` and `<your-repo>` are the owner and name of your own repo: copy them from its page on GitHub. `<workload-subscription-id>` is your `$s.subscriptionId`; step 1 prints it.
 
@@ -38,7 +38,7 @@ Step 1 runs in your dev container and step 2 in the Azure portal on your own com
    git remote get-url origin
    ```
 
-   The first line is the password; the user name is `labadmin`. The second is your workload subscription ID (`<workload-subscription-id>` in step 4) and the third is your repo URL (the one to use for `<your-org>` and `<your-repo>` in steps 6 and 7). Keep them next to you, because the VM has no `factory/.local` folder. The password file is in your repo folder (git-ignored), so it survives a dev container rebuild. The same password opens `vm-app01`. `Get-PipelineEvidence.ps1` (C0 task 4) creates the password file; if it's missing, run it first.
+   The first line is the password; the user name is `labadmin`. The second is your workload subscription ID (`<workload-subscription-id>` in step 4) and the third is your repo URL (the one to use for `<your-org>` and `<your-repo>` in steps 6 and 7). Keep them next to you, because the VM has no `factory/.local` folder. The password file is in your repo folder (git-ignored), so it survives a dev container rebuild. The same password opens `vm-app01`. `Get-PipelineEvidence.ps1` creates the password file when you save your evidence in the [readiness check](../../deploy/member-steps/#save-your-evidence); if it's missing, finish that step first.
 2. **Connect through Bastion.** In the Azure portal on your own computer, use the search box to find **Resource groups**, check the directory and subscription filter shows your workload subscription, then open `rg-datacenter` > `vm-dev01` > **Connect** > **Bastion**. Set **Authentication type** to **Password**, enter `labadmin` and the password, and choose **Connect**. After your first ever sign-in, wait up to five minutes before you open VS Code: the VM installs VS Code's extensions, including the Upgrade extension, for your user then. If you work from a Windows computer, `./scripts/Connect-DatacenterVm.ps1` is an optional shortcut that opens a Remote Desktop session through Bastion. It needs PowerShell 7, the Azure CLI with its `bastion` extension and a Windows-side copy of the `factory/` folder, so most people skip it.
 3. **Sign in to GitHub and set your git identity.** In PowerShell 7 on the VM:
 
@@ -92,7 +92,7 @@ Step 1 runs in your dev container and step 2 in the Azure portal on your own com
    git clone https://github.com/<your-org>/<your-repo>.git C:\src\<your-repo>
    ```
 
-   Your repo's `main` already holds the kit import, because Prerequisites merged it. The clone starts on `main`, and stays there.
+   Your repo's `main` already holds the kit import, because you merged the import in [Set up your repo](../../deploy/set-up-your-repo/#merge-your-import). The clone starts on `main`, and stays there.
 8. **Open the kit clone in VS Code and sign in to Copilot.** Open its root, not the `app` folder, so the Upgrade agent finds `.github/skills/` and `.github/modernization/`:
 
    ```powershell
@@ -122,7 +122,7 @@ git checkout
 
 ### Check your setup
 
-C0 task 7 is done when all of this is true. Run the commands in PowerShell 7 on the VM:
+Setting up `vm-dev01` is done when all of this is true. Run the commands in PowerShell 7 on the VM:
 
 ```powershell
 gh auth status                                                   # signed in to github.com
@@ -157,7 +157,7 @@ You have one repo of your own on GitHub. Your dev container holds a clone of it,
 
 | Where | Repo | Branch | What's there |
 | --- | --- | --- | --- |
-| Your dev container (C0 to C2, C4, C5, C10; C8 in part) | Your own repo | `main` | The accelerator, plus the kit in `factory/` |
+| Your dev container (readiness check, C1, C2, C4, C5, C10; C8 in part) | Your own repo | `main` | The accelerator, plus the kit in `factory/` |
 | `vm-dev01`, `C:\src\factory` (C3, C6, C7, C9) | The public kit (`origin`), connected to your repo (`member`) | `vm-dev01-work` | The kit at the repo root: the app and your changes |
 | `vm-dev01`, `C:\src\<your-repo>` (C3, C6, C7, C9; C8 in part) | Your own repo | `main` | Evidence only, in `factory\evidence\` |
 

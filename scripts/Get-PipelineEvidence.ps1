@@ -2,11 +2,12 @@
 
 <#
 .SYNOPSIS
-Downloads the C0 evidence that your member pipeline kept, into factory/evidence/c00/.
+Downloads the readiness evidence that your member pipeline kept, into factory/evidence/readiness/.
 .DESCRIPTION
-The member stage of platform.yml runs Test-Datacenter.ps1 before Arc onboarding and keeps its output as a run artifact.
-This script finds the latest successful platform run in your repo that has that artifact, downloads it and saves it as
-evidence/c00/test-datacenter.txt next to the kit's scripts (factory/evidence/c00/ in your repo). It also writes
+The member stage of platform.yml runs Test-Datacenter.ps1 before Arc onboarding and keeps its output as a run artifact
+(readiness-test-datacenter-member-<index>). This script finds the latest successful platform run in your repo that has that
+artifact, downloads it and saves it as evidence/readiness/test-datacenter.txt next to the kit's scripts
+(factory/evidence/readiness/ in your repo). It also writes
 .local/<subscription-id>/datacenter.json with the documented fixed lab credentials, unless that file exists, because the runner
 deployed the datacenter and the later challenges read the passwords from that file. It prints nothing that identifies your
 subscription. Commit the evidence file yourself, with a conventional message, as C1 explains.
@@ -15,7 +16,7 @@ owner/name of your repo. Defaults to the git remote.
 .PARAMETER RunId
 A specific run to take the evidence from. Defaults to the latest successful run that has it.
 .PARAMETER OutDirectory
-Where to save it. Defaults to evidence/c00 next to the scripts folder.
+Where to save it. Defaults to evidence/readiness next to the scripts folder.
 .EXAMPLE
 ./scripts/Get-PipelineEvidence.ps1
 #>
@@ -25,12 +26,12 @@ param(
     [ValidatePattern('^$|^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$')]
     [string] $Repository = '',
     [long] $RunId = 0,
-    [string] $OutDirectory = (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'evidence', 'c00')
+    [string] $OutDirectory = (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'evidence', 'readiness')
 )
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
-$artifactPattern = 'c00-test-datacenter-member-*'
+$artifactPattern = 'readiness-test-datacenter-member-*'
 
 function Invoke-GitHubCli {
     param([string[]] $Arguments)
@@ -54,9 +55,9 @@ foreach ($candidate in $candidates) {
     $names = @((Invoke-GitHubCli @('api', "repos/$Repository/actions/runs/$candidate/artifacts", '--jq', '.artifacts[].name')) -split "`n" | Where-Object { $_ -like $artifactPattern })
     if ($names.Count -gt 0) { $found = $candidate; break }
 }
-if (-not $found) { throw "No successful platform run in $Repository has the C0 evidence yet. Run: gh workflow run platform.yml --repo $Repository -f stage=member" }
+if (-not $found) { throw "No successful platform run in $Repository has the readiness evidence yet. Run: gh workflow run platform.yml --repo $Repository -f stage=member" }
 
-$temp = Join-Path ([System.IO.Path]::GetTempPath()) "c00-evidence-$([guid]::NewGuid())"
+$temp = Join-Path ([System.IO.Path]::GetTempPath()) "readiness-evidence-$([guid]::NewGuid())"
 try {
     $null = Invoke-GitHubCli @('run', 'download', "$found", '--repo', $Repository, '--pattern', $artifactPattern, '--dir', $temp)
     $file = Get-ChildItem -Path $temp -Recurse -Filter 'test-datacenter.txt' | Select-Object -First 1
@@ -72,7 +73,7 @@ Write-Information "Saved the Test-Datacenter output from run $found to $target."
 
 # The runner deployed the datacenter, so the credentials file Deploy-Datacenter.ps1 writes never reached this folder. The
 # Actions member stage always uses the documented fixed lab credentials (no overrides), so write the same file here: later
-# challenges (C0 task 7, C7 to C9) read the passwords from it.
+# challenges (the vm-dev01 setup, C7 to C9) read the passwords from it.
 $settingsFile = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', 'settings.json'
 if (Test-Path -Path $settingsFile) {
     $subscription = (Get-Content -Path $settingsFile -Raw | ConvertFrom-Json).subscriptionId
@@ -88,4 +89,4 @@ if (Test-Path -Path $settingsFile) {
         }
     }
 }
-Write-Information 'Commit it with a conventional message, for example: docs: Add the C0 datacenter test evidence'
+Write-Information 'Commit it with a conventional message, for example: docs: Add the readiness datacenter test evidence'

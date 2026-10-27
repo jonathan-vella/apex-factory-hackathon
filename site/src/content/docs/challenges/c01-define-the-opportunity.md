@@ -9,7 +9,7 @@ Agree, as a team, what "modernized" means for Contoso University and write it do
 
 ## Scope and time box
 
-Team. **45 min**. Everyone starts here at 09:00, the platform lead included: the foundation was deployed before the event, so there's nothing to deploy and C1 needs no Azure access. Members start C3 later, at 10:15 (see [C3](../c03-assess-the-source/)).
+Team. **45 min**. Everyone starts here at 09:00, the team lead included: the team lead deployed the foundation before the event, so there's nothing to deploy and C1 needs no Azure access. Members start C3 later, at 10:15 (see [C3](../c03-assess-the-source/)).
 
 The one-time evidence set-up below takes about 5 minutes and tasks 2 to 5 add up to 35, so the 45 minutes leave little slack. Do the set-up while teammates read the canvas template, and keep to the times given.
 
@@ -23,7 +23,7 @@ None beyond the kit brief: Contoso University, an ASP.NET MVC 5 app on .NET Fram
 
 ## Where your evidence goes
 
-The team doesn't collect evidence in a common repository. You work in one private repo of your own (the one from Prerequisites, with the kit in `factory/` and the import merged into `main`). Your evidence lives in it, on `main`, under `factory/evidence/cNN/` (`c00` to `c10`). Your coach reads each member's repo to score it. One rule says where to commit:
+The team doesn't collect evidence in a common repository. You work in one private repo of your own (the one from [Set up your repo](../../deploy/set-up-your-repo/), with the kit in `factory/` and the import merged into `main`). Your evidence lives in it, on `main`, under `factory/evidence/cNN/` (`c01` to `c10`), next to `factory/evidence/readiness/` from the readiness check. Your coach reads each member's repo to score it. One rule says where to commit:
 
 - **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
 - **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
@@ -41,15 +41,15 @@ git commit -m "docs: add evidence folders"
 git push
 ```
 
-The `-n` keeps anything you already created in C0 (such as `factory/evidence/c00/`), and the command works whether or not `factory/evidence/` exists yet.
+The `-n` keeps anything you already created in the readiness check (such as `factory/evidence/readiness/`), and the command works whether or not `factory/evidence/` exists yet.
 
 **Commit messages** in your own repo must be conventional commits (`type: Subject`, with a type of `feat`, `fix`, `docs` or `chore`), or the commit hook rejects them. For example `docs: C1 opportunity canvas`. If the hook rejects a message, fix it and commit again. Commit evidence with plain `git` and push to `main`; no pull request is needed. Don't use `/apex-git-commit` for this: it skips some paths and refuses `main`. Never commit secrets, tenant IDs or subscription IDs.
 
-**Team deliverables** (the C1 canvas, C4's team ADRs, the C10 package): the team writes one document together on one person's screen. Then the typist posts the final file in the team channel, and every teammate saves it unchanged under the same name in their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the platform lead's copy, so the other copies must match it.
+**Team deliverables** (the C1 canvas, C4's team ADRs, the C10 package): the team writes one document together on one person's screen. Then the typist posts the final file in the team channel, and every teammate saves it unchanged under the same name in their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the team lead's copy, so the other copies must match it.
 
 ## Where to run
 
-The dev container of your own repo, and only there: it has the tools and the GitHub sign-in you set up in Prerequisites. Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if it isn't already open in it. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer. The terminal opens at the repo root, so you don't need to `cd`. Work on one shared screen (one person types, everyone contributes). No Azure access is needed for C1.
+The dev container of your own repo, and only there: it has the tools and the GitHub sign-in you set up in [Set up your repo](../../deploy/set-up-your-repo/). Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if it isn't already open in it. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer. The terminal opens at the repo root, so you don't need to `cd`. Work on one shared screen (one person types, everyone contributes). No Azure access is needed for C1.
 
 ## Your tasks
 
@@ -74,11 +74,11 @@ The dev container of your own repo, and only there: it has the tools and the Git
 
    Don't commit tenant IDs, subscription IDs or secrets.
 
-Done when no `<!-- ... -->` comment lines remain in the file, all six dimensions have both a `Today:` and a `Target:` line, and every teammate's copy is committed on `main` of their own repo and matches the platform lead's.
+Done when no `<!-- ... -->` comment lines remain in the file, all six dimensions have both a `Today:` and a `Target:` line, and every teammate's copy is committed on `main` of their own repo and matches the team lead's.
 
 ## Evidence
 
-- `factory/evidence/c01/opportunity-canvas.md`, committed, with all six dimensions filled in (not left as the template's placeholder text). It's scored once per team, from the platform lead's copy.
+- `factory/evidence/c01/opportunity-canvas.md`, committed, with all six dimensions filled in (not left as the template's placeholder text). It's scored once per team, from the team lead's copy.
 - A one-sentence target outcome the whole team can repeat.
 
 ## Hints
@@ -111,4 +111,4 @@ None for C1.
 
 ## Where to go next
 
-Continue with [C2: Secure, AI-ready foundation](../c02-secure-ai-ready-foundation/): the coach's live portal demo, then the platform lead walks the team through the foundation they deployed before the event. Members start [C3: Assess the source](../c03-assess-the-source/) at 10:15.
+Continue with [C2: Secure, AI-ready foundation](../c02-secure-ai-ready-foundation/): the coach's live portal demo, then the team lead walks the team through the foundation they deployed before the event. Members start [C3: Assess the source](../c03-assess-the-source/) at 10:15.

@@ -5,24 +5,24 @@ sidebar:
   order: 6
 ---
 
-## Prerequisites
+## Accounts, tools and repo setup
 
 - **`az login` signs you in to the wrong tenant or subscription:** sign in again with `az login --tenant '<tenant-id>' --use-device-code`, list your subscriptions with `az account list --output table`, then run `az account set --subscription '<subscription-id>'`. Find the tenant ID in the Azure portal under **Microsoft Entra ID** > **Overview**. Then run `./scripts/Initialize-Settings.ps1` again and read the subscription name it shows before you accept it.
 - **`git commit` says "Author identity unknown":** the dev container has no git identity. Run `git config --global user.name "<your name>"` and `git config --global user.email "<your email>"`, then commit again.
 - **`git clone` asks for a password:** don't clone from a terminal. Use VS Code: press `F1` > `Git: Clone`, choose **Clone from GitHub** and sign in when VS Code asks. On Windows 11, press `F1` > `WSL: Connect to WSL` first.
-- **The dev container won't build:** check the network allow-list first. The container pulls images and features from `ghcr.io`, `mcr.microsoft.com` and `docker.io`, and installs packages through `packagefeedproxy.microsoft.io`. If Docker Desktop won't start, check WSL 2 is on, as in [Prerequisites](../../getting-started/prerequisites/#windows-11-from-scratch).
+- **The dev container won't build:** check the network allow-list first. The container pulls images and features from `ghcr.io`, `mcr.microsoft.com` and `docker.io`, and installs packages through `packagefeedproxy.microsoft.io`. If Docker Desktop won't start, check WSL 2 is on, as in [Requirements](../../getting-started/requirements/#tools).
 - **`docker: command not found` in Ubuntu, or Reopen in Container says Docker isn't found:** open Docker Desktop **Settings** > **Resources** > **WSL integration** and switch on **Ubuntu**, then restart VS Code.
-- **`Import-Kit.ps1` fails to download or extract:** the error says it could not download the archive from `api.github.com`, or that `tar` failed. Check outbound HTTPS to `api.github.com`, `codeload.github.com` and `*.githubusercontent.com` (see the [network allow-list](../../getting-started/prerequisites/#network)). The three-line paste ends with `rm Import-Kit.ps1`, so the script is gone after a failure: run all three lines again from the repo root in the dev container, and add `-Force` to the second line (`pwsh ./Import-Kit.ps1 -Force`) when the script says `factory/` exists (a failed run can leave a partial one). An HTTP 403 means GitHub's per-IP limit for unauthenticated calls: wait a while or switch network.
+- **`Import-Kit.ps1` fails to download or extract:** the error says it could not download the archive from `api.github.com`, or that `tar` failed. Check outbound HTTPS to `api.github.com`, `codeload.github.com` and `*.githubusercontent.com` (see the [network allow-list](../../getting-started/requirements/#network)). The three-line paste ends with `rm Import-Kit.ps1`, so the script is gone after a failure: run all three lines again from the repo root in the dev container, and add `-Force` to the second line (`pwsh ./Import-Kit.ps1 -Force`) when the script says `factory/` exists (a failed run can leave a partial one). An HTTP 403 means GitHub's per-IP limit for unauthenticated calls: wait a while or switch network.
 - **`Initialize-Settings.ps1` saved the wrong subscription:** run `./scripts/Initialize-Settings.ps1 -SubscriptionId '<subscription-id>' -TenantId '<tenant-id>'` again. It updates only the values you pass.
 - **You deleted your dev container volume and `factory/.local/` is gone:** that folder holds your settings, including the suffix, and your datacenter credentials, and it isn't in git. Re-import the kit if needed, then run `./scripts/Initialize-Settings.ps1 -Suffix '<old suffix>'` from `factory/` to restore your suffix, and re-enter your other values. Use the suffix you were first given: it's in the names of anything you already deployed, for example `rg-university-<suffix>`. The script refuses a different suffix if one is already stored. The VM admin password was in that folder too: run `./scripts/Get-PipelineEvidence.ps1` again to recreate the credentials file.
 
-## C0 preflight
+## Preflight
 
 - **Preflight reports FAIL on Owner:** you have no unconditional Owner assignment on your workload subscription. Contributor doesn't pass. If Owner is eligible through Privileged Identity Management, activate it first; otherwise ask your coach.
 - **Preflight fails on a resource provider:** the `whatif` stage registers missing providers for you. Wait up to 15 minutes for the registration to propagate, then run the stage again.
 - **Preflight fails on the public IP feature, or a deployment stops with `SubscriptionNotRegisteredForFeature`:** a new subscription hasn't registered `Microsoft.Network/AllowBringYourOwnPublicIpAddress`, which the firewall, NAT and Bastion public IPs need. The `whatif` stage registers the feature and then `Microsoft.Network` again. Wait a few minutes and run it again.
 
-## C0 datacenter and Arc
+## Datacenter and Arc
 
 - **The `member` stage stops or fails on quota or a VM size:** read the run log, then run the stage again; it converges. If a quota or size error comes back, check **Usage + quotas** for `swedencentral` in the Azure portal and tell your coach.
 - **The datacenter test fails on in-VM checks:** the VMs must be running, and the test runs before Arc onboarding. After Arc onboarding the run commands no longer work, so don't run the `member` stage again. The stage stops before Arc when the test fails: read the run log, then run it again. Keep the PASS output from the run that passed as your evidence (`Get-PipelineEvidence.ps1` downloads it).
@@ -35,9 +35,9 @@ sidebar:
 - **Vending can't find the hub:** confirm the `foundation` stage finished and the expected hub resource names exist (`vnet-hub`, `afw-hub`, `afwp-hub`, `rg-hub`) before you run the `vending` stage.
 - **DNS stops resolving after vending changes a VNet's DNS servers:** running VMs cache their old DNS settings. The `vending` stage restarts both VMs at T-1; if yours were stopped or redeployed since, restart the VM, or run `ipconfig /renew` inside it.
 - **`Grant-SqlMiDirectoryRead.ps1` stops with `InteractionRequired` or `TokenCreatedWithOutdatedPolicies`:** the role holder's Microsoft Graph sign-in is stale. They run `az logout`, then `az login` again as themselves, and repeat.
-- **The datacenter shows as policy non-compliant:** expected until it has exemptions. The `vending` stage at T-1 records them, and you check them in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in C0.
+- **The datacenter shows as policy non-compliant:** expected until it has exemptions. The `vending` stage at T-1 records them, and you check them in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in the readiness check.
 
-## Platform pipeline
+## Pipeline
 
 - **`gh workflow run` says the workflow wasn't found (HTTP 404):** GitHub dispatches a workflow only from the default branch. Merge the import to `main` first, or run the stage from the **Actions** tab.
 - **A run waits and nothing happens:** it's waiting for the reviewer. Open the run and choose **Review deployments**. On a private repo with no reviewer option there's no gate, so a run that sits queued has lost its runner: cancel it and run the stage again.
@@ -72,4 +72,4 @@ sidebar:
 
 ## Where to go next
 
-If your problem isn't here, ask your coach. Otherwise go back to [Prerequisites](../../getting-started/prerequisites/) or the [challenges overview](../../challenges/).
+If your problem isn't here, ask your coach. Otherwise go back to [Requirements](../../getting-started/requirements/), [Member steps](../../deploy/member-steps/) or the [challenges overview](../../challenges/).

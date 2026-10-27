@@ -13,7 +13,7 @@ APEX agents adapt the archetype template and document the result. They don't dep
 
 ## Get the archetype into your own repo
 
-You did this in [Prerequisites](../../getting-started/prerequisites/): your repo is created from the `apex-accelerator` template, and `Import-Kit.ps1` copied the kit into `factory/` and the archetype's APEX project into the repo root. There are two copies of the archetype: the kit's own under `factory/archetype/`, and the working copy at the repo root (`agent-output/university/`, `infra/bicep/university/` and the `/apex-adapt-archetype` skill). Edit and deploy only the root copy.
+You did this in [Set up your repo](../../deploy/set-up-your-repo/#import-the-kit): your repo is created from the `apex-accelerator` template, and the import copied the kit into `factory/` and the archetype's APEX project into the repo root. There are two copies of the archetype: the kit's own under `factory/archetype/`, and the working copy at the repo root (`agent-output/university/`, `infra/bicep/university/` and the `/apex-adapt-archetype` skill). Edit and deploy only the root copy.
 
 To redo only the archetype import, run `./factory/archetype/Import-Archetype.ps1 -Force` from the repo root. `-Force` replaces your copy of the archetype, so you lose any changes you made to it.
 
@@ -27,7 +27,7 @@ Open the repo in VS Code's dev container. APEX's `.gitattributes` forces LF line
 
 ## Adapt and preview
 
-Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode: open Copilot Chat, choose **Agent** in the mode picker (not the `01-Orchestrator` custom mode, because this flow doesn't need the full orchestrator) and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. The suffix is the random six-character string of lowercase letters and digits that `Initialize-Settings.ps1` gave you; don't change it, because every later `<suffix>` command and resource name uses it. If your dev container was deleted, `factory/.local/` went with it: restore the suffix with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` before you run the skill. The skill then checks a spoke is already vended for you (if it isn't, your platform lead vends it in C2; members can't), runs a lightweight live governance check against the upstream template, creates an `azd` environment, and stops at `azd provision --preview`.
+Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode: open Copilot Chat, choose **Agent** in the mode picker (not the `01-Orchestrator` custom mode, because this flow doesn't need the full orchestrator) and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. The suffix is the random six-character string of lowercase letters and digits that `Initialize-Settings.ps1` gave you; don't change it, because every later `<suffix>` command and resource name uses it. If your dev container was deleted, `factory/.local/` went with it: restore the suffix with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` before you run the skill. The skill then checks a spoke is already vended for you (if it isn't, your team lead runs the `vending` stage for you; members can't), runs a lightweight live governance check against the upstream template, creates an `azd` environment, and stops at `azd provision --preview`.
 
 ## Provision
 

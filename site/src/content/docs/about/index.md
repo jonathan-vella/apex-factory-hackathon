@@ -6,16 +6,16 @@ sidebar:
   order: 0
 ---
 
-The Partner Modernization Factory is a two-day hackathon, with pre-work, in which partner teams modernize one legacy app and its database on Azure with GitHub Copilot, Azure Arc and a CoE archetype built with APEX. The archetype is a Center of Excellence's reference design for the target platform, and APEX is the agent-driven tooling that built it. The [glossary](../reference/glossary/) explains the other terms.
+The Partner Modernization Factory is a two-day hackathon, with deployment work before day one, in which partner teams modernize one legacy app and its database on Azure with GitHub Copilot, Azure Arc and a CoE archetype built with APEX. The archetype is a Center of Excellence's reference design for the target platform, and APEX is the agent-driven tooling that built it. The [glossary](../reference/glossary/) explains the other terms.
 
 ## Audience
 
 - Partner infrastructure architects and engineers. The application and database work is GitHub Copilot-assisted, so you don't need to be a .NET or SQL Server specialist.
-- Teams of three to five. Each team has its own Microsoft Entra tenant and one platform lead, who is also a student. Each member has their own Azure workload subscription in that tenant.
+- Teams of three to five people. Each team has its own Microsoft Entra tenant and one team lead, a colleague the team nominates, who is also a member. Each member has their own Azure workload subscription in that tenant.
 - Partners bring their own paid Azure subscriptions and their own GitHub Copilot. Any paid subscription is supported; trial, Azure Pass and sponsorship subscriptions are not. Preflight doesn't check the offer type, so confirm in the Azure portal that yours is a paid subscription.
-- Coaches are partner CoE leads or Microsoft partner solution architects. The event owner is the partner practice lead who runs the event.
+- Coaches are partner CoE leads or Microsoft partner solution architects.
 
-See [Roles](../getting-started/roles/) for who does what, and [Prerequisites](../getting-started/prerequisites/) for what to have ready.
+See [Roles](../getting-started/roles/) for who does what, and [Requirements](../getting-started/requirements/) for what to have ready.
 
 ## Certifications
 
@@ -23,7 +23,7 @@ The event is hands-on first, and the exams come after it: infra roles hold AZ-10
 
 ## Agenda
 
-Pre-work comes first: [Prerequisites](../getting-started/prerequisites/) and C0's preflight by T-14 (14 days before day one), then by T-3 (3 days before day one) the datacenter is deployed, the datacenter test passes for you (it runs before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code. In between, the platform lead deploys the team's foundation at T-7 and vends every member at T-1, so day one starts at C1 on a foundation that already exists. The [event overview](../getting-started/event-overview/#pre-work) has the dates. The times below are the plan; your event owner may adjust them.
+Deployment comes first: [Requirements](../getting-started/requirements/) and repo setup, with preflight by T-14 (14 days before day one). Then by T-3 (3 days before day one) the readiness check passes: the datacenter is deployed and tested, `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code. In between, the team lead deploys the team's foundation at T-7 and vends every member at T-1, so day one starts at C1 on a foundation that already exists. The [event overview](../getting-started/event-overview/#before-the-event) has the dates. The times below are the plan; your coach may adjust them.
 
 | Day 1 | Activity |
 |---|---|
@@ -51,8 +51,8 @@ Challenge time boxes overlap in places, so they don't add up to the clock. Each 
 
 ## Feedback
 
-Tell your coach or the event owner what worked and what didn't during the event. To report a problem with the kit or suggest a change, open an issue in the [GitHub repository](https://github.com/jonathan-vella/apex-factory-hackathon/issues).
+Tell your coach what worked and what didn't during the event. To report a problem with the kit or suggest a change, open an issue in the [GitHub repository](https://github.com/jonathan-vella/apex-factory-hackathon/issues).
 
 ## Where to go next
 
-Read [Roles](../getting-started/roles/), then start [Prerequisites](../getting-started/prerequisites/).
+Read [Roles](../getting-started/roles/), then start with [Requirements](../getting-started/requirements/).

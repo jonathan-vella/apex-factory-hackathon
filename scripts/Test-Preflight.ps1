@@ -4,7 +4,7 @@
 .SYNOPSIS
 Checks an attendee's Azure prerequisites without deploying resources.
 .DESCRIPTION
-Reports automated and manual C0 checks. Only -Fix changes Azure: it registers
+Reports automated and manual readiness checks. Only -Fix changes Azure: it registers
 missing resource providers and the Microsoft.Network public IP feature, and polls for up to 15 minutes
 per subscription and step, so run it once and wait.
 -Fix does nothing while an earlier check (tools, sign-in, role, region) has a FAIL or the VM size is
@@ -16,7 +16,7 @@ The kit uses non-zonal VMs. germanywestcentral is the documented fallback region
 .PARAMETER WorkloadSubscriptionId
 The member's workload subscription.
 .PARAMETER SharedSubscriptionId
-The team's shared services subscription. Only the platform lead passes this: it adds the shared
+The team's shared services subscription. Only the team lead passes this: it adds the shared
 subscription's tenant, Owner and resource provider checks, and with -Fix registers its providers.
 .PARAMETER Location
 The target Azure region, defaulting to swedencentral.
@@ -256,7 +256,7 @@ if ($workload) {
         else {
             Add-Result -Check 'VM size' -Status PASS -Reason 'Standard_D8as_v6 is offered without restrictions.'
         }
-    } -Remedy 'Check VM SKU access in the selected region; ask the platform lead about a supported size or region.'
+    } -Remedy 'Check VM SKU access in the selected region; ask the team lead about a supported size or region.'
 
     Invoke-Check -Name 'Region' -Action {
         # account list-locations has no --subscription option; avoid changing CLI context.

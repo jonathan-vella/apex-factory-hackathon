@@ -37,6 +37,24 @@ test("an evidence rule page without the two bullets is blocked", async () => {
   }
 });
 
+test("the scoring contract has ten challenges and no C0", async () => {
+  const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
+  try {
+    await mkdir(join(root, "facilitator"), { recursive: true });
+    await writeFile(join(root, "facilitator/scoring-rubric.md"), "# Scoring rubric\n");
+    const result = await runChecks(root);
+    const text = result.failures.join("\n");
+    assert.match(text, /scoring-rubric\.md: missing C1 evidence table/);
+    assert.match(text, /scoring-rubric\.md: missing C10 evidence table/);
+    assert.doesNotMatch(text, /missing C0 evidence table/);
+    assert.doesNotMatch(text, /c00-ready-to-hack/);
+    assert.match(text, /expected 190 base points/);
+    assert.match(text, /expected 825 total minutes/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("retired artifact in an Astro component is blocked", async () => {
   const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
   try {

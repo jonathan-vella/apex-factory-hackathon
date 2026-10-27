@@ -1,0 +1,71 @@
+---
+title: How it works
+description: What each stage builds, how the pipeline signs in and what it is allowed to do.
+sidebar:
+  order: 5
+---
+
+import Diagram from "../../../components/Diagram.astro";
+
+You don't need this page to deploy. Read it to understand what the stages build and why the pipeline is safe to run.
+
+## Stages
+
+One workflow, `platform.yml`, runs in your own repo. You pick a stage and walk away. Each stage runs the kit's scripts.
+
+| Stage | Profile | When | What it does | Time |
+| --- | --- | --- | --- | --- |
+| `whatif` | Member | T-14, and again at T-3 | Runs the preflight. On a new subscription it also registers the Azure providers and the public IP feature. | a few minutes |
+| `whatif` | Lead | T-7 | A read-only what-if of ALZ-lite, and the preflight for every member in the roster. | 3 min, plus a few minutes per member |
+| `member` | Member | T-3 | Deploys the datacenter, runs the datacenter test, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 45 min |
+| `foundation` | Lead | T-7 | Deploys ALZ-lite for the team: management groups, hub, policies. | 15 to 25 min |
+| `vending` | Lead | T-1 | Connects each member's subscription to the hub, restarts every VM, records policy exemptions and runs the connectivity probes. | about 1 hour for 3 members |
+| `teardown` | Both | T+2 | Removes what the other stages built. | about 20 min, then about 25 for the team |
+
+The order is fixed by the event: foundation, then the Graph grant (a person), then vending, with each member's readiness approved by a coach first. The [deployment guide](../) has the timeline.
+
+`all` runs `whatif`, `foundation`, `member` and `vending` in the event order in one go. Use it only in a test lab: it skips the coach's readiness approval that vending waits for at an event.
+
+## What gets deployed
+
+A team has one shared services subscription and one workload subscription per member, all in one Microsoft Entra tenant. Each stage builds one layer.
+
+- **Management groups** (foundation, T-7): `mg-factory` under Tenant Root, with `mg-factory-platform` for the shared services subscription and `mg-factory-corp` for the workload subscriptions. The core policies are assigned at `mg-factory-corp`.
+- **Shared services subscription** (foundation, T-7): `rg-hub` holds the hub network `vnet-hub`, the Azure Firewall `afw-hub` with its policy `afwp-hub`, and the private DNS zones. `rg-management` holds `log-management` and `id-sqlmi-directory`. `rg-cicd` holds the lead's pipeline identity.
+- **Each workload subscription, datacenter** (member stage, T-3): `rg-datacenter` holds `vm-app01` (Arc-connected), `vm-dev01` and Bastion.
+- **Each workload subscription, spoke** (vending, T-1): `rg-spoke` holds `vnet-spoke`, its peering to the hub, routes and a budget. `rg-cicd` holds the member's pipeline identity.
+
+The CoE archetype (C5) and the modernized app (C6 and C7) deploy into each member's spoke later, with `azd` and a container image. They are not part of the pipeline. The [end state](../../getting-started/kit-at-a-glance/#the-end-state) shows all of it.
+
+## How the pipeline signs in
+
+<Diagram
+  name="diagram-14-pipeline-sign-in"
+  alt="Five steps. You run a stage in your own repo. The GitHub environment gh-lab accepts only the branches you list, with a reviewer where your plan allows. A guard step checks the subscription and prefix against your team's list and stops if it isn't on it. Microsoft Entra accepts a short-lived GitHub token that proves which repo and environment is asking. Azure then lets the managed identity run the kit's scripts, with no stored secret. A side panel compares the member profile (Owner on one workload subscription) with the team lead profile (Owner at Tenant Root)."
+  caption="The pipeline signs in with a short-lived token, not a password."
+/>
+
+Setup creates a managed identity called `id-factory-pipeline` in a resource group called `rg-cicd`. GitHub proves who it is with a short-lived OIDC token (OpenID Connect), so there is no password or secret to leak. The identity is trusted only for one GitHub environment, `gh-lab`, in one repo.
+
+### What setup grants
+
+- **Member profile:** Owner on your own workload subscription. Nothing else. It runs `whatif`, `member` and `teardown`.
+- **Team lead profile:** Owner at Tenant Root, so it can create the kit's management groups and move subscriptions (in a test lab, at a sandbox management group instead). It runs every stage, for every member on the roster.
+
+Why Owner: the kit assigns roles and policies, which Contributor can't do.
+
+## Risks and the three guards
+
+The risk is real: anyone who can run a workflow in the environment can use that identity. Use only a non-production tenant. Three guards limit it:
+
+1. The environment accepts only the branches you list.
+2. A required reviewer approves each run, where your GitHub plan offers it. On a private repo without that feature, write access to the repo is the gate, so keep the repo private and the writers few.
+3. The guard step refuses any subscription that isn't on its approved list.
+
+## Secrets
+
+Subscription IDs and the roster are stored as environment secrets, never in the repo or its logs. Run logs show GUIDs as `<id:abcd>`. Never put an identifier in a repo variable, an issue or a pull request.
+
+## One profile per repo
+
+A repo has exactly one profile. The team lead sets up the lead profile in the lead's repo and doesn't run the member profile there. Every other member sets up the member profile in their own repo.

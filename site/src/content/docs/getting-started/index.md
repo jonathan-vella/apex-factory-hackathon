@@ -1,18 +1,18 @@
 ---
 title: Getting Started
-description: Pre-work, setup and how the event runs.
+description: Requirements, roles and how the event runs.
 sidebar:
   label: Overview
   order: 0
 ---
 
-This section explains pre-work, setup and how the event runs.
+This section explains what you need, who does what and how the event runs. The steps to deploy are in [Deploy](../deploy/).
 
-Start with [Prerequisites](./prerequisites/), then [C0: Ready to hack](../challenges/c00-ready-to-hack/). Terms you don't know are in the [glossary](../reference/glossary/).
+Start with [Requirements](./requirements/), then read [Roles](./roles/). Terms you don't know are in the [glossary](../reference/glossary/).
 
-- [The kit at a glance](./kit-at-a-glance/): where you run things, what changes, the eleven challenges and the end state.
-- [Prerequisites](./prerequisites/): the real start. Accounts, tools and your repo, due by T-14 (14 days before day one of the event).
-- [Pre-work](./pre-work/): what to do before the event, which is Prerequisites and [C0](../challenges/c00-ready-to-hack/), with the T-3 gate (3 days before day one).
-- [Event overview](./event-overview/): the pre-work timeline, the T-14 and T-3 gates and what happens each day. The [agenda](../about/#agenda) has the times.
-- [Roles](./roles/): platform lead, members, coach and event owner.
+- [The kit at a glance](./kit-at-a-glance/): where you run things, what changes, the ten challenges and the end state.
+- [Event overview](./event-overview/): the timeline from T-14 to T-1 (14 to 1 days before day one), the gates and what happens each day. The [agenda](../about/#agenda) has the times.
+- [Requirements](./requirements/): accounts, access, tools, network and team size.
+- [Roles](./roles/): member, team lead and coach.
+- [Deploy](../deploy/): set up your repo, then deploy your datacenter, run the readiness check and, for the team lead, the foundation.
 - [Learning before the event](../guides/learning-path/#stages): Stage 0 of the partner learning path. Learning only, no exams.

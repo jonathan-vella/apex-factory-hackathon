@@ -1,0 +1,52 @@
+---
+title: Deployment guide
+description: What you deploy before the event, who runs each step and when. GitHub Actions does the deploying.
+tableOfContents: false
+sidebar:
+  order: 1
+---
+
+import Diagram from "../../../components/Diagram.astro";
+
+Before day one, your team builds a simulated datacenter and a landing zone (a ready-made, governed Azure foundation) with GitHub Actions. You set it up once, run each stage from your own repo and walk away. Every run leaves a log. This page shows who does what and when.
+
+<Diagram
+  name="diagram-13-pipeline-who-runs-what"
+  alt="A timeline from T-14 to T+2 with three lanes. The team lead's lane runs the whatif and foundation stages, then vending after a coach approves, then teardown. Each member's lane runs whatif, then the member stage that deploys and tests the datacenter and connects it to Azure Arc, then teardown. A third lane shows what a person does: share values with the team lead, the Graph grant by a Privileged Role Administrator, the readiness check, and removing the pipeline identity."
+  caption="Who runs which stage, and where a person has to step in."
+  wide
+/>
+
+## Who is on the team
+
+- A team is **at most 5 people** (3 to 5), including the team lead.
+- The **team lead** is a colleague your team nominates. The lead does everything a member does, plus the team's foundation and the connection of every member.
+- Each member has their own repo and their own workload subscription. The team shares one shared services subscription and one Microsoft Entra tenant.
+
+## Timeline
+
+The order is fixed. Follow it, not the order of the stages in the workflow.
+
+| When | Who | What | Page |
+| --- | --- | --- | --- |
+| T-14 (14 days before day one) | Everyone | Set up your repo, then run the preflight | [Set up your repo](/deploy/set-up-your-repo/), [Member steps](/deploy/member-steps/#t-14-preflight) |
+| T-14 | Members | Send your roster values to your team lead, privately | [Member steps](/deploy/member-steps/#send-your-roster-values-to-your-team-lead) |
+| T-7 | Team lead | Deploy the foundation. A Privileged Role Administrator then grants one Graph permission | [Team lead steps](/deploy/team-lead-steps/#t-7-foundation) |
+| T-3 | Everyone | Deploy your datacenter, then finish the readiness check | [Member steps](/deploy/member-steps/#t-3-deploy-your-datacenter) |
+| T-1 | Team lead | Connect every member, once a coach has approved every readiness record | [Team lead steps](/deploy/team-lead-steps/#t-1-vending) |
+| Day 1 | Everyone | Start at [C1](/challenges/c01-define-the-opportunity/). C2 verifies and explains the foundation | [Challenges](/challenges/) |
+| T+2 | Team lead, members, an admin | Tear everything down | [Tear down](/deploy/tear-down/) |
+
+## The readiness check
+
+Your datacenter must work before anything else builds on it. The readiness check is a short list: the preflight is green, the datacenter test passes, Azure Arc is connected, and `vm-dev01` has Copilot working. A coach reviews your evidence and approves your readiness record. The team lead connects your subscription (vending) only after that approval, so a coach sign-off gates T-1. There are no points for it.
+
+## What to read
+
+- [Set up your repo](/deploy/set-up-your-repo/): your own repo, the dev container, the kit and your settings. About 60 to 90 minutes.
+- [Member steps](/deploy/member-steps/): preflight, datacenter, readiness check and `vm-dev01`. Everyone, the lead included.
+- [Team lead steps](/deploy/team-lead-steps/): roster, foundation, Graph grant and vending.
+- [How it works](/deploy/how-it-works/): what each stage builds, how the pipeline signs in and what it is allowed to do. You don't need it to deploy.
+- [Tear down](/deploy/tear-down/): after the event.
+
+New terms (dev container, PIM, Tenant Root, member index) are in the [glossary](/reference/glossary/). Accounts, tools and network rules are on [Requirements](/getting-started/requirements/).

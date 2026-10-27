@@ -1,6 +1,6 @@
 # Platform pipeline (coach page)
 
-GitHub Actions is the only way students deploy the datacenter, the foundation and vending, and remove them again. The kit's scripts are the engine the stages run, and students still run some of them for challenge tasks. They don't run the deploy scripts by hand: a coach does that only as a repair, using the commands in the C0 and C2 answer keys. Students read [Deploy with GitHub Actions](../site/src/content/docs/guides/deploy-with-actions.mdx). This page is for coaches and the event owner.
+GitHub Actions is the only way students deploy the datacenter, the foundation and vending, and remove them again. The kit's scripts are the engine the stages run, and students still run some of them for challenge tasks. They don't run the deploy scripts by hand: a coach does that only as a repair, using the commands on [deploy with scripts](../coach/deploy-with-scripts.md) and in the [C2 answer key](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only). Students read the [deploy guide](https://factory.apexops.pro/deploy/). This page is for coaches and the event owner. The team lead is called the platform lead in the workflow and scripts (the `Lead` profile).
 
 ## What it is
 
@@ -9,7 +9,7 @@ One workflow, `.github/workflows/platform.yml`, is installed in each attendee's 
 | Profile | Whose repo | Identity lives in | Owner granted at | Stages |
 |---|---|---|---|---|
 | Member | The member's own | The member's workload subscription | That subscription only | `whatif`, `member`, `teardown` |
-| Lead | The platform lead's | The shared services subscription | Tenant Root (a sandbox management group in a test lab) | all |
+| Lead | The team lead's | The shared services subscription | Tenant Root (a sandbox management group in a test lab) | all |
 
 The profile is a repository variable, `PIPELINE_PROFILE`, that setup writes. A member pipeline refuses the `foundation` and `vending` stages.
 
@@ -37,8 +37,8 @@ Before the event, the tenant owner approves the pipeline for the tenant, names w
 | Person | Can do | Needs |
 |---|---|---|
 | Member | Run `whatif`, `member` and `teardown` in their own repo | Write access to their own repo, Owner on their own workload subscription at setup |
-| Platform lead | Run every stage in their own repo | Admin of that repo, Owner at Tenant Root at setup (or at the sandbox group and the subscriptions) |
-| Event owner | Captures the roster at T-14 and approves the tenant risk | The roster and the tenant decision |
+| Team lead | Run every stage in their own repo | Admin of that repo, Owner at Tenant Root at setup (or at the sandbox group and the subscriptions) |
+| Event owner | Confirms each team's roster and approves the tenant risk | The roster and the tenant decision |
 | Privileged Role Administrator | Runs `Grant-SqlMiDirectoryRead.ps1` once per team | Booked for T-7 |
 
 ## What stays manual
@@ -46,8 +46,8 @@ Before the event, the tenant owner approves the pipeline for the tenant, names w
 No pipeline does these. Put an owner and a date on each.
 
 - **The Graph grant**, after ALZ-lite and before C7. Only a Privileged Role Administrator can run it.
-- **Elevated access to Tenant Root** for the platform lead (a Global Administrator turns on access management for Azure resources and grants Owner).
-- **The portal Arc assessment** (C0 task 5) and `vm-dev01` setup (C0 task 7).
+- **Elevated access to Tenant Root** for the team lead (a Global Administrator turns on access management for Azure resources and grants Owner).
+- **The portal Arc assessment** and `vm-dev01` setup (both part of the readiness check).
 - **Creating the subscriptions** and placing them under the tenant's management group.
 - **Removing the identity and its roles** (`Remove-PlatformPipeline.ps1`) and the access listed in [Cleanup](cleanup.md).
 
@@ -80,4 +80,4 @@ Two problems showed up only at Tenant Root or on a second run, and are fixed. Fi
 
 Read the log, fix the cause and run the stage again: the scripts are idempotent. A run that sits queued for a long time usually lost its runner: cancel and re-run it.
 
-**Repair (coaches only).** If a student is stuck after two attempts and the run can't be repaired in time, a coach can run the same script by hand, from the commands in the [C0](../coach/c00-ready-to-hack.md#repair-coaches-only) and [C2](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only) answer keys. It is the same code the stage runs. Never rerun Arc, and never redeploy a datacenter after Arc.
+**Repair (coaches only).** If a student is stuck after two attempts and the run can't be repaired in time, a coach can run the same script by hand, from the commands on [deploy with scripts](../coach/deploy-with-scripts.md) and in the [C2](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only) answer key. It is the same code the stage runs. Never rerun Arc, and never redeploy a datacenter after Arc.

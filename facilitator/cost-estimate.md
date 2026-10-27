@@ -17,9 +17,9 @@ The archetype's rate also assumes Azure Hybrid Benefit for SQL Server: the SQL M
 
 ## Event-window estimate
 
-Planning window: 120 elapsed hours from T-3 at 09:00 through cleanup at T+2 at 09:00 for each member's datacenter and archetype. The datacenter is assumed to run 39 hours (4 hours of pre-work, 33 hours from Day 1 kickoff to the end of Day 2, because `vm-dev01` is never stopped during the event and `vm-app01` runs until the link is removed, and 2 hours during cleanup) and remain deployed but deallocated for 81 hours. The rate is per datacenter, so the estimate assumes both VMs run together. The T-1 vending, VM restart and probes fit in the 4 hours of pre-work, because the platform lead needs both VMs running for them.
+Planning window: 120 elapsed hours from T-3 at 09:00 through cleanup at T+2 at 09:00 for each member's datacenter and archetype. The datacenter is assumed to run 39 hours (4 hours before the event, 33 hours from Day 1 kickoff to the end of Day 2, because `vm-dev01` is never stopped during the event and `vm-app01` runs until the link is removed, and 2 hours during cleanup) and remain deployed but deallocated for 81 hours. The rate is per datacenter, so the estimate assumes both VMs run together. The T-1 vending, VM restart and probes fit in the 4 hours before the event, because the team lead needs both VMs running for them.
 
-The shared foundation starts earlier. The platform lead deploys ALZ-lite at T-7 at 09:00, so it exists for 9 days to cleanup at T+2 at 09:00: 9 × 24 = 216 hours (96 hours from T-7 to T-3, then the 120-hour window). Vending, at T-1, adds only small per-member networking costs, because the firewall is already billing. The archetype is assumed deployed for 44 hours from its Day 1 deployment through cleanup.
+The shared foundation starts earlier. The team lead deploys ALZ-lite at T-7 at 09:00, so it exists for 9 days to cleanup at T+2 at 09:00: 9 × 24 = 216 hours (96 hours from T-7 to T-3, then the 120-hour window). Vending, at T-1, adds only small per-member networking costs, because the firewall is already billing. The archetype is assumed deployed for 44 hours from its Day 1 deployment through cleanup.
 
 | Charge | Calculation | Estimate |
 |---|---|---:|

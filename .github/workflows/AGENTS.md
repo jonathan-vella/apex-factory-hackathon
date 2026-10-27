@@ -42,4 +42,4 @@ that order). Three more inputs: `members` (member indexes; empty means the `MEMB
 
 ## Settled design
 
-Two profiles (owner, 2026-10-21). The **member profile** runs in each member's own repo (identity in their own workload subscription, Owner there only; preflight and member stages) and is how members do C0. The **platform lead profile** runs in the lead's repo (identity Owner at Tenant Root, roster of the whole team; foundation and vending, and member for any index). Backlog B21 builds the member profile; B22 re-sequences the event docs. Don't change the C2 points or the rubric without the owner's decision.
+Two profiles (owner, 2026-10-21). The **member profile** runs in each member's own repo (identity in their own workload subscription, Owner there only; preflight and member stages) and is how members do the readiness check. The **platform lead profile** runs in the lead's repo (identity Owner at Tenant Root, roster of the whole team; foundation and vending, and member for any index). Backlog B21 builds the member profile; B22 re-sequences the event docs. Don't change the C2 points or the rubric without the owner's decision.

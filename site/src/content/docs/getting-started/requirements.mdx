@@ -1,0 +1,98 @@
+---
+title: Requirements
+description: The accounts, access, tools, network and quota you need before you set up your repo.
+sidebar:
+  order: 3
+---
+
+import { Steps } from "@astrojs/starlight/components";
+import Diagram from "../../../components/Diagram.astro";
+
+This page lists what you need before you deploy anything. Checking it takes about 30 minutes, plus any time your organization needs to grant access. Ask for access early: that is the slow part. If a check fails, tell your coach.
+
+## Team size
+
+A team is 3 to 5 people, including the team lead. Each team has:
+
+- one Microsoft Entra tenant,
+- one shared services subscription, which the team lead holds,
+- one workload subscription per member, the team lead included.
+
+So a team of five has six subscriptions. The team lead is a colleague your team nominates. They are also a member, and they do every member challenge on their own workload subscription.
+
+<Diagram
+  name="diagram-01-tenant-mg-subscriptions"
+  alt="One team Microsoft Entra tenant. Under Tenant Root Group sits mg-factory, with mg-factory-platform holding the shared services subscription (hub network, Azure Firewall, central private DNS, Log Analytics and the SQL MI directory identity) and mg-factory-corp holding one workload subscription per member. Each member subscription repeats the same pattern: a simulated datacenter, a vended spoke network and the CoE archetype."
+  caption="One tenant per team, one shared services subscription, and one workload subscription per member."
+/>
+
+## Accounts and access
+
+| What | Requirement |
+| --- | --- |
+| GitHub | A personal account in your partner's GitHub org, with GitHub Copilot enabled. Agent mode and the Upgrade agent must be allowed by policy. |
+| Azure subscription | One paid workload subscription per member, in your team's Microsoft Entra tenant. Your partner organization supplies it, and your coach can tell you which tenant is yours. Trial, Azure Pass and sponsorship subscriptions are not supported. Preflight doesn't check the offer type, so confirm in the Azure portal that yours is paid. |
+| Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group). If it's eligible through Privileged Identity Management (PIM), [activate it first](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles). Contributor doesn't pass. If your organization blocks Owner, raise it with your coach well before T-14. |
+| MFA | Registered for your Azure identity. Set it up at [aka.ms/mysecurityinfo](https://aka.ms/mysecurityinfo) if you haven't. |
+| Region quota | Enough regional vCPU quota in `swedencentral` for two Standard_D8as_v6 VMs (16 vCPU in total), plus quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. To look it up, open your subscription in the Azure portal, choose **Usage + quotas** and filter by `swedencentral`. |
+| Team lead only | A **second** subscription (shared services) plus Owner at Tenant Root, the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for that, so ask early: the team lead deploys the foundation at T-7. You are also a member, so you still need your own workload subscription. |
+
+Done when you can sign in to the Azure portal, see your workload subscription, and the role shown for it is Owner.
+
+<details>
+<summary>Why each member needs their own subscription</summary>
+
+Every member's datacenter, network and archetype live in their own workload subscription, so members can work in parallel without affecting each other. The team shares one hub network and one set of central policies in the shared services subscription. The [ALZ-lite guide](../../guides/alz-lite/) explains the model.
+
+</details>
+
+## Tools
+
+You only need a few host tools to open the dev container. Everything else, including the Azure CLI, is inside it.
+
+| Tool | Why | Verify |
+| --- | --- | --- |
+| [VS Code](https://code.visualstudio.com/) 1.100 or newer | The editor, agent mode, and **Git: Clone** | `code --version` |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Runs the dev container | `docker version` |
+| [Git](https://git-scm.com/downloads) | VS Code's **Git: Clone** needs it | `git --version` |
+| VS Code extensions: Dev Containers (`ms-vscode-remote.remote-containers`) and GitHub Copilot Chat (`github.copilot-chat`) | Open the container; Copilot sign-in | `code --list-extensions` |
+
+```powershell
+code --install-extension ms-vscode-remote.remote-containers
+code --install-extension github.copilot-chat
+```
+
+Done when each verify command prints a version or lists the extensions.
+
+<details>
+<summary>Windows 11 from scratch</summary>
+
+<Steps>
+
+1. Install [WSL](https://learn.microsoft.com/windows/wsl/install) with Ubuntu (`wsl --install`), then restart. Open **Ubuntu** from the Start menu once: the first launch asks you to create a Linux user name and password.
+2. Install Docker Desktop and turn on **Use the WSL 2 based engine**. Then open Docker Desktop **Settings** > **Resources** > **WSL integration** and switch on **Ubuntu**. Without this, the dev container can't find Docker from Ubuntu.
+3. Install VS Code, the two extensions above, and the **WSL** extension (`ms-vscode-remote.remote-wsl`).
+4. You clone your repo from inside Ubuntu, not into a Windows folder. The dev container is much faster that way, and line endings stay correct.
+
+</Steps>
+
+</details>
+
+## Network
+
+Allow outbound HTTPS to these hosts:
+
+- **GitHub and Copilot:** `github.com`, `api.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `api.githubcopilot.com`.
+- **Azure and Microsoft:** `*.azure.com`, `*.microsoft.com`, `login.microsoftonline.com`, `learn.microsoft.com`.
+- **Docker Hub:** `docker.io`, `registry-1.docker.io`.
+- **The dev container:** `ghcr.io` (its features come from there), `mcr.microsoft.com` (its base image, covered by `*.microsoft.com`) and `packagefeedproxy.microsoft.io` (its Node.js and Python package proxy).
+- **VS Code:** `marketplace.visualstudio.com` for extensions.
+
+Done when you can open each host in a browser or with `curl` from the network you will work on.
+
+## Next
+
+1. Read [Roles](../roles/) to see what a member, a team lead and a coach each do.
+2. Then go to [Deploy](../../deploy/) to set up your repo and start the readiness work.
+
+Terms you don't know are in the [glossary](../../reference/glossary/).

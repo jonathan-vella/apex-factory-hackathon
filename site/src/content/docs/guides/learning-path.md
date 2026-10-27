@@ -15,7 +15,7 @@ No exam is a gate for attending the event. Exam rules, outlines and Partner Cent
 
 - Microsoft partners, mostly infrastructure architects and engineers. The app and database work in the factory is Copilot-assisted.
 - Any partner. Nothing here depends on your Solutions Partner qualification track. Where a designation gate counts certified people, aim for two per gate. That covers every track.
-- Everyone on an infra track (platform lead, workloads, security) holds all three core certifications: AZ-104 (Azure Administrator), GH-300 (GitHub Copilot) and DP-300 (Azure Database Administrator). The [Last validated](#last-validated) table names every exam.
+- Everyone on an infra track (team lead, workloads, security) holds all three core certifications: AZ-104 (Azure Administrator), GH-300 (GitHub Copilot) and DP-300 (Azure Database Administrator). The [Last validated](#last-validated) table names every exam.
 - Applied Skills are short, hands-on Microsoft assessments of one skill. They're recommended stepping stones, never gates.
 - Coaches: GH-300 plus DP-300 or AZ-104 is recommended, not required.
 
@@ -27,7 +27,7 @@ A stage is a period around the event. Dates count from the first event day: T-0 
 
 | Stage | When | Goal | Content | Exit evidence |
 | --- | --- | --- | --- | --- |
-| 0 Ready | T-30 to T-3 | Learning and pre-work. No exam gates. | [C0: Ready to hack](../../challenges/c00-ready-to-hack/), the hands-on pre-work (see [Pre-work](../../getting-started/pre-work/)); the [AZ-104 course](https://learn.microsoft.com/training/courses/az-104t00) (start with its networking, identity and governance modules); [GitHub Copilot Fundamentals Part 1](https://learn.microsoft.com/training/paths/copilot/); the [Arc SQL migration assessment](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment) docs; the [GH-900 study guide](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-900) (optional); the Applied Skill [Accelerate AI-assisted development by using GitHub Copilot](https://learn.microsoft.com/credentials/applied-skills/accelerate-app-development-by-using-github-copilot/) (recommended) | The paths show as complete on your Learn profile; your coach reviews your C0 output at T-3 |
+| 0 Ready | T-30 to T-3 | Learning and preparation. No exam gates. | [Member steps](../../deploy/member-steps/), the hands-on readiness check (see [Requirements](../../getting-started/requirements/)); the [AZ-104 course](https://learn.microsoft.com/training/courses/az-104t00) (start with its networking, identity and governance modules); [GitHub Copilot Fundamentals Part 1](https://learn.microsoft.com/training/paths/copilot/); the [Arc SQL migration assessment](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment) docs; the [GH-900 study guide](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-900) (optional); the Applied Skill [Accelerate AI-assisted development by using GitHub Copilot](https://learn.microsoft.com/credentials/applied-skills/accelerate-app-development-by-using-github-copilot/) (recommended) | The paths show as complete on your Learn profile; your coach approves your readiness record at T-3 |
 | 1 Hack | T-0 (the two event days) | Build the factory | The [challenges](../../challenges/), C1 to C10 | Your coach signs off each challenge's evidence |
 | 2 Certify core | Within 6 months after the event (T+0 to T+180 days) | Hold the core certifications | [AZ-104](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-104), [GH-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-300) and [DP-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-300): all three for every infra role. Data and developer roles take their core exams from the [role tracks](#role-tracks). Data roles also take [DP-800](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-800), which Infra and Database Migration requires | Passed exams on your Learn profile |
 | 3 Specialize | Months 6 to 9 after the event (T+180 to T+270 days) | Add depth in design, DevOps, security and networking | [AZ-305](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-305), [AZ-400](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-400), [SC-500](https://learn.microsoft.com/credentials/certifications/resources/study-guides/sc-500) and [AZ-700](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-700); [AI-200](https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-200) for the developer track; the [AKS (course AZ-1001)](https://learn.microsoft.com/training/paths/deploy-manage-containers-azure-kubernetes-service/) and [Azure Container Apps (course AZ-2003)](https://learn.microsoft.com/training/paths/deploy-cloud-native-applications-to-azure-container-apps/) learning paths. These are courses, not exams | Passed exams on your Learn profile; both paths complete |
@@ -41,13 +41,12 @@ These are certification tracks, not event roles. On the event you're a member of
 
 | Track | Core | Specialize | Next | Challenges closest to this track |
 | --- | --- | --- | --- | --- |
-| Platform lead | AZ-104, GH-300, DP-300 | AZ-700, AZ-305, SC-500 | None | C2, C5, C8 |
+| Team lead | AZ-104, GH-300, DP-300 | AZ-700, AZ-305, SC-500 | None | C2, C5, C8 |
 | Infra member: workloads | AZ-104, GH-300, DP-300 | AZ-400; AKS and Container Apps paths | GH-600 | C3, C5, C6, C7, C8, C9 |
 | Infra member: security | AZ-104, GH-300, DP-300 | SC-500 | None | C2, C8 |
 | Data member | DP-300, DP-800 | SC-500 or AZ-104 | None | C3, C4, C7, C9 |
 | Developer member | GH-300 | AI-200; AZ-400 (after AZ-104); AKS and Container Apps paths | GH-600, AI-103 | C6, C8 |
 | Coach | Recommended: GH-300 plus DP-300 or AZ-104 | AZ-305 | GH-600 | All, as coach |
-| Event owner | No exam needed | AZ-305 (optional) | None | Runs the event |
 
 DP-800 is the extra group that Infra and Database Migration requires, so a team needs at least one DP-800 holder. The data member takes it. AI-200 is Python-oriented and covers Cosmos DB, PostgreSQL vectors and Redis, so it stays on the developer track.
 
@@ -57,7 +56,6 @@ Each row links to the challenge, lists the skills it exercises and points to Lea
 
 | Challenge | Skills exercised | Learn | Credential |
 | --- | --- | --- | --- |
-| [C0: Ready to hack](../../challenges/c00-ready-to-hack/) | Subscription readiness, Azure Arc onboarding, first SQL migration assessment | [Azure Arc hybrid path](https://learn.microsoft.com/training/paths/manage-hybrid-infrastructure-with-azure-arc/); [Arc SQL migration assessment](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment) | AZ-104, GH-300 |
 | [C1: Define the opportunity](../../challenges/c01-define-the-opportunity/) | Scoping a modernization opportunity and a plan | [Cloud Adoption Framework strategy](https://learn.microsoft.com/azure/cloud-adoption-framework/strategy/); [Well-Architected Framework path](https://learn.microsoft.com/training/paths/azure-well-architected-framework/) | AZ-305 |
 | [C2: Secure, AI-ready foundation](../../challenges/c02-secure-ai-ready-foundation/) | Landing zone, management groups, policy, RBAC, hub and spoke networking, private DNS | [AZ-104 identities and governance](https://learn.microsoft.com/training/paths/az-104-manage-identities-governance/); [AZ-700 networking path](https://learn.microsoft.com/training/paths/design-implement-microsoft-azure-networking-solutions-az-700/); [Azure landing zone](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/) | AZ-104, AZ-700, SC-500, AZ-305 |
 | [C3: Assess the source](../../challenges/c03-assess-the-source/) | Reviewing migration assessment findings, SQL Managed Instance compatibility | [Migrate SQL Server workloads to Azure SQL](https://learn.microsoft.com/training/paths/migrate-sql-workloads-azure/); [Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation) | DP-300, GH-300 |
@@ -100,13 +98,13 @@ A team of five can cover both specializations. Each person here is a team member
 
 | Person | Exams |
 | --- | --- |
-| Platform lead | AZ-104, GH-300, DP-300, AZ-305, AZ-700 |
+| Team lead | AZ-104, GH-300, DP-300, AZ-305, AZ-700 |
 | DevOps | AZ-104, GH-300, DP-300, AZ-400 |
 | Data | DP-300, DP-800 |
 | Security | AZ-104, GH-300, DP-300, SC-500 |
 | Developer | GH-300, AI-200 |
 
-Infra and Database Migration needs four or more people across five groups. The platform lead, DevOps, data and security people cover them: AZ-400 (DevOps), AZ-104 (platform lead), SC-500 (security), DP-300 (platform lead) and DP-800 (data). App Modernization needs three or more people across three groups. The DevOps, developer and platform lead people cover them: AZ-400, AI-200 and AZ-104. Every group in both tables has a holder.
+Infra and Database Migration needs four or more people across five groups. The team lead, DevOps, data and security people cover them: AZ-400 (DevOps), AZ-104 (team lead), SC-500 (security), DP-300 (team lead) and DP-800 (data). App Modernization needs three or more people across three groups. The DevOps, developer and team lead people cover them: AZ-400, AI-200 and AZ-104. Every group in both tables has a holder.
 
 ### Designation gates
 
