@@ -6,7 +6,7 @@ The datacenter is each member's simulated on-premises estate, the starting point
 - `vm-dev01` is the member's Windows 11 Enterprise workstation, with the tools for the modernization.
 - The VNet has a NAT gateway for outbound traffic and Bastion Standard for access, with native client support so members can use their local Remote Desktop client. Later, vending peers it to the hub (simulated ExpressRoute).
 
-Members deploy it as pre-work, by T-3, and check it with `scripts/Test-Datacenter.ps1`.
+Members deploy it for the readiness check, by T-3, and check it with `scripts/Test-Datacenter.ps1`.
 
 ```mermaid
 flowchart LR
@@ -62,7 +62,7 @@ The deployment configures both VMs through run commands. Each downloads its scri
 | `vm-app01` | `app-04-web-features` | `Install-AppWebFeatures.ps1` | IIS with ASP.NET 4.8, and the MSMQ server feature |
 | `vm-app01` | `app-05-legacy-site` | `Install-AppLegacySite.ps1` | `ContosoUniversity-legacy.zip` from the `legacy-v1` release in `C:\inetpub\ContosoUniversity`; site and app pool `ContosoUniversity` on port 80 instead of the Default Web Site; `DefaultConnection` pointed at `10.10.n.4`; the private queue `.\Private$\ContosoUniversityNotifications`; firewall rules for TCP 80 and 1433 from `10.0.0.0/8`; a warm-up request that creates and seeds the database |
 | `vm-app01` | `app-06-perf-kit` | `Install-AppPerfKit.ps1` | The [DB perf kit](../../db/perf-kit/README.md): runs `db/perf-kit/sql/01`–`04` from the same `-ScriptsRef`, which add about 200,000 students and 2 million enrollments, plant the five performance issues, set compatibility level 110 and configure Query Store. Logs each script's time |
-| `vm-app01` | `app-07-arc-prep` | `Install-AppArcPrep.ps1` | Places the Arc prep script `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` from the same `-ScriptsRef`. Placed, not run: `Connect-DatacenterArc.ps1` runs it during Arc onboarding (C0). Don't run it yourself first: it turns off the guest agent, and then `Connect-DatacenterArc.ps1` refuses to run. See **Known traps** |
+| `vm-app01` | `app-07-arc-prep` | `Install-AppArcPrep.ps1` | Places the Arc prep script `C:\LabTools\arc\Prepare-ArcOnAzureVm.ps1` from the same `-ScriptsRef`. Placed, not run: `Connect-DatacenterArc.ps1` runs it during Arc onboarding (the readiness check). Don't run it yourself first: it turns off the guest agent, and then `Connect-DatacenterArc.ps1` refuses to run. See **Known traps** |
 | `vm-dev01` | `dev-00-admin-password` | `Set-LabAdminPassword.ps1` | Same as `app-00-admin-password` |
 | `vm-dev01` | `dev-01-tools` | `Install-DevTools.ps1` | `C:\src`, VS Code (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep, the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI. Clones the kit repo to `C:\src\factory` as a sparse checkout without the coach and facilitator material (see **The kit clone on `vm-dev01`**). The clone step is skipped if `C:\src\factory\.git` exists; students run `git pull` to refresh it |
 | `vm-dev01` | `dev-02-build-tools` | `Install-DevBuildTools.ps1` | Visual Studio Build Tools (current release) with the web build tools workload and its recommended components |

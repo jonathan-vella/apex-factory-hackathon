@@ -18,9 +18,9 @@ az policy assignment create `
   --params $parameters
 ```
 
-The parameters and scope are examples for the default `mg-factory` prefix. If the event owner chose another prefix, substitute that prefix; do not use a tenant-specific ID in the assignment. The platform lead runs the command under the coach's direction, because they hold the rights to assign policy at the management group.
+The parameters and scope are examples for the default `mg-factory` prefix. If the event owner chose another prefix, substitute that prefix; do not use a tenant-specific ID in the assignment. The team lead runs the command under the coach's direction, because they hold the rights to assign policy at the management group.
 
-**Team task:** the coach asks the platform lead to try creating any small resource, for example a storage account, in a region outside the approved list (such as westeurope) in a vended subscription. Capture the denial message and its location, explain why the golden path is compliant, and keep the selected approved region instead of weakening or bypassing the policy. Capture the policy assignment and the resulting decision in the C2 evidence.
+**Team task:** the coach asks the team lead to try creating any small resource, for example a storage account, in a region outside the approved list (such as westeurope) in a vended subscription. Capture the denial message and its location, explain why the golden path is compliant, and keep the selected approved region instead of weakening or bypassing the policy. Capture the policy assignment and the resulting decision in the C2 evidence.
 
 **Evidence and points:** the denial belongs with the C2 policy evidence, which is part of the first C2 row (10 team points). It earns no bonus on its own. The C2 bonus is the negative tests on the C2 page (a container registry with public network access denied, a NIC with a public IP denied, a private endpoint registering in the central DNS zone), under the shared bonus cap.
 

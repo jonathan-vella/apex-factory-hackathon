@@ -12,18 +12,18 @@ those came from the defaults it asks you to confirm. It can't tell a mistyped bu
 so read the name. Re-running keeps the existing values and never changes your suffix. When settings.json
 already holds all four core values, passing any parameter, for example -SharedSubscriptionId, updates only
 that value without prompting for the others. With no parameters, it prompts for each value and offers the
-stored one as the default (press Enter to keep it). The shared services subscription ID is optional: the platform lead
-can enter it in C0, and members add it in C2 when the platform lead shares it.
+stored one as the default (press Enter to keep it). The shared services subscription ID is optional: the team lead
+can enter it in the readiness check, and members add it in C2 when the team lead shares it.
 .PARAMETER TenantId
 The Entra tenant ID.
 .PARAMETER SubscriptionId
 Your workload subscription ID.
 .PARAMETER MemberIndex
-Your member number, 1 to 20, assigned by your coach.
+Your member number, 1 to 20, assigned by your team lead.
 .PARAMETER Location
 The Azure region. Defaults to swedencentral.
 .PARAMETER SharedSubscriptionId
-The team's shared services subscription ID. Optional until C2; the platform lead shares it with the team.
+The team's shared services subscription ID. Optional until C2; the team lead shares it with the team.
 .PARAMETER Suffix
 Restores your resource-name suffix on a machine that has lost .local/settings.json, for example a deleted
 dev container. The script generates the suffix once: a random six-character string of lowercase letters and
@@ -110,7 +110,7 @@ $MemberIndex = [int](Read-Setting -Name 'memberIndex' -Prompt 'Your member index
     -Default $memberDefault -Validate { param($v) $v -match '^\d+$' -and [int]$v -ge 1 -and [int]$v -le 20 } -Hint 'Expected a whole number from 1 to 20.')
 $Location = Read-Setting -Name 'location' -Prompt 'Location' -Value $Location `
     -Default ($current['location'] ?? 'swedencentral') -Validate { param($v) $v -match '^[a-z0-9]+$' } -Hint 'Expected a region name like swedencentral.'
-$SharedSubscriptionId = Read-Setting -Name 'sharedSubscriptionId' -Prompt 'Shared services subscription ID (platform lead: yours; members: press Enter, you add it in C2)' -Value $SharedSubscriptionId `
+$SharedSubscriptionId = Read-Setting -Name 'sharedSubscriptionId' -Prompt 'Shared services subscription ID (team lead: yours; members: press Enter, you add it in C2)' -Value $SharedSubscriptionId `
     -Default $current['sharedSubscriptionId'] -Validate $isGuid -Hint 'Expected a GUID.' -Optional
 
 if ($SharedSubscriptionId -and $SharedSubscriptionId -eq $SubscriptionId) {

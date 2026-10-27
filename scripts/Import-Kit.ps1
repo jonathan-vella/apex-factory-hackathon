@@ -258,7 +258,7 @@ export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }]
     }
 
     Write-Host ''
-    Write-Host 'Next, as Prerequisites describes: commit this import to a new branch, sign in with az login, then run ./scripts/Initialize-Settings.ps1 from the factory folder.'
+    Write-Host 'Next, as the Set up your repo page describes: commit this import to a new branch, sign in with az login, then run ./scripts/Initialize-Settings.ps1 from the factory folder.'
 }
 finally {
     Remove-Item -Path $workDir -Recurse -Force -ErrorAction SilentlyContinue

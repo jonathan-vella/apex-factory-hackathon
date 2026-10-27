@@ -1,0 +1,47 @@
+---
+title: Event overview
+description: The timeline from T-14 to T-1, the gates and what happens each day. The agenda with times is on the About page.
+sidebar:
+  order: 2
+---
+
+import Diagram from "../../../components/Diagram.astro";
+
+The event runs over two days, with deployment work before day one. A team works through the day's challenges in parallel where a challenge is scoped to a member, and together where it's scoped to the team.
+
+## Before the event
+
+Every member sets up their repo, runs preflight and deploys their own datacenter. The team lead builds the team's shared foundation in between. The dates count back from day one:
+
+- **T-14 (14 days before day one):** [requirements](../requirements/) are met, your repo is set up and preflight is green. You have confirmed the manual checks yourself. This is the last point where an access or quota problem can realistically be fixed before the event. The team lead collects every member's roster values.
+- **T-7 (7 days before day one):** the team lead deploys the foundation, which is ALZ-lite, the kit's scaled-down Azure landing zone, for the team. Someone with the Privileged Role Administrator role then grants the SQL MI identity its Graph read. Members have nothing to do.
+- **T-3 (3 days before day one):** your datacenter is deployed and tested, `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code. This is the **readiness check**. A coach reviews your readiness record. The test runs before Arc because Arc turns off the run commands it uses. A run command is an Azure feature that runs a script inside a VM without signing in to it.
+- **T-1 (1 day before day one):** the team lead vends every member whose readiness record a coach has approved. Vending connects each member's subscription to the foundation. It also restarts the VMs, records the exemptions and runs the connectivity probes. Keep both VMs running: your Bastion session drops when they restart.
+
+T-14 and T-3 are the gates for members. Missing either puts your start on day one at risk, so raise any blocker with your coach early. The roster locks at kickoff, so a member who can't get ready can still be swapped or dropped before then. The steps for all of this are in [Deploy](../../deploy/).
+
+The readiness check is a gate, not a challenge. It has no points and no number.
+
+## Day one
+
+Everyone starts at 09:00 with [C1: Define the opportunity](../../challenges/c01-define-the-opportunity/), the team lead included. C1 needs no Azure access. After a coach's live portal demo of an Azure landing zone, [C2: Secure, AI-ready foundation](../../challenges/c02-secure-ai-ready-foundation/) verifies and explains the foundation that already exists. The team lead walks the team through ALZ-lite, the Graph read grant for the SQL MI identity and vending, the coach asks about the policies, and each member checks their own exemptions and connectivity.
+
+Members assess the source in [C3: Assess the source](../../challenges/c03-assess-the-source/) in parallel. [C4: Choose target states](../../challenges/c04-choose-target-states/) and [C5: Deploy the CoE archetype with APEX](../../challenges/c05-deploy-the-coe-archetype/) (after a coach's APEX demo) follow. [C6: Modernize with GHCP](../../challenges/c06-modernize-with-ghcp/) starts on day one and runs into day two. The [agenda](../../about/#agenda) on the About page has the times.
+
+## Day two
+
+The MI link (the replication link from the source SQL Server to Azure SQL Managed Instance) starts at 08:30, in tasks 1 and 2 of [C7: Migrate and go live](../../challenges/c07-migrate-and-go-live/). That way seeding overlaps the end of C6. C6 finishes, then C7, [C8: Validate the pattern](../../challenges/c08-validate-the-pattern/), [C9: Optimize the DB with GHCP](../../challenges/c09-optimize-the-db-with-ghcp/) and [C10: Package, hand over, review AI readiness](../../challenges/c10-package-hand-over-review-ai-readiness/) close out the event with a team showcase.
+
+<Diagram
+  name="diagram-12-working-locations-go-live"
+  alt="Where you work during the event. Your laptop's VS Code dev container holds your private repo with the imported kit, runs the kit's Bicep and pipeline and deploys the archetype with azd provision. The private workstation vm-dev01, reached through Bastion, holds the app work on the vm-dev01-work branch and the Upgrade agent, and runs the modernized app against the source SQL Server. The Azure application platform runs the container image built with .NET SDK container publishing. Evidence is committed to main in your private GitHub repo."
+  caption="Where you work: the dev container, the private dev VM and App Service."
+/>
+
+## Time boxes are pacing, not hard stops
+
+Each challenge page states a time box to help you pace the day. The real gates are T-14 and T-3 before the event and the end of each day during it, not each challenge's individual minutes.
+
+## Next
+
+Read [Requirements](../requirements/), then [Roles](../roles/). The [glossary](../../reference/glossary/) explains the terms.

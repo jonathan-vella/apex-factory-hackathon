@@ -7,7 +7,7 @@ C10 is a synthesis challenge — there's no single technical answer, so grade fo
 
 ## Expected evidence
 
-- One packaged reusable asset (the archetype adaptation, the modernization playbook run, or the perf kit fixes), committed in `factory/evidence/c10/reusable-asset/` of each member's own repo (scored once, from the platform lead's copy) and referenced from the handover document, usable by someone who wasn't in the room.
+- One packaged reusable asset (the archetype adaptation, the modernization playbook run, or the perf kit fixes), committed in `factory/evidence/c10/reusable-asset/` of each member's own repo (scored once, from the team lead's copy) and referenced from the handover document, usable by someone who wasn't in the room.
 - A completed acceptance-and-handover document covering every member's C8 results, not just one member's.
 - An AI-readiness gap register with at least one entry per lifeline actually used by the team, and — even if none were used — entries for the human-in-the-loop points the kit deliberately keeps (C3's finding triage, C4's ADRs, C7's go/no-go).
 - The factory-kit checklist, every item addressed (ticked or explicitly marked not applicable with a reason).
@@ -28,7 +28,7 @@ A reusable asset that passes the bar: the adapted archetype repository with the 
 
 - An empty or token AI-readiness gap register ("we didn't need any help") — review C3–C7 with the team; every team has at least the deliberate human-in-the-loop points above, even with a perfect run.
 - A "reusable asset" that's really just a link to a repo with no explanation of what to adapt — this fails the "someone outside the team can run it" bar from the challenge's own hint.
-- Handover document covering only the platform lead's or one member's C8 results, missing the rest of the team.
+- Handover document covering only the team lead's or one member's C8 results, missing the rest of the team.
 - Running out of time and skipping the showcase entirely — even a two-minute verbal walkthrough with one screen shown counts; don't let it disappear silently.
 
 ## Partial credit

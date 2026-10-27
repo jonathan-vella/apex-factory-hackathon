@@ -1,7 +1,7 @@
 ---
 import ArchNode from "./ArchNode.astro";
 
-type Highlight = "all" | "c0" | "c2" | "c5" | "c7" | "c8";
+type Highlight = "all" | "c2" | "c5" | "c7" | "c8";
 
 interface Props {
   /** Challenge whose parts are emphasized. "all" shows everything with no dimming. */
@@ -18,7 +18,6 @@ const { highlight = "all", interactive = false, name = "arch", caption } = Astro
 const sfx = "<suffix>";
 const choices: { id: Highlight; label: string; what: string }[] = [
   { id: "all", label: "All", what: "" },
-  { id: "c0", label: "C0", what: "Datacenter" },
   { id: "c2", label: "C2", what: "Foundation" },
   { id: "c5", label: "C5", what: "Archetype" },
   { id: "c7", label: "C7", what: "MI link" },
@@ -209,12 +208,12 @@ const label =
                 <ArchNode
                   name="vm-app01"
                   meta="10.10.n.4. Legacy Contoso University on IIS, SQL Server 2022. Arc-enabled."
-                  ch={["c0", "c7"]}
+                  ch={["c7"]}
                 />
                 <ArchNode
                   name="vm-dev01"
                   meta="10.10.n.5. Your Windows 11 workstation, never stopped."
-                  ch={["c0", "c7", "c8"]}
+                  ch={["c7", "c8"]}
                 />
               </div>
             </div>
@@ -223,17 +222,12 @@ const label =
                 <span class="frame__title">AzureBastionSubnet</span>
                 <span class="frame__sub">10.10.n.192/26</span>
               </div>
-              <ArchNode
-                name="bas-datacenter"
-                meta="Bastion Standard. The only way into the VMs."
-                ch={["c0"]}
-              />
+              <ArchNode name="bas-datacenter" meta="Bastion Standard. The only way into the VMs." />
             </div>
           </div>
           <ArchNode
             name="nat-datacenter"
             meta="NAT gateway for outbound internet. Everything else goes through the hub."
-            ch={["c0"]}
           />
         </div>
 
@@ -311,7 +305,8 @@ const label =
       </li>
       <li>
         Member workload subscription, one per member (n is 1 to 20). Resource group
-        <code>rg-datacenter</code> (C0) holds <code>vnet-datacenter</code> (10.10.n.0/24). Subnet
+        <code>rg-datacenter</code> (built in the readiness check) holds <code>vnet-datacenter</code>{" "}
+        (10.10.n.0/24). Subnet
         <code>snet-servers</code> (10.10.n.0/25) has <code>vm-app01</code> (10.10.n.4, the legacy
         app and SQL Server) and <code>vm-dev01</code> (10.10.n.5, your workstation).{" "}
         <code>AzureBastionSubnet</code>
@@ -655,7 +650,6 @@ const label =
   }
 
   /* Highlight states: "on" emphasizes what a challenge touches, "off" quiets the rest. */
-  .arch:is([data-hl="c0"], :has(input[value="c0"]:checked)) [data-ch~="c0"],
   .arch:is([data-hl="c2"], :has(input[value="c2"]:checked)) [data-ch~="c2"],
   .arch:is([data-hl="c5"], :has(input[value="c5"]:checked)) [data-ch~="c5"],
   .arch:is([data-hl="c7"], :has(input[value="c7"]:checked)) [data-ch~="c7"],
@@ -666,7 +660,6 @@ const label =
     box-shadow: inset 0 0 0 1px var(--a-hi);
   }
 
-  .arch:is([data-hl="c0"], :has(input[value="c0"]:checked)) :is(.node, .flow):not([data-ch~="c0"]),
   .arch:is([data-hl="c2"], :has(input[value="c2"]:checked)) :is(.node, .flow):not([data-ch~="c2"]),
   .arch:is([data-hl="c5"], :has(input[value="c5"]:checked)) :is(.node, .flow):not([data-ch~="c5"]),
   .arch:is([data-hl="c7"], :has(input[value="c7"]:checked)) :is(.node, .flow):not([data-ch~="c7"]),
@@ -676,7 +669,6 @@ const label =
     color: var(--a-muted);
   }
 
-  .arch:is([data-hl="c0"], :has(input[value="c0"]:checked)) .tag[data-tag="c0"],
   .arch:is([data-hl="c2"], :has(input[value="c2"]:checked)) .tag[data-tag="c2"],
   .arch:is([data-hl="c5"], :has(input[value="c5"]:checked)) .tag[data-tag="c5"],
   .arch:is([data-hl="c7"], :has(input[value="c7"]:checked)) .tag[data-tag="c7"],

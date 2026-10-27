@@ -1,9 +1,9 @@
 # C2 answer key: Secure, AI-ready foundation
 
 > [!WARNING]
-> Coach material. This page has the answers to C2. The platform lead runs the team's landing zone from GitHub Actions; the kit scripts are only for a coach's repair.
+> Coach material. This page has the answers to C2. The team lead runs the team's landing zone from GitHub Actions; the kit scripts are only for a coach's repair.
 
-This is a "verify and explain" challenge. The platform lead deployed ALZ-lite at T-7 and vended every member at T-1, so nothing deploys on Day 1. The platform lead needed elevated rights (Owner at Tenant Root scope) for that work, which most members don't have: confirm at T-14 that the right person is driving, and at T-7 that the Privileged Role Administrator is booked. Your job on Day 1 is to ask the questions below and check that the team can answer them in their own words, not read from the output.
+This is a "verify and explain" challenge. The team lead deployed ALZ-lite at T-7 and vended every member at T-1, so nothing deploys on Day 1. The team lead needed elevated rights (Owner at Tenant Root scope) for that work, which most members don't have: confirm at T-14 that the right person is driving, and at T-7 that the Privileged Role Administrator is booked. Your job on Day 1 is to ask the questions below and check that the team can answer them in their own words, not read from the output.
 
 ## Expected evidence
 
@@ -15,7 +15,7 @@ This is a "verify and explain" challenge. The platform lead deployed ALZ-lite at
 
 ## Questions to ask
 
-Ask the questions at fixed points, because members are in C3 from 10:15 (the agenda doesn't change). The members' questions go in a 10 minute slot at 11:15, when C3 ends, the members have done tasks 6 and 7, and C4 doesn't start until 11:45. Ask each question of a different person. Let the platform lead answer only what no one else can; the lead's walk-through of tasks 3 to 5 happens earlier, from 10:15. Answers in the team's own words are enough; the model answers are short on purpose.
+Ask the questions at fixed points, because members are in C3 from 10:15 (the agenda doesn't change). The members' questions go in a 10 minute slot at 11:15, when C3 ends, the members have done tasks 6 and 7, and C4 doesn't start until 11:45. Ask each question of a different person. Let the team lead answer only what no one else can; the lead's walk-through of tasks 3 to 5 happens earlier, from 10:15. Answers in the team's own words are enough; the model answers are short on purpose.
 
 1. Which core policies only audit, which deny, and which add a missing setting? (Audit: allowed locations and resource location matching the resource group. Deny: a public IP on a NIC, and public network access on Storage, Key Vault, Service Bus, the container registry and SQL MI. DeployIfNotExists: private DNS zone registration for Blob, Service Bus, the container registry and Key Vault, and diagnostics to the central workspace.)
 2. What would the Deny on public network access stop in C5, and what would the member do instead? (A public backend: it uses a private endpoint in `snet-pe`.)
@@ -27,11 +27,11 @@ Ask the questions at fixed points, because members are in C3 from 10:15 (the age
 
 ## Model answer
 
-Before the event, in the platform lead's repo (each stage needs an approval once):
+Before the event, in the team lead's repo (each stage needs an approval once):
 
-1. T-7, platform lead: `gh workflow run platform.yml -f stage=foundation` (ALZ-lite, about 15 to 25 minutes). `-f stage=whatif` previews it.
+1. T-7, team lead: `gh workflow run platform.yml -f stage=foundation` (ALZ-lite, about 15 to 25 minutes). `-f stage=whatif` previews it.
 2. T-7, a Privileged Role Administrator, once per team, outside the pipeline: `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId`. Values come from each person's `.local/settings.json` (`$s`).
-3. T-1, platform lead, after the coach's C0 review: `gh workflow run platform.yml -f stage=vending`. It vends every member in the roster, one after another (yourself included), restarts both VMs of every member (tell members first: a restart ends their Bastion session), records the exemptions with a real reason ("deployed before ALZ-lite; pending retirement after the event") and a real expiry, and runs the connectivity probes. Add `-f members=<n>,<n>` to vend only some members, for example one whose datacenter was redeployed.
+3. T-1, team lead, after the coach approves the readiness records (see the [readiness gate](readiness.md)): `gh workflow run platform.yml -f stage=vending`. It vends every member in the roster, one after another (yourself included), restarts both VMs of every member (tell members first: a restart ends their Bastion session), records the exemptions with a real reason ("deployed before ALZ-lite; pending retirement after the event") and a real expiry, and runs the connectivity probes. Add `-f members=<n>,<n>` to vend only some members, for example one whose datacenter was redeployed.
 
 On Day 1:
 
@@ -50,14 +50,14 @@ az vm restart -g rg-datacenter -n vm-app01 --subscription <member-subscription-i
 ./scripts/Test-Connectivity.ps1 -SubscriptionId <member-subscription-id> -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <n>
 ```
 
-- Run `Deploy-Vending.ps1`, the restarts, the exemptions and the connectivity test once per member, after ALZ-lite and after that member's datacenter and C0 review. Take the other members' values from the roster the event owner captured at T-14.
+- Run `Deploy-Vending.ps1`, the restarts, the exemptions and the connectivity test once per member, after ALZ-lite and after that member's datacenter and approved readiness record. Take the other members' values from the roster the team lead keeps privately (captured at T-14).
 - Never rerun Arc, and never redeploy a datacenter after Arc. A datacenter redeployed after vending requires vending again.
 
 ## Common mistakes
 
 - Vending before ALZ-lite finished propagating (management group moves can lag a few minutes) — vending then can't find the hub by name. Wait and retry rather than debugging a "missing resource."
-- Vending a member before their datacenter exists or before the coach's C0 review: vending can't connect a datacenter that isn't there, and a datacenter redeployed after vending loses the DNS and route settings, so that member is vended again.
-- A member with their own elevated rights running the `foundation` stage a second time "to be sure" — this is the platform lead's job, once, for the whole team. Running it twice doesn't break anything but wastes time.
+- Vending a member before their datacenter exists or before the coach approves their readiness record: vending can't connect a datacenter that isn't there, and a datacenter redeployed after vending loses the DNS and route settings, so that member is vended again.
+- A member with their own elevated rights running the `foundation` stage a second time "to be sure" — this is the team lead's job, once, for the whole team. Running it twice doesn't break anything but wastes time.
 - Skipping exemptions because "the datacenter already works" — the point is to record the exception deliberately, not to silence the alert. A dismissed policy finding with no exemption record is a gap in C10's AI-readiness register.
 - Not restarting `vm-app01`/`vm-dev01` after vending changes DNS — connectivity tests then fail for a reason unrelated to the actual foundation (see the troubleshooting hint on the challenge page).
 - Reading out the T-7 and T-1 output without being able to explain it. The evidence only counts when the team can answer the questions above.
@@ -65,7 +65,7 @@ az vm restart -g rg-datacenter -n vm-app01 --subscription <member-subscription-i
 ## Partial credit
 
 - ALZ-lite and vending evidence complete, but exemptions missing owner/expiry: partial credit, fix before C10's checklist.
-- Evidence complete, but the platform lead alone answers the policy questions and the members can't explain the exemptions: partial credit on the matching row, then ask the members again after C3.
+- Evidence complete, but the team lead alone answers the policy questions and the members can't explain the exemptions: partial credit on the matching row, then ask the members again after C3.
 - Connectivity tests mostly pass with one explained, coach-acknowledged FAIL (for example, a probe that depends on a resource not yet deployed until C5): accept as complete, with the FAIL noted.
 
 ## Bonus

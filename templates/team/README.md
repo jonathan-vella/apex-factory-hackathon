@@ -6,12 +6,12 @@ This folder, `factory/evidence/` in your own repo, is where your factory-kit evi
 
 ```text
 factory/evidence/
-  c00/ ... c10/        # one folder per challenge, each with a README
+  readiness/, c01/ ... c10/   # one folder per challenge, plus readiness, each with a README
 ```
 
-Every challenge's evidence goes in its own `cNN` folder. The folders are the same for team and member items, with no per-member subfolder (the repo is already yours). For example, the C1 opportunity canvas is `factory/evidence/c01/opportunity-canvas.md`, and your C8 acceptance document is in `factory/evidence/c08/`.
+Every challenge's evidence goes in its own `cNN` folder, and the readiness check's evidence goes in `readiness`. The folders are the same for team and member items, with no per-member subfolder (the repo is already yours). For example, the C1 opportunity canvas is `factory/evidence/c01/opportunity-canvas.md`, and your C8 acceptance document is in `factory/evidence/c08/`.
 
-Team deliverables (the C1 canvas, the C4 platform and migration ADRs, the C10 package) are written once, together, on one person's screen. Afterwards every teammate copies the final file into their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the platform lead's copy, so the other copies must match it.
+Team deliverables (the C1 canvas, the C4 platform and migration ADRs, the C10 package) are written once, together, on one person's screen. Afterwards every teammate copies the final file into their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the team lead's copy, so the other copies must match it.
 
 ## How to use this
 

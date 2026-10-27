@@ -13,10 +13,16 @@ const sectionKinds: Record<string, string> = {
   "partial credit": "partial",
   bonus: "bonus",
   reset: "reset",
+  "sign-off checklist": "evidence",
+  hints: "mistakes",
+  recovery: "reset",
 };
 
+// Coach pages that are not scored challenges. The file name is the page id and the route.
+const pageFiles = new Set(["readiness", "deploy-with-scripts"]);
+
 export const coachSchema = z.object({
-  kind: z.enum(["challenge", "lifelines", "run-of-show"]),
+  kind: z.enum(["challenge", "lifelines", "run-of-show", "page"]),
   title: z.string(),
   sourcePath: z.string(),
   studentPage: z.string().optional(),
@@ -80,6 +86,8 @@ function rewriteLinks(markdown: string, sourcePath: string) {
     const hidden = /^coach\/(c\d+)-[^/]+\.md$/.exec(resolved);
     if (hidden) return `](/coach/${hidden[1]}/${suffix})`;
     if (resolved === "coach/lifelines.md") return `](/coach/lifelines/${suffix})`;
+    const page = /^coach\/([^/]+)\.md$/.exec(resolved);
+    if (page && pageFiles.has(page[1])) return `](/coach/${page[1]}/${suffix})`;
     if (resolved === "facilitator/agenda.md") return `](/coach/run-of-show/${suffix})`;
     if (resolved === "facilitator/automation-map.md") return `](/coach/automation-map/${suffix})`;
     const student = /^site\/src\/content\/docs\/(.+?)(?:\/index)?\.mdx?$/.exec(resolved);
@@ -101,8 +109,15 @@ export function coachLoader(): Loader {
         const { title, intro, sections } = splitMarkdown(await read(sourcePath));
         const fileName = posix.basename(sourcePath, ".md");
         const number = /^c(\d+)-/.exec(fileName)?.[1];
+        const kind = number
+          ? "challenge"
+          : fileName === "lifelines"
+            ? "lifelines"
+            : pageFiles.has(fileName)
+              ? "page"
+              : "run-of-show";
         const base: CoachData = {
-          kind: number ? "challenge" : fileName === "lifelines" ? "lifelines" : "run-of-show",
+          kind,
           title: title.replace(/\s+answer key(?=[:\s]|$)/i, "") || fileName,
           sourcePath,
           introHtml: await render(stripLeadingAlert(intro), sourcePath),

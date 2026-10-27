@@ -7,7 +7,7 @@ Prepares vm-app01's SQL Server and the ContosoUniversity database for the SQL Ma
 .DESCRIPTION
 Run it on vm-app01 in a Bastion session, in Windows PowerShell 5.1, as an administrator (select Start, type powershell,
 right-click Windows PowerShell and choose Run as administrator). It needs your own admin session: VM run commands stop working once
-vm-app01 is Arc-enabled in C0, so there's no remote way to run it. The labadmin user is a SQL Server sysadmin.
+vm-app01 is Arc-enabled in the readiness check, so there's no remote way to run it. The labadmin user is a SQL Server sysadmin.
 
 It follows "Prepare environment for a Managed Instance link migration" (SQL Server migration in Azure Arc) and
 logs each step with its time to C:\LabTools\logs\Prepare-MiLinkSource.log:

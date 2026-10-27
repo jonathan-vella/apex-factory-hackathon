@@ -1,0 +1,43 @@
+---
+title: Tear down
+description: Remove what the pipeline built after the event, then remove the pipeline identity. About 20 minutes per member, plus about 25 for the team.
+sidebar:
+  order: 6
+---
+
+After the event (T+2), each member runs the `teardown` stage in their own repo, the team lead runs it last, and an admin then removes the pipeline identity. Run commands from `factory/`.
+
+## Run the teardown stage
+
+```bash
+gh workflow run platform.yml -f stage=teardown
+```
+
+- A **member's** run removes that member's datacenter, spoke and archetype.
+- The **team lead's** run removes every member first, then the team's foundation and management groups.
+
+Tick `include-management` only for a lab you are retiring completely: it also deletes `rg-management` and `id-sqlmi-directory`, so a later event needs the Graph grant again.
+
+:::caution
+After C5, the member `teardown` stage removes the archetype, including the SQL Managed Instance, which takes hours to provision again. Never run it, or `teardown` followed by a new `member` run, after C5 without asking your coach first.
+:::
+
+Done when the run is green.
+
+## Remove the pipeline identity
+
+The workflow can't remove its own identity, so an admin runs this script when the stage ends. It removes the identity's roles, the identity, `rg-cicd`, the GitHub environment and the pipeline's repository variables, then checks each is gone.
+
+```powershell
+./scripts/Remove-PlatformPipeline.ps1                    # team lead
+./scripts/Remove-PlatformPipeline.ps1 -Profile Member    # member
+```
+
+Run the lead variant in the lead's repo and the member variant in each member's repo.
+
+Done when the script reports every item as gone.
+
+## What stays
+
+- The Graph grant stays in the tenant unless an admin removes it.
+- The pipeline never removes human access. Whoever granted roles to people (Owner on a subscription, collaborators on a repo) removes them.

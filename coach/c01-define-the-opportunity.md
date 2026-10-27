@@ -7,7 +7,7 @@ C1 is directional, not a technical challenge — your job is to confirm the team
 
 ## Expected evidence
 
-- `opportunity-canvas.md`, committed to `factory/evidence/c01/` in each member's own repo (score it once, from the platform lead's copy; the other copies must match), with all six dimensions (application, data, platform, security, operations, cost) filled in with specific content, not the template's placeholder comments left in place.
+- `opportunity-canvas.md`, committed to `factory/evidence/c01/` in each member's own repo (score it once, from the team lead's copy; the other copies must match), with all six dimensions (application, data, platform, security, operations, cost) filled in with specific content, not the template's placeholder comments left in place.
 - A one-sentence target outcome every member can repeat without reading from the canvas.
 
 ## Model answer

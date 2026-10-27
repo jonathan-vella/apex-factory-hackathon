@@ -12,10 +12,14 @@ export default defineConfig({
   trailingSlash: "always",
   // The module pages were retired: each module's content lives on its challenge pages.
   redirects: {
-    "/guides/platform-pipeline/": "/guides/deploy-with-actions/",
-    "/guides/deploy-with-scripts/": "/guides/deploy-with-actions/",
+    "/getting-started/prerequisites/": "/getting-started/requirements/",
+    "/getting-started/pre-work/": "/getting-started/requirements/",
+    "/challenges/c00-ready-to-hack/": "/deploy/member-steps/",
+    "/guides/deploy-with-actions/": "/deploy/",
+    "/guides/platform-pipeline/": "/deploy/",
+    "/guides/deploy-with-scripts/": "/deploy/",
     "/modules/": "/challenges/",
-    "/modules/m0-pre-work/": "/challenges/c00-ready-to-hack/",
+    "/modules/m0-pre-work/": "/deploy/",
     "/modules/m1-foundation/": "/challenges/c01-define-the-opportunity/",
     "/modules/m2-assess-and-decide/": "/challenges/c03-assess-the-source/",
     "/modules/m3-archetype/": "/challenges/c05-deploy-the-coe-archetype/",
@@ -66,6 +70,11 @@ export default defineConfig({
           items: [{ autogenerate: { directory: "getting-started" } }],
         },
         {
+          label: "Deploy",
+          collapsed: true,
+          items: [{ autogenerate: { directory: "deploy" } }],
+        },
+        {
           label: "Challenges",
           collapsed: true,
           items: [{ autogenerate: { directory: "challenges" } }],
@@ -93,8 +102,9 @@ export default defineConfig({
           items: [
             { label: "Overview", link: "/coach/" },
             { label: "Automation map", link: "/coach/automation-map/" },
+            { label: "Deploy with scripts (manual path)", link: "/coach/deploy-with-scripts/" },
             { label: "Two-day agenda", link: "/coach/run-of-show/" },
-            { label: "C0: Ready to hack", link: "/coach/c00/" },
+            { label: "Readiness gate", link: "/coach/readiness/" },
             { label: "C1: Define the opportunity", link: "/coach/c01/" },
             { label: "C2: Secure, AI-ready foundation", link: "/coach/c02/" },
             { label: "C3: Assess the source", link: "/coach/c03/" },
@@ -134,6 +144,8 @@ export default defineConfig({
       components: {
         Footer: "./src/components/Footer.astro",
         PageTitle: "./src/components/PageTitle.astro",
+        ThemeProvider: "./src/components/ThemeProvider.astro",
+        ThemeSelect: "./src/components/ThemeSelect.astro",
       },
     }),
   ],

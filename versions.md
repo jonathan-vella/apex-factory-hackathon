@@ -41,4 +41,4 @@ This manifest records the versions and source commit used by the kit. Tooling ve
 | `azure/login` | `v3` (`v3.1.0` at validation), OIDC with a user-assigned managed identity | `.github/workflows/platform-smoke.yml` (B16), `.github/actions/platform-session` (B17) | 2026-10-22 |
 | `actionlint` | `1.7.12` | Workflow lint for the platform pipeline, re-run on every pipeline change (B16 to B21) | 2026-10-23 |
 | `actions/checkout` | `v7` | `.github/workflows/platform.yml` (B17) | 2026-10-22 |
-| `actions/upload-artifact` | `v7`, 90-day retention | Keeps the C0 `Test-Datacenter` output in `platform.yml` (B21) | 2026-10-22 |
+| `actions/upload-artifact` | `v7`, 90-day retention | Keeps the readiness `Test-Datacenter` output in `platform.yml` (B21) | 2026-10-22 |

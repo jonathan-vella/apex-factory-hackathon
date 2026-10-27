@@ -3,10 +3,10 @@ name: Platform
 # The one entry point for the platform pipeline. Run it from the Actions tab or with:
 #   gh workflow run platform.yml -f stage=whatif
 # The stages follow the event: ALZ-lite once for the team first (T-7, the lead's pipeline), every member's datacenter next
-# (C0, T-3), then vending for every member (T-1). A team has one shared services subscription and one workload subscription
+# (the readiness check, T-3), then vending for every member (T-1). A team has one shared services subscription and one workload subscription
 # per member.
 # Each stage runs in the gh-lab environment, where the reviewer approves it once for the stage. "all" runs them in that
-# order, for a test lab: at an event, run each stage on its own date, because vending waits for the coach's C0 review.
+# order, for a test lab: at an event, run each stage on its own date, because vending waits for the coach to approve each readiness record.
 # Every job sits in this file because a reusable workflow can't read the environment's secrets.
 # The teardown stage removes what the other stages built: every member's datacenter, then the team's foundation. It never
 # removes the pipeline identity: an admin runs scripts/Remove-PlatformPipeline.ps1 for that, afterwards.
@@ -92,7 +92,7 @@ jobs:
           if [ "$profile" = "member" ]; then
             case "$stage" in
               whatif|member|teardown) ;;
-              *) echo "::error::This is a member pipeline: it runs only the whatif (your preflight), member (your datacenter) and teardown (removes it) stages. The foundation and vending belong to the platform lead's pipeline."; exit 1 ;;
+              *) echo "::error::This is a member pipeline: it runs only the whatif (your preflight), member (your datacenter) and teardown (removes it) stages. The foundation and vending belong to the team lead's pipeline."; exit 1 ;;
             esac
           fi
           echo "profile=$profile" >> "$GITHUB_OUTPUT"
@@ -279,7 +279,7 @@ jobs:
           NO_HYBRID: ${{ inputs.no-hybrid-benefit }}
         run: |
           # Before Arc: the in-VM checks use run commands, which stop working on vm-app01 afterwards.
-          # The output is the member's C0 evidence: it is kept in the job summary and the log.
+          # The output is the member's readiness evidence: it is kept in the job summary and the log.
           $extra = @{}
           if ($env:NO_HYBRID -eq 'true') { $extra['NoHybridBenefit'] = $true }
           ./scripts/Test-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX @extra *>&1 | ./scripts/Write-RedactedOutput.ps1 | Tee-Object -FilePath $env:RUNNER_TEMP/test-datacenter.txt
@@ -287,11 +287,11 @@ jobs:
           "### Test-Datacenter, member $env:MEMBER_INDEX`n``````text`n$(Get-Content -Raw $env:RUNNER_TEMP/test-datacenter.txt)`n``````" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
           exit $code
 
-      - name: Keep the Test-Datacenter output as C0 evidence
+      - name: Keep the Test-Datacenter output as readiness evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v7
         with:
-          name: c00-test-datacenter-member-${{ matrix.member }}
+          name: readiness-test-datacenter-member-${{ matrix.member }}
           path: ${{ runner.temp }}/test-datacenter.txt
           retention-days: 90
           if-no-files-found: warn
@@ -320,7 +320,7 @@ jobs:
         run: |
           ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION *>&1 | ./scripts/Write-RedactedOutput.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Vending comes after the foundation and every member's C0 review." |
+          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Vending comes after the foundation and every member's readiness record is approved." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
   foundation:

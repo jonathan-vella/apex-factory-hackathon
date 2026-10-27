@@ -5,11 +5,14 @@ import ProgressTracker from "./ProgressTracker.astro";
 
 const match = Astro.locals.starlightRoute.entry.id.match(/^challenges\/c(\d+)-/);
 let position;
-if (match) {
+if (match && Number(match[1]) >= 1) {
   const docs = await getCollection("docs");
-  const total = docs.filter((d) => /^challenges\/c\d+-/.test(d.id)).length;
+  const total = docs.filter((d) => {
+    const m = d.id.match(/^challenges\/c(\d+)-/);
+    return m && Number(m[1]) >= 1;
+  }).length;
   const index = Number(match[1]);
-  position = { label: `C${index}`, current: index + 1, total };
+  position = { label: `C${index}`, current: index, total };
 }
 ---
 

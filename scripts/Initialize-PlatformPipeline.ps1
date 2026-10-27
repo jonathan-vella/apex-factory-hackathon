@@ -4,7 +4,7 @@
 .SYNOPSIS
 Sets up the GitHub Actions platform pipeline: an identity, its roles and the GitHub environment.
 .DESCRIPTION
-Run it once, as the platform lead (an admin of your repo, and Owner where the pipeline will deploy), from
+Run it once, as the team lead (an admin of your repo, and Owner where the pipeline will deploy), from
 the kit folder. It reads .local/settings.json and the repo from the git remote, asks only for what is
 missing, and then, in order:
 1. optionally creates a sandbox parent management group and moves the subscriptions into it;
@@ -43,13 +43,13 @@ Its management-group prefix (mgPrefix, default mg-factory) is denied too, unless
 Management-group prefixes the guard refuses.
 .PARAMETER RosterPath
 The team's roster, JSON or CSV: one row per member with index, subscriptionId, memberPrincipalId and budgetEmail (or the
-event owner's headings: Member index, Workload subscription ID, Entra object ID, Budget email). A team has one shared
+headings Member index, Workload subscription ID, Entra object ID, Budget email). A team has one shared
 services subscription and one workload subscription per member, so list every member. Without it, the settings hold one
 member. The roster goes into an environment secret, never into the repo. The object ID and address are only needed for
 vending, so you can run this again with the full roster in C2.
 .PARAMETER PipelineProfile
-Lead (default) sets up the platform lead pipeline: the identity lives in the shared services subscription and the
-roster covers the team. Member (-Profile Member) sets up your own C0 pipeline in your own repo: the identity lives in your
+Lead (default) sets up the team lead pipeline (called the platform lead pipeline in the workflow): the identity lives in the shared services subscription and the
+roster covers the team. Member (-Profile Member) sets up your own readiness pipeline in your own repo: the identity lives in your
 workload subscription and is Owner there only; there is no shared subscription, management group or roster. Run it from
 your own repo, with your own az login and gh login.
 .PARAMETER SkipGitHub
@@ -166,7 +166,7 @@ if ($member0Profile) {
     # A member's pipeline has no shared services subscription, no management groups and no roster.
     $SharedSubscriptionId = ''
     $ParentManagementGroupId = ''
-    if ($RosterPath) { throw '-PipelineProfile Member covers one member (you). A roster is for the platform lead profile.' }
+    if ($RosterPath) { throw '-PipelineProfile Member covers one member (you). A roster is for the team lead profile.' }
 }
 else {
     $SharedSubscriptionId = Read-Value ($SharedSubscriptionId ? $SharedSubscriptionId : (Get-Setting $settings 'sharedSubscriptionId')) 'Shared services subscription ID'
@@ -180,7 +180,7 @@ if ($MemberIndex -eq 0) {
     $MemberIndex = if ($settingIndex) { [int] $settingIndex } else { 1 }
 }
 
-# The team's members: one workload subscription each. A roster file lists them all (JSON or CSV, with the event owner's
+# The team's members: one workload subscription each. A roster file lists them all (JSON or CSV, with the roster's
 # column names); without one, the settings hold a single member.
 function Import-Roster {
     param([string] $Path)
@@ -494,9 +494,9 @@ Write-Information $(if ($member0Profile) {
 
 Done. Next, your preflight (it also registers any Azure providers and features your subscription is missing; approve it in the Actions tab if GitHub asks)
   gh workflow run platform.yml --repo $Repository -f stage=whatif
-Then your datacenter, test and Arc onboarding (C0 tasks 2 to 4, about 45 minutes, unattended):
+Then your datacenter, test and Arc onboarding for the readiness check (about 45 minutes, unattended):
   gh workflow run platform.yml --repo $Repository -f stage=member
-Fetch the C0 evidence afterwards with ./scripts/Get-PipelineEvidence.ps1.
+Fetch the readiness evidence afterwards with ./scripts/Get-PipelineEvidence.ps1.
 Check the setup any time with ./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member. To remove the identity later:
 ./scripts/Remove-PlatformPipeline.ps1 -PipelineProfile Member
 "@
