@@ -9,7 +9,7 @@ Rules:
 - Every requirement appears in the success criteria. Every success criterion traces to a requirement.
 - Write "you must" or "the team must". Don't write "should".
 - No identifiers, and no "C0": the readiness check is not a challenge.
-- Points and minutes must match `facilitator/scoring-rubric.md`. `npm run check` fails if they drift.
+- Points and minutes must match `facilitator/scoring-rubric.md`. Write them in bold, as **45 min** and **25 pts**: `npm run check` reads that exact form. `npm run check` fails if they drift.
 
 Copy from the line below.
 
@@ -27,7 +27,7 @@ Two or three sentences on why this matters in the story of Contoso University's 
 
 **Objective.** One sentence beginning "Understand how to" or "Be able to".
 
-**Time and points.** Team or member, N min, N pts (N team + N member).
+**Time and points.** Team or member, **N min**, **N pts** (N team + N member).
 
 ## Challenge
 
