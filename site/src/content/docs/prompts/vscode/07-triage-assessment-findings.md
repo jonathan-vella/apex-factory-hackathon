@@ -16,7 +16,7 @@ Use plain Agent mode in the chat (not the Upgrade agent: it would start the upgr
 Read .github/upgrades/scenarios/dotnet-version-upgrade/assessment.md. List every distinct finding with its severity, then for each one propose a triage: blocker, accepted risk, or fix, and its impact on the target state. Don't change anything, and don't start planning — this is analysis only.
 ```
 
-Use the same agent for the Arc assessment. Open it in the Azure portal as in C3 task 2 (Azure Arc > SQL Server
+Use the same agent for the Arc assessment. Open it in the Azure portal as in C3 requirement 2 (Azure Arc > SQL Server
 instances > the instance under `vm-app01` > **Migration** > **Database migration** > **Assess source instance** >
 **View report**), copy its findings, and send:
 
