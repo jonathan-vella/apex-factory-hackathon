@@ -45,13 +45,16 @@ function fragments(html) {
 
 export async function checkLinks(dist = defaultDist) {
   const files = await collectHtml(dist);
-  const known = new Set(
-    (await collectFiles(dist)).map((file) => normalize(resolve(file))),
-  );
+  const known = new Set((await collectFiles(dist)).map((file) => normalize(resolve(file))));
   const failures = [];
 
   for (const file of files) {
     const html = await readFile(file, "utf8");
+    for (const match of html.matchAll(/<img\b[^>]*?\bsrc=["'](\/[^"'/][^"']*)["']/gi)) {
+      if (!known.has(normalize(targetFile(dist, match[1])))) {
+        failures.push(`${relative(dist, file)} -> ${match[1]}: image does not exist`);
+      }
+    }
     for (const match of html.matchAll(/\bhref=["']([^"']+)["']/gi)) {
       const href = match[1];
       if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(href)) continue;
@@ -85,6 +88,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     for (const failure of failures) console.error(`- ${failure}`);
     process.exitCode = 1;
   } else {
-    console.log(`Internal link checks passed: ${await collectHtml(process.argv[2] ? resolve(process.argv[2]) : defaultDist).then((files) => files.length)} HTML files.`);
+    console.log(
+      `Internal link checks passed: ${await collectHtml(process.argv[2] ? resolve(process.argv[2]) : defaultDist).then((files) => files.length)} HTML files.`,
+    );
   }
 }

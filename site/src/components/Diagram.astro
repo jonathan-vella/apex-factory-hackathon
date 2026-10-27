@@ -1,0 +1,26 @@
+---
+interface Props {
+  /** File name in site/public/diagrams, without the extension. */
+  name: string;
+  /** Text description for people who can't see the image. */
+  alt: string;
+  caption?: string;
+  /** Let the diagram use more than the text column on large screens. */
+  wide?: boolean;
+}
+
+const { name, alt, caption, wide = false } = Astro.props;
+const src = `/diagrams/${name}.svg`;
+---
+
+<figure class:list={["doc-figure", { "doc-figure--wide": wide }]}>
+  <a class="doc-figure__link" href={src} target="_blank" rel="noopener">
+    <img src={src} alt={alt} width="3840" height="2160" loading="lazy" decoding="async" />
+  </a>
+  <figcaption>
+    {caption}{" "}
+    <a href={src} target="_blank" rel="noopener">
+      Open full size
+    </a>
+  </figcaption>
+</figure>

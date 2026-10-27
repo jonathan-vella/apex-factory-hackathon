@@ -119,6 +119,7 @@ export default defineConfig({
         },
       ],
       customCss: [
+        "@fontsource-variable/inter/wght.css",
         "@fontsource/space-grotesk/400.css",
         "@fontsource/space-grotesk/700.css",
         "@fontsource/manrope/400.css",
@@ -128,6 +129,7 @@ export default defineConfig({
         "./src/styles/custom.css",
         "./src/styles/layout.css",
         "./src/styles/tasks.css",
+        "./src/styles/calm.css",
       ],
       components: {
         Footer: "./src/components/Footer.astro",
