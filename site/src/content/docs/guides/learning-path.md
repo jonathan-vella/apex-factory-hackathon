@@ -2,7 +2,7 @@
 title: Partner learning path
 description: Learning before the event, certifications after it, and how both support the Partner Center specializations.
 sidebar:
-  order: 5
+  order: 7
 ---
 
 This page links each factory challenge to Microsoft Learn content and to the credential that builds on it. It also shows which track takes which exam, and in what order. The event is hands-on first: you learn a little before it, build the factory, and take the exams afterward.

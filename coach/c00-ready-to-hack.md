@@ -16,7 +16,7 @@ C0 is pre-work: members do it before the event, on their own time, against their
 
 ## Model answer
 
-Parameters come from the member's `.local/settings.json` (`$s`). `-WorkloadSubscriptionId` and `-SubscriptionId` are the member's workload subscription.
+Parameters come from the member's `.local/settings.json` (`$s`). `-WorkloadSubscriptionId` and `-SubscriptionId` are the member's workload subscription. Students' preferred path for steps 1 to 4 is the pipeline's `whatif` and `member` stages ([Deploy with GitHub Actions](https://factory.apexops.pro/guides/deploy-with-actions/)); the scripts below stay supported and give the same result.
 
 1. `./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $s.subscriptionId -Location $s.location -Fix` (the platform lead adds `-SharedSubscriptionId $s.sharedSubscriptionId`), then review the manual-check list it prints and confirm each one.
 2. `./scripts/Deploy-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location`.

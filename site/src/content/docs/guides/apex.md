@@ -2,7 +2,7 @@
 title: APEX
 description: Adapting and deploying the CoE archetype with APEX agents and azd.
 sidebar:
-  order: 4
+  order: 6
 ---
 
 This guide covers the mechanics of the archetype deploy flow. [C5](../../challenges/c05-deploy-the-coe-archetype/) is the what and the acceptance bar.

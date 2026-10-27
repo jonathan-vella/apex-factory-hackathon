@@ -1,6 +1,6 @@
 # Platform pipeline (coach page)
 
-The kit can run its deployments from GitHub Actions instead of a terminal. This is optional: the scripts stay the supported path, and a coach should be able to run an event with no pipeline at all. Students read [the student guide](../site/src/content/docs/guides/platform-pipeline.md). This page is for coaches and the event owner.
+The kit runs its deployments from GitHub Actions, which is the preferred path. The scripts stay a supported path, and a coach should be able to run an event with no pipeline at all. Students read [Deploy with GitHub Actions](../site/src/content/docs/guides/deploy-with-actions.mdx) or [Deploy with scripts](../site/src/content/docs/guides/deploy-with-scripts.mdx). This page is for coaches and the event owner.
 
 ## What it is
 

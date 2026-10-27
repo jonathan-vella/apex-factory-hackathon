@@ -2,7 +2,7 @@
 title: GitHub Copilot upgrade
 description: Setting up and working on vm-dev01, and running the Upgrade agent in VS Code, following the golden path the kit validated.
 sidebar:
-  order: 3
+  order: 5
 ---
 
 This guide covers the mechanics of working on `vm-dev01` and running GitHub Copilot's Upgrade agent against Contoso University. It's the how. [C0](../../challenges/c00-ready-to-hack/) task 7 sends you here to set up the VM once. [C3](../../challenges/c03-assess-the-source/) and [C6](../../challenges/c06-modernize-with-ghcp/) are the what and the acceptance bar.

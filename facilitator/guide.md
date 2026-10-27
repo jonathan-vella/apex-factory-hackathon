@@ -49,7 +49,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 ### T-7: platform lead and Privileged Role Administrator
 
-- The platform lead deploys ALZ-lite for the team: run 1 of the optional platform pipeline (the `foundation` stage), or `scripts/Deploy-AlzLite.ps1` as the supported manual path (see C2, "Before the event"). It takes about 15 to 25 minutes and creates `id-sqlmi-directory`. The firewall bills about $1.30 an hour from here until cleanup.
+- The platform lead deploys ALZ-lite for the team: run 1 of the platform pipeline (the `foundation` stage, the preferred path), or `scripts/Deploy-AlzLite.ps1` as the other supported path (see C2, "Before the event"). It takes about 15 to 25 minutes and creates `id-sqlmi-directory`. The firewall bills about $1.30 an hour from here until cleanup.
 - Right after it, the Privileged Role Administrator runs `scripts/Grant-SqlMiDirectoryRead.ps1` for the team. Check it with `-WhatIf`: it prints that the three permissions are already granted.
 - Keep the output of both: it's C2's evidence.
 
@@ -63,7 +63,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 ### T-1: platform lead
 
-- Vend every member, yourself included, in order: run 2 of the optional platform pipeline (the `vending` stage), or `scripts/Deploy-Vending.ps1` once per member as the supported manual path (see C2, "Before the event"). Then restart both VMs of each member, record the exemptions and run the connectivity probes. The pipeline's vending stage does these four steps in one run.
+- Vend every member, yourself included, in order: run 2 of the platform pipeline (the `vending` stage, the preferred path), or `scripts/Deploy-Vending.ps1` once per member as the other supported path (see C2, "Before the event"). Then restart both VMs of each member, record the exemptions and run the connectivity probes. The pipeline's vending stage does these four steps in one run.
 - Vending comes after each member's `vm-dev01` setup and the coach's C0 review on purpose. It changes the datacenter's DNS servers to the hub firewall, and nothing before it tests that. The hard dependencies are only these: ALZ-lite and each member's datacenter before vending, and `Test-Datacenter.ps1` before Arc. The datacenter still exists before the subscription moves under the Corp group, so the exemptions lesson stays.
 - A restart ends a member's Bastion session, so tell members first. A member whose datacenter is redeployed after vending is vended again.
 - Post "vended" with each member's name and the shared services subscription ID in the team channel. Keep the vending output, the exemptions table and the probe output: they're C2's evidence.

@@ -1,0 +1,232 @@
+---
+title: Deploy with GitHub Actions
+description: The preferred way to deploy your datacenter, the team's foundation and every member's spoke. Set up once, then run each stage from GitHub Actions.
+sidebar:
+  order: 1
+---
+
+import ArchitectureDiagram from "../../../components/ArchitectureDiagram.astro";
+
+GitHub Actions is the preferred way to deploy the kit. You set it up once, then run a stage and walk away: no terminal to babysit for 45 minutes, and every run leaves a log. The Actions run the same scripts you would run yourself, so the result is identical. If you can't use Actions, or something breaks, [deploy with scripts](../deploy-with-scripts/) instead. Both paths give the same result, and the scripts stay a supported path.
+
+You read one section of this page: **Member** if you deploy a datacenter, **Platform lead** if you also deploy the foundation. The platform lead is also a member, so the lead reads both.
+
+## What gets deployed
+
+Each stage builds one layer of the same picture. A team has one shared services subscription and one workload subscription per member.
+
+```mermaid
+flowchart TB
+  subgraph tenant["Team's Microsoft Entra tenant"]
+    direction TB
+    root["Tenant Root"] --> mgf["mg-factory"]
+    mgf --> mgp["mg-factory-platform"]
+    mgf --> mgc["mg-factory-corp<br/>core policies assigned here"]
+    mgp --> shared
+    mgc --> w1
+    mgc --> w2
+    mgc --> wn
+
+    subgraph shared["Shared services subscription - foundation stage, T-7"]
+      hub["rg-hub<br/>vnet-hub, afw-hub, afwp-hub,<br/>private DNS zones"]
+      mgmt["rg-management<br/>log-management, id-sqlmi-directory"]
+      cicd1["rg-cicd<br/>id-factory-pipeline (lead)"]
+    end
+
+    subgraph w1["Workload subscription, member 1"]
+      dc1["rg-datacenter - member stage, T-3<br/>vm-app01 (Arc), vm-dev01, Bastion"]
+      sp1["rg-spoke - vending stage, T-1<br/>vnet-spoke, peering, routes, budget"]
+      cicd2["rg-cicd<br/>id-factory-pipeline (member)"]
+    end
+
+    w2["Workload subscription, member 2<br/>same layout"]
+    wn["Workload subscription, member n<br/>same layout"]
+  end
+
+  sp1 <-- "peering" --> hub
+  classDef stage fill:#e8f1ff,stroke:#0f6cbd,color:#0b2a4a
+  classDef pipe fill:#fff4ce,stroke:#c19c00,color:#4a3b00
+  class hub,mgmt,dc1,sp1 stage
+  class cicd1,cicd2 pipe
+```
+
+The CoE archetype (C5) and the modernized app (C6 and C7) deploy into each member's spoke later, with `azd` and a container image. They are not part of the pipeline. The [end state](../../getting-started/kit-at-a-glance/#the-end-state) shows all of it.
+
+## When and who
+
+The order is fixed by the event. Follow the [event overview](../../getting-started/event-overview/), not the order of the stages in the workflow.
+
+```mermaid
+flowchart LR
+  l1["T-7<br/>foundation"] --> l2["Graph grant<br/>(person)"]
+  l2 --> l3["T-1<br/>vending"]
+  l3 --> l4["T+2<br/>teardown"]
+  classDef auto fill:#e8f1ff,stroke:#0f6cbd,color:#0b2a4a
+  classDef manual fill:#fff4ce,stroke:#c19c00,color:#4a3b00
+  class l1,l3,l4 auto
+  class l2 manual
+```
+
+```mermaid
+flowchart LR
+  m1["T-3<br/>member"] --> m2["Arc assessment<br/>and vm-dev01<br/>(person)"]
+  m2 --> m3["Coach reviews<br/>C0 (person)"]
+  m3 --> m4["T+2<br/>teardown"]
+  classDef auto fill:#e8f1ff,stroke:#0f6cbd,color:#0b2a4a
+  classDef manual fill:#fff4ce,stroke:#c19c00,color:#4a3b00
+  class m1,m4 auto
+  class m2,m3 manual
+```
+
+The top row is the platform lead (stages `whatif` then `foundation`, then `vending`). The bottom row is each member, lead included (stages `whatif` then `member`). Blue steps are Actions stages. Yellow steps are people, because no pipeline can do them. Each role sets up its profile once first. A member's vending waits for the coach's C0 review. The platform lead's own C0 runs in the lead's repo with `-f stage=member -f members=1`.
+
+| Stage | Profile | When | What it does | Time |
+| --- | --- | --- | --- | --- |
+| `whatif` | Member | T-3 | Runs the preflight. On a new subscription it also registers the Azure providers and the public IP feature. | a few minutes |
+| `whatif` | Lead | T-7 | A read-only what-if of ALZ-lite. | 3 min |
+| `member` | Member | T-3 | Deploys the datacenter, runs `Test-Datacenter`, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 45 min |
+| `foundation` | Lead | T-7 | Deploys ALZ-lite for the team: management groups, hub, policies. | about 11 min |
+| `vending` | Lead | T-1 | Connects each member's subscription to the hub, then restarts every VM at once, records policy exemptions and runs the connectivity probes. | about 1 hour for 3 members |
+| `teardown` | Both | T+2 | Removes what the other stages built. | about 20 min, then about 25 for the team |
+
+Run `all` only in a test lab. It isn't the event order.
+
+## Before you start
+
+You have finished the [prerequisites](../../getting-started/prerequisites/): your own repo with the kit imported and merged to `main`, and `factory/.local/settings.json`. Run everything below from `factory/` in the dev container, signed in with `az login` and `gh auth login`. GitHub runs a workflow only from the default branch, so the import must be on `main`.
+
+### What setup grants, and why
+
+Setup creates a managed identity called `id-factory-pipeline` in a resource group called `rg-cicd`. GitHub proves who it is with a short-lived OIDC token, so there is no password or secret to leak. The identity is trusted only for one GitHub environment, `gh-lab`, in one repo.
+
+```mermaid
+sequenceDiagram
+  autonumber
+  participant You as You (dispatch)
+  participant GH as GitHub Actions<br/>environment gh-lab
+  participant G as Guard step
+  participant E as Microsoft Entra
+  participant A as Azure
+  You->>GH: gh workflow run platform.yml
+  GH->>GH: Branch policy and reviewer (where the plan offers it)
+  GH->>G: Check subscription and prefix against the roster
+  G-->>GH: Allowed, or the run stops
+  GH->>E: OIDC token for id-factory-pipeline
+  E-->>GH: Access token (no stored secret)
+  GH->>A: Run the kit's scripts with the access token
+```
+
+- **Member profile:** Owner on your own workload subscription. Nothing else.
+- **Lead profile:** Owner at Tenant Root, so it can create the kit's management groups and move subscriptions (in a test lab, at a sandbox management group instead).
+
+Why Owner: the kit assigns roles and policies, which Contributor can't do. The risk is real, so know it: anyone who can run a workflow in the environment can use that identity. Three guards limit it. The environment accepts only the branches you list. A required reviewer approves each run where your GitHub plan offers it (on a private repo without that feature, write access to the repo is the gate, so keep the repo private and the writers few). And the guard step refuses any subscription that isn't on its approved list. Use only a non-production tenant. The [coach page](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/facilitator/platform-pipeline.md) records the accepted risk.
+
+Subscription IDs and your roster are stored as environment secrets, never in the repo or its logs.
+
+A repo has exactly one profile. The platform lead sets up the lead profile in the lead's repo and doesn't run the member profile there.
+
+## Member
+
+Run this at T-3. It takes about 45 minutes, unattended.
+
+<ArchitectureDiagram highlight="c0" name="actions-c0" caption="The member stage builds the datacenter: vm-app01 (the legacy app, Arc-connected) and vm-dev01 (your workstation) behind Bastion." />
+
+1. Set up the member pipeline once. It asks for nothing: it prints a plan, creates the identity and the `gh-lab` environment, sets the secrets and checks the result.
+
+   ```powershell
+   ./scripts/Initialize-PlatformPipeline.ps1 -Profile Member
+   ```
+
+   On a private repo with no reviewer option it warns that write access is the gate. That is expected.
+
+2. Run the preflight, then the datacenter:
+
+   ```bash
+   gh workflow run platform.yml -f stage=whatif
+   gh workflow run platform.yml -f stage=member
+   ```
+
+   Approve the run in the **Actions** tab if GitHub asks. The `member` stage runs the preflight first, deploys the datacenter, runs `Test-Datacenter` and, only if that passes, onboards `vm-app01` to Azure Arc. It never redeploys a datacenter that is already Arc-enabled, because Arc can't be undone.
+
+3. Download your C0 evidence and commit it as [C0](../../challenges/c00-ready-to-hack/) describes:
+
+   ```powershell
+   ./scripts/Get-PipelineEvidence.ps1
+   ```
+
+   That saves `evidence/c00/test-datacenter.txt`.
+
+4. Do the steps no pipeline does: the Arc migration assessment in the portal and the `vm-dev01` setup (C0 tasks 5 to 7).
+
+Check the setup any time with `./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member`.
+
+## Platform lead
+
+You need your repo with the kit imported, `factory/.local/settings.json` including your shared services subscription, and the roster file from the event owner.
+
+<ArchitectureDiagram highlight="c2" name="actions-c2" caption="The foundation stage builds the hub. The vending stage builds each member's spoke and connects it to the hub." />
+
+1. Set up the lead pipeline once, with the roster:
+
+   ```powershell
+   ./scripts/Initialize-PlatformPipeline.ps1 -RosterPath <roster file>
+   ```
+
+   The roster is a JSON file the event owner gives you (or you write from the event owner's list), kept in `factory/.local/roster.json` so it stays out of git. It holds one row per member, you included:
+
+   ```json
+   [
+     { "index": 1, "subscriptionId": "<workload-subscription-id>", "memberPrincipalId": "<entra-object-id>", "budgetEmail": "<email>" },
+     { "index": 2, "subscriptionId": "<workload-subscription-id>", "memberPrincipalId": "<entra-object-id>", "budgetEmail": "<email>" }
+   ]
+   ```
+
+   Setup stores it as an environment secret. The pipeline reads its members only from there: it never discovers them in Azure, and the guard accepts only these subscriptions. To add or change a member, edit the file and run the setup again.
+
+2. At T-7, deploy the foundation:
+
+   ```bash
+   gh workflow run platform.yml -f stage=whatif
+   gh workflow run platform.yml -f stage=foundation
+   ```
+
+3. Ask a Privileged Role Administrator to run `scripts/Grant-SqlMiDirectoryRead.ps1` once for the team (see [ALZ-lite](../alz-lite/)). No pipeline does this, and it must happen before C7.
+
+4. Run your own C0 with the member stage for your own index:
+
+   ```bash
+   gh workflow run platform.yml -f stage=member -f members=1
+   ```
+
+5. At T-1, once every member's datacenter exists and a coach has reviewed their C0:
+
+   ```bash
+   gh workflow run platform.yml -f stage=vending
+   ```
+
+   One approval covers the stage. Members are vended strictly one after another, because each run updates the shared firewall policy (about 5 minutes each). Then every VM restarts at once, with one wait of about 25 minutes (the SQL VM is the slow one), and the policy scan and the connectivity probes run for everyone in parallel. Plan on about an hour for three members and about 75 minutes for six.
+
+   A member already vended is quick on a re-run. If one member fails, fix the cause and run `-f stage=vending -f members=<n>` for that member only.
+
+## If something breaks
+
+Read the run's log, fix the cause and run the stage again: the scripts are idempotent. After two attempts, ask your coach. [Troubleshooting](../../reference/troubleshooting/#platform-pipeline) has the specific errors. Every stage is also a kit script you can run yourself: see [deploy with scripts](../deploy-with-scripts/).
+
+## Taking it down
+
+Both profiles have a `teardown` stage and a cleanup script for the identity, so nothing billable or privileged is left behind.
+
+```bash
+gh workflow run platform.yml -f stage=teardown
+```
+
+A member's run removes that member's datacenter, spoke and archetype. A lead's run removes every member first, then the team's foundation and management groups, and returns the subscriptions to the parent group. Tick `include-management` only for a lab you are retiring completely: it also deletes `rg-management` and `id-sqlmi-directory`, so a later event needs the Graph grant again.
+
+The workflow can't remove its own identity. When it ends, run the identity cleanup script yourself as an admin:
+
+```powershell
+./scripts/Remove-PlatformPipeline.ps1                    # lead
+./scripts/Remove-PlatformPipeline.ps1 -Profile Member    # member
+```
+
+It removes the identity's roles, the identity, `rg-cicd`, the GitHub environment and the pipeline's repository variables, then checks that each is gone.

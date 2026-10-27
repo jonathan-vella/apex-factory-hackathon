@@ -27,9 +27,9 @@ What the kit automates, what people still do, and where attendees tend to stall.
 | C10 | none | none | Package one asset, complete the acceptance and AI-readiness documents, prepare the showcase | n/a |
 | Cleanup | `Remove-FactoryEnvironment.ps1` (member and team scope) | none | After the event, delete the shared identity and its Graph grants, then verify nothing billable is left | Member scope: yes (B10). Team scope: not yet (B13) |
 
-## The platform pipeline (optional)
+## The platform pipeline (preferred)
 
-The platform pipeline runs the same scripts from GitHub Actions instead of a terminal. It is optional: the scripts above remain the supported manual path, and a team that never sets it up loses nothing.
+The platform pipeline runs the same scripts from GitHub Actions instead of a terminal. It is the preferred path, and the scripts above stay supported: a team that never sets it up loses nothing. Students have a [page for each path](https://factory.apexops.pro/guides/deploy-with-actions/) (see also [Deploy with scripts](https://factory.apexops.pro/guides/deploy-with-scripts/)), each with a platform lead and a member section.
 
 | Piece | What it is |
 |---|---|

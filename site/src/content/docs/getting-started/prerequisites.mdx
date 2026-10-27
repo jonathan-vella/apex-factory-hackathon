@@ -38,6 +38,17 @@ Everything runs in the dev container, with two exceptions: C0 task 7, where you 
 
 Your evidence lives in your own repo, under `factory/evidence/`; you set that up in [C1](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes). Each member keeps evidence in their own repo; there is no shared team repo. After you merge the import on this page, all your work is on `main`, with one exception: the `vm-dev01-work` branch of the clone on `vm-dev01`, which you never merge.
 
+## How you deploy
+
+The kit has two ways to deploy your datacenter, and the platform lead's foundation and vending. They run the same scripts and give the same result.
+
+| Path | What it is | Page |
+| --- | --- | --- |
+| **GitHub Actions (preferred)** | You set it up once, then run each stage from your own repo and walk away. Every run leaves a log. | [Deploy with GitHub Actions](../../guides/deploy-with-actions/) |
+| **Scripts** | You run each script in the dev container yourself. Use it when Actions isn't available to you, or to repair a failed run. | [Deploy with scripts](../../guides/deploy-with-scripts/) |
+
+Both need what this page sets up: your repo with the kit imported and merged to `main`, a signed-in `az` and `gh`, and your settings file. Actions needs one more thing: GitHub runs a workflow only from the default branch, so do the merge step below before you set the pipeline up. The dev container has every tool either path needs.
+
 ## Accounts and access
 
 | What | Requirement |
@@ -213,4 +224,4 @@ Each member keeps evidence in their own repo. For a team document, one person ty
 
 ## Where to go next
 
-When all of this is green, go to [C0: Ready to hack](../../challenges/c00-ready-to-hack/). Start with its preflight, which is due by T-14.
+When all of this is green, go to [C0: Ready to hack](../../challenges/c00-ready-to-hack/). Start with its preflight, which is due by T-14. At T-3, deploy your datacenter with [GitHub Actions](../../guides/deploy-with-actions/#member) (preferred) or with [scripts](../../guides/deploy-with-scripts/#member). The platform lead also reads the [Platform lead](../../guides/deploy-with-actions/#platform-lead) section.

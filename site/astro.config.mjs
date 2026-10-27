@@ -12,6 +12,7 @@ export default defineConfig({
   trailingSlash: "always",
   // The module pages were retired: each module's content lives on its challenge pages.
   redirects: {
+    "/guides/platform-pipeline/": "/guides/deploy-with-actions/",
     "/modules/": "/challenges/",
     "/modules/m0-pre-work/": "/challenges/c00-ready-to-hack/",
     "/modules/m1-foundation/": "/challenges/c01-define-the-opportunity/",
