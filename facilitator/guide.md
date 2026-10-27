@@ -53,13 +53,13 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 ### T-7: platform lead and Privileged Role Administrator
 
-- The platform lead deploys ALZ-lite for the team: run 1 of the platform pipeline (the `foundation` stage, the preferred path), or `scripts/Deploy-AlzLite.ps1` as the other supported path (see C2, "Before the event"). It takes about 15 to 25 minutes and creates `id-sqlmi-directory`. The firewall bills about $1.30 an hour from here until cleanup.
+- The platform lead deploys ALZ-lite for the team: run 1 of the platform pipeline, the `foundation` stage in the lead's repo (see C2, "Before the event"). It takes about 15 to 25 minutes and creates `id-sqlmi-directory`. The firewall bills about $1.30 an hour from here until cleanup.
 - Right after it, the Privileged Role Administrator runs `scripts/Grant-SqlMiDirectoryRead.ps1` for the team. Check it with `-WhatIf`: it prints that the three permissions are already granted.
 - Keep the output of both: it's C2's evidence.
 
 ### T-3: members
 
-- Each member, platform lead included, does C0 in their own repo, with the member pipeline profile (preferred) or from the terminal: run the preflight, deploy the datacenter with Azure Hybrid Benefit on by default, confirm the legacy app with `scripts/Test-Datacenter.ps1` while both VMs are running, then onboard `vm-app01` to Arc with `scripts/Connect-DatacenterArc.ps1`, then run the first Arc SQL migration assessment in the portal and set up `vm-dev01`. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks, so the test goes before Arc.
+- Each member, platform lead included, does C0 in their own repo with the `whatif` and `member` stages of the member pipeline profile: preflight, then the datacenter with Azure Hybrid Benefit on by default (a member without eligible licenses sets the `no-hybrid-benefit` input), then `Test-Datacenter.ps1` while both VMs are running, then Arc onboarding of `vm-app01`, all in one `member` run. After it they run the first Arc SQL migration assessment in the portal and set up `vm-dev01`. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks, so the stage tests before Arc. Students don't run the deploy scripts by hand; a coach does only as a repair (see the [C0 answer key](../coach/c00-ready-to-hack.md#repair-coaches-only)).
 - Have a coach review every member's C0 output (see the [C0 answer key](../coach/c00-ready-to-hack.md)). A member who isn't ready at the kickoff roster lock stays on the roster with partial C0 credit unless the event owner swaps or drops them first.
 - Keep the datacenter ready for the event. Idle VMs can be stopped before the event (Bastion Standard, disks and networking still incur charges), but start both before the T-1 vending, which restarts them and runs probes inside them. During the event, never stop `vm-dev01`: it's each member's workstation.
 - A `vm-dev01` deployed before the sparse-checkout change still has the full kit clone, with `coach/`, `facilitator/`, `docs/`, `site/` and `test/` in it, and the documentation and lint tooling at the repo root. Apply the "Slim an existing clone" block in `infra/datacenter/README.md` on that VM with the member. `Test-Datacenter.ps1` reports the full clone as a failed check until you do.
@@ -67,7 +67,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 ### T-1: platform lead
 
-- Vend every member, yourself included, in order: run 2 of the platform pipeline (the `vending` stage, the preferred path), or `scripts/Deploy-Vending.ps1` once per member as the other supported path (see C2, "Before the event"). Then restart both VMs of each member, record the exemptions and run the connectivity probes. The pipeline's vending stage does these four steps in one run.
+- Vend every member, yourself included, in order: run 2 of the platform pipeline, the `vending` stage in the lead's repo (see C2, "Before the event"). It restarts both VMs of each member, records the exemptions and runs the connectivity probes, so one run does all four steps. A coach repairs a failed run by hand only with the commands in the [C2 answer key](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only).
 - Vending comes after each member's `vm-dev01` setup and the coach's C0 review on purpose. It changes the datacenter's DNS servers to the hub firewall, and nothing before it tests that. The hard dependencies are only these: ALZ-lite and each member's datacenter before vending, and `Test-Datacenter.ps1` before Arc. The datacenter still exists before the subscription moves under the Corp group, so the exemptions lesson stays.
 - A restart ends a member's Bastion session, so tell members first. A member whose datacenter is redeployed after vending is vended again.
 - Post "vended" with each member's name and the shared services subscription ID in the team channel. Keep the vending output, the exemptions table and the probe output: they're C2's evidence.
@@ -83,16 +83,16 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 ### T+2: event owner and platform lead
 
-- Collect the evidence and owner follow-ups, then run the cleanup steps in [cleanup.md](cleanup.md), starting with its "Before you delete anything" checklist. Clean each member scope before the shared team scope. Members who are absent or haven't cleaned up by the owner's deadline are cleaned by the platform lead (see cleanup.md).
-- If the team used the pipeline, a named admin runs `scripts/Remove-PlatformPipeline.ps1` right after the `teardown` stage, on the date agreed at T-30: the lead profile in the platform lead's repo, and `-Profile Member` in each member's repo. The workflow never removes its own identity or roles.
-- Confirm that the named kit resource groups and subscription-level artifacts are gone. The team cleanup preserves `rg-management`, `id-sqlmi-directory` and its Graph grant by default (`-IncludeManagementResources` removes them). The event owner decides: delete them unless the tenant is reused for another event (see the cleanup page).
+- Collect the evidence and owner follow-ups, then run the cleanup steps in [cleanup.md](cleanup.md), starting with its "Before you delete anything" checklist. Each member runs the `teardown` stage in their own repo before the platform lead runs it for the team. Members who are absent or haven't cleaned up by the owner's deadline are cleaned by the platform lead's `teardown` run (see cleanup.md).
+- A named admin runs `scripts/Remove-PlatformPipeline.ps1` right after the `teardown` stage, on the date agreed at T-30: the lead profile in the platform lead's repo, and `-Profile Member` in each member's repo. The workflow never removes its own identity or roles.
+- Confirm that the named kit resource groups and subscription-level artifacts are gone. The team cleanup preserves `rg-management`, `id-sqlmi-directory` and its Graph grant by default (the `include-management` input removes them). The event owner decides: delete them unless the tenant is reused for another event (see the cleanup page).
 - Remove access that was only needed for the event: the platform lead's Owner at Tenant Root, any Global Administrator elevation used to give it, and the Privileged Role Administrator's activation or Reader grant.
 - Record costs and unresolved follow-ups for the event report.
 
 ### Verify after cleanup
 
 - `rg-datacenter`, `rg-spoke` and `rg-university-<suffix>` are gone in every member subscription, and the shared `rg-hub` is gone.
-- If the team used the pipeline: `rg-cicd`, the `id-factory-pipeline` identity and its role assignments are gone (in the shared services subscription for the lead profile, and in each member's workload subscription), and the `gh-lab` environment and the `ROSTER_JSON` secret are gone from the repo.
+- `rg-cicd`, the `id-factory-pipeline` identity and its role assignments are gone (in the shared services subscription for the lead profile, and in each member's workload subscription), and the `gh-lab` environment and the `ROSTER_JSON` secret are gone from the repo.
 - `id-sqlmi-directory` and its Graph grant are gone, unless the tenant is reused.
 - The elevated access in the list above has been removed.
 
@@ -100,7 +100,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 - Use a room with reliable internet, power at each seat, a projector for the coach demos, and space for teams to work without exposing one another's credentials or private evidence.
 - Prepare one shared-services subscription per team and one workload subscription per member. Keep attendees in their assigned subscriptions; never share Azure or GitHub credentials.
-- `labadmin` on both VMs and the `contosoapp` SQL login use a documented lab password (see `infra/datacenter/README.md`, "Credentials"). That is acceptable because the VMs have no public IPs and are reachable only through Bastion. If the event isn't a throwaway or other tenants' users can reach the subscriptions, have members pass `-AdminPassword` and `-SqlAppPassword` to `Deploy-Datacenter.ps1`.
+- `labadmin` on both VMs and the `contosoapp` SQL login use a documented lab password (see `infra/datacenter/README.md`, "Credentials"). The `member` stage always uses the documented password, and `Get-PipelineEvidence.ps1` saves it in `.local/<subscription-id>/datacenter.json` for the later challenges. That is acceptable because the VMs have no public IPs and are reachable only through Bastion. If the event isn't a throwaway or other tenants' users can reach the subscriptions, a coach deploys the datacenter by hand with `-AdminPassword` and `-SqlAppPassword` (see the [C0 answer key](../coach/c00-ready-to-hack.md#repair-coaches-only)).
 - Use Bastion Standard only. Do not pin availability zones or enable zone redundancy. Azure Hybrid Benefit is on by default and assumes eligible partner licences.
 - Keep the web app's public HTTPS front end and Application Insights ingestion as the documented exceptions. Backends remain private and use their standard host names.
 - Do not use the SQL Managed Instance free offer. The event path uses the paid General Purpose configuration in the archetype.
@@ -110,10 +110,10 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 An event copy of this repository doesn't change what attendees run by default. `Import-Kit.ps1`, the datacenter script download and the clone on `vm-dev01` all fetch the upstream `jonathan-vella/apex-factory-hackathon` repository at `main`, and coaches fetch lifelines from the same place. Keep technical changes upstream, or point the scripts at your copy. The copy must be public: the VMs read `raw.githubusercontent.com` without signing in, and the imports run without signing in too. Tell attendees which flags to use:
 
-- `scripts/Deploy-Datacenter.ps1 -Repository <owner>/<name>` makes the VMs download `infra/datacenter/scripts` and `db/perf-kit/sql` from your copy. `-ScriptsRef` picks a branch or commit; it defaults to `main`.
+- `scripts/Deploy-Datacenter.ps1 -Repository <owner>/<name>` makes the VMs download `infra/datacenter/scripts` and `db/perf-kit/sql` from your copy. `-ScriptsRef` picks a branch or commit; it defaults to `main`. The `member` stage sets both from the workflow's `KIT_REPOSITORY` and `KIT_REF`, which `Import-Kit.ps1` writes into the attendee's repo, so students need no flag. A coach repair by hand needs them.
 - `scripts/Import-Kit.ps1 -KitRepository <owner>/<name>` imports the kit from your copy, and passes the same value on to `Import-Archetype.ps1`. `-Ref` picks a branch or commit.
 - `archetype/Import-Archetype.ps1 -KitRepository <owner>/<name>` is the same flag for importing the archetype alone.
-- `Deploy-Datacenter.ps1` has its own `-Repository`, which `Import-Kit.ps1` doesn't pass on, so give attendees both.
+- `Deploy-Datacenter.ps1` has its own `-Repository`, which `Import-Kit.ps1` doesn't pass on, so a coach repair needs both.
 - The kit clone on `vm-dev01` and the lifelines still come from upstream.
 
 ## Lifeline handout and scoring

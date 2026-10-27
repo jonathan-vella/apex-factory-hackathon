@@ -10,7 +10,7 @@ rg-university-<suffix>), using the same three inputs as APEX Deploy. Everything 
 not asked for:
 - the region, from the hub's vnet-hub in the shared services subscription (found via vnet-spoke's peering);
 - the spoke and its subnets (rg-spoke, vnet-spoke, snet-app, snet-pe, snet-sqlmi), by the backlog naming
-  convention -- this script never creates them; run scripts/Deploy-Vending.ps1 (B08) first if they're missing;
+  convention -- this script never creates them; ask the platform lead to run the vending stage first if they're missing;
 - the central Log Analytics workspace (log-management in rg-management), by the ALZ-lite name, in the
   shared services subscription;
 - the SQL Managed Instance's Entra admin, from the signed-in user.
@@ -20,7 +20,7 @@ Use -WhatIf to preview the deployment without applying it.
 The Entra tenant the workload subscription is in.
 .PARAMETER SubscriptionId
 The workload subscription. Must already have a vended spoke (rg-spoke, vnet-spoke, snet-app, snet-pe,
-snet-sqlmi) -- run scripts/Deploy-Vending.ps1 first if it doesn't.
+snet-sqlmi) -- ask the platform lead to run the vending stage first if it doesn't.
 .PARAMETER Suffix
 4-6 lowercase letters/digits, unique per member.
 .EXAMPLE
@@ -91,19 +91,19 @@ if (-not $deployer) {
 # The vended spoke, by the backlog naming convention. This script never creates it.
 $spokeVnet = Get-OptionalResource -Arguments @('network', 'vnet', 'show', '-g', 'rg-spoke', '-n', 'vnet-spoke')
 if (-not $spokeVnet) {
-    throw "rg-spoke/vnet-spoke not found in subscription $SubscriptionId. Run scripts/Deploy-Vending.ps1 (B08) first; this script never creates the spoke."
+    throw "rg-spoke/vnet-spoke not found in subscription $SubscriptionId. Ask the platform lead to run the vending stage first; this script never creates the spoke."
 }
 $subnetNames = @($spokeVnet.subnets | ForEach-Object { $_.name })
 foreach ($required in 'snet-app', 'snet-pe', 'snet-sqlmi') {
     if ($subnetNames -notcontains $required) {
-        throw "$required is missing from vnet-spoke. Re-run scripts/Deploy-Vending.ps1 (B08) to repair the spoke."
+        throw "$required is missing from vnet-spoke. Ask the platform lead to run the vending stage again to repair the spoke."
     }
 }
 
 # The hub, discovered through the spoke's peering, so the region always matches the team's hub.
 $peering = $spokeVnet.virtualNetworkPeerings | Where-Object { $_.remoteVirtualNetwork.id -match '/virtualNetworks/vnet-hub$' } | Select-Object -First 1
 if (-not $peering) {
-    throw 'vnet-spoke has no peering to a hub VNet named vnet-hub. Run scripts/Deploy-Vending.ps1 (B08) first.'
+    throw 'vnet-spoke has no peering to a hub VNet named vnet-hub. Ask the platform lead to run the vending stage first.'
 }
 $hubSubscriptionId = ($peering.remoteVirtualNetwork.id -split '/')[2]
 $hubVnet = Invoke-AzureCli -Arguments @('network', 'vnet', 'show', '--subscription', $hubSubscriptionId, '-g', 'rg-hub', '-n', 'vnet-hub')
@@ -116,7 +116,7 @@ $workspace = Invoke-AzureCli -Arguments @('resource', 'show', '--subscription', 
 # script never creates it.
 $directoryIdentity = Get-OptionalResource -Arguments @('identity', 'show', '--subscription', $hubSubscriptionId, '-g', 'rg-management', '-n', 'id-sqlmi-directory')
 if (-not $directoryIdentity) {
-    throw "rg-management/id-sqlmi-directory not found in the shared services subscription. Run scripts/Deploy-AlzLite.ps1 (PR #46) first; this script never creates it."
+    throw "rg-management/id-sqlmi-directory not found in the shared services subscription. Ask the platform lead to run the foundation stage first; this script never creates it."
 }
 
 Write-Information @"

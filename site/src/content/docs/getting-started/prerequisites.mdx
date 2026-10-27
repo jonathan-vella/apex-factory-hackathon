@@ -45,14 +45,9 @@ The event is for partner infrastructure architects and engineers, in teams of th
 
 ## How you deploy
 
-You deploy your datacenter in C0. The platform lead also deploys the foundation and connects every member. There are two ways, and they give the same result:
+You deploy with GitHub Actions. You set it up once, then run each stage from your own repo and walk away. Every run leaves a log. In C0 you deploy your datacenter. The platform lead also deploys the foundation and connects every member. [Deploy with GitHub Actions](../../guides/deploy-with-actions/) has the steps.
 
-| Path | What it is | Page |
-| --- | --- | --- |
-| **GitHub Actions (preferred)** | Set up once, then run each stage from your own repo and walk away. Every run leaves a log. | [Deploy with GitHub Actions](../../guides/deploy-with-actions/) |
-| **Scripts** | Run each script in the dev container yourself. Use it when Actions isn't available, or to repair a failed run. | [Deploy with scripts](../../guides/deploy-with-scripts/) |
-
-Both need what this page sets up: your repo with the kit merged to `main` (GitHub runs a workflow only from the default branch), a signed-in `az` and `gh`, and your settings file. You don't install anything else: the dev container has every tool.
+It needs what this page sets up: your repo with the kit merged to `main` (GitHub runs a workflow only from the default branch), a signed-in `az` and `gh`, and your settings file. You don't install anything else: the dev container has every tool.
 
 ## Accounts and access
 
@@ -225,7 +220,7 @@ Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`,
 
 ## Manual checks
 
-`Test-Preflight.ps1` (C0, task 1) prints five MANUAL rows because it can't verify these. Confirm them yourself before T-14. The **Preflight row** column shows which MANUAL row each check belongs to.
+The preflight (the `whatif` stage, C0 task 1) prints five MANUAL rows because it can't verify these. Confirm them yourself before T-14. The **Preflight row** column shows which MANUAL row each check belongs to.
 
 | # | Check | How to verify | Preflight row |
 | --- | --- | --- | --- |
@@ -268,4 +263,4 @@ Each member keeps evidence in their own repo. For a team document, one person ty
 
 ## Where to go next
 
-Go to [C0: Ready to hack](../../challenges/c00-ready-to-hack/). Start with its preflight, which is due by T-14. At T-3, deploy your datacenter with [GitHub Actions](../../guides/deploy-with-actions/#member) (preferred) or with [scripts](../../guides/deploy-with-scripts/#member). The platform lead also reads the [Platform lead](../../guides/deploy-with-actions/#platform-lead) section.
+Go to [C0: Ready to hack](../../challenges/c00-ready-to-hack/). Start with its preflight, which is due by T-14. At T-3, deploy your datacenter with [GitHub Actions](../../guides/deploy-with-actions/#member). The platform lead also reads the [Platform lead](../../guides/deploy-with-actions/#platform-lead) section.

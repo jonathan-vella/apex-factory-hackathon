@@ -23,7 +23,7 @@ answer in the workflow state.
   modernized to .NET 10 in a separate workstream, B06/B10) will run on. APEX only builds
   the platform here — it does not modernize or deploy the app itself.
 - **Compliance / environment:** deploys into an existing Corp landing zone spoke
-  (`vnet-spoke`, already vended — see Inputs and derivation below). Every deny policy at
+  (`vnet-spoke`, already vended by the platform lead's `vending` stage — see Inputs and derivation below). Every deny policy at
   `mg-factory-corp` (ALZ-lite, see `infra/foundation/README.md` in this repo) must pass.
   No production data; this is a training/demo environment, but security baselines are
   still enforced for realism.

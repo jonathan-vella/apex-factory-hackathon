@@ -6,7 +6,7 @@ A final sanity pass across the team's deliverables in C10. Check each item; don'
 
 - [ ] Your C0–C9 evidence is committed to your own repo under `factory/evidence/`.
 - [ ] The opportunity canvas (C1) has all six dimensions filled in.
-- [ ] ALZ-lite and vending (C2) evidence is recorded, including the exemptions table.
+- [ ] ALZ-lite and vending (C2) evidence is recorded (the `foundation` and `vending` run summaries), including the exemptions table.
 - [ ] Every assessment finding from C3 is triaged, including the trace-flag finding.
 - [ ] At least four ADRs exist from C4 (platform, migration method, app, data).
 - [ ] The archetype's As-Built document (C5) is present.

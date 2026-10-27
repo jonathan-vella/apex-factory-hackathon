@@ -7,8 +7,8 @@
 ## Before the demo
 
 - Use a prepared APEX repo based on the pinned `apex-accelerator` commit in `archetype/README.md`, with the archetype brief and its review history available.
-- Have a disposable demo setup ready, owned by the event owner: a shared services subscription with ALZ-lite deployed and a workload subscription vended into it, using the same scripts as C2. This is separate from the C2 portal ALZ demo, which runs in the coach's own tenant. Confirm the `azd` environment is the intended one and the preview is understood.
-- Plan the cost and the cleanup. A live deployment adds the archetype rate (about $1.83 per hour, of which the SQL MI is about $0.68) to the [cost estimate](cost-estimate.md). Remove it afterwards with the member scope of `scripts/Remove-FactoryEnvironment.ps1` (see [cleanup](cleanup.md)), using the demo subscription's member index and suffix.
+- Have a disposable demo setup ready, owned by the event owner: a shared services subscription with ALZ-lite deployed and a workload subscription vended into it, using the same `foundation` and `vending` stages as C2. This is separate from the C2 portal ALZ demo, which runs in the coach's own tenant. Confirm the `azd` environment is the intended one and the preview is understood.
+- Plan the cost and the cleanup. A live deployment adds the archetype rate (about $1.83 per hour, of which the SQL MI is about $0.68) to the [cost estimate](cost-estimate.md). Remove it afterwards with the `teardown` stage (see [cleanup](cleanup.md)), using the demo subscription's member index and suffix.
 - Close terminals and browser tabs that could reveal credentials, tenant or subscription IDs, private email addresses or unrelated resources. Use placeholders when narrating inputs.
 - Do not run APEX Deploy (`07b`) as the default deployment path. The member path is APEX for adaptation and review, then `azd provision --preview` and `azd provision`.
 - SQL MI provisioning can outlast this presentation. Start the live deployment during the demo; never start a second deployment to make the timing look better.

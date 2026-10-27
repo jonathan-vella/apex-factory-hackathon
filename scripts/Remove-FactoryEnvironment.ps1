@@ -250,6 +250,10 @@ function Get-RoleAssignmentsAtScope {
     return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $TargetScope))
 }
 
+# Vending marks the Owner assignment it creates with this description. A member's own direct Owner assignment doesn't carry
+# it, so teardown leaves that one alone.
+$vendingOwnerDescription = 'Created by Deploy-Vending.ps1 (Partner Modernization Factory)'
+
 if ($Scope -eq 'Member') {
     if ($SubscriptionId -notmatch '^[0-9a-fA-F-]{36}$') {
         throw 'For -Scope Member, provide the member workload -SubscriptionId.'
@@ -465,7 +469,8 @@ else {
                 $matchingOwnerRoles = @($ownerRoles | Where-Object {
                     $_.scope -eq $subscriptionScope -and
                     $_.roleDefinitionName -eq 'Owner' -and
-                    $_.principalId -in $managedIdentityPrincipals
+                    $_.principalId -in $managedIdentityPrincipals -and
+                    $_.description -eq $vendingOwnerDescription
                 })
                 foreach ($role in $matchingOwnerRoles) {
                     [void] $memberOwnerRoles.Add($role)

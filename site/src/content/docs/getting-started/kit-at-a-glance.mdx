@@ -14,7 +14,7 @@ This page is the big picture. Start with [Prerequisites](../prerequisites/) when
 
 | Where | What you do there |
 |---|---|
-| [Dev container](../prerequisites/#how-you-work-with-one-repo-and-one-dev-container) | VS Code on your laptop, in your own repo. The kit's scripts run from `factory/`: C0 setup, the foundation (deployed at T-7 and T-1, which C2 verifies), C5 with APEX and azd, the C8 load and security checks. GitHub Actions, the [preferred way to deploy](../../guides/deploy-with-actions/), is set up and triggered from here too. |
+| [Dev container](../prerequisites/#how-you-work-with-one-repo-and-one-dev-container) | VS Code on your laptop, in your own repo. The kit's scripts run from `factory/`: C0 setup and evidence, the platform pipeline's setup, C5 with APEX and azd, the C8 load and security checks. You deploy the datacenter and the foundation (T-7 and T-1, which C2 verifies) with GitHub Actions, which is [set up and triggered](../../guides/deploy-with-actions/) from here too. |
 | [`vm-dev01`](../../guides/ghcp-upgrade/#switching-to-vm-dev01) | Your workstation, through Bastion. From C3 the app work happens here, next to the private network. Never stop it. |
 | Browser and Azure portal | The Azure Arc assessment (first run in C0 task 5, triaged in C3), the MI link (C7), Bastion connections and the C8 smoke checks. |
 | [Your own repo](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) | Evidence goes in `factory/evidence/cNN/` on `main`; run `git pull` first. On `vm-dev01`, use your plain clone `C:\src\<your-repo>` and run `git pull --rebase` first. Your coach reads it. |

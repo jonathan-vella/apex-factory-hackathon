@@ -25,27 +25,25 @@ C1's opportunity canvas (context only — C2 doesn't depend on its content), and
 
 ## Before the event
 
-The platform lead does this work, with a Privileged Role Administrator for one step. Two runs build the foundation, and a coach reviews C0 between them. This is what C2's evidence comes from, so keep the output of every step. Don't put subscription, tenant or object IDs in it when you commit.
+The platform lead does this work, with a Privileged Role Administrator for one step. Two pipeline stages build the foundation, and a coach reviews C0 between them. This is what C2's evidence comes from, so keep the run summary of every stage. The pipeline redacts IDs: they show as `<id:abcd>`. Still, don't put subscription, tenant or object IDs in anything you commit.
 
-The order is fixed by the dependencies. ALZ-lite comes before vending, because vending finds the hub by name. Each member's datacenter comes before vending, because vending connects it, and each member's `Test-Datacenter.ps1` run comes before Arc onboarding (C0). The Graph grant comes after ALZ-lite, because ALZ-lite creates the identity it grants, and before C7. Vending comes after each member's `vm-dev01` setup and the coach's C0 review on purpose: vending changes the datacenter's DNS servers to the hub firewall, and `vm-dev01` setup doesn't test that.
+The order is fixed by the dependencies. ALZ-lite comes before vending, because vending finds the hub by name. Each member's datacenter comes before vending, because vending connects it, and the `member` stage tests the datacenter before Arc onboarding (C0). The Graph grant comes after ALZ-lite, because ALZ-lite creates the identity it grants, and before C7. Vending comes after each member's `vm-dev01` setup and the coach's C0 review on purpose: vending changes the datacenter's DNS servers to the hub firewall, and `vm-dev01` setup doesn't test that.
 
 | When | Who | What |
 |---|---|---|
-| T-14 | Event owner | Captures every member's workload subscription ID, member index, Entra object ID and email in the private roster. Members run preflight |
-| T-7 | Platform lead, then a Privileged Role Administrator | Deploys ALZ-lite (run 1), then the Graph grant |
+| T-14 | Event owner | Captures every member's workload subscription ID, member index, Entra object ID and email in the private roster. Members run the preflight |
+| T-7 | Platform lead, then a Privileged Role Administrator | Runs the `foundation` stage (ALZ-lite), then the Graph grant |
 | T-3 | Each member | Does C0 in their own repo; a coach reviews every member's output |
-| T-1 | Platform lead | Vends every member in order (run 2), restarts the VMs, records the exemptions and runs the connectivity probes |
+| T-1 | Platform lead | Runs the `vending` stage: it vends every member in order, restarts the VMs, records the exemptions and runs the connectivity probes |
 
-**T-7: ALZ-lite and the Graph grant.** In the platform lead's dev container, from `factory/`, against the **shared services** subscription (run 1 is the manual path below, or the `foundation` stage of the preferred GitHub Actions path: see [Deploy with GitHub Actions](../../guides/deploy-with-actions/#platform-lead)):
+**T-7: ALZ-lite and the Graph grant.** In the platform lead's dev container, from `factory/`, run the `whatif` stage first (a read-only what-if, plus the preflight for every member), then the `foundation` stage. [Deploy with GitHub Actions](../../guides/deploy-with-actions/#platform-lead) has the setup and the roster.
 
-```powershell
-$s = Get-Content .local/settings.json | ConvertFrom-Json
-az account set --subscription $s.sharedSubscriptionId
-./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -WhatIf
-./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
+```bash
+gh workflow run platform.yml -f stage=whatif
+gh workflow run platform.yml -f stage=foundation
 ```
 
-It deploys unattended in about 15 to 25 minutes, mostly Azure Firewall. It creates the management groups, the hub (Azure Firewall Standard with DNS proxy, central private DNS zones), the central Log Analytics workspace, and the core policies at `mg-factory-corp`. It creates the identity `id-sqlmi-directory` in `rg-management`, which the grant needs. It's done when the second run prints "ALZ-lite is deployed" with the management groups, the hub firewall and the workspace. The firewall bills about $1.30 an hour from now until the event is cleaned up.
+The foundation deploys unattended in about 15 to 25 minutes, mostly Azure Firewall. It creates the management groups, the hub (Azure Firewall Standard with DNS proxy, central private DNS zones), the central Log Analytics workspace, and the core policies at `mg-factory-corp`. It creates the identity `id-sqlmi-directory` in `rg-management`, which the grant needs. It's done when the run is green and its summary says ALZ-lite is deployed. The firewall bills about $1.30 an hour from now until the event is cleaned up.
 
 Right after it, the Privileged Role Administrator grants the SQL MI identity its Graph read, once per team. Every member's SQL Managed Instance uses `id-sqlmi-directory`, and without this grant C7 can't create the web app's database user (`CREATE USER ... FROM EXTERNAL PROVIDER` fails with "Server identity does not have Azure Active Directory Readers permission"). Only someone with the Privileged Role Administrator (or Global Administrator) Microsoft Entra directory role can grant it, and the platform lead usually doesn't hold that role, so the event owner books that person for T-7. They run the two commands below from their own computer, in the kit's `factory/` folder, signed in as themselves with `az login`. Don't have them sign in inside the platform lead's dev container: a second `az login` there replaces the lead's. Give them the shared services subscription ID. They don't need your repo: the script is one file with no other kit dependencies, so they download [`Grant-SqlMiDirectoryRead.ps1`](https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Grant-SqlMiDirectoryRead.ps1), install PowerShell 7 and the Azure CLI, and run it from the folder that holds the file (use `./Grant-SqlMiDirectoryRead.ps1` instead of `./scripts/...`).
 
@@ -56,36 +54,19 @@ Right after it, the Privileged Role Administrator grants the SQL MI identity its
 
 It's done when the second run reports the three Graph permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) as granted. A re-run skips what is already granted. Ask the role holder to share the output with you for your evidence. If the identity lookup is denied, give that person Reader on the shared services subscription first.
 
-**T-1: vending.** Start both VMs of every member first if they were stopped, and only vend a member whose datacenter exists and whose C0 a coach has reviewed. The platform lead is also a student with one workload subscription: vend yourself too. Use the four values the event owner captured at T-14 for each member (nobody commits them to any repo). The location isn't captured per member: it's the team's location, the same as yours unless the coach said otherwise.
+**T-1: vending.** Start both VMs of every member first if they were stopped, and only vend a member whose datacenter exists and whose C0 a coach has reviewed. The platform lead is also a student with one workload subscription: vend yourself too. The roster file holds the four values the event owner captured at T-14 for each member (workload subscription ID, member index, Entra object ID and email), so nobody types them and nobody commits them to any repo. The location is the team's, the same for everyone.
 
-| Value | Used as | Where the member gets it |
-| --- | --- | --- |
-| Workload subscription ID | `-WorkloadSubscriptionId` | `$s.subscriptionId` in their dev container |
-| Member index | `-MemberIndex` | `$s.memberIndex` in their dev container |
-| Location (the team's, not captured per member) | `-Location` | `$s.location`, the same as yours unless the coach said otherwise |
-| Entra object ID | `-MemberPrincipalId` | `az ad signed-in-user show --query id -o tsv` |
-| Email | `-BudgetEmail` | Their own work email address |
+Run the stage once. Without `members` it vends every member in the roster, one after another (each run updates the same firewall policy):
 
-`-MemberPrincipalId` is required in practice: without it vending skips the member's Owner role, their Reader role on the shared services subscription (which `Test-Connectivity.ps1` and C5's preflight need to read the hub) and the Managed Identity Operator grant on `id-sqlmi-directory`, and C5's preflight then stops. Run once per member, one after another (each run updates the same firewall policy), from the platform lead's `factory/` folder:
-
-```powershell
-./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -WhatIf
+```bash
+gh workflow run platform.yml -f stage=vending
 ```
 
-Re-run without `-WhatIf` once the plan looks right. Each run connects that workload subscription to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget. It takes 4 to 5 minutes per member. After each run, post "vended" with the member's name and the shared services subscription ID in the team channel. It's done when each run prints "is vended". `Deploy-Vending.ps1` masks subscription IDs in its own summary, but the `-WhatIf` text that comes from Azure doesn't, so remove subscription IDs from anything you save before committing.
+Each member is connected to the hub: spoke, subnets, peering, UDRs, DNS, firewall rules, RBAC and a budget, in 4 to 5 minutes per member. The member's Owner role, their Reader role on the shared services subscription (which `Test-Connectivity.ps1` and C5's preflight need to read the hub) and the Managed Identity Operator grant on `id-sqlmi-directory` come from the roster's Entra object ID. If a member already holds a direct Owner assignment, vending keeps it. After each member, post "vended" with the member's name in the team channel. It's done when the run is green.
 
-Vending changed each datacenter's DNS servers and routes, and running VMs keep their old settings. So for every member, restart both VMs (tell the member first: a restart ends their Bastion session), record the exemptions, then run the probes, all from the platform lead's folder (the lead is Owner at Tenant Root, so this works for every member's subscription):
+Vending changes each datacenter's DNS servers and routes, and running VMs keep their old settings. So the stage restarts both VMs of every member (tell the member first: a restart ends their Bastion session), records the policy exemptions, then runs the connectivity probes. Each exemption needs an owner, a reason and an expiry (the default is 14 days), and the stage records `GitHub Actions pipeline` as the owner. Policy changes can take up to 30 minutes to take effect after ALZ-lite, so if a member's exemptions come back empty, wait and run `gh workflow run platform.yml -f stage=vending -f members=<member-index>` for that member only. The probes are done when every applicable check is PASS.
 
-```powershell
-az vm restart -g rg-datacenter -n vm-dev01 --subscription '<member-subscription-id>'
-az vm restart -g rg-datacenter -n vm-app01 --subscription '<member-subscription-id>'
-./scripts/New-DatacenterExemptions.ps1 -SubscriptionId '<member-subscription-id>' -Owner '<member name>' -WhatIf
-./scripts/Test-Connectivity.ps1 -SubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index>
-```
-
-Re-run the exemptions command without `-WhatIf` to create them. Each exemption needs an owner, a reason and an expiry (the default is 14 days). Policy changes can take up to 30 minutes to take effect after ALZ-lite, so if the output says "nothing to do", wait and run it again. The probes are done when every applicable check is PASS.
-
-**GitHub Actions is the preferred path.** If your team set up the platform pipeline, run 1 is the `foundation` stage and run 2 is the `vending` stage of `platform.yml` in the platform lead's repo (`gh workflow run platform.yml -f stage=foundation`, then `-f stage=vending`). The vending stage restarts the VMs, records the exemptions and runs the connectivity probes for every member in order. Its exemptions record `GitHub Actions pipeline` as the owner. [Deploy with GitHub Actions](../../guides/deploy-with-actions/#platform-lead) has the setup and the diagrams. On this path, copy the run summaries of the `foundation` and `vending` stages (IDs redacted) as the `Deploy-AlzLite.ps1` and `Deploy-Vending.ps1` evidence. The scripts above are the other supported path ([Deploy with scripts](../../guides/deploy-with-scripts/#platform-lead) is the short version), and both paths give the same result.
+Copy the run summaries of the `foundation` and `vending` stages as your team's evidence (see Evidence below).
 
 ## Where to run
 
@@ -133,7 +114,7 @@ Terms on this page:
 
    Done when the last line prints the shared services subscription ID the platform lead gave you.
 2. Watch the coach's live demo of a full portal-based Azure Landing Zone, and note what ALZ-lite deliberately leaves out (it's a comparison table in the [ALZ-lite guide](../../guides/alz-lite/), not a gap to fix). Done when you can name two things a full ALZ has that ALZ-lite leaves out.
-3. **Platform lead, with the team: walk through ALZ-lite and answer the coach's questions.** Using the T-7 `Deploy-AlzLite.ps1` output and the portal, show the team what the foundation holds: the management groups (`mg-factory`, with `mg-factory-platform` and `mg-factory-corp` beneath it), `rg-hub` (`vnet-hub`, `afw-hub`, `afwp-hub`, the central private DNS zones), `rg-management` (`log-management` and `id-sqlmi-directory`) and the `ALZ-lite:` policy assignments at `mg-factory-corp` (**Policy** > **Assignments**, with the scope set to `mg-factory-corp`). The coach then asks about the core policies, for example: which assignments only audit, which deny, and which add a missing setting? What would the Deny on public network access stop in C5? Why does the firewall act as DNS proxy? The [ALZ-lite guide](../../guides/alz-lite/) has the summary table. Done when the team can say, for each kind of core policy, what its effect does to a resource, and the platform lead has shown the T-7 output.
+3. **Platform lead, with the team: walk through ALZ-lite and answer the coach's questions.** Using the T-7 `foundation` run summary and the portal, show the team what the foundation holds: the management groups (`mg-factory`, with `mg-factory-platform` and `mg-factory-corp` beneath it), `rg-hub` (`vnet-hub`, `afw-hub`, `afwp-hub`, the central private DNS zones), `rg-management` (`log-management` and `id-sqlmi-directory`) and the `ALZ-lite:` policy assignments at `mg-factory-corp` (**Policy** > **Assignments**, with the scope set to `mg-factory-corp`). The coach then asks about the core policies, for example: which assignments only audit, which deny, and which add a missing setting? What would the Deny on public network access stop in C5? Why does the firewall act as DNS proxy? The [ALZ-lite guide](../../guides/alz-lite/) has the summary table. Done when the team can say, for each kind of core policy, what its effect does to a resource, and the platform lead has shown the T-7 run summary.
 4. **Platform lead: show the Graph grant is in place.** The Privileged Role Administrator made the grant at T-7. Check it now, in your own dev container, from `factory/`. It changes nothing:
 
    ```powershell
@@ -141,7 +122,7 @@ Terms on this page:
    ```
 
    Done when the output says each of the three Graph permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) is already granted, and you can explain in one sentence why C7 needs it. If it isn't granted, ask your coach to bring the Privileged Role Administrator back: C7 can't create the web app's database user without it, and the steps are under "Before the event".
-5. **Platform lead, with the team: explain what vending did.** Show the T-1 `Deploy-Vending.ps1` output for every member (subscription IDs redacted), and for one member the spoke in the portal: `rg-spoke`, `vnet-spoke` with `snet-app`, `snet-pe` and `snet-sqlmi`, the peering to the hub, the route table that sends traffic to the firewall, the DNS servers set to the hub firewall, the budget and the RBAC. The coach asks the members to explain why vending came after their datacenter existed (the exemptions in task 6 depend on it) and why it came after `vm-dev01` setup (it changes the datacenter's DNS to the firewall). Done when the output covers every member of the team, and each member has seen their own spoke.
+5. **Platform lead, with the team: explain what vending did.** Show the T-1 `vending` run summary for every member (IDs are already redacted), and for one member the spoke in the portal: `rg-spoke`, `vnet-spoke` with `snet-app`, `snet-pe` and `snet-sqlmi`, the peering to the hub, the route table that sends traffic to the firewall, the DNS servers set to the hub firewall, the budget and the RBAC. The coach asks the members to explain why vending came after their datacenter existed (the exemptions in task 6 depend on it) and why it came after `vm-dev01` setup (it changes the datacenter's DNS to the firewall). Done when the run summary covers every member of the team, and each member has seen their own spoke.
 6. **Every member (including the platform lead): check and explain your datacenter's exemptions.** The datacenter was deployed before your subscription moved under `mg-factory-corp`, so the landing zone's policies flag it. Vending at T-1 recorded exemptions for it. Check that the `ALZ-lite:` policy assignments are visible on your subscription (they're inherited from `mg-factory-corp`), then list your exemptions:
 
    ```powershell
@@ -150,7 +131,7 @@ Terms on this page:
    az policy exemption list --resource-group rg-datacenter --query "[].{name:displayName, category:exemptionCategory, expires:expiresOn, description:description}" -o table
    ```
 
-   Each exemption needs an owner, a reason and an expiry in its description and expiry columns. If the list is empty, the policies hadn't taken effect when vending ran (policy changes can take up to 30 minutes after ALZ-lite): create them now with `./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $s.subscriptionId -Owner '<your name>' -WhatIf`, then again without `-WhatIf`. The owner is whoever ran the script: a person, or `GitHub Actions pipeline` if the team used the pipeline. Explain to the coach why the datacenter gets an exemption and not a fix, and who owns the deferred work when each exemption expires. Done when you have the exemptions table, with owner, reason and expiry for each row, saved: you carry its rows into the deferred-work register in C4.
+   Each exemption needs an owner, a reason and an expiry in its description and expiry columns. If the list is empty, the policies hadn't taken effect when vending ran (policy changes can take up to 30 minutes after ALZ-lite): ask the platform lead to run `gh workflow run platform.yml -f stage=vending -f members=<your-member-index>` again, then list again. The owner is `GitHub Actions pipeline`, because the stage records them. Explain to the coach why the datacenter gets an exemption and not a fix, and who owns the deferred work when each exemption expires. Done when you have the exemptions table, with owner, reason and expiry for each row, saved: you carry its rows into the deferred-work register in C4.
 7. **Every member: re-run the connectivity probes (about 10 min).** The platform lead ran them at T-1, and you now run them yourself. It's read-only: it runs its checks inside your datacenter VMs through Azure, so you don't sign in to the VMs. Run this from your own dev container, from `factory/`:
 
    ```powershell
@@ -161,11 +142,11 @@ Terms on this page:
 
 ## Evidence
 
-Save screenshots and output as files in `factory/evidence/c02/`, and commit (for example `docs: C2 evidence`) and push them. **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first (your VM pushes evidence to the same repo). The team-level items (ALZ-lite, the Graph grant, vending) are scored once per team, from the platform lead's copy, and come from the work done before the event. Redact subscription, tenant and object IDs first: the hub VNet, DNS zone and workspace IDs in the vending output all contain the shared services subscription ID.
+Save screenshots and output as files in `factory/evidence/c02/`, and commit (for example `docs: C2 evidence`) and push them. **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first (your VM pushes evidence to the same repo). The team-level items (ALZ-lite, the Graph grant, vending) are scored once per team, from the platform lead's copy, and come from the work done before the event. The pipeline's run summaries already show IDs as `<id:abcd>`. Redact any other subscription, tenant or object ID before you commit.
 
-- `Deploy-AlzLite.ps1` output from T-7: management groups, hub and policies in place. The platform lead also answers the coach's questions on the core policies (task 3).
+- The `foundation` stage's run summary from T-7: management groups, hub and policies in place. The platform lead also answers the coach's questions on the core policies (task 3).
 - `Grant-SqlMiDirectoryRead.ps1` output: the three Graph permissions granted at T-7, and the `-WhatIf` check from task 4.
-- `Deploy-Vending.ps1` output from T-1 for every member in the team (with subscription IDs redacted).
+- The `vending` stage's run summary from T-1, covering every member in the team.
 - The exemptions table, with owner, reason and expiry for each, and your explanation of it (task 6).
 - `Test-Connectivity.ps1` from task 7: PASS on every applicable check.
 
@@ -174,7 +155,7 @@ Save screenshots and output as files in `factory/evidence/c02/`, and commit (for
 <details>
 <summary>Vending fails to find the hub</summary>
 
-`Deploy-Vending.ps1` discovers the hub by the ALZ-lite naming convention (`vnet-hub`, `afw-hub`, `afwp-hub`, `rg-hub`) in the shared services subscription. Confirm ALZ-lite finished and those names exist before running vending.
+The `vending` stage discovers the hub by the ALZ-lite naming convention (`vnet-hub`, `afw-hub`, `afwp-hub`, `rg-hub`) in the shared services subscription. Confirm the `foundation` stage finished and those names exist before running vending.
 </details>
 
 <details>
@@ -191,7 +172,7 @@ VNet DNS servers changed, but running VMs keep their old settings. The platform 
 
 ## If you need to start over
 
-Run `Deploy-AlzLite.ps1` and `Deploy-Vending.ps1` again: both converge on existing resources. If a member's datacenter is redeployed (C0), the platform lead vends that member again, restarts both of their VMs and records their policy exemptions again. ALZ-lite bills about $1.30 an hour while it exists, because of the firewall. After the event the platform lead runs the team-scope cleanup (`Remove-FactoryEnvironment.ps1`). Deleting `rg-hub` alone stops the firewall cost but leaves the peering to each spoke, the policy assignments, the management groups and the budgets behind.
+Run the `foundation` and `vending` stages again: both converge on existing resources. If a member's datacenter is redeployed (C0), the platform lead runs the `vending` stage for that member again (`-f members=<n>`): it restarts both of their VMs and records their policy exemptions again. ALZ-lite bills about $1.30 an hour while it exists, because of the firewall. After the event the platform lead runs the `teardown` stage, which removes every member first, then the team's foundation. Deleting `rg-hub` alone stops the firewall cost but leaves the peering to each spoke, the policy assignments, the management groups and the budgets behind.
 
 ## Bonus
 

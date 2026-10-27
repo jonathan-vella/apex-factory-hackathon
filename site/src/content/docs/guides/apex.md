@@ -35,7 +35,7 @@ Review the preview output, then run `azd provision` yourself, in `infra/bicep/un
 
 :::danger[Don't run azd down to start over]
 
-`azd down --purge` deletes `rg-university-<suffix>` and everything in it: the SQL Managed Instance and, after C7, the migrated database, the Key Vault secrets and your image in the registry. Re-provisioning a SQL Managed Instance takes hours. Never run it after C7. If you need a clean redo before C7, ask your coach first. The kit's own teardown, `Remove-FactoryEnvironment.ps1`, removes your whole environment and is for the end of the event.
+`azd down --purge` deletes `rg-university-<suffix>` and everything in it: the SQL Managed Instance and, after C7, the migrated database, the Key Vault secrets and your image in the registry. Re-provisioning a SQL Managed Instance takes hours. Never run it after C7. If you need a clean redo before C7, ask your coach first. The kit's own cleanup, the `teardown` stage, removes your whole environment and is for the end of the event.
 
 :::
 

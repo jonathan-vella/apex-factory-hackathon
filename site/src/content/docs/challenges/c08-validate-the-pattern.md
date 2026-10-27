@@ -57,8 +57,6 @@ Task 1 also needs the source database's password. It's in the dev container too,
 (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).sqlAppPassword
 ```
 
-If you deployed with GitHub Actions, that file isn't in your dev container: use the lab password from the [Actions page note](../../guides/deploy-with-actions/#member).
-
 ### Values on `vm-dev01`
 
 On the VM, in PowerShell, set the same values once per window. Replace `<n>` with your member index:

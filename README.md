@@ -4,7 +4,7 @@
 
 A challenge-based, 2-day hackathon kit for partners. Teams build a secure Azure landing zone, deploy a CoE archetype with [APEX](https://apexops.pro/), modernize a legacy .NET app with GitHub Copilot, migrate its database to SQL Managed Instance with Azure Arc, and optimize it. They leave with assets they can reuse in customer delivery.
 
-**Status:** the kit is built and merged: the datacenter, foundation, CoE archetype, playbook, student and coach docs, facilitator kit and the GitHub Actions platform pipeline. The full dry run (B13) was closed as not planned, so the whole event order hasn't been rehearsed end to end.
+**Status:** the kit is built and merged: the datacenter, foundation, CoE archetype, playbook, student and coach docs, facilitator kit and the GitHub Actions platform pipeline. Students deploy the datacenter, the foundation and vending, and tear them down, only from GitHub Actions. The kit's scripts are the engine the pipeline runs, and a coach can run one by hand to repair a run. The full dry run (B13) was closed as not planned, so the whole event order hasn't been rehearsed end to end.
 
 **Start here:** [factory.apexops.pro](https://factory.apexops.pro/), the student site.
 
