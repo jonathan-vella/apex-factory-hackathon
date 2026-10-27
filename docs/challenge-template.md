@@ -9,6 +9,7 @@ Rules:
 - Every requirement appears in the success criteria. Every success criterion traces to a requirement.
 - Write "you must" or "the team must". Don't write "should".
 - No identifiers, and no "C0": the readiness check is not a challenge.
+- Keep the headings `## Requirements` (a numbered list) and `## Success criteria` (a bullet list) exactly: the progress bar and the Done ticks find them by those names.
 - Points and minutes must match `facilitator/scoring-rubric.md`. Write them in bold, as **45 min** and **25 pts**: `npm run check` reads that exact form. `npm run check` fails if they drift.
 
 Copy from the line below.
