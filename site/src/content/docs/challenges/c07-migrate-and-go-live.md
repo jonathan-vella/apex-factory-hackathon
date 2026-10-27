@@ -3,9 +3,15 @@ title: "C7: Migrate and go live"
 description: Prepare the source, seed the link, validate the replica, cut over, and bring the app up on App Service.
 ---
 
-## Goal
+## Background
 
-Move the database to SQL Managed Instance with no data loss, then put the modernized app live on App Service against it.
+This is the go-live. You move the database to SQL Managed Instance with no data loss, then put the modernized app live on App Service against it.
+
+**Objective.** Be able to migrate a database online with the MI link, validate the replica, cut over safely, and bring the app up on the new platform.
+
+**Time and points.** Member, **120 min**, **20 pts** (member). Pacing: requirements 1 to 3 about 25, requirement 4 about 25, requirements 5 and 6 about 40, requirement 7 about 10 and requirement 8 about 15. The rest is slack.
+
+## Challenge
 
 The MI link is a database mirror from `vm-app01` to your managed instance. It keeps a read-only copy in sync until you cut over, and then the managed instance takes over as the live database.
 
@@ -19,7 +25,7 @@ The MI link is a database mirror from `vm-app01` to your managed instance. It ke
 <details>
 <summary>How the app's identities and secrets fit together</summary>
 
-Tasks 5 and 6 depend on which identity does what. The web app's own identity reads the Key Vault secret and signs in to the database. A separate shared identity lets SQL Managed Instance look up Microsoft Entra users.
+Requirements 5 and 6 depend on which identity does what. The web app's own identity reads the Key Vault secret and signs in to the database. A separate shared identity lets SQL Managed Instance look up Microsoft Entra users.
 
 <figure class="doc-figure">
   <a class="doc-figure__link" href="/diagrams/diagram-09-identities-secrets-telemetry.svg" target="_blank" rel="noopener">
@@ -30,29 +36,23 @@ Tasks 5 and 6 depend on which identity does what. The web app's own identity rea
 
 </details>
 
-## Scope and time box
+**Starting point.**
 
-Member. **120 min**.
-
-## Points
-
-**20 pts** (member).
-
-## Inputs
-
-- C5's deployed SQL Managed Instance, with its directory read access granted: the Microsoft Graph read grant a Privileged Role Administrator made at T-7 (C2 task 4 checks it). Ask your coach to confirm it before you start, or `CREATE USER` fails in task 5.
+- C5's deployed SQL Managed Instance, with its directory read access granted: the Microsoft Graph read grant a Privileged Role Administrator made at T-7 (C2 requirement 4 checks it). Ask your coach to confirm it before you start, or `CREATE USER` fails in requirement 5.
 - C6's modernized, packaged app (image tag `c6`), not yet pointed at App Service.
 - `vm-app01` running, with its Azure Arc entry **Connected**. C3 had you start it; run `az vm start` for it if it's stopped. The portal shows the instance only while the machine is connected.
 
-Start the link at 08:30 on Day 2 (the agenda's "Reconnect and start the MI link"), before you finish C6, so it's already seeded when you reach task 3: tasks 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. If your coach calls the cutover off at go/no-go, plan another 20 to 30 minutes to reseed, validate again and agree a second window. Go/no-go is the check, with your coach, that the lag is clear and the replica is validated before you stop the writers.
+Start the link at 08:30 on Day 2 (the agenda's "Reconnect and start the MI link"), before you finish C6, so it's already seeded when you reach requirement 3: requirements 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. If your coach calls the cutover off at go/no-go, plan another 20 to 30 minutes to reseed, validate again and agree a second window. Go/no-go is the check, with your coach, that the lag is clear and the replica is validated before you stop the writers.
 
-## What the kit already did for you
+### What the kit already did for you
 
-The datacenter deployment turned on availability groups on `vm-app01`'s SQL Server, set the startup trace flags `-T1800` and `-T9567`, made `NT AUTHORITY\SYSTEM` a sysadmin and onboarded the instance to Azure Arc (the readiness check). Vending opened the network path between `vm-app01` and your managed instance's subnet. Task 1 does the rest of what the link needs on the source: a Windows Firewall rule for port 5022, a database master key, the Azure root certificates and a full backup.
+The datacenter deployment turned on availability groups on `vm-app01`'s SQL Server, set the startup trace flags `-T1800` and `-T9567`, made `NT AUTHORITY\SYSTEM` a sysadmin and onboarded the instance to Azure Arc (the readiness check). Vending opened the network path between `vm-app01` and your managed instance's subnet. Requirement 1 does the rest of what the link needs on the source: a Windows Firewall rule for port 5022, a database master key, the Azure root certificates and a full backup.
 
-## Where to run
+**You decide.** Whether the replica is good enough to cut over (go or no-go, with your coach), and what you write in your runbook.
 
-| Tasks | Where |
+### Where to work
+
+| Requirements | Where |
 | --- | --- |
 | 1 (prepare the source) | `vm-app01` (the legacy IIS and SQL Server VM), through Bastion, in Windows PowerShell as an administrator. |
 | 2, 3 (link, replica check) | The Azure portal (Azure Arc > SQL Server instances), in your browser. Run the replica spot-check queries in SSMS on `vm-dev01`. |
@@ -63,7 +63,7 @@ The datacenter deployment turned on availability groups on `vm-app01`'s SQL Serv
 
 Connect to a VM through Bastion in the portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. To paste into a Bastion session, use Ctrl+V and allow the browser's clipboard prompt if it asks. To open an Administrator PowerShell on `vm-app01`, select **Start**, type `powershell`, right-click **Windows PowerShell** and choose **Run as administrator**.
 
-`<n>` is your member index, the `memberIndex` value in your settings. In your dev container, from `factory/`, this prints the passwords you need (they come from the credentials file `.local/<subscription-id>/datacenter.json`, which the readiness check created) and the exact command for task 1 with your `<n>` filled in:
+`<n>` is your member index, the `memberIndex` value in your settings. In your dev container, from `factory/`, this prints the passwords you need (they come from the credentials file `.local/<subscription-id>/datacenter.json`, which the readiness check created) and the exact command for requirement 1 with your `<n>` filled in:
 
 ```powershell
 $s = Get-Content .local/settings.json | ConvertFrom-Json
@@ -71,16 +71,14 @@ $dc = Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Js
 "labadmin password (Bastion):  $($dc.adminPassword)"
 "contosoapp password (source): $($dc.sqlAppPassword)"
 "Source SQL Server address:    10.10.$($s.memberIndex).4"
-"Task 1 command:               C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.$($s.memberIndex).128/26"
+"Requirement 1 command:               C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.$($s.memberIndex).128/26"
 ```
 
 These are lab-only passwords: keep them out of your screenshots and evidence. For member 3, the source is `10.10.3.4` and the subnet is `10.20.3.128/26`.
 
 Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 
-Pacing for the 120 minutes: tasks 1 to 3 about 25, task 4 about 25, tasks 5 and 6 about 40, task 7 about 10 and task 8 about 15. The rest is slack.
-
-On `vm-dev01`, in PowerShell 7, after `az login --use-device-code`, set up the names that tasks 3, 5 and 6 use:
+On `vm-dev01`, in PowerShell 7, after `az login --use-device-code`, set up the names that requirements 3, 5 and 6 use:
 
 ```powershell
 $rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
@@ -91,7 +89,7 @@ $mi
 
 `$mi` prints the managed instance's standard host name, for example `sqlmi-university-ab12cd.<something>.database.windows.net`. It's never an IP address or a `privatelink` name. Copy it: SSMS needs the host name itself, not the variable `$mi`.
 
-## Your tasks
+## Requirements
 
 1. **Prepare the source.** Run the kit's `Prepare-MiLinkSource.ps1` on `vm-app01`. It must run inside a Bastion session, because VM run commands stop working once the VM is Arc-enabled. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
 
@@ -180,7 +178,7 @@ $mi
       An empty table and `Sessions: 0` is what you want. A row means a client is still connected: use `host_name` and `program_name` to find it (an SSMS window on `vm-dev01` is the usual one), close it, and run the check again.
    4. **Watch the lag reach zero.** In the Azure portal, open the **Monitor and cutover** pane (**Database migration** > **Monitor migrations**). With no writers, the status of `ContosoUniversity` stays **Ready for cutover** and the **Lag** column shows two dashes, which means no lag, within a minute or two. If lag doesn't clear, or a writer keeps appearing, **abort the cutover**: restart the site and pool (`Start-WebAppPool -Name ContosoUniversity; Start-Website -Name ContosoUniversity`), and ask your coach.
    5. **Cut over at no lag.** Select `ContosoUniversity`, then **Cutover** (Microsoft Learn's name; some portal builds label the button **Complete cutover**, and it's the same action). Tick the box that confirms you've stopped all incoming traffic to the source, and leave the **forced failover** box clear: a planned failover waits for the lag to reach zero, and forcing it with lag above zero can lose writes. The portal removes the link when the cutover completes: it offers no option to keep it.
-   6. **Wait for it to finish.** It takes about 2 minutes. On **Monitor and cutover**, the migration for `ContosoUniversity` shows as completed and the link is gone. Then, in SSMS on the replica connection from task 3, run `SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability');`. It must return `READ_WRITE` (it said `READ_ONLY` in task 3).
+   6. **Wait for it to finish.** It takes about 2 minutes. On **Monitor and cutover**, the migration for `ContosoUniversity` shows as completed and the link is gone. Then, in SSMS on the replica connection from requirement 3, run `SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability');`. It must return `READ_WRITE` (it said `READ_ONLY` in requirement 3).
 
    Done when the migration shows completed and the managed instance's database returns `READ_WRITE`. The managed instance is now the live database. Leave the legacy site on `vm-app01` stopped: restarting it would write to a source that's no longer authoritative.
 5. **Write the secret and create the database user.** On `vm-dev01`, do both for the web app's managed identity. The Key Vault stores the connection string, and the web app reads it at startup through its identity `id-university-<suffix>`.
@@ -193,7 +191,7 @@ $mi
       ```
 
       The second command prints the secret's ID: it exists. Never put the connection string in an app setting.
-   2. **Create the database user.** In SSMS, connect to the managed instance as in task 3 (host name, **Microsoft Entra MFA**, the account that deployed the archetype), open a new query on the `ContosoUniversity` database and run it. The user's name is the web app's identity: replace `<suffix>` with your suffix, for example `[id-university-ab12cd]`.
+   2. **Create the database user.** In SSMS, connect to the managed instance as in requirement 3 (host name, **Microsoft Entra MFA**, the account that deployed the archetype), open a new query on the `ContosoUniversity` database and run it. The user's name is the web app's identity: replace `<suffix>` with your suffix, for example `[id-university-ab12cd]`.
 
       ```sql
       CREATE USER [id-university-<suffix>] FROM EXTERNAL PROVIDER;
@@ -238,30 +236,28 @@ $mi
    Done when the `DBCC TRACESTATUS` list has no `1800` or `9567`.
 8. **Write the cutover and rollback runbook** from what you actually did, using the [template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md), and save it as `cutover-rollback-runbook.md` in `factory/evidence/c07/` of your own repo. Write the six short sections from what you did, not from a plan. Done when all six sections hold your own notes and output.
 
-## Evidence
+## Success criteria
 
-Save screenshots and output as files in `factory/evidence/c07/` of your own repo, on `main`, and redact tenant, subscription and object IDs first (and never include a password). In the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\c07\` (the plain clone of your own repo) and run `git pull --rebase` first. Commit with a conventional message (for example `docs: C7 evidence`) and run `git push`.
+To complete this challenge, show your coach. Save screenshots and output as files in `factory/evidence/c07/` of your own repo, on `main`, and redact tenant, subscription and object IDs first (and never include a password). In the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\c07\` (the plain clone of your own repo) and run `git pull --rebase` first. Commit with a conventional message (for example `docs: C7 evidence`) and run `git push`.
 
-- The output of task 1 ending in `The source is ready for MI link.`
-- The Azure portal's migration status: link created, seeded (**Ready for cutover**), and cutover completed. The portal removes the link when it completes the cutover, so a completed cutover on the **Monitor and cutover** pane is the evidence that the link is gone.
-- The replica comparison from task 3: the query results from both connections, side by side.
-- The maintenance-window output from `vm-app01`: site and pool `Stopped`, `Sessions: 0`, and the lag at no lag (two dashes) in the **Monitor and cutover** pane just before you cut over. The `READ_WRITE` result after the cutover.
-- `https://app-university-<suffix>.azurewebsites.net/` loading, with the five pages showing the migrated data.
-- The contained database user created, and the `CREATE USER` statement used (no `WITH SID`, no `TYPE = E`: SQL MI doesn't support them).
-- The source's trace flags removed (the empty `DBCC TRACESTATUS` output from task 7), your trace-flag row marked done in the register, and the cutover and rollback runbook committed to your own repo.
-
-## Hints
+- [ ] The output of requirement 1 ending in `The source is ready for MI link.`
+- [ ] The Azure portal's migration status: link created, seeded (**Ready for cutover**), and cutover completed. The portal removes the link when it completes the cutover, so a completed cutover on the **Monitor and cutover** pane is the evidence that the link is gone.
+- [ ] The replica comparison from requirement 3: the query results from both connections, side by side.
+- [ ] The maintenance-window output from `vm-app01`: site and pool `Stopped`, `Sessions: 0`, and the lag at no lag (two dashes) in the **Monitor and cutover** pane just before you cut over. The `READ_WRITE` result after the cutover.
+- [ ] `https://app-university-<suffix>.azurewebsites.net/` loading, with the five pages showing the migrated data.
+- [ ] The contained database user created, and the `CREATE USER` statement used (no `WITH SID`, no `TYPE = E`: SQL MI doesn't support them).
+- [ ] The source's trace flags removed (the empty `DBCC TRACESTATUS` output from requirement 7), your trace-flag row marked done in the register, and the cutover and rollback runbook committed to your own repo.
 
 <details>
 <summary>If link creation fails</summary>
 
 Work through these in order:
 
-1. Task 1 must have finished with `The source is ready for MI link.` Read `C:\LabTools\logs\Prepare-MiLinkSource.log` on `vm-app01`. An `ERROR:` line that says the instance is not ready means a datacenter setting is missing: tell your coach.
+1. Requirement 1 must have finished with `The source is ready for MI link.` Read `C:\LabTools\logs\Prepare-MiLinkSource.log` on `vm-app01`. An `ERROR:` line that says the instance is not ready means a datacenter setting is missing: tell your coach.
 2. The prefix you passed must be your own `10.20.<n>.128/26`. A wrong prefix opens port 5022 to the wrong subnet and the link can't connect. Run the script again with the right one: it fixes the firewall rule.
 3. `vm-app01` must be running with its Arc entry **Connected**, and the SQL Server service must be running.
 4. **Test connection** can pass while creation still fails, so read the error the portal shows on **Monitor migrations** and send it to your coach. Don't change firewall, network or certificate settings by hand.
-5. To retry, select **Cancel migration**, delete the leftover copy on the managed instance (the next hint), and start again from task 2. Task 1 doesn't need repeating.
+5. To retry, select **Cancel migration**, delete the leftover copy on the managed instance (the next hint), and start again from requirement 2. Requirement 1 doesn't need repeating.
 
 </details>
 
@@ -274,13 +270,13 @@ In the Azure portal, **Monitor and cutover** > select the database > **Cancel mi
 az sql midb delete --resource-group $rg --managed-instance "sqlmi-university-$suffix" --name ContosoUniversity --yes
 ```
 
-Then start the link again from task 2.
+Then start the link again from requirement 2.
 </details>
 
 <details>
 <summary>CREATE USER fails</summary>
 
-Before cutover, the replica is read-only, so the user creation step only works after cutover completes (task 4, step 6). If it still fails afterward with a permissions error on the server's Entra identity, ask your coach: the MI's primary identity needs Microsoft Graph read access, set up once per team at T-7 (C2 task 4 checks it).
+Before cutover, the replica is read-only, so the user creation step only works after cutover completes (requirement 4, step 6). If it still fails afterward with a permissions error on the server's Entra identity, ask your coach: the MI's primary identity needs Microsoft Graph read access, set up once per team at T-7 (C2 requirement 4 checks it).
 </details>
 
 <details>
@@ -289,15 +285,16 @@ Before cutover, the replica is read-only, so the user creation step only works a
 Check the Key Vault secret exists and has the right name (`ConnectionStrings--DefaultConnection`, with the double dash), and that the database user was created with the identity's exact name.
 </details>
 
-## If you need to start over
+<details>
+<summary>If you need to start over</summary>
 
-Before the cutover, cancel and reseed: **Cancel migration** in the portal, delete the copy on the managed instance (see the hint "The abort leaves something behind"), then start again from task 2. After the cutover there's no link to remove: the managed instance is the live database, so ask your coach before you change anything. If the web app won't start after go-live, check the Key Vault secret and the database user first, then ask your coach.
+Before the cutover, cancel and reseed: **Cancel migration** in the portal, delete the copy on the managed instance (see the hint "The abort leaves something behind"), then start again from requirement 2. After the cutover there's no link to remove: the managed instance is the live database, so ask your coach before you change anything. If the web app won't start after go-live, check the Key Vault secret and the database user first, then ask your coach.
 
-## Bonus
+</details>
 
-Up to 5 pts for a clean reseed after a real, unplanned abort that you can show evidence for (not needed if your first seed and validation go cleanly). An abort a coach stages is part of the event and earns no bonus.
+**Bonus.** Up to 5 pts for a clean reseed after a real, unplanned abort that you can show evidence for (not needed if your first seed and validation go cleanly). An abort a coach stages is part of the event and earns no bonus.
 
-## Learn more
+## References
 
 - [Migration to Azure SQL Managed Instance with SQL Server enabled by Azure Arc](https://learn.microsoft.com/sql/sql-server/azure-arc/migrate-to-azure-sql-managed-instance)
 - [Prepare environment for a Managed Instance link migration](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-sql-mi-prepare-link)

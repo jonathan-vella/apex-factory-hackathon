@@ -26,4 +26,4 @@ Fill this in from what you actually did in C7, not from a plan written in advanc
 
 ## Follow-up actions
 
-<!-- Anything still open after cutover, such as the web app's first start on App Service or anything you deferred (the trace flags are removed in C7 task 7; record them here only if you left them). -->
+<!-- Anything still open after cutover, such as the web app's first start on App Service or anything you deferred (the trace flags are removed in C7 requirement 7; record them here only if you left them). -->

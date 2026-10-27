@@ -94,7 +94,7 @@ flowchart LR
 | 2 | C10 Package, hand over, review AI readiness | Team | 1 h | One reusable asset, acceptance and handover, AI-readiness gap register, showcase |
 
 - **P6 re-sequencing (done, B22):** ALZ-lite and vending moved before the event (see the Sequencing decision in §2), so Day 1 starts at C1 for everyone and C2 is "verify and explain". The owner kept C2's 35 team points (option (a), recorded in §2), and the pages and rubric describe the new order. The v1 order (ALZ-lite at 09:00 on Day 1, vending during C2) is retired; the scripts are the engine the stages run and a coach's repair path.
-- **Parallel work:** the coach's ALZ demo opens C2 at 09:45 and members start C3 at 10:15, while the team walks through the foundation that was built at T-7 and T-1. The dev VM is reachable through Bastion without ALZ. The MI provisions while C6 starts on Day 1. The MI link starts at 08:30 on Day 2 (C7 tasks 1 and 2), so seeding overlaps the end of C6. Time boxes are targets, tuned in the dry run.
+- **Parallel work:** the coach's ALZ demo opens C2 at 09:45 and members start C3 at 10:15, while the team walks through the foundation that was built at T-7 and T-1. The dev VM is reachable through Bastion without ALZ. The MI provisions while C6 starts on Day 1. The MI link starts at 08:30 on Day 2 (C7 requirements 1 and 2), so seeding overlaps the end of C6. Time boxes are targets, tuned in the dry run.
 - **Self-contained challenges:** each challenge page carries its inputs, where to run, time box, evidence and an If you need to start over section. The earlier separate module pages were retired.
 - **AKS:** not built in v1. Teams may argue for it in a C4 ADR as a future archetype.
 - **Curveballs** (one per day):

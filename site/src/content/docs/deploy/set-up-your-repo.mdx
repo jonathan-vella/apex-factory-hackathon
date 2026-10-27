@@ -148,7 +148,7 @@ Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`,
 <summary>About the settings questions</summary>
 
 - **Member index:** your team lead assigns you a number from 1 to 20, unique within your team. Ask your lead if you don't have one, and don't pick your own. It isn't the six-character suffix the script generates. Later pages show these as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
-- **Shared services subscription, members:** press Enter to skip it. The team lead shares its ID when they connect you at T-1, and you add it with `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'` (C2 task 1). Re-running never changes your other values.
+- **Shared services subscription, members:** press Enter to skip it. The team lead shares its ID when they connect you at T-1, and you add it with `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'` (C2 requirement 1). Re-running never changes your other values.
 - **Shared services subscription, team lead:** enter it now. The script prints its name on a `Shared:` line: check it is your shared services subscription and not another one you own. Preflight then also checks your Tenant Root rights, so a missing role shows up at T-14 and not at T-7.
 - **Wrong subscription name:** `az account list --refresh --output table` updates the cached names. `Initialize-Settings.ps1` can't tell a mistyped but valid ID from a real one, so read the name it shows.
 

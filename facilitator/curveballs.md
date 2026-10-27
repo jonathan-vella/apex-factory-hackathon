@@ -4,7 +4,7 @@ The coach controls both exercises. Announce the trigger, give teams only the inf
 
 ## Day 1: a deny policy lands on the existing foundation
 
-**Trigger:** during C2 on Day 1, at 11:25, right after the members' question slot (11:15 to 11:25) and before C4 starts at 11:45. By then the team has walked through the foundation and its core policies (C2 task 3), and the members have run their probes (task 7). It happens before the first archetype resource is provisioned (C5 starts at 13:45). The foundation has existed since T-7 and every member has been vended since T-1, so this shows how a new policy lands on a landing zone that is already running.
+**Trigger:** during C2 on Day 1, at 11:25, right after the members' question slot (11:15 to 11:25) and before C4 starts at 11:45. By then the team has walked through the foundation and its core policies (C2 requirement 3), and the members have run their probes (requirement 7). It happens before the first archetype resource is provisioned (C5 starts at 13:45). The foundation has existed since T-7 and every member has been vended since T-1, so this shows how a new policy lands on a landing zone that is already running.
 
 **Coach action:** assign the built-in Allowed locations policy with Deny effect at the kit's Corp management group. The golden path uses `swedencentral` or the documented `germanywestcentral` fallback, plus `global` where required, so compliant deployments continue. A shortcut that silently selects another region is denied.
 
