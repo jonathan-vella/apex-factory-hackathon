@@ -3,14 +3,14 @@
 Rules for coding agents and people who change this repo, the Partner Modernization Factory kit. If your task is
 modernizing Contoso University (`app/ContosoUniversity`, the Upgrade agent), follow
 [.github/copilot-instructions.md](.github/copilot-instructions.md) instead. If you're executing a backlog item, also
-follow [docs/backlog/AGENTS.md](docs/backlog/AGENTS.md). Pipeline workflows have their own rules in
+follow [docs/archive/backlog/AGENTS.md](docs/archive/backlog/AGENTS.md). Pipeline workflows have their own rules in
 [.github/workflows/AGENTS.md](.github/workflows/AGENTS.md).
 
 ## What this repo is
 
 A public template repo for a two-day partner hackathon. Attendees create their own repo from `apex-accelerator`, import
 this kit into `factory/` with `scripts/Import-Kit.ps1`, and deploy and tear down the platform from GitHub Actions. Scope and decisions are in
-[docs/prd.md](docs/prd.md), phases in [docs/roadmap.md](docs/roadmap.md), work items in [docs/backlog](docs/backlog/README.md).
+[docs/archive/prd.md](docs/archive/prd.md), phases in [docs/archive/roadmap.md](docs/archive/roadmap.md), work items in [docs/archive/backlog](docs/archive/backlog/README.md).
 
 ## Read before you design or sequence anything
 

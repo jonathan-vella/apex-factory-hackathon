@@ -79,7 +79,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - Staff at least one coach for every six attendees.
 - Day 1 starts at C1 for everyone at 09:00: the foundation already exists, so nobody deploys anything. C2 verifies and explains it. On Day 2 at 08:30, check both VMs are running and the Graph grant is done (`Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints "already granted"), then the members start the MI link.
 - Record every score and bonus in the [scoreboard](scoreboard.md); do not change the base contract. Teams with the same team score share the rank. Each team's bonus is capped at 30 points and awarded in the order the bonuses appear in the [rubric](scoring-rubric.md) until the team reaches the cap.
-- Give the [curveballs](curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link spike](../docs/spikes/B07-arc-mi-link/README.md) abort path for the Day 2 curveball. The staged Day 2 abort is part of the event and earns no bonus.
+- Give the [curveballs](curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link spike](../docs/archive/spikes/B07-arc-mi-link/README.md) abort path for the Day 2 curveball. The staged Day 2 abort is part of the event and earns no bonus.
 
 ### T+2: event owner and team lead
 
