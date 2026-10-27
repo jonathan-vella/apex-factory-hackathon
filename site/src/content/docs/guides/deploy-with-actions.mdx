@@ -89,7 +89,7 @@ The top row is the platform lead (stages `whatif` then `foundation`, then `vendi
 | `vending` | Lead | T-1 | Connects each member's subscription to the hub, then restarts every VM at once, records policy exemptions and runs the connectivity probes. | about 1 hour for 3 members |
 | `teardown` | Both | T+2 | Removes what the other stages built. | about 20 min, then about 25 for the team |
 
-Run `all` only in a test lab. It isn't the event order.
+Run `all` only in a test lab. It runs `whatif`, `foundation`, `member` and `vending` in the event order, but in one go, so it skips the coach's C0 review that vending waits for at an event.
 
 ## Before you start
 

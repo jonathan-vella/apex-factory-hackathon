@@ -2,9 +2,11 @@ name: Platform
 
 # The one entry point for the platform pipeline. Run it from the Actions tab or with:
 #   gh workflow run platform.yml -f stage=whatif
-# The stages follow the event: every member's datacenter first (pre-work, T-3), ALZ-lite once for the team on day 1,
-# then vending for every member. A team has one shared services subscription and one workload subscription per member.
-# Each stage runs in the gh-lab environment, where the reviewer approves it once for the stage. "all" runs them in order.
+# The stages follow the event: ALZ-lite once for the team first (T-7, the lead's pipeline), every member's datacenter next
+# (C0, T-3), then vending for every member (T-1). A team has one shared services subscription and one workload subscription
+# per member.
+# Each stage runs in the gh-lab environment, where the reviewer approves it once for the stage. "all" runs them in that
+# order, for a test lab: at an event, run each stage on its own date, because vending waits for the coach's C0 review.
 # Every job sits in this file because a reusable workflow can't read the environment's secrets.
 # The teardown stage removes what the other stages built: every member's datacenter, then the team's foundation. It never
 # removes the pipeline identity: an admin runs scripts/Remove-PlatformPipeline.ps1 for that, afterwards.
@@ -190,8 +192,8 @@ jobs:
           exit $LASTEXITCODE
 
   member:
-    needs: [plan, preflight, whatif]
-    if: ${{ !cancelled() && needs.preflight.result != 'failure' && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'member' || needs.plan.outputs.stage == 'all') }}
+    needs: [plan, preflight, foundation]
+    if: ${{ !cancelled() && needs.preflight.result != 'failure' && needs.foundation.result != 'failure' && (needs.plan.outputs.stage == 'member' || needs.plan.outputs.stage == 'all') }}
     runs-on: ubuntu-latest
     environment: gh-lab
     timeout-minutes: 240
@@ -306,12 +308,12 @@ jobs:
         run: |
           ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Vending comes after the foundation." |
+          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Vending comes after the foundation and every member's C0 review." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
   foundation:
-    needs: [plan, member]
-    if: ${{ !cancelled() && needs.member.result != 'failure' && (needs.plan.outputs.stage == 'foundation' || needs.plan.outputs.stage == 'all') }}
+    needs: [plan, whatif]
+    if: ${{ !cancelled() && needs.whatif.result != 'failure' && (needs.plan.outputs.stage == 'foundation' || needs.plan.outputs.stage == 'all') }}
     runs-on: ubuntu-latest
     environment: gh-lab
     timeout-minutes: 90
@@ -347,8 +349,8 @@ jobs:
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
   vending:
-    needs: [plan, foundation]
-    if: ${{ !cancelled() && needs.foundation.result != 'failure' && (needs.plan.outputs.stage == 'vending' || needs.plan.outputs.stage == 'all') }}
+    needs: [plan, member]
+    if: ${{ !cancelled() && needs.member.result != 'failure' && (needs.plan.outputs.stage == 'vending' || needs.plan.outputs.stage == 'all') }}
     runs-on: ubuntu-latest
     environment: gh-lab
     timeout-minutes: 360

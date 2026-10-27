@@ -6,12 +6,13 @@ Rules for changing the platform pipeline in this folder (`platform.yml`, `platfo
 ## What the pipeline is
 
 GitHub Actions orchestrates the kit's own scripts with OIDC and a user-assigned managed identity. `platform.yml` is the only
-entry point. Its `stage` input follows the event: `whatif`, `member` (datacenter, `Test-Datacenter`, Arc), `foundation`
-(ALZ-lite), `vending`, `all` (in that order). The design and backlog are in `docs/backlog/B16` to `B20`; the research is in issue #96.
+entry point. Its `stage` input follows the event: `whatif` (the lead's ALZ-lite what-if, a member's preflight), `foundation`
+(ALZ-lite, T-7), `member` (datacenter, `Test-Datacenter`, Arc, T-3), `vending` (T-1), `all` (whatif, foundation, member, vending, in
+that order). The design and backlog are in `docs/backlog/B16` to `B20`; the research is in issue #96.
 
 ## Rules
 
-- **Stage order is the event order**: member (T-3), then foundation (day 1), then vending. Never put foundation before member. Check [facilitator/guide.md](../../facilitator/guide.md) before changing any order.
+- **Stage order is the event order**: foundation (T-7), then member (T-3), then vending (T-1). Never put vending before member or foundation. Check [facilitator/guide.md](../../facilitator/guide.md) before changing any order.
 - **Every job lives in `platform.yml`.** A reusable workflow (`uses:` a workflow) gets empty environment secrets, so it can't log in. Share steps through composite actions, which take secrets as inputs.
 - **Identifiers are environment secrets, never variables.** Tenant, client, subscription, roster. Only `LOCATION`, `MG_PREFIX`, `PARENT_MG` and `DENIED_MG_PREFIXES` are variables. Logs are public.
 - **Every job starts with `./.github/actions/platform-session`**: it masks every ID, reads the roster, runs the guard and logs in. Do not log in any other way. Call it again before a step that runs longer than the token lives (a long deployment, Arc).

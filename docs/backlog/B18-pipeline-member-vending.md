@@ -28,7 +28,7 @@
 3. A team has **one shared services subscription and one workload subscription per member**. The roster (`ROSTER_JSON`) lists every member (index, subscription, object ID, budget address), `Initialize-PlatformPipeline.ps1 -RosterPath` validates it (1 to 20 unique indexes, unique subscriptions, none equal to the shared one) and the guard allowlist holds the shared subscription plus every member's. `platform.yml` takes a `members` input (default: the `MEMBER_INDEXES` variable) and a `preflight` matrix runs `Test-Preflight` per member.
 4. Check each script under the managed identity (Arc, exemptions, connectivity). Fix what breaks, and record what can't run unattended.
 5. The guard runs in every session. IDs, the member's object ID and the budget address are masked.
-6. `platform.yml` stage `all` runs what-if, member, foundation and vending in that order, with the reviewer gate on each. Run alone, the stages are independent: the strategy decides who runs which (see B21 and B22).
+6. `platform.yml` stage `all` runs what-if, foundation, member and vending in that order (the event order, see B22), with the reviewer gate on each. Run alone, the stages are independent: the strategy decides who runs which (see B21 and B22).
 
 ## Deliverables
 
