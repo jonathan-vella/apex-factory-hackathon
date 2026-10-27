@@ -43,10 +43,10 @@ Confirm that the assignment is gone. Do not remove the baseline `alzl-allowed-lo
 **Team task and safe abort path:**
 
 1. Record the failed check and mark the decision **no-go**. Do not tick “I want to do a forced failover” and do not run `az sql mi link failover --failover-type Planned` from the MI side.
-2. In the Arc portal's MI link **Monitor and cutover** pane, select **Cancel migration**. The [MI link spike](../docs/spikes/B07-arc-mi-link/README.md) verified that this removes the distributed availability group on both sides without failing over.
+2. In the Arc portal's MI link **Monitor and cutover** pane, select **Cancel migration**. The [MI link spike](../docs/archive/spikes/B07-arc-mi-link/README.md) verified that this removes the distributed availability group on both sides without failing over.
 3. Confirm that the source is still `READ_WRITE`, has no availability group left and remains the app's target. The MI retains a separate writable database copy after cancellation; it has diverged from the source.
 4. Before recreating the link, delete only the MI-side `ContosoUniversity` copy using the supported `az sql midb delete` flow. Verify the copy is gone, then document the reseed and revalidation plan. Do not repoint the app to the standalone MI copy.
-5. Re-plan the cutover only after the read-only replica and lag checks pass. For a planned cutover, follow the validated Arc portal path in the [MI link spike](../docs/spikes/B07-arc-mi-link/README.md). The equivalent T-SQL `ALTER AVAILABILITY GROUP [<DAG>] FAILOVER` runs on SQL Server itself when applicable; it is not the MI-side CLI command above.
+5. Re-plan the cutover only after the read-only replica and lag checks pass. For a planned cutover, follow the validated Arc portal path in the [MI link spike](../docs/archive/spikes/B07-arc-mi-link/README.md). The equivalent T-SQL `ALTER AVAILABILITY GROUP [<DAG>] FAILOVER` runs on SQL Server itself when applicable; it is not the MI-side CLI command above.
 
 **Evidence and points:** retain the failed go/no-go result, the Arc portal cancellation state, the unchanged source check and the MI-copy cleanup/reseed plan. This demonstrates C7's rollback evidence. The staged abort is part of the event and earns no bonus: the C7 reseed-after-abort bonus (up to 5) is only for a real, unplanned abort. The C7 base evidence is scored under the rubric and no additional base points are created: the rows that need a completed cutover (live pages, contained user) score only if that member finishes the cutover afterwards.
 

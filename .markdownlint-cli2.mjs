@@ -1,6 +1,6 @@
 export default {
   globs: ["**/*.md", "#node_modules"],
-  ignores: ["app/**", "archetype/**", "docs/spikes/*/prompts/**"],
+  ignores: ["app/**", "archetype/**", "docs/archive/spikes/*/prompts/**"],
   gitignore: true,
   config: {
     default: true,

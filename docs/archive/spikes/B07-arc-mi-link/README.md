@@ -5,7 +5,7 @@
 | Date | 2026-10-02 |
 | Result | ⚠️ Pass with changes. `vm-app01` was onboarded to Arc unattended by the kit script, and `ContosoUniversity` migrated online to SQL MI through the Arc portal with MI link: seeded, replica validated, aborted and reseeded, then a planned cutover that removed the link, with no data loss and a passing smoke test. Owner-approved changes: a paid MI instead of the free offer, the kit script as the only onboarding path, failback not attempted, and `ActiveDirectoryInteractive` added to the perf kit (see [Decisions](#decisions)) |
 | Region | swedencentral |
-| Versions | Azure Connected Machine agent `1.68.03532.3282`, Azure extension for SQL Server (`WindowsAgent.SqlServer`) `1.1.3547.472`, SQL Server 2022 Developer `16.0.4255.1`, MI update policy SQL Server 2022 (`databaseFormat: 'SQLServer2022'`). In [versions.md](../../../versions.md) |
+| Versions | Azure Connected Machine agent `1.68.03532.3282`, Azure extension for SQL Server (`WindowsAgent.SqlServer`) `1.1.3547.472`, SQL Server 2022 Developer `16.0.4255.1`, MI update policy SQL Server 2022 (`databaseFormat: 'SQLServer2022'`). In [versions.md](../../../../versions.md) |
 
 ## Question
 
@@ -98,7 +98,7 @@ From `vm-dev01`, connected to the MI's private host name as the Entra admin (a V
 
 ### Cutover and smoke test (requirement 23)
 
-**Complete cutover** made the MI database `ONLINE`, `READ_WRITE` and primary, with identical data ([evidence](evidence/replica-and-cutover-checks.md#after-cutover-1400-1402)). The owner then ran `db/perf-kit/Start-Workload.ps1 -Server <mi-host-name> -Authentication ActiveDirectoryInteractive -DurationMinutes 5` on `vm-dev01`: 146 calls in 5.9 minutes, **0 errors**. Compared with B05's baseline on the source (from [coach/c09-optimize-the-db-with-ghcp.md](../../../coach/c09-optimize-the-db-with-ghcp.md), 15 minutes, same concurrency of 8):
+**Complete cutover** made the MI database `ONLINE`, `READ_WRITE` and primary, with identical data ([evidence](evidence/replica-and-cutover-checks.md#after-cutover-1400-1402)). The owner then ran `db/perf-kit/Start-Workload.ps1 -Server <mi-host-name> -Authentication ActiveDirectoryInteractive -DurationMinutes 5` on `vm-dev01`: 146 calls in 5.9 minutes, **0 errors**. Compared with B05's baseline on the source (from [coach/c09-optimize-the-db-with-ghcp.md](../../../../coach/c09-optimize-the-db-with-ghcp.md), 15 minutes, same concurrency of 8):
 
 | Query | MI, avg / P95 ms | Source (B05), avg / P95 ms | MI vs source, avg |
 |---|---|---|---|

@@ -5,7 +5,7 @@
 | Date | 2026-09-24 to 2026-10-02 (run 1 on 2026-09-25; the VS Code comparison 2026-09-28 to 2026-09-30; the rerun 2026-10-01 to 2026-10-02; teardown 2026-10-02) |
 | Result | ✅ Pass. Judged on run 1, the VS Code comparison (11a) and its v3 rerun, because the owner skipped run 2 (owner-approved deviation, 2026-10-02). The v3 rerun reached a packaged image in the private registry with every check passing and no intervention, inside both time boxes. The golden path uses GitHub Copilot upgrade (the Upgrade agent), not the `modernize` agent the runbook assumed; see [The golden path](#the-golden-path) |
 | Region | swedencentral |
-| Versions | Golden path: GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) 1.1.612, GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) 1.24.0 installed but disabled for the workspace, .NET 10 SDK `10.0.401`, VS Code `1.139.0` (recorded in run 1), Claude Opus 5.5 and Claude Sonnet 5.5 at Medium. Evidence runs: modernization `1.24.26091501` (run 1), Upgrade agent 1.1.596 (11a), Copilot app plugin 1.1.612 (11b, paused). Copilot CLI wasn't tried. All pinned in [versions.md](../../../versions.md) |
+| Versions | Golden path: GitHub Copilot upgrade (`ms-dotnettools.upgrade-agent`) 1.1.612, GitHub Copilot modernization (`vscjava.migrate-java-to-azure`) 1.24.0 installed but disabled for the workspace, .NET 10 SDK `10.0.401`, VS Code `1.139.0` (recorded in run 1), Claude Opus 5.5 and Claude Sonnet 5.5 at Medium. Evidence runs: modernization `1.24.26091501` (run 1), Upgrade agent 1.1.596 (11a), Copilot app plugin 1.1.612 (11b, paused). Copilot CLI wasn't tried. All pinned in [versions.md](../../../../versions.md) |
 
 ## Question
 
@@ -64,7 +64,7 @@ Run 2: skipped (owner decision, 2026-10-02).
 
 ### The golden path
 
-**Owner decision (2026-10-02):** "What we tested and validated in the v3 rerun is what the hackathon will use, since it is the most reliable." Run 1, the VS Code comparison (11a), the rerun's v2 and the Copilot app comparison (11b) stay as evidence only. Pinned in [versions.md](../../../versions.md).
+**Owner decision (2026-10-02):** "What we tested and validated in the v3 rerun is what the hackathon will use, since it is the most reliable." Run 1, the VS Code comparison (11a), the rerun's v2 and the Copilot app comparison (11b) stay as evidence only. Pinned in [versions.md](../../../../versions.md).
 
 | Part | Golden path |
 |---|---|

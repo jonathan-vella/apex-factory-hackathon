@@ -8,7 +8,7 @@ Rules for changing the platform pipeline in this folder (`platform.yml`, `platfo
 GitHub Actions orchestrates the kit's own scripts with OIDC and a user-assigned managed identity. It is the only way students deploy the datacenter, the foundation and vending, and tear them down. The scripts are the engine the stages run and the coach's repair path, never a second student path. `platform.yml` is the only
 entry point. Its `stage` input follows the event: `whatif` (the lead's ALZ-lite what-if, a member's preflight), `foundation`
 (ALZ-lite, T-7), `member` (datacenter, `Test-Datacenter`, Arc, T-3), `vending` (T-1), `teardown` (T+2: every member's datacenter, then the team's foundation) and `all` (whatif, foundation, member, vending, in
-that order). Three more inputs: `members` (member indexes; empty means the `MEMBER_INDEXES` variable), `include-management` (teardown only: also delete `rg-management` and `id-sqlmi-directory`) and `no-hybrid-benefit` (member stage only: deploy and test `vm-app01` without Azure Hybrid Benefit). The design and backlog are in `docs/backlog/B16` to `B23`; the research is in issue #96.
+that order). Three more inputs: `members` (member indexes; empty means the `MEMBER_INDEXES` variable), `include-management` (teardown only: also delete `rg-management` and `id-sqlmi-directory`) and `no-hybrid-benefit` (member stage only: deploy and test `vm-app01` without Azure Hybrid Benefit). The design and backlog are in `docs/archive/backlog/B16` to `B23`; the research is in issue #96.
 
 ## Rules
 

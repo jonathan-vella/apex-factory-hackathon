@@ -230,7 +230,7 @@ to them, not to the kit:
   [cleanup guide](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/facilitator/cleanup.md#post-event-access).
 
 The options considered for removing the first risk are in
-[the SQL MI identity research](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/docs/coe-correction/research/sqlmi-identity-options.md).
+[the SQL MI identity research](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/docs/archive/coe-correction/research/sqlmi-identity-options.md).
 
 ## Governance files and APEX's hash chain
 
@@ -307,7 +307,7 @@ instead, change `licenseType` to `'LicenseIncludedPrice'` in `infra/bicep/univer
 
 ## Validation
 
-What was run in the build tenant, quoted from `docs/backlog/B09-archetype.md` (B09) and the B10 pull
+What was run in the build tenant, quoted from `docs/archive/backlog/B09-archetype.md` (B09) and the B10 pull
 request ([#53](https://github.com/jonathan-vella/apex-factory-hackathon/issues/53)). `TODO` marks a
 row with no evidence in the repo.
 

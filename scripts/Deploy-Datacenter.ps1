@@ -81,7 +81,7 @@ $template = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '
 $secretsDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', $SubscriptionId
 $secretsFile = Join-Path -Path $secretsDir -ChildPath 'datacenter.json'
 $hybridBenefit = -not $NoHybridBenefit.IsPresent
-# Fixed, documented lab password: see docs/backlog/README.md, Secrets.
+# Fixed, documented lab password: see docs/archive/backlog/README.md, Secrets.
 $labPassword = 'FactoryLab-2026-Pw'
 $adminPasswordOverride = $AdminPassword
 $sqlAppPasswordOverride = $SqlAppPassword
