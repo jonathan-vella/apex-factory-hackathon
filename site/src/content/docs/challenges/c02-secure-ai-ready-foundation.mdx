@@ -36,7 +36,7 @@ The order is fixed by the dependencies. ALZ-lite comes before vending, because v
 | T-3 | Each member | Does C0 in their own repo; a coach reviews every member's output |
 | T-1 | Platform lead | Vends every member in order (run 2), restarts the VMs, records the exemptions and runs the connectivity probes |
 
-**T-7: ALZ-lite and the Graph grant.** In the platform lead's dev container, from `factory/`, against the **shared services** subscription (run 1 is the manual path below, or the `foundation` stage of the optional platform pipeline):
+**T-7: ALZ-lite and the Graph grant.** In the platform lead's dev container, from `factory/`, against the **shared services** subscription (run 1 is the manual path below, or the `foundation` stage of the preferred GitHub Actions path: see [Deploy with GitHub Actions](../../guides/deploy-with-actions/#platform-lead)):
 
 ```powershell
 az account set --subscription $s.sharedSubscriptionId
@@ -84,7 +84,7 @@ az vm restart -g rg-datacenter -n vm-app01 --subscription '<member-subscription-
 
 Re-run the exemptions command without `-WhatIf` to create them. Each exemption needs an owner, a reason and an expiry (the default is 14 days). Policy changes can take up to 30 minutes to take effect after ALZ-lite, so if the output says "nothing to do", wait and run it again. The probes are done when every applicable check is PASS.
 
-**The pipeline is optional.** If your team set up the platform pipeline, run 1 is the `foundation` stage and run 2 is the `vending` stage of `platform.yml` in the platform lead's repo (`gh workflow run platform.yml -f stage=foundation`, then `-f stage=vending`). The vending stage restarts the VMs, records the exemptions and runs the connectivity probes for every member in order. Its exemptions record `GitHub Actions pipeline` as the owner. The scripts above are the supported manual path, and both paths give the same result.
+**GitHub Actions is the preferred path.** If your team set up the platform pipeline, run 1 is the `foundation` stage and run 2 is the `vending` stage of `platform.yml` in the platform lead's repo (`gh workflow run platform.yml -f stage=foundation`, then `-f stage=vending`). The vending stage restarts the VMs, records the exemptions and runs the connectivity probes for every member in order. Its exemptions record `GitHub Actions pipeline` as the owner. [Deploy with GitHub Actions](../../guides/deploy-with-actions/#platform-lead) has the setup and the diagrams. The scripts above are the other supported path ([Deploy with scripts](../../guides/deploy-with-scripts/#platform-lead) is the short version), and both paths give the same result.
 
 ## Where to run
 

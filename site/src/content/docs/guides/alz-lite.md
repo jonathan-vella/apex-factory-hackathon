@@ -2,7 +2,7 @@
 title: ALZ-lite
 description: The two-subscription model, what the deploy creates, what's fixed, and how it compares with a full ALZ.
 sidebar:
-  order: 2
+  order: 4
 ---
 
 This guide covers the mechanics of the kit's landing zone. [C2](../../challenges/c02-secure-ai-ready-foundation/) is the what, the commands the platform lead runs before the event, and the acceptance bar for the day-one walk-through.

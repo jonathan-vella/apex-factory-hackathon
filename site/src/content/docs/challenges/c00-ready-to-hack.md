@@ -42,6 +42,10 @@ If `az account show` fails, sign in again with `az login --use-device-code`. `$s
 
 ## Your tasks
 
+:::tip[Preferred: deploy tasks 1 to 4 with GitHub Actions]
+Your own repo can run the preflight, deploy the datacenter, test it and onboard Arc for you, unattended. [Deploy with GitHub Actions](../../guides/deploy-with-actions/#member) has the steps. If you'd rather run each script yourself, the tasks below are that path, and [Deploy with scripts](../../guides/deploy-with-scripts/#member) is the short version.
+:::
+
 1. **Preflight (about 15 min, plus up to 15 min waiting).** Run:
 
    ```powershell
@@ -110,15 +114,9 @@ Commit with a conventional commit message such as `docs: C0 evidence`, and push.
 - Your Azure Hybrid Benefit confirmation (task 6): on for `vm-app01`'s Windows Server license, or why it isn't (you deployed with `-NoHybridBenefit` and your coach agreed). Add a screenshot of `az vm list -g rg-datacenter -d -o table` showing both VMs and their power state.
 - A screenshot of Copilot Chat answering in VS Code on `vm-dev01`, signed in to GitHub (task 7). Take it on the VM and save it in `C:\src\<your-repo>\factory\evidence\c00\`, then commit and push from there as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
 
-## Optional: Run tasks 2 to 4 from GitHub Actions
+## Run tasks 1 to 4 from GitHub Actions
 
-If your coach offers it, your own repo can deploy the datacenter, test it and onboard Arc for you, unattended (about 45 minutes), instead of running the scripts by hand. It does the same work with the same checks.
-
-1. Set up the member pipeline once: `./scripts/Initialize-PlatformPipeline.ps1 -Profile Member`. It reads your settings file and creates a managed identity that is Owner on your own workload subscription only.
-2. Run your preflight, then your datacenter, from the Actions tab or with `gh workflow run platform.yml -f stage=whatif` and `-f stage=member`. Approve the run when GitHub asks. On a new subscription the preflight registers the Azure providers and the public IP feature for you, which can take a few minutes.
-3. Save the test output as evidence: `./scripts/Get-PipelineEvidence.ps1` puts `test-datacenter.txt` in `evidence/c00/`. Commit it as above.
-
-Don't run the member stage twice: once `vm-app01` is Arc-enabled, the datacenter can't be redeployed.
+This is the preferred path (see the tip above). Set up the member pipeline once, then run the `whatif` and `member` stages: [Deploy with GitHub Actions](../../guides/deploy-with-actions/#member) has the commands. Save the test output as evidence with `./scripts/Get-PipelineEvidence.ps1`, which puts `test-datacenter.txt` in `evidence/c00/`, and commit it as above. Don't run the member stage twice: once `vm-app01` is Arc-enabled, the datacenter can't be redeployed.
 
 ## Hints
 
