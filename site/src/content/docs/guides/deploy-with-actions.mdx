@@ -1,6 +1,6 @@
 ---
 title: Deploy with GitHub Actions
-description: The preferred way to deploy your datacenter, the team's foundation and every member's spoke. Set up once, then run each step from GitHub Actions.
+description: How you deploy your datacenter, the team's foundation and every member's spoke. Set up once, then run each step from GitHub Actions.
 sidebar:
   order: 1
 ---
@@ -8,7 +8,7 @@ sidebar:
 import { Steps } from "@astrojs/starlight/components";
 import ArchitectureDiagram from "../../../components/ArchitectureDiagram.astro";
 
-GitHub Actions is the preferred way to deploy the kit. You set it up once, run a stage and walk away. It runs the same scripts you would run yourself, so the result is identical. If you can't use Actions, or something breaks, use [Deploy with scripts](../deploy-with-scripts/).
+GitHub Actions is how you deploy the kit. You set it up once, run a stage and walk away. Each stage runs the kit's scripts for you.
 
 **Pick your section.**
 
@@ -48,7 +48,7 @@ About 15 minutes of your time, then 45 minutes unattended.
 
    It deploys the datacenter, tests it and connects `vm-app01` to Azure Arc. Done when the run is green.
 
-4. **Save your evidence.** Commit the file as [C0](../../challenges/c00-ready-to-hack/) describes.
+4. **Save your evidence.** It downloads the test output and also creates your `.local/<subscription-id>/datacenter.json` credentials file. Commit the evidence file as [C0](../../challenges/c00-ready-to-hack/) describes.
 
    ```powershell
    ./scripts/Get-PipelineEvidence.ps1
@@ -60,10 +60,11 @@ About 15 minutes of your time, then 45 minutes unattended.
 
 Done when `vm-app01` shows as Connected in Azure Arc and `evidence/c00/test-datacenter.txt` is in your repo.
 
-### What is different from the scripts path
+**No Windows Server licenses?** If you don't hold eligible Windows Server licenses, run the member stage with the `no-hybrid-benefit` input. It deploys and tests `vm-app01` without Azure Hybrid Benefit. See [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/).
 
-- **Lab password.** The runner deploys your datacenter, so `.local/<subscription-id>/datacenter.json` doesn't exist in your dev container. Where a page tells you to read a password from that file, use the documented lab credentials: user `labadmin`, password `FactoryLab-2026-Pw`, and the same password for the SQL login `contosoapp`. It is a documented exception for this throwaway datacenter only (see the [datacenter README](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/datacenter/README.md)). Don't reuse it anywhere else.
-- **Hybrid Benefit.** The Actions stages can't pass `-NoHybridBenefit`. If you don't hold eligible Windows Server licenses, deploy the datacenter with [scripts](../deploy-with-scripts/#member). See [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/).
+```bash
+gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true
+```
 
 <details>
 <summary>Why it works this way</summary>
@@ -119,7 +120,7 @@ You do the member steps above for your own datacenter, plus these.
 
    Plan on about an hour for three members and about 75 minutes for five. Done when the run is green.
 
-7. **Save the C2 evidence.** Copy the run summaries of the `foundation` and `vending` stages, with IDs redacted. They are your `Deploy-AlzLite.ps1` and `Deploy-Vending.ps1` evidence.
+7. **Save the C2 evidence.** Copy the run summaries of the `foundation` and `vending` stages. The pipeline already redacts IDs: they show as `<id:abcd>`.
 
 </Steps>
 
@@ -141,7 +142,7 @@ They don't need your repo. They download the single file `https://raw.githubuser
 
 ## If something breaks
 
-Read the run's log, fix the cause and run the stage again: the scripts are safe to repeat. After two attempts, ask your coach. [Troubleshooting](../../reference/troubleshooting/#platform-pipeline) lists the common errors. Every stage is also a kit script you can run yourself: see [Deploy with scripts](../deploy-with-scripts/).
+Read the run's log, fix the cause and run the stage again: the stages are safe to repeat. After two attempts, ask your coach. [Troubleshooting](../../reference/troubleshooting/#platform-pipeline) lists the common errors.
 
 ## Taking it down
 

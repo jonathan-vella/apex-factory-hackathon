@@ -35,6 +35,10 @@ on:
         description: Member indexes, comma separated, for example 1,2,3. Empty means every member in the MEMBER_INDEXES variable.
         type: string
         default: ''
+      no-hybrid-benefit:
+        description: Member stage only. Deploy and test vm-app01 without Azure Hybrid Benefit, for a member who holds no eligible Windows Server licenses.
+        type: boolean
+        default: false
   push:
     branches: ['ci-test/whatif-**', 'ci-test/member-**', 'ci-test/foundation-**', 'ci-test/vending-**', 'ci-test/teardown-**', 'ci-test/all-**']
 
@@ -147,7 +151,7 @@ jobs:
           LOCATION: ${{ vars.LOCATION }}
         run: |
           ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $env:WORKLOAD -SharedSubscriptionId $env:SHARED `
-            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -Fix
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -Fix *>&1 | ./scripts/Write-RedactedOutput.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   whatif:
@@ -188,7 +192,7 @@ jobs:
             exit 0
           }
           ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
-            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -WhatIf
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -WhatIf *>&1 | ./scripts/Write-RedactedOutput.ps1
           exit $LASTEXITCODE
 
   member:
@@ -242,9 +246,11 @@ jobs:
           WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
           LOCATION: ${{ vars.LOCATION }}
           MEMBER_INDEX: ${{ matrix.member }}
+          NO_HYBRID: ${{ inputs.no-hybrid-benefit }}
         run: |
+          $extra = @(if ($env:NO_HYBRID -eq 'true') { '-NoHybridBenefit' })
           ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION `
-            -Repository $env:KIT_REPOSITORY -ScriptsRef $env:KIT_REF
+            -Repository $env:KIT_REPOSITORY -ScriptsRef $env:KIT_REF @extra *>&1 | ./scripts/Write-RedactedOutput.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Refresh the login
@@ -267,10 +273,12 @@ jobs:
         env:
           WORKLOAD: ${{ steps.session.outputs.workload-subscription-id }}
           MEMBER_INDEX: ${{ matrix.member }}
+          NO_HYBRID: ${{ inputs.no-hybrid-benefit }}
         run: |
           # Before Arc: the in-VM checks use run commands, which stop working on vm-app01 afterwards.
           # The output is the member's C0 evidence: it is kept in the job summary and the log.
-          ./scripts/Test-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX *>&1 | Tee-Object -FilePath $env:RUNNER_TEMP/test-datacenter.txt
+          $extra = @(if ($env:NO_HYBRID -eq 'true') { '-NoHybridBenefit' })
+          ./scripts/Test-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX @extra *>&1 | ./scripts/Write-RedactedOutput.ps1 | Tee-Object -FilePath $env:RUNNER_TEMP/test-datacenter.txt
           $code = $LASTEXITCODE
           "### Test-Datacenter, member $env:MEMBER_INDEX`n``````text`n$(Get-Content -Raw $env:RUNNER_TEMP/test-datacenter.txt)`n``````" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
           exit $code
@@ -306,7 +314,7 @@ jobs:
           LOCATION: ${{ vars.LOCATION }}
           MEMBER_INDEX: ${{ matrix.member }}
         run: |
-          ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION
+          ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION *>&1 | ./scripts/Write-RedactedOutput.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Vending comes after the foundation and every member's C0 review." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
@@ -343,7 +351,7 @@ jobs:
           LOCATION: ${{ vars.LOCATION }}
         run: |
           ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
-            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION *>&1 | ./scripts/Write-RedactedOutput.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "ALZ-lite is deployed under ``$env:MG_PREFIX``. The firewall bills about `$1.30 an hour until the foundation is removed." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
@@ -392,7 +400,7 @@ jobs:
           ./scripts/Invoke-PipelineVending.ps1 -RosterJson $env:ROSTER_JSON -MemberIndex ($env:MEMBERS -split ',') `
             -SharedSubscriptionId $env:SHARED -ClientId $env:CLIENT_ID -TenantId $env:TENANT_ID -MgPrefix $env:MG_PREFIX `
             -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -AllowedSubscriptionId ($env:ALLOWED -split ',') `
-            -DeniedSubscriptionId ($env:DENIED -split ',') -DeniedMgPrefix ($env:DENIED_PREFIXES -split ',')
+            -DeniedSubscriptionId ($env:DENIED -split ',') -DeniedMgPrefix ($env:DENIED_PREFIXES -split ',') *>&1 | ./scripts/Write-RedactedOutput.ps1
           exit $LASTEXITCODE
 
   teardown-member:
@@ -435,7 +443,7 @@ jobs:
           # Members are independent: each run touches only its own subscription. Without -Suffix, the script
           # removes whatever rg-university-<suffix> groups that subscription holds.
           ./scripts/Remove-FactoryEnvironment.ps1 -Scope Member -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX `
-            -Location $env:LOCATION -Force -Confirm:$false
+            -Location $env:LOCATION -Force -Confirm:$false *>&1 | ./scripts/Write-RedactedOutput.ps1
           exit 0
 
   teardown-team:
@@ -482,7 +490,7 @@ jobs:
           $arguments = @{ Scope = 'Team'; SharedSubscriptionId = $env:SHARED; MgPrefix = $env:MG_PREFIX; Force = $true; Confirm = $false }
           if ($env:PARENT_MG) { $arguments.ReturnManagementGroupId = $env:PARENT_MG }
           if ($env:INCLUDE_MANAGEMENT -eq 'true') { $arguments.IncludeManagementResources = $true }
-          ./scripts/Remove-FactoryEnvironment.ps1 @arguments
+          ./scripts/Remove-FactoryEnvironment.ps1 @arguments *>&1 | ./scripts/Write-RedactedOutput.ps1
           "The team's foundation is removed. An admin now runs scripts/Remove-PlatformPipeline.ps1 for the identity and its roles." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
           exit 0

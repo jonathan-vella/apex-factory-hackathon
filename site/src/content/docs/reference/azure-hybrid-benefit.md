@@ -9,7 +9,7 @@ Azure Hybrid Benefit (AHB) lets you use a Windows Server or SQL Server license y
 
 ## The rule
 
-**If you don't hold eligible licenses:** deploy `vm-app01` with `-NoHybridBenefit` in C0 (and run `Test-Datacenter.ps1` with `-NoHybridBenefit` too), tell your coach, and ask your coach what to do for the SQL Managed Instance in C5. `-NoHybridBenefit` covers `vm-app01` only. The GitHub Actions stages can't pass this flag, so use the [scripts path](../../guides/deploy-with-scripts/#member) for the datacenter.
+**If you don't hold eligible licenses:** run C0's `member` stage with `no-hybrid-benefit`, so `vm-app01` is deployed and tested without Hybrid Benefit: `gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`. Tell your coach, and ask your coach what to do for the SQL Managed Instance in C5. The input covers `vm-app01` only.
 
 If you do hold eligible licenses, leave AHB on.
 
@@ -18,12 +18,12 @@ If you do hold eligible licenses, leave AHB on.
 | Resource | AHB setting |
 |---|---|
 | `vm-app01` (Windows Server license) | `Windows_Server`, on by default. Optional |
-| `vm-dev01` (Windows 11 dev VM) | `Windows_Client` (multitenant hosting rights, which Windows 11 on Azure needs). Mandatory, not optional |
+| `vm-dev01` (Windows 11 dev VM) | `Windows_Client` (multi-tenant hosting rights, which Windows 11 on Azure needs). Mandatory, not optional |
 | SQL Managed Instance (`licenseType`) | `BasePrice` (AHB applied), never the SQL MI free offer |
 
 ## Turning it off to compare costs
 
-Not during the event, and only with your coach's agreement: if you want to compare costs with and without AHB, turn it off for `vm-app01` only, with `Deploy-Datacenter.ps1 -NoHybridBenefit` or `az vm update -g rg-datacenter -n vm-app01 --license-type None`, or set the managed instance's `licenseType` to `LicenseIncluded`, and redeploy. Leave `vm-dev01` on `Windows_Client`. Turn AHB back on afterward if you hold eligible licenses: the kit's cost figures throughout this site assume it's on.
+Not during the event, and only with your coach's agreement: if you want to compare costs with and without AHB, turn it off for `vm-app01` only, with the `member` stage's `no-hybrid-benefit` input or `az vm update -g rg-datacenter -n vm-app01 --license-type None`, or set the managed instance's `licenseType` to `LicenseIncluded`, and redeploy. Leave `vm-dev01` on `Windows_Client`. Turn AHB back on afterward if you hold eligible licenses: the kit's cost figures throughout this site assume it's on.
 
 ## Where to go next
 

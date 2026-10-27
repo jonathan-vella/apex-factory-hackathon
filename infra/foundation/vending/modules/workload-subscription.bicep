@@ -14,7 +14,12 @@ param budgetStartDate string
 param setDefenderFoundationalOnly bool
 param miNetworkExists bool
 
+@description('Assign Owner to the member. False when the member already holds a direct Owner assignment of their own: ARM rejects a second one, and teardown must leave it alone.')
+param assignMemberOwner bool = true
+
 var ownerRole = '8e3af657-a8ff-443c-a75c-2fe8c4bcb635'
+// Teardown removes only Owner assignments that carry this description.
+var ownerDescription = 'Created by Deploy-Vending.ps1 (Partner Modernization Factory)'
 
 resource spokeRg 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   name: 'rg-spoke'
@@ -34,11 +39,12 @@ module spoke 'spoke.bicep' = {
   }
 }
 
-resource memberOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(memberPrincipalId)) {
+resource memberOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (!empty(memberPrincipalId) && assignMemberOwner) {
   name: guid(subscription().id, memberPrincipalId, ownerRole)
   properties: {
     principalId: memberPrincipalId
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', ownerRole)
+    description: ownerDescription
   }
 }
 

@@ -102,7 +102,7 @@ Start each run at least five minutes after the previous one finished, so two run
 <details>
 <summary>My cutover isn't complete, or the managed instance is stopped</summary>
 
-If C7 isn't finished, run C9 against the source SQL Server, which has the same planted issues. The source's `contosoapp` password isn't on the VM. Print it in the dev container, from `factory/`: `$s = Get-Content .local/settings.json | ConvertFrom-Json; (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).sqlAppPassword`, then type it on the VM, where you run the workload with it. If you deployed with GitHub Actions the file isn't in your dev container: use the lab password from the [Actions page note](../../guides/deploy-with-actions/#member).
+If C7 isn't finished, run C9 against the source SQL Server, which has the same planted issues. The source's `contosoapp` password isn't on the VM. Print it in the dev container, from `factory/`: `$s = Get-Content .local/settings.json | ConvertFrom-Json; (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).sqlAppPassword`, then type it on the VM, where you run the workload with it.
 
 ```powershell
 $pw = Read-Host -AsSecureString 'contosoapp password'

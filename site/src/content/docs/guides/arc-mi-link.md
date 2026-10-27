@@ -11,7 +11,7 @@ The MI link is a database mirror from `vm-app01` to your SQL Managed Instance. I
 
 ## Onboarding
 
-`vm-app01`'s SQL Server instance is onboarded to Azure Arc by `scripts/Connect-DatacenterArc.ps1` during [C0](../../challenges/c00-ready-to-hack/), unattended, with no manual portal steps. This is the kit's only onboarding path. If it fails, don't re-run it by hand: follow the Arc onboarding hint in C0 and tell your coach.
+`vm-app01`'s SQL Server instance is onboarded to Azure Arc by the `member` stage during [C0](../../challenges/c00-ready-to-hack/), unattended, with no manual portal steps. This is the kit's only onboarding path. If it fails, don't run the stage again: follow the Arc onboarding hint in C0 and tell your coach.
 
 ## Assessment
 

@@ -44,7 +44,7 @@ each value separately. Never write these values to a tracked file.
 - `az group show -g rg-spoke --subscription <subscription-id>` succeeds, and
   `az network vnet subnet list -g rg-spoke --vnet-name vnet-spoke --subscription <subscription-id>` includes
   `snet-app`, `snet-pe` and `snet-sqlmi`. If the spoke is missing, stop and tell the user to ask the platform lead
-  to run `scripts/Deploy-Vending.ps1` for their subscription. This skill never creates the spoke.
+  to run the `vending` stage for their subscription. This skill never creates the spoke.
 - `azd auth status` shows the user is signed in. azd keeps its own sign-in, separate from `az login`. If it is not
   signed in, run `azd auth login --use-device-code`, and stop to tell the user if sign-in fails.
 - `az account show --subscription <subscription-id> --query user.type -o tsv` prints `user`. The SQL Managed

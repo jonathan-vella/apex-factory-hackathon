@@ -6,8 +6,10 @@ Downloads the C0 evidence that your member pipeline kept, into factory/evidence/
 .DESCRIPTION
 The member stage of platform.yml runs Test-Datacenter.ps1 before Arc onboarding and keeps its output as a run artifact.
 This script finds the latest successful platform run in your repo that has that artifact, downloads it and saves it as
-evidence/c00/test-datacenter.txt next to the kit's scripts (factory/evidence/c00/ in your repo). It writes nothing else
-and prints nothing that identifies your subscription. Commit the file yourself, with a conventional message, as C1 explains.
+evidence/c00/test-datacenter.txt next to the kit's scripts (factory/evidence/c00/ in your repo). It also writes
+.local/<subscription-id>/datacenter.json with the documented fixed lab credentials, unless that file exists, because the runner
+deployed the datacenter and the later challenges read the passwords from that file. It prints nothing that identifies your
+subscription. Commit the evidence file yourself, with a conventional message, as C1 explains.
 .PARAMETER Repository
 owner/name of your repo. Defaults to the git remote.
 .PARAMETER RunId
@@ -67,4 +69,23 @@ finally {
     Remove-Item -Path $temp -Recurse -Force -ErrorAction SilentlyContinue
 }
 Write-Information "Saved the Test-Datacenter output from run $found to $target."
+
+# The runner deployed the datacenter, so the credentials file Deploy-Datacenter.ps1 writes never reached this folder. The
+# Actions member stage always uses the documented fixed lab credentials (no overrides), so write the same file here: later
+# challenges (C0 task 7, C7 to C9) read the passwords from it.
+$settingsFile = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', 'settings.json'
+if (Test-Path -Path $settingsFile) {
+    $subscription = (Get-Content -Path $settingsFile -Raw | ConvertFrom-Json).subscriptionId
+    if ($subscription -match '^[0-9a-fA-F-]{36}$') {
+        $secretsDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', $subscription
+        $secretsFile = Join-Path -Path $secretsDir -ChildPath 'datacenter.json'
+        if (-not (Test-Path -Path $secretsFile)) {
+            New-Item -ItemType Directory -Force -Path $secretsDir | Out-Null
+            $labPassword = 'FactoryLab-2026-Pw'
+            [ordered]@{ adminUsername = 'labadmin'; adminPassword = $labPassword; sqlAppLogin = 'contosoapp'; sqlAppPassword = $labPassword } |
+                ConvertTo-Json | Set-Content -Path $secretsFile -Encoding utf8NoBOM
+            Write-Information 'Saved the documented lab credentials in .local/<subscription-id>/datacenter.json, as the later challenges expect.'
+        }
+    }
+}
 Write-Information 'Commit it with a conventional message, for example: docs: Add the C0 datacenter test evidence'

@@ -1,10 +1,10 @@
 # Platform pipeline (coach page)
 
-The kit runs its deployments from GitHub Actions, which is the preferred path. The scripts stay a supported path, and a coach should be able to run an event with no pipeline at all. Students read [Deploy with GitHub Actions](../site/src/content/docs/guides/deploy-with-actions.mdx) or [Deploy with scripts](../site/src/content/docs/guides/deploy-with-scripts.mdx). This page is for coaches and the event owner.
+GitHub Actions is the only way students deploy the datacenter, the foundation and vending, and remove them again. The kit's scripts are the engine the stages run, and students still run some of them for challenge tasks. They don't run the deploy scripts by hand: a coach does that only as a repair, using the commands in the C0 and C2 answer keys. Students read [Deploy with GitHub Actions](../site/src/content/docs/guides/deploy-with-actions.mdx). This page is for coaches and the event owner.
 
 ## What it is
 
-One workflow, `.github/workflows/platform.yml`, is installed in each attendee's repo by `Import-Kit.ps1`. It runs the kit's own scripts with a managed identity, `id-factory-pipeline`, that GitHub signs in with OIDC (no stored secret). Its stages are `whatif`, `member`, `foundation`, `vending` and `teardown`.
+One workflow, `.github/workflows/platform.yml`, is installed in each attendee's repo by `Import-Kit.ps1`. It runs the kit's own scripts with a managed identity, `id-factory-pipeline`, that GitHub signs in with OIDC (no stored secret). Its stages are `whatif`, `member`, `foundation`, `vending` and `teardown`. The `member` stage has an input, `no-hybrid-benefit`, for a member who holds no eligible Windows Server licenses (`gh workflow run platform.yml -f stage=member -f members=<index> -f no-hybrid-benefit=true`). Every step pipes its output through `scripts/Write-RedactedOutput.ps1`, so the run log shows each GUID as `<id:abcd>` (its first four characters).
 
 | Profile | Whose repo | Identity lives in | Owner granted at | Stages |
 |---|---|---|---|---|
@@ -23,8 +23,10 @@ Controls, in the order they apply:
 2. **The environment accepts only the listed branches** (`main` by default).
 3. **A required reviewer approves each gated stage**, where the repo's plan offers it (public repos, and paid plans). On a private repo on a free plan there is no reviewer: write access to the repo is the gate, so the repo must stay private and the writers few. The setup script says which case applies.
 4. **A fail-closed guard** (`Assert-PipelineGuard.ps1`) runs before every login. It refuses any subscription that isn't on the allowlist or is on the deny list, and any management-group prefix that isn't the allowed one. An empty allowlist refuses everything.
-5. **Identifiers are environment secrets**, masked in logs. The kit repo is public and so are its Actions logs, so never put a subscription, tenant or object ID in a variable or echo it. Delete any run whose log leaked one.
+5. **Identifiers are environment secrets**, masked in logs, and the steps redact every GUID that still reaches the output (`<id:abcd>`). The kit repo is public and so are its Actions logs, so never put a subscription, tenant or object ID in a variable or echo it. Delete any run whose log leaked one.
 6. **Two-principal teardown.** The identity removes the resources; an admin then removes the identity and its roles with `Remove-PlatformPipeline.ps1`. The workflow never removes its own roles.
+
+Accepted lab risk: the Arc step passes the pipeline identity's ARM token to `vm-app01` in a protected run command and a temporary file. The token is valid for about an hour, and for a lead it carries Owner at Tenant Root. The owner accepts this because it is a lab and the VM is reachable only through Bastion with MFA. There is no scoped identity for it.
 
 In a same-tenant test lab the management-group prefix is a procedural boundary, not an authorization wall: the identity could, by its roles, reach any subscription it was granted. Don't point a test lab at a tenant that holds a live lab.
 
@@ -76,4 +78,6 @@ Two problems showed up only at Tenant Root or on a second run, and are fixed. Fi
 
 ## If a run fails
 
-Read the log, fix the cause and run the stage again: the scripts are idempotent. A run that sits queued for a long time usually lost its runner: cancel and re-run it. If a student is stuck after two attempts, use the manual scripts, which are the same code.
+Read the log, fix the cause and run the stage again: the scripts are idempotent. A run that sits queued for a long time usually lost its runner: cancel and re-run it.
+
+**Repair (coaches only).** If a student is stuck after two attempts and the run can't be repaired in time, a coach can run the same script by hand, from the commands in the [C0](../coach/c00-ready-to-hack.md#repair-coaches-only) and [C2](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only) answer keys. It is the same code the stage runs. Never rerun Arc, and never redeploy a datacenter after Arc.

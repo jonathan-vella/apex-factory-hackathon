@@ -8,9 +8,9 @@ The challenge minutes are effort targets, not a serial schedule. The platform fo
 |---|---|---|
 | T-30 to T-14 | Event-owner setup: draft roster, member indexes, platform lead and access, tenant and subscription access, Privileged Role Administrator booking for T-7 (see the [guide](guide.md#t-30-to-t-14-event-owner)) | Event owner |
 | T-14 | Preflight, access and Copilot-policy gate; capture every member's subscription ID, index, object ID and email in the roster; confirm the team subscriptions | Event owner, platform lead, members |
-| T-7 | Platform lead deploys ALZ-lite (pipeline run 1 or `Deploy-AlzLite.ps1`), then a Privileged Role Administrator runs the Graph grant for the SQL MI identity | Platform lead, directory administrator |
-| T-3 | Each member does C0 in their own repo: preflight, datacenter, `Test-Datacenter.ps1` while the VMs run, then Arc onboarding, the first migration assessment and `vm-dev01` setup with a check that Copilot works in VS Code through Bastion; a coach reviews every member's C0 output | Members, coaches |
-| T-1 | Platform lead vends every member in order (pipeline run 2 or `Deploy-Vending.ps1`), restarts the VMs, records the exemptions and runs the connectivity probes. This comes after the coach's C0 review and `vm-dev01` setup | Platform lead |
+| T-7 | Platform lead runs the `foundation` stage (ALZ-lite, pipeline run 1), then a Privileged Role Administrator runs the Graph grant for the SQL MI identity | Platform lead, directory administrator |
+| T-3 | Each member does C0 in their own repo: the `whatif` and `member` stages (preflight, datacenter, `Test-Datacenter.ps1` while the VMs run, then Arc onboarding), then the first migration assessment and `vm-dev01` setup with a check that Copilot works in VS Code through Bastion; a coach reviews every member's C0 run | Members, coaches |
+| T-1 | Platform lead runs the `vending` stage (pipeline run 2): it vends every member in order, restarts the VMs, records the exemptions and runs the connectivity probes. This comes after the coach's C0 review and `vm-dev01` setup | Platform lead |
 | Before Day 1 | Start both VMs of every datacenter (idle ones may have been stopped), check the room and projection, stage demo materials and publish this agenda | Event owner, coaches |
 
 ## Day 1

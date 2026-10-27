@@ -20,7 +20,7 @@ sidebar:
 | Datacenter | This kit's simulated on-premises environment: `vm-app01` (the legacy app and database) and `vm-dev01` (the member's workstation). |
 | Dev container | A ready-made Linux workspace that VS Code opens inside Docker, in your own repo (from `apex-accelerator`), with the Azure CLI, PowerShell 7, Git, `azd` and Bicep. You run the kit's scripts from `factory/` inside it. |
 | Evidence folder | `factory/evidence/` in your own repo, created in C1 from `factory/templates/team/evidence`. It holds your written evidence for each challenge (`cNN/`), committed to `main`. In the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\` and run `git pull --rebase` first. No code is deployed from it. |
-| Exemption | A recorded decision that a policy doesn't apply to a resource. `New-DatacenterExemptions.ps1` creates them for your datacenter when the platform lead vends you at T-1, and you check them in C2. |
+| Exemption | A recorded decision that a policy doesn't apply to a resource. The `vending` stage creates them for your datacenter when the platform lead vends you at T-1, and you check them in C2. |
 | Gate | A checkpoint you pass before you go on. T-14 and T-3 are gates before the event. In C3 the assessment gate and the plan gate are the points where you review the Upgrade agent's output before it continues. |
 | GHCP | GitHub Copilot, as written in challenge titles. |
 | Graph read grant | The Microsoft Graph read permission given to the SQL MI identity `id-sqlmi-directory`, so C7 can create the web app's database user. Someone with the Privileged Role Administrator role runs it once per team at T-7, right after ALZ-lite, and the team checks it in C2. |
@@ -32,10 +32,10 @@ sidebar:
 | MI link | The managed instance link: a continuous, online replication path from an on-premises (or Arc-enabled) SQL Server to Azure SQL Managed Instance, used for the C7 migration. |
 | PIM | Privileged Identity Management. It grants an Azure or Entra role for a limited time after you activate it. If your Owner role is "eligible", activate it before you run preflight. |
 | Platform lead | The one person per team who deploys ALZ-lite at T-7 and vends every member's subscription at T-1, then walks the team through both in C2. The platform lead is also a student and does every member challenge. |
-| Preflight | The automated and manual readiness checks you run before the event with `Test-Preflight.ps1`. `Test-Datacenter.ps1` is a separate check of the deployed datacenter. |
+| Preflight | The automated and manual readiness checks you run before the event with the `whatif` stage of the platform pipeline. The datacenter test, which the `member` stage runs, is a separate check of the deployed datacenter. |
 | Private endpoint | A private IP address in your virtual network for an Azure service, so traffic to it stays off the public internet. |
 | Query Store | SQL Server's built-in record of query plans and run times. C9 uses it to show that each fix worked. |
-| Run command | An Azure feature that runs a script inside a VM without signing in to it. Arc onboarding turns it off for `vm-app01`, so `Test-Datacenter.ps1` must run before it. |
+| Run command | An Azure feature that runs a script inside a VM without signing in to it. Arc onboarding turns it off for `vm-app01`, so the datacenter test must run before it (the `member` stage does). |
 | Scenario | The kind of job the Upgrade agent runs. C3 uses `dotnet-version-upgrade`. |
 | Spoke | A member's virtual network `vnet-spoke` in their workload subscription. Vending creates it and peers it to the hub. The archetype runs in it. |
 | SQL MI | Azure SQL Managed Instance: the managed database service that replaces SQL Server on `vm-app01`. |

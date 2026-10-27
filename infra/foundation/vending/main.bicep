@@ -62,6 +62,8 @@ param setDefenderFoundationalOnly bool = true
 @description('nsg-sqlmi and rt-sqlmi already exist in rg-spoke (a re-run): leave them, and the rules and routes SQL MI adds, alone.')
 param miNetworkExists bool = false
 
+@description('Assign Owner to the member. Deploy-Vending.ps1 sets it false when the member already holds a direct Owner assignment.')
+param assignMemberOwner bool = true
 var hubVnetParts = split(hubVnetId, '/')
 var hubResourceGroup = hubVnetParts[4]
 var hubVnetName = hubVnetParts[8]
@@ -92,6 +94,7 @@ module workload 'modules/workload-subscription.bicep' = {
     budgetStartDate: budgetStartDate
     setDefenderFoundationalOnly: setDefenderFoundationalOnly
     miNetworkExists: miNetworkExists
+    assignMemberOwner: assignMemberOwner
   }
   dependsOn: [
     workloadPlacement

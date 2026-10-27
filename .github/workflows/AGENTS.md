@@ -5,10 +5,10 @@ Rules for changing the platform pipeline in this folder (`platform.yml`, `platfo
 
 ## What the pipeline is
 
-GitHub Actions orchestrates the kit's own scripts with OIDC and a user-assigned managed identity. `platform.yml` is the only
+GitHub Actions orchestrates the kit's own scripts with OIDC and a user-assigned managed identity. It is the only way students deploy the datacenter, the foundation and vending, and tear them down. The scripts are the engine the stages run and the coach's repair path, never a second student path. `platform.yml` is the only
 entry point. Its `stage` input follows the event: `whatif` (the lead's ALZ-lite what-if, a member's preflight), `foundation`
 (ALZ-lite, T-7), `member` (datacenter, `Test-Datacenter`, Arc, T-3), `vending` (T-1), `teardown` (T+2: every member's datacenter, then the team's foundation) and `all` (whatif, foundation, member, vending, in
-that order). Two more inputs: `members` (member indexes; empty means the `MEMBER_INDEXES` variable) and `include-management` (teardown only: also delete `rg-management` and `id-sqlmi-directory`). The design and backlog are in `docs/backlog/B16` to `B23`; the research is in issue #96.
+that order). Three more inputs: `members` (member indexes; empty means the `MEMBER_INDEXES` variable), `include-management` (teardown only: also delete `rg-management` and `id-sqlmi-directory`) and `no-hybrid-benefit` (member stage only: deploy and test `vm-app01` without Azure Hybrid Benefit). The design and backlog are in `docs/backlog/B16` to `B23`; the research is in issue #96.
 
 ## Rules
 
@@ -19,6 +19,7 @@ that order). Two more inputs: `members` (member indexes; empty means the `MEMBER
 - **The guard fails closed** (`scripts/Assert-PipelineGuard.ps1`): subscription allowlist and deny list, and the management-group prefix. Don't weaken it, and keep `test/Assert-PipelineGuard.Tests.ps1` green.
 - **Pass values through `env:`**, never interpolate `${{ }}` into a `run:` script. Use `permissions` with the minimum (`contents: read`, `id-token: write`). No `pull_request_target`.
 - **Scripts run from `KIT_DIR`**: `.` in the kit repo, `factory` in an attendee's repo. `Import-Kit.ps1` rewrites the `KIT_DIR: .` line, so keep it exactly that. Keep `Test-PipelineSetup.ps1` and the importer in step when you add a file.
+- **Pipe every step that runs a kit script through `./scripts/Write-RedactedOutput.ps1`** (`... *>&1 | ./scripts/Write-RedactedOutput.ps1`). It replaces each GUID with `<id:abcd>`, so a public run log names no identifier even when a script or Azure prints one. A step that keeps output as an artifact pipes the redacted text.
 - **Gated stages use the `gh-lab` environment.** The reviewer approves. Never approve a gate for an action the owner hasn't authorized.
 - Actions are pinned by major version, like the repo's other workflows. Run `actionlint`.
 
@@ -41,4 +42,4 @@ that order). Two more inputs: `members` (member indexes; empty means the `MEMBER
 
 ## Settled design
 
-Two profiles (owner, 2026-10-21). The **member profile** runs in each member's own repo (identity in their own workload subscription, Owner there only; preflight and member stages) and replaces the C0 terminal commands. The **platform lead profile** runs in the lead's repo (identity Owner at Tenant Root, roster of the whole team; foundation and vending, and member for any index). Backlog B21 builds the member profile; B22 re-sequences the event docs. Don't change the C2 points or the rubric without the owner's decision.
+Two profiles (owner, 2026-10-21). The **member profile** runs in each member's own repo (identity in their own workload subscription, Owner there only; preflight and member stages) and is how members do C0. The **platform lead profile** runs in the lead's repo (identity Owner at Tenant Root, roster of the whole team; foundation and vending, and member for any index). Backlog B21 builds the member profile; B22 re-sequences the event docs. Don't change the C2 points or the rubric without the owner's decision.

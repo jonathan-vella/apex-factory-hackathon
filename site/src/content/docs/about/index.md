@@ -23,7 +23,7 @@ The event is hands-on first, and the exams come after it: infra roles hold AZ-10
 
 ## Agenda
 
-Pre-work comes first: [Prerequisites](../getting-started/prerequisites/) and C0's preflight by T-14 (14 days before day one), then by T-3 (3 days before day one) the datacenter is deployed, `Test-Datacenter.ps1` passes for you (run before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code. In between, the platform lead deploys the team's foundation at T-7 and vends every member at T-1, so day one starts at C1 on a foundation that already exists. The [event overview](../getting-started/event-overview/#pre-work) has the dates. The times below are the plan; your event owner may adjust them.
+Pre-work comes first: [Prerequisites](../getting-started/prerequisites/) and C0's preflight by T-14 (14 days before day one), then by T-3 (3 days before day one) the datacenter is deployed, the datacenter test passes for you (it runs before Arc onboarding), `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code. In between, the platform lead deploys the team's foundation at T-7 and vends every member at T-1, so day one starts at C1 on a foundation that already exists. The [event overview](../getting-started/event-overview/#pre-work) has the dates. The times below are the plan; your event owner may adjust them.
 
 | Day 1 | Activity |
 |---|---|
