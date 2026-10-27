@@ -248,7 +248,8 @@ jobs:
           MEMBER_INDEX: ${{ matrix.member }}
           NO_HYBRID: ${{ inputs.no-hybrid-benefit }}
         run: |
-          $extra = @(if ($env:NO_HYBRID -eq 'true') { '-NoHybridBenefit' })
+          $extra = @{}
+          if ($env:NO_HYBRID -eq 'true') { $extra['NoHybridBenefit'] = $true }
           ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION `
             -Repository $env:KIT_REPOSITORY -ScriptsRef $env:KIT_REF @extra *>&1 | ./scripts/Write-RedactedOutput.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -277,7 +278,8 @@ jobs:
         run: |
           # Before Arc: the in-VM checks use run commands, which stop working on vm-app01 afterwards.
           # The output is the member's C0 evidence: it is kept in the job summary and the log.
-          $extra = @(if ($env:NO_HYBRID -eq 'true') { '-NoHybridBenefit' })
+          $extra = @{}
+          if ($env:NO_HYBRID -eq 'true') { $extra['NoHybridBenefit'] = $true }
           ./scripts/Test-Datacenter.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX @extra *>&1 | ./scripts/Write-RedactedOutput.ps1 | Tee-Object -FilePath $env:RUNNER_TEMP/test-datacenter.txt
           $code = $LASTEXITCODE
           "### Test-Datacenter, member $env:MEMBER_INDEX`n``````text`n$(Get-Content -Raw $env:RUNNER_TEMP/test-datacenter.txt)`n``````" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
