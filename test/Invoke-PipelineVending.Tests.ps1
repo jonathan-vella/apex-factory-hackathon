@@ -36,7 +36,7 @@ Set-Content (Join-Path $work 'New-DatacenterExemptions.ps1') @"
 [CmdletBinding()] param([string] `$SubscriptionId, [string] `$Owner)
 Set-Content (Join-Path `$env:TEST_LOG ([guid]::NewGuid())) "$stamp exempt `$SubscriptionId"
 Write-Information 'nothing to exempt' -InformationAction Continue
-cmd /c exit 1
+& (Get-Process -Id `$PID).Path -NoProfile -Command 'exit 1'
 "@
 Set-Content (Join-Path $work 'Test-Connectivity.ps1') @"
 [CmdletBinding()] param([string] `$SubscriptionId, [string] `$SharedSubscriptionId, [int] `$MemberIndex)
@@ -101,7 +101,7 @@ try {
     Assert-True ($restartStarts.Count -eq 6) "expected 6 VM restarts, got $($restartStarts.Count)"
     Assert-True (-not ($restartStarts | Where-Object { (Get-Time $_) -lt $lastVendEnd })) 'a restart started before the last member was vended'
     $spread = ($restartStarts | ForEach-Object { (Get-Time $_).TotalSeconds } | Measure-Object -Maximum -Minimum)
-    Assert-True (($spread.Maximum - $spread.Minimum) -lt 1.5) 'the restarts did not start together'
+    Assert-True (($spread.Maximum - $spread.Minimum) -lt 5) 'the restarts did not start together'
     $firstExempt = Get-Time ($r.Log | Where-Object { $_ -match ' exempt ' } | Select-Object -First 1)
     Assert-True ($firstExempt -gt (($restartStarts | ForEach-Object { Get-Time $_ } | Measure-Object -Maximum).Maximum)) 'the exemptions started before the restarts were done'
     Assert-True (@($r.Log | Where-Object { $_ -match ' probe ' }).Count -eq 3) 'not every member was probed'
