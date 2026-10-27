@@ -26,6 +26,6 @@ check itself.
 
 ## Check
 
-- Every C8 task has a result (pass, fail or not applicable) with evidence, in the
+- Every C8 requirement has a result (pass, fail or not applicable) with evidence, in the
   [acceptance and handover template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md).
 - `Test-Acceptance.ps1` ends `ACCEPT`, or each UNKNOWN is settled in the portal as C8 describes.

@@ -8,7 +8,7 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 
 ## Smoke checks
 
-<!-- C8 task 1: the five pages in a browser, and the row-count query run against the source and the managed instance (paste both results). -->
+<!-- C8 requirement 1: the five pages in a browser, and the row-count query run against the source and the managed instance (paste both results). -->
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -21,7 +21,7 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 
 ## Upload round-trip (private endpoint)
 
-<!-- C8 task 2: use a throwaway course (Courses > Create New, course ID 9901). The app has no separate "delete image" control, so the image is removed by deleting that course. Never delete a seeded course. -->
+<!-- C8 requirement 2: use a throwaway course (Courses > Create New, course ID 9901). The app has no separate "delete image" control, so the image is removed by deleting that course. Never delete a seeded course. -->
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -35,7 +35,7 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 
 ## Notification round-trip (private endpoint)
 
-<!-- C8 task 3: evidence is the Network panel's GetNotifications response (status 200, success true, count 1 or more) and the toast. -->
+<!-- C8 requirement 3: evidence is the Network panel's GetNotifications response (status 200, success true, count 1 or more) and the toast. -->
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -51,7 +51,7 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 
 ## Security check
 
-<!-- C8 task 5: attach Test-Acceptance.ps1's output (acceptance.json). Policy and Defender views are corroboration only. An UNKNOWN keeps the verdict at NOT ACCEPTED: settle it in the portal, add the screenshot as evidence, and note it in the row. -->
+<!-- C8 requirement 5: attach Test-Acceptance.ps1's output (acceptance.json). Policy and Defender views are corroboration only. An UNKNOWN keeps the verdict at NOT ACCEPTED: settle it in the portal, add the screenshot as evidence, and note it in the row. -->
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -67,7 +67,7 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 
 ## Telemetry
 
-<!-- C8 task 6: Application Insights (appi-university-<suffix>) > Investigate > Transaction search, time range the last 30 minutes, with the requests and dependencies from your checks. -->
+<!-- C8 requirement 6: Application Insights (appi-university-<suffix>) > Investigate > Transaction search, time range the last 30 minutes, with the requests and dependencies from your checks. -->
 
 | Check | Result | Evidence |
 |---|---|---|
