@@ -39,25 +39,25 @@ body:not(:has(.landing-hero))
 }
 
 /* Task cards: less dead space, and nested lists and code get the width back. */
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li {
   padding-block: 0.75rem;
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li :is(ol, ul) {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li :is(ol, ul) {
   padding-inline-start: 1.4rem;
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li > :last-child {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li > :last-child {
   margin-bottom: 0;
 }
 
 @media (max-width: 71.99rem) {
-  .sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li {
+  .sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li {
     padding-left: 3.1rem;
     padding-right: 0.8rem;
   }
 
-  .sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li::before {
+  .sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li::before {
     left: 0.7rem;
   }
 }
