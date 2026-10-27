@@ -144,6 +144,8 @@ export default defineConfig({
       components: {
         Footer: "./src/components/Footer.astro",
         PageTitle: "./src/components/PageTitle.astro",
+        ThemeProvider: "./src/components/ThemeProvider.astro",
+        ThemeSelect: "./src/components/ThemeSelect.astro",
       },
     }),
   ],
