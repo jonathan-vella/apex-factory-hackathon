@@ -91,6 +91,8 @@ function collectItems(list, kind) {
       const hash = hashText(li.textContent ?? "");
       const title = (li.textContent ?? "").replace(/\s+/g, " ").trim();
       const { label, input } = createControl(kind, index + 1);
+      li.querySelector(":scope > input[type='checkbox']")?.remove();
+      li.classList.remove("task-list-item");
       li.classList.add(kind === "task" ? "task-item" : "evidence-item");
       li.prepend(label);
       return { li, input, index, hash, title, key: `${index}:${hash}` };
@@ -144,14 +146,14 @@ function createBar(total) {
 }
 
 function setupChallengePage(path) {
-  const taskList = findSectionList("your-tasks", "OL");
+  const taskList = findSectionList("requirements", "OL");
   if (!taskList) return;
   const content = document.querySelector(".sl-markdown-content");
   if (!content) return;
 
   const tasks = collectItems(taskList, "task");
   if (tasks.length === 0) return;
-  const evidenceList = findSectionList("evidence", "UL");
+  const evidenceList = findSectionList("success-criteria", "UL");
   const evidence = evidenceList ? collectItems(evidenceList, "evidence") : [];
 
   const ui = createBar(tasks.length);

@@ -113,17 +113,17 @@
   margin-top: 0;
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li.is-done {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li.is-done {
   border-color: var(--task-done);
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li.is-done::before {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li.is-done::before {
   background: var(--task-done);
 }
 
 /* Evidence: the box replaces the bullet. */
 .sl-markdown-content ul:has(> li.evidence-item),
-.sl-markdown-content .sl-heading-wrapper:has(#evidence) + ul:has(> li.evidence-item) {
+.sl-markdown-content .sl-heading-wrapper:has(#success-criteria) + ul:has(> li.evidence-item) {
   padding-left: 0.9rem;
 }
 

@@ -876,13 +876,13 @@ a {
   font-size: var(--sl-text-sm);
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol {
   padding-left: 0;
   list-style: none;
   counter-reset: task;
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li {
   position: relative;
   counter-increment: task;
   margin-top: 0.75rem;
@@ -892,7 +892,7 @@ a {
   background: var(--sl-color-gray-6);
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li::before {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li::before {
   content: counter(task);
   position: absolute;
   left: 0.9rem;
@@ -909,22 +909,22 @@ a {
   font-size: var(--sl-text-sm);
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li > :first-child {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li > :first-child {
   margin-top: 0;
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#your-tasks) + ol > li :not(pre) > code {
+.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li :not(pre) > code {
   background: var(--sl-color-black);
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#evidence) + ul {
+.sl-markdown-content .sl-heading-wrapper:has(#success-criteria) + ul {
   padding: 0.75rem 1rem 0.75rem 2.25rem;
   border: 1px solid var(--sl-color-accent);
   border-radius: 0.75rem;
   background: var(--sl-color-accent-low);
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#evidence) + ul li::marker {
+.sl-markdown-content .sl-heading-wrapper:has(#success-criteria) + ul li::marker {
   color: var(--sl-color-accent-high);
 }
 

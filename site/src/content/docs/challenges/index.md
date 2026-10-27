@@ -6,7 +6,7 @@ sidebar:
   order: 0
 ---
 
-This section introduces the challenges in order, with their time boxes and points. Each challenge page has the full brief: goal, scope, inputs, tasks, evidence, hints and bonus.
+This section introduces the challenges in order, with their time boxes and points. Each challenge page has five parts: Background (why it matters, the objective, time and points), Challenge (the starting point, what the kit fixes, what you decide, where to work), Requirements (what you must do), Success criteria (what you show your coach) and References.
 
 | Day | Challenge | Scope | Time box | Points |
 |---|---|---|---|---|
@@ -27,9 +27,9 @@ The readiness check is not a challenge. It is a gate before the event, with no p
 
 Time boxes are pacing, not hard stops. Coaches flex on the day. The event's real gates are T-14 (14 days before day one) and T-3 (3 days before day one), both before the event, and the end of each day. The [event overview](../getting-started/event-overview/#before-the-event) has both gates.
 
-On a challenge page, tick **Done** on each task card as you finish it. The bar under the header shows how many tasks are done and jumps to each one. Ticks stay in this browser only: they aren't shared with your team, and clearing site data or switching browsers starts you from zero. **Reset** clears the page.
+On a challenge page, tick **Done** on each requirement as you finish it. The bar under the header shows how many requirements are done and jumps to each one. Ticks stay in this browser only: they aren't shared with your team, and clearing site data or switching browsers starts you from zero. **Reset** clears the page.
 
-If you're blocked, try the hints on the page and the guide it links to, then ask your coach.
+If you're blocked, open the hints at the end of the page and the guide it links to, then ask your coach.
 
 ## Where to go next
 
