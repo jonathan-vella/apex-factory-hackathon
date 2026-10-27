@@ -104,15 +104,17 @@ jobs:
           IFS=',' read -ra parts <<< "$list"
           json="["; seen=","
           for part in "${parts[@]}"; do
-            [[ "$part" =~ ^[0-9]+$ ]] && [ "$part" -ge 1 ] && [ "$part" -le 20 ] || { echo "::error::A member index must be a whole number from 1 to 20."; exit 1; }
+            if ! [[ "$part" =~ ^[0-9]+$ ]] || [ "$part" -lt 1 ] || [ "$part" -gt 20 ]; then echo "::error::A member index must be a whole number from 1 to 20."; exit 1; fi
             [[ "$seen" != *",$part,"* ]] || { echo "::error::A member index is listed twice."; exit 1; }
             seen="$seen$part,"
             json="$json\"$part\","
           done
           json="${json%,}]"
-          echo "stage=$stage" >> "$GITHUB_OUTPUT"
-          echo "members=$json" >> "$GITHUB_OUTPUT"
-          echo "member-list=$list" >> "$GITHUB_OUTPUT"
+          {
+            echo "stage=$stage"
+            echo "members=$json"
+            echo "member-list=$list"
+          } >> "$GITHUB_OUTPUT"
 
   preflight:
     needs: plan
