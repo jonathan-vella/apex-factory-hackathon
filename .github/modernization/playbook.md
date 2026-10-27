@@ -273,7 +273,7 @@ After the MI link cutover, the database on the Managed Instance is writable:
 | Symptom | Fix |
 |---|---|
 | The container never starts, with `ACRTokenRetrievalFailure` in the log | The registry must accept ARM-audience tokens: `az acr config authentication-as-arm show -r cruniversity<suffix>` must print `enabled`. The archetype sets it; ask your coach if it doesn't |
-| The app stops at startup with "KeyVault:VaultUri is not configured" or "DefaultConnection is not configured" | An app setting is missing or uses `:`, or the Key Vault secret wasn't written (C7 task 5) |
+| The app stops at startup with "KeyVault:VaultUri is not configured" or "DefaultConnection is not configured" | An app setting is missing or uses `:`, or the Key Vault secret wasn't written (C7 requirement 5) |
 | `CREATE USER` fails with "Server identity does not have Azure Active Directory Readers permission" | The Managed Instance's primary identity must be the team's `id-sqlmi-directory`. Ask your coach |
 | Pages fail with "Login failed for user '<token-identified principal>'" | The database user doesn't exist yet, or its name isn't the identity's name |
 

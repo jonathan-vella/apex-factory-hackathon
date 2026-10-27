@@ -75,7 +75,7 @@ The member's work lives in a clone of the public kit, so lifeline branches are a
 az acr import --name cruniversity<suffix> --source ghcr.io/jonathan-vella/contoso-university:known-good --image contoso-university:known-good
 ```
 
-Then go live with the tag `known-good` in the playbook's step 5, C7 task 6. This caps C7 at 10 of 20 member points, the same as L5. The Key Vault secret and the database user are still needed.
+Then go live with the tag `known-good` in the playbook's step 5, C7 requirement 6. This caps C7 at 10 of 20 member points, the same as L5. The Key Vault secret and the database user are still needed.
 
 ## Rebuild the lifelines
 
