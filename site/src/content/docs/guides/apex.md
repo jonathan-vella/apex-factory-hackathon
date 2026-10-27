@@ -31,7 +31,7 @@ Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode: open Cop
 
 ## Provision
 
-Review the preview output, then run `azd provision` yourself, in `infra/bicep/university/` (where `azure.yaml` is), in the same terminal where the skill ran `./scripts/preflight.ps1`. If you closed that terminal, open a new one in the dev container, run `cd infra/bicep/university` and `./scripts/preflight.ps1` (it only reads Azure), and then `azd provision`. The deployment waits for the SQL Managed Instance and takes about 20 minutes (measured: 22 min 59 s on 2026-10-08, 20 min 2 s on 2026-10-20), so you can start C6 meanwhile. Its hooks run a preflight check, post-deploy tests and a deployment summary automatically, so you don't need to run them separately.
+Review the preview output, then run `azd provision` yourself, in `infra/bicep/university/` (where `azure.yaml` is), in the same terminal where the skill ran `./scripts/preflight.ps1`. If you closed that terminal, open a new one in the dev container, go to the repo root, run `cd infra/bicep/university` and `./scripts/preflight.ps1` (it only reads Azure), and then `azd provision`. The deployment waits for the SQL Managed Instance and takes about 20 minutes (measured: 22 min 59 s on 2026-10-08, 20 min 2 s on 2026-10-20), so you can start C6 meanwhile. Its hooks run a preflight check, post-deploy tests and a deployment summary automatically, so you don't need to run them separately.
 
 :::danger[Don't run azd down to start over]
 
@@ -58,4 +58,4 @@ The kit supports `azd` and this fallback. Don't hand the deployment to the APEX 
 
 ## Known gaps
 
-- The archetype now gives its deployer the Monitoring Metrics Publisher role on Application Insights, which C6's OpenTelemetry check (task 06) and C8's telemetry checks need. A deployment from before 2026-10-20 lacks it: the playbook has the one-time command for your own sign-in.
+- The archetype now gives its deployer the Monitoring Metrics Publisher role on Application Insights, which C6's OpenTelemetry check (task 06) and C8's telemetry checks need. A deployment that lacks it needs the grant run once by you: the playbook has the one-time command for your own sign-in.

@@ -37,7 +37,7 @@ Other findings from the Upgrade agent's assessment (framework APIs retired in .N
 
 ## Bonus
 
-Up to 5 points for a second, independent finding (beyond the trace flags) triaged with the same rigor — source, reasoning and target-state impact, not just a label.
+Up to 5 points for triaging any other finding in the Arc assessment report, beyond the trace-flag one the challenge requires, with the same rigor: source, reasoning and target-state impact, not just a label. A second finding from the Upgrade agent's assessment doesn't count: the student page asks for one from the Arc report.
 
 ## Reset
 

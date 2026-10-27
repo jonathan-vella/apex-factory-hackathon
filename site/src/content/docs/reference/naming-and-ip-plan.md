@@ -33,7 +33,7 @@ sidebar:
 
 Two different values name member-scoped things. Both are saved in `factory/.local/settings.json`, and later pages show them as `$s.memberIndex` and `$s.suffix`:
 
-- The **member index** `n` (1 to 20) is a number your coach assigns. It sets your IP ranges and appears in names such as `rcg-member-<n>`, your firewall rule collection group in the hub. It is unique within a team.
+- The **member index** `n` (1 to 20) is a number the event owner assigns and your coach relays to you. It sets your IP ranges and appears in names such as `rcg-member-<n>`, your firewall rule collection group in the hub. It is unique within a team.
 - The **suffix** is a random six-character string that `Initialize-Settings.ps1` generates once and never changes. It names your archetype resources, for example `rg-university-<suffix>`.
 
 ## IP address plan

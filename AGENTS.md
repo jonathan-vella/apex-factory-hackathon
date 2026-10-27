@@ -31,7 +31,7 @@ The order of events is fixed. Take it from [facilitator/guide.md](facilitator/gu
 So: **datacenter before vending, ALZ-lite before vending, vending before the archetype.** The only hard dependencies are
 ALZ-lite and each datacenter before vending, `Test-Datacenter` before Arc, and the Graph grant after ALZ-lite and before C7.
 Vending comes after `vm-dev01` setup. A team has **one shared services subscription and one workload subscription per
-member**, and one Entra tenant. The pipeline is optional: the scripts stay the supported manual path. If a design or
+member**, and one Entra tenant. The GitHub Actions pipeline is the preferred path: the scripts remain a supported one. If a design or
 workflow puts steps in another order, stop and check the guide.
 Roles: the **event owner** plans and cleans up; **coaches** demo and sign off; the **platform lead** deploys ALZ-lite and
 vends every member (and is also a member); **members** run their own C0 and everything after C2. There is no shared team repo:
@@ -56,7 +56,7 @@ each member keeps evidence in `factory/evidence/` of their own repo.
 - Clean under PSScriptAnalyzer. Run it on every script you touch.
 - A script must work for a user **and** for the pipeline's managed identity. Treat a login as the pipeline only when `az account show` reports `user.type` of `servicePrincipal`; take its object ID from the ARM token's `oid` claim, never from `az ad signed-in-user show` (Graph). List role assignments by scope and filter on `principalId`, not with `--assignee`.
 - Don't print IDs. Mask them in errors.
-- Tests live in `test/`. `./test/Test-Preflight.Tests.ps1` and `./test/Assert-PipelineGuard.Tests.ps1` run without Azure. Keep them green.
+- Tests live in `test/`. Every PowerShell test there runs without Azure (each uses stubs or fixtures, and its header says so): `Assert-PipelineGuard`, `Invoke-PipelineVending`, `Test-Acceptance`, `Test-DevSparse`, `Test-Helpers`, `Test-MiLinkSource` and `Test-Preflight`, each as `./test/<name>.Tests.ps1`. The `.mjs` tests belong to `npm run check`. Keep them all green.
 - On Windows, `$h` is an alias of `Get-History`: don't name a helper `h`. Pass scripts to WSL with LF line endings.
 - Don't rewrite files with PowerShell string replaces: use the edit tool, because CRLF in the working copy defeats a `` `n `` match silently.
 

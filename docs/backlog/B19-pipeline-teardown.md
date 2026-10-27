@@ -30,7 +30,7 @@
 
 ## Deliverables
 
-- `.github/workflows/platform-teardown.yml`; changes to `scripts/Remove-FactoryEnvironment.ps1` (option) and `scripts/Remove-PlatformPipeline.ps1`; evidence in the PR body.
+- The `teardown` stage in `platform.yml` (there is no separate `platform-teardown.yml`: every job lives in `platform.yml`); changes to `scripts/Remove-FactoryEnvironment.ps1` (option) and `scripts/Remove-PlatformPipeline.ps1`; evidence in the PR body.
 
 ## Verify
 

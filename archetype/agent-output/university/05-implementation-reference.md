@@ -89,7 +89,7 @@ The tenant and subscription inputs are intentionally represented only as `<tenan
 The actual provider command, with only the subscription identifier redacted, was:
 
 ```bash
-az deployment sub validate --subscription <subscription-id> --location swedencentral --template-file /home/vscode/.copilot/session-state/ca0e3c64-92ad-476b-ae4b-71771154f8ef/files/university-rendered.template.json --parameters @/home/vscode/.copilot/session-state/ca0e3c64-92ad-476b-ae4b-71771154f8ef/files/university-rendered.parameters.json --validation-level Provider --only-show-errors --output json
+az deployment sub validate --subscription <subscription-id> --location swedencentral --template-file /home/vscode/.copilot/session-state/<session-dir>/files/university-rendered.template.json --parameters @/home/vscode/.copilot/session-state/<session-dir>/files/university-rendered.parameters.json --validation-level Provider --only-show-errors --output json
 ```
 
 The handoff was re-emitted for tree digest

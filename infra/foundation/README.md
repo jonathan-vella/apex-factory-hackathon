@@ -1,6 +1,6 @@
 # Foundation: ALZ-lite, vending, exemptions and probes
 
-The foundation is the team's landing zone. **ALZ-lite** is the small landing zone that attendees deploy: a management group hierarchy, a hub with Azure Firewall and central private DNS, a central Log Analytics workspace, and core policies. **Vending** puts each member's workload subscription under it and connects the member's spoke and datacenter to the hub. The team's platform lead runs both, in C2. A full portal ALZ isn't part of the kit: a coach demos it live.
+The foundation is the team's landing zone. **ALZ-lite** is the small landing zone that attendees deploy: a management group hierarchy, a hub with Azure Firewall and central private DNS, a central Log Analytics workspace, and core policies. **Vending** puts each member's workload subscription under it and connects the member's spoke and datacenter to the hub. The team's platform lead runs both: ALZ-lite at T-7 and vending for every member at T-1, before the event (Day 1 starts at C1, and C2 verifies and explains the foundation), through the platform pipeline or these scripts. A full portal ALZ isn't part of the kit: a coach demos it live.
 
 ## Two subscriptions per member
 
@@ -188,7 +188,7 @@ The platform lead needs **Owner at the Tenant Root management group**: to create
 
 ## Event prep: SQL MI directory identity
 
-Once per team, in C2 on Day 1 right after the platform lead deploys ALZ-lite (and before C7), someone with **Privileged Role Administrator** (or Global Administrator) in the event tenant grants `id-sqlmi-directory` its Microsoft Graph read permissions. Members and the platform lead usually can't: it's a directory role, not an Azure role. Without it, C7 can't create the web app's database user on any member's SQL Managed Instance.
+Once per team, at T-7 right after the platform lead deploys ALZ-lite (and before C7), someone with **Privileged Role Administrator** (or Global Administrator) in the event tenant grants `id-sqlmi-directory` its Microsoft Graph read permissions. Members and the platform lead usually can't: it's a directory role, not an Azure role. Without it, C7 can't create the web app's database user on any member's SQL Managed Instance.
 
 1. If the role is assigned through Privileged Identity Management, activate it first: in the Microsoft Entra admin center, go to **Identity governance > Privileged Identity Management > My roles**, then **Activate**. From the command line, use Microsoft Graph PowerShell; the Azure CLI's sign-in can't activate PIM roles:
 
@@ -244,7 +244,7 @@ No resource sets `zones`. `afw-hub` has no zone. `pip-afw-hub` is a Standard pub
 
 | Item | Cost while deployed |
 |---|---|
-| Azure Firewall Standard (`afw-hub`) | About $1.25/hour, plus $0.016/GB processed |
+| Azure Firewall Standard (`afw-hub`) | About $1.30/hour, plus $0.016/GB processed |
 | `pip-afw-hub` | About $0.005/hour |
 | `log-management` | Pay per GB ingested; low volume in the lab |
 | Private DNS zones | About $0.50 a zone a month |

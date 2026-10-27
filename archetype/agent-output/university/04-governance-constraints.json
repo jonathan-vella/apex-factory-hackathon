@@ -109,7 +109,7 @@
       "displayName": "Block Azure RM Resource Creation",
       "scope": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID",
       "assignmentType": "management-group",
-      "policyDefinitionId": "/providers/microsoft.management/managementgroups/REDACTED-TENANT-ROOT-MG-ID/providers/microsoft.authorization/policydefinitions/a15944e7-86a5-4adf-a36c-d851916c9001"
+      "policyDefinitionId": "/providers/microsoft.management/managementgroups/REDACTED-TENANT-ROOT-MG-ID/providers/microsoft.authorization/policydefinitions/<custom-policy-guid>"
     },
     {
       "displayName": "Microsoft Azure region access restriction blocking West Europe region",
@@ -1598,7 +1598,7 @@
       }
     },
     {
-      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/a15944e7-86a5-4adf-a36c-d851916c9001",
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/<custom-policy-guid>",
       "display_name": "Block Azure RM Resource Creation",
       "effect": "deny",
       "scope": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID",
@@ -3630,7 +3630,7 @@
       }
     },
     {
-      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/a15944e7-86a5-4adf-a36c-d851916c9001",
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/<custom-policy-guid>",
       "display_name": "Block Azure RM Resource Creation",
       "effect": "deny",
       "scope": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID",
@@ -7996,7 +7996,7 @@
     "/providers/microsoft.authorization/policydefinitions/ffea18d9-13de-6505-37f3-4c1f88070ad7",
     "/providers/microsoft.authorization/policydefinitions/ffea632e-4e3a-4424-bf78-10e179bb2e1a",
     "/providers/microsoft.authorization/policydefinitions/fff50cf2-28eb-45b4-b378-c99412688907",
-    "/providers/microsoft.management/managementgroups/REDACTED-TENANT-ROOT-MG-ID/providers/microsoft.authorization/policydefinitions/a15944e7-86a5-4adf-a36c-d851916c9001",
+    "/providers/microsoft.management/managementgroups/REDACTED-TENANT-ROOT-MG-ID/providers/microsoft.authorization/policydefinitions/<custom-policy-guid>",
     "/providers/microsoft.management/managementgroups/REDACTED-TENANT-ROOT-MG-ID/providers/microsoft.authorization/policydefinitions/aifoundryhub_publicnetwork_modify",
     "/providers/microsoft.management/managementgroups/REDACTED-TENANT-ROOT-MG-ID/providers/microsoft.authorization/policydefinitions/aks_limitnodecount_deny",
     "/providers/microsoft.management/managementgroups/REDACTED-TENANT-ROOT-MG-ID/providers/microsoft.authorization/policydefinitions/aksnode_osautoupgrade_enable",

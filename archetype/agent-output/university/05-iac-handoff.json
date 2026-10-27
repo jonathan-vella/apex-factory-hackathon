@@ -24,7 +24,7 @@
       "pwsh": "7.6.6"
     },
     "validate_gate": {
-      "command": "az deployment sub validate --subscription <subscription-id> --location swedencentral --template-file /home/vscode/.copilot/session-state/ca0e3c64-92ad-476b-ae4b-71771154f8ef/files/university-rendered.template.json --parameters @/home/vscode/.copilot/session-state/ca0e3c64-92ad-476b-ae4b-71771154f8ef/files/university-rendered.parameters.json --validation-level Provider --only-show-errors --output json",
+      "command": "az deployment sub validate --subscription <subscription-id> --location swedencentral --template-file /home/vscode/.copilot/session-state/<session-dir>/files/university-rendered.template.json --parameters @/home/vscode/.copilot/session-state/<session-dir>/files/university-rendered.parameters.json --validation-level Provider --only-show-errors --output json",
       "exit_code": 0,
       "stdout_sha256": "8089bdbea77b3cee097f37530a0d77c9d2869a3c8577e4bca15b993084054462"
     }
@@ -52,7 +52,7 @@
       { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/7509877f-d414-4d79-8d1f-d600ea78d087", "resource_logical_name": "rg-workload", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 15, "snippet": "@allowed swedencentral, germanywestcentral" }, "status": "satisfied" },
       { "policy_id": "Tenant Root Group: AzureSQL_WithoutAzureADOnlyAuthentication_Deny", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no Microsoft.Sql/servers declared" }, "status": "n/a" },
       { "policy_id": "/providers/Microsoft.Authorization/policyDefinitions/6c112d4e-5bc7-47ae-a041-ea2d9dccd749", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no classic resource types" }, "status": "n/a" },
-      { "policy_id": "Tenant Root Group: a15944e7-86a5-4adf-a36c-d851916c9001", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no classic resource types" }, "status": "n/a" },
+      { "policy_id": "Tenant Root Group: <custom-policy-guid>", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no classic resource types" }, "status": "n/a" },
       { "policy_id": "Tenant Root Group: VirtualMachine_SKU_Deny (BlockVMSKUs_H)", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no virtual machines declared" }, "status": "n/a" },
       { "policy_id": "Tenant Root Group: VirtualMachine_SKU_Deny (BlockVMSKUs_M)", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no virtual machines declared" }, "status": "n/a" },
       { "policy_id": "Tenant Root Group: VirtualMachine_SKU_Deny (BlockVMSKUs_N)", "resource_logical_name": "n/a", "iac_ref": { "file": "infra/bicep/university/main.bicep", "line": 3, "snippet": "no virtual machines declared" }, "status": "n/a" },

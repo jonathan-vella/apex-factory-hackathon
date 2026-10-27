@@ -60,7 +60,7 @@ Run this at T-3. The deploy takes up to 60 minutes, unattended. Keep the termina
    ./scripts/Test-Preflight.ps1 -WorkloadSubscriptionId $s.subscriptionId -Location $s.location -OutFile .local/preflight.json
    ```
 
-2. Deploy the datacenter. It is safe to run again until Arc onboarding:
+2. Deploy the datacenter. It is safe to run again until Arc onboarding. If you don't hold eligible Windows Server licenses, add `-NoHybridBenefit` (see [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/)):
 
    ```powershell
    ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location
@@ -102,7 +102,7 @@ You need Owner at Tenant Root, your shared services subscription in `.local/sett
 
 3. Do your own C0 as a member, above.
 
-4. At T-1, vend each member one after another, after a coach has reviewed their C0. Each run updates the same firewall policy, and takes about 4 minutes:
+4. At T-1, vend each member one after another, after a coach has reviewed their C0. Each run updates the same firewall policy, and takes 4 to 5 minutes:
 
    ```powershell
    ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location
@@ -127,4 +127,4 @@ The scripts are idempotent. Run the same command again to converge a failed or p
 
 ## Taking it down
 
-Follow [cleanup](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/facilitator/cleanup.md): `Remove-FactoryEnvironment.ps1` for every member scope first, then the team scope. To stop the firewall's cost without a full removal, delete `rg-hub` in the shared services subscription.
+The event owner or the platform lead runs `Remove-FactoryEnvironment.ps1` for every member scope first, then for the team scope. To stop only the firewall's cost, delete `rg-hub` in the shared services subscription. That leaves the peering to each spoke, the policy assignments, the management groups and the budgets behind.

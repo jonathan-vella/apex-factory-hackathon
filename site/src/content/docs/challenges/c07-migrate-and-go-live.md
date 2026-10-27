@@ -53,7 +53,7 @@ $dc = Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Js
 "Task 1 command:               C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.$($s.memberIndex).128/26"
 ```
 
-These are lab-only passwords: keep them out of your screenshots and evidence. For member 3, the source is `10.10.3.4` and the subnet is `10.20.3.128/26`.
+These are lab-only passwords: keep them out of your screenshots and evidence. If you deployed with GitHub Actions, `datacenter.json` isn't in your dev container: use the lab password from the [Actions page note](../../guides/deploy-with-actions/#member) for both. For member 3, the source is `10.10.3.4` and the subnet is `10.20.3.128/26`.
 
 Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 

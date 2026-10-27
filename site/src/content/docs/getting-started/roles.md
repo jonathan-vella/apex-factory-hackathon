@@ -17,7 +17,7 @@ Everyone else on the team: teams have three to five people, platform lead includ
 
 ## Coach
 
-Not a team member. Gives the live portal ALZ demo in C2 and the APEX archetype demo before C5, reviews your C0 output at T-3 (before your platform lead vends you), asks the policy questions in C2, signs off evidence and scores, runs the curveballs, assigns your member index (with the event owner), decides when and how to unblock a stuck member or team, and answers the kind of question a member genuinely can't resolve alone. A coach doesn't do the work for the team: ask your coach for help, not for the answer. Your coach is also your first contact at T-14 and T-3.
+Not a team member. Gives the live portal ALZ demo in C2 and the APEX archetype demo before C5, reviews your C0 output at T-3 (before your platform lead vends you), asks the policy questions in C2, signs off evidence and scores, runs the curveballs, relays your member index (the event owner assigns it), decides when and how to unblock a stuck member or team, and answers the kind of question a member genuinely can't resolve alone. A coach doesn't do the work for the team: ask your coach for help, not for the answer. Your coach is also your first contact at T-14 and T-3.
 
 ## Event owner
 

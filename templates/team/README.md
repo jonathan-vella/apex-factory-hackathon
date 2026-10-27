@@ -18,6 +18,6 @@ Team deliverables (the C1 canvas, the C4 platform and migration ADRs, the C10 pa
 1. Copy the relevant template from `factory/templates/attendee/` into your challenge's evidence folder before you start that challenge.
 2. Fill it in as you go, not retroactively: screenshots and command output are more convincing right after you produce them.
 3. Commit after each challenge, not just at the end of the day. Use a conventional commit message, because the repo's commit hook rejects anything else, for example `git commit -m "docs: C1 opportunity canvas"`. Then `git push` to `main`.
-4. Use the [factory-kit checklist](../templates/attendee/factory-kit-checklist.md) in C10 to confirm nothing is missing before handover.
+4. Use the factory-kit checklist, `factory/templates/attendee/factory-kit-checklist.md`, in C10 to confirm nothing is missing before handover.
 
 Don't commit secrets, connection strings or tokens. Don't commit tenant IDs, subscription IDs or object IDs.

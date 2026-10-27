@@ -27,9 +27,8 @@ sidebar:
 | Harness | Where the Upgrade agent runs. **Local** runs next to the app on `vm-dev01`; you pick it in Copilot Chat. |
 | Hub | The team's shared virtual network `vnet-hub` in the shared services subscription, with Azure Firewall. Every member's spoke is peered to it. |
 | Kit | This repository's content as you use it: the scripts, infrastructure, app, templates and archetype, imported into the `factory/` folder of your own repo. |
-| Lifeline | A coach-applied unblock for a stuck member or team, used at the coach's discretion. Ask your coach, not this glossary, how it works. |
 | Management group | A container above subscriptions that applies policy and access to everything inside it. ALZ-lite creates several and places your workload subscription under its Corp group. |
-| Member index | The number from 1 to 20 your coach assigns you. It sets your IP ranges and your peerings to the team's hub. Not the same as the suffix. Scripts and pages show it as `$s.memberIndex`, read from `factory/.local/settings.json`. |
+| Member index | The number from 1 to 20 the event owner assigns you (your coach relays it). It sets your IP ranges and your peerings to the team's hub. Not the same as the suffix. Scripts and pages show it as `$s.memberIndex`, read from `factory/.local/settings.json`. |
 | MI link | The managed instance link: a continuous, online replication path from an on-premises (or Arc-enabled) SQL Server to Azure SQL Managed Instance, used for the C7 migration. |
 | PIM | Privileged Identity Management. It grants an Azure or Entra role for a limited time after you activate it. If your Owner role is "eligible", activate it before you run preflight. |
 | Platform lead | The one person per team who deploys ALZ-lite at T-7 and vends every member's subscription at T-1, then walks the team through both in C2. The platform lead is also a student and does every member challenge. |

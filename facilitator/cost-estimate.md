@@ -13,6 +13,8 @@ These are approximate list-price estimates in USD for `swedencentral`, with Azur
 
 The datacenter estimate is about **$2.30/hour running** without AHB. Turning AHB off adds about **$0.75 per running hour per member**; it does not reduce the stopped rate because the VMs are deallocated. AHB assumes eligible Windows Server licences. AHB does not apply to ALZ-lite or the archetype's other PaaS services. Keep the MI on the paid General Purpose offer; the free offer is not part of this event.
 
+The archetype's rate also assumes Azure Hybrid Benefit for SQL Server: the SQL MI is priced with `licenseType: 'BasePrice'`, which presumes eligible SQL Server core licences with Software Assurance. A member without them pays the licence-included rate, about **$0.40 more per running hour per member** (about $1.07 an hour against $0.67 for the instance; source: `archetype/agent-output/university/02-cost-estimate-sqlmi-options.json`). Over the 44 assumed archetype hours that is about $17.60 per affected member. Windows Server AHB and SQL Server AHB are separate entitlements, so a member can lack one and hold the other.
+
 ## Event-window estimate
 
 Planning window: 120 elapsed hours from T-3 at 09:00 through cleanup at T+2 at 09:00 for each member's datacenter and archetype. The datacenter is assumed to run 39 hours (4 hours of pre-work, 33 hours from Day 1 kickoff to the end of Day 2, because `vm-dev01` is never stopped during the event and `vm-app01` runs until the link is removed, and 2 hours during cleanup) and remain deployed but deallocated for 81 hours. The rate is per datacenter, so the estimate assumes both VMs run together. The T-1 vending, VM restart and probes fit in the 4 hours of pre-work, because the platform lead needs both VMs running for them.

@@ -13,7 +13,7 @@
 
 ## Outcome
 
-- The site has the attendee content: getting started with the pre-work (C0), the eleven challenges C0–C10, the eight module contracts, guides and reference pages.
+- The site has the attendee content: getting started with the pre-work (C0), the eleven challenges C0–C10, the eight module contracts (superseded: the module pages were retired and each challenge page is self-contained), guides and reference pages.
 - `templates/` has the attendee templates and the team repo template.
 - `coach/` has an answer key per challenge.
 - The content checks enforce the challenge contract: 11 challenges and 200 base points.
@@ -105,7 +105,7 @@ node scripts/check-internal-links.mjs
 
 ## Done when
 
-- [ ] Eleven challenge pages, eight module contracts, and the getting-started, guides and reference pages exist.
+- [ ] Eleven challenge pages, eight module contracts (superseded: retired), and the getting-started, guides and reference pages exist.
 - [ ] Templates and coach answer keys exist.
 - [ ] The content checks enforce the contract, and CI passes.
 

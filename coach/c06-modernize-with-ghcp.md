@@ -46,4 +46,4 @@ Re-running the task 07 CVE audit after the gap fixes and packaging (tasks 3 and 
 
 ## Reset
 
-Not applicable at the infrastructure level — if the app's local git history needs a clean restart, re-run the Upgrade agent's assessment and replan from `app/ContosoUniversity`'s pre-modernization state (coach-assisted; this is a significant redo, so confirm it's really needed before suggesting it).
+Not applicable at the infrastructure level. If the app's local git history needs a clean restart, the student page's way is: on `vm-dev01`, find the playbook's `app: assess and plan` commit with `git log --oneline` in `C:\src\factory`, then `git reset --hard <commit-id>` on `vm-dev01-work`. This discards uncommitted work, and the next push needs `git push --force-with-lease`. Check the tree is clean again with the last command in playbook Step 0. Ask first if the member has already pushed. It's a significant redo, so confirm it's really needed before suggesting it.

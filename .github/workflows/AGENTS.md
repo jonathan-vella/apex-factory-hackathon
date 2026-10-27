@@ -7,14 +7,14 @@ Rules for changing the platform pipeline in this folder (`platform.yml`, `platfo
 
 GitHub Actions orchestrates the kit's own scripts with OIDC and a user-assigned managed identity. `platform.yml` is the only
 entry point. Its `stage` input follows the event: `whatif` (the lead's ALZ-lite what-if, a member's preflight), `foundation`
-(ALZ-lite, T-7), `member` (datacenter, `Test-Datacenter`, Arc, T-3), `vending` (T-1), `all` (whatif, foundation, member, vending, in
-that order). The design and backlog are in `docs/backlog/B16` to `B20`; the research is in issue #96.
+(ALZ-lite, T-7), `member` (datacenter, `Test-Datacenter`, Arc, T-3), `vending` (T-1), `teardown` (T+2: every member's datacenter, then the team's foundation) and `all` (whatif, foundation, member, vending, in
+that order). Two more inputs: `members` (member indexes; empty means the `MEMBER_INDEXES` variable) and `include-management` (teardown only: also delete `rg-management` and `id-sqlmi-directory`). The design and backlog are in `docs/backlog/B16` to `B23`; the research is in issue #96.
 
 ## Rules
 
 - **Stage order is the event order**: foundation (T-7), then member (T-3), then vending (T-1). Never put vending before member or foundation. Check [facilitator/guide.md](../../facilitator/guide.md) before changing any order.
 - **Every job lives in `platform.yml`.** A reusable workflow (`uses:` a workflow) gets empty environment secrets, so it can't log in. Share steps through composite actions, which take secrets as inputs.
-- **Identifiers are environment secrets, never variables.** Tenant, client, subscription, roster. Only `LOCATION`, `MG_PREFIX`, `PARENT_MG` and `DENIED_MG_PREFIXES` are variables. Logs are public.
+- **Identifiers are environment secrets, never variables.** Tenant, client, subscription, roster. Only `LOCATION`, `MG_PREFIX`, `PARENT_MG`, `DENIED_MG_PREFIXES`, `MEMBER_INDEXES` and `PIPELINE_PROFILE` are variables. Logs are public.
 - **Every job starts with `./.github/actions/platform-session`**: it masks every ID, reads the roster, runs the guard and logs in. Do not log in any other way. Call it again before a step that runs longer than the token lives (a long deployment, Arc).
 - **The guard fails closed** (`scripts/Assert-PipelineGuard.ps1`): subscription allowlist and deny list, and the management-group prefix. Don't weaken it, and keep `test/Assert-PipelineGuard.Tests.ps1` green.
 - **Pass values through `env:`**, never interpolate `${{ }}` into a `run:` script. Use `permissions` with the minimum (`contents: read`, `id-token: write`). No `pull_request_target`.
