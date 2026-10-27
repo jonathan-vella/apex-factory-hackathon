@@ -51,7 +51,7 @@ No pipeline does these. Put an owner and a date on each.
 
 ## Cost
 
-An idle pipeline costs nothing. Runs use hosted runners: a 45-minute member run and a 10-minute foundation run are well inside free minutes on a public repo. A private repo on a free plan has 2,000 minutes a month, so a team of 6 running the member stage once each (about 45 minutes each) uses about 270. Each datacenter bills about $1.55 an hour while it runs and the firewall about $1.30 an hour, as in the [cost estimate](cost-estimate.md).
+An idle pipeline costs nothing. Runs use hosted runners: a 45-minute member run and a foundation run (measured at about 11 minutes on the pipeline; plan 15 to 25) are well inside free minutes on a public repo. A private repo on a free plan has 2,000 minutes a month, so a team of 5 running the member stage once each (about 45 minutes each) uses about 225. Each datacenter bills about $1.55 an hour while it runs and the firewall about $1.30 an hour, as in the [cost estimate](cost-estimate.md).
 
 ## What was tested, and what wasn't
 
@@ -59,7 +59,7 @@ Tested live in a test tenant:
 
 - Member profile from a fresh private repo on a free plan, on a never-used subscription: setup, preflight with provider and feature registration, datacenter, 46 of 46 checks, Arc, the evidence artifact. The identity held Owner on that one subscription only.
 - Lead profile with a sandbox parent management group: `whatif`, `foundation`, the member stage for two members in parallel, and vending for two members in order.
-- Lead profile with **Owner at Tenant Root and no parent group**, in the owner's own tenant, with **three members**: `whatif`, `foundation` (about 11 minutes, twice), three datacenters at once (37 to 44 minutes), vending (62 minutes: each member vended in turn, then all six VMs restarted at once, then the probes in parallel, against 112 minutes when each member was finished before the next started), and `teardown` of three members in parallel then the team (about 45 minutes), then the finalizer. Each cycle ended with the queries showing nothing left.
+- Lead profile with **Owner at Tenant Root and no parent group**, in the owner's own tenant, with **three members**: `whatif`, `foundation` (about 11 minutes, twice, as measured on the pipeline; plan 15 to 25 for an event, as in the guide), three datacenters at once (37 to 44 minutes), vending (62 minutes: each member vended in turn, then all six VMs restarted at once, then the probes in parallel, against 112 minutes when each member was finished before the next started), and `teardown` of three members in parallel then the team (about 45 minutes), then the finalizer. Each cycle ended with the queries showing nothing left.
 - `teardown`: members, then the team including `rg-management`, then the finalizer, in both labs.
 - The guard, with 12 scenarios and no Azure calls.
 

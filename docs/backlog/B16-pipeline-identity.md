@@ -5,7 +5,7 @@
 | Issue      | #124                                                                                                     |
 | Milestone  | P6 Platform automation                                                                                   |
 | Type       | Both                                                                                                     |
-| Depends on | — (post-v1; the v1 kit stays unchanged)                                                                  |
+| Depends on | — (written as post-v1 with the v1 kit unchanged; superseded: B22 later re-sequenced the event) |
 | Unblocks   | B17                                                                                                      |
 | Effort     | 3–5 days elapsed, including the owner's admin steps                                                      |
 | Cost       | Under $1 for the identity and the empty management groups; the permission probe deploys nothing billable |

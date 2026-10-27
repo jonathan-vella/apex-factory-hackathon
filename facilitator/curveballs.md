@@ -4,7 +4,7 @@ The coach controls both exercises. Announce the trigger, give teams only the inf
 
 ## Day 1: a deny policy lands on the existing foundation
 
-**Trigger:** during C2 on Day 1, after the team has walked through the foundation and its core policies (C2 task 3) and the members have run their probes (task 7), and before the first archetype resource is provisioned. The foundation has existed since T-7 and every member has been vended since T-1, so this shows how a new policy lands on a landing zone that is already running.
+**Trigger:** during C2 on Day 1, at 11:25, right after the members' question slot (11:15 to 11:25) and before C4 starts at 11:45. By then the team has walked through the foundation and its core policies (C2 task 3), and the members have run their probes (task 7). It happens before the first archetype resource is provisioned (C5 starts at 13:45). The foundation has existed since T-7 and every member has been vended since T-1, so this shows how a new policy lands on a landing zone that is already running.
 
 **Coach action:** assign the built-in Allowed locations policy with Deny effect at the kit's Corp management group. The golden path uses `swedencentral` or the documented `germanywestcentral` fallback, plus `global` where required, so compliant deployments continue. A shortcut that silently selects another region is denied.
 
@@ -24,7 +24,7 @@ The parameters and scope are examples for the default `mg-factory` prefix. If th
 
 **Evidence and points:** the denial belongs with the C2 policy evidence, which is part of the first C2 row (10 team points). It earns no bonus on its own. The C2 bonus is the negative tests on the C2 page (a container registry with public network access denied, a NIC with a public IP denied, a private endpoint registering in the central DNS zone), under the shared bonus cap.
 
-**Reverse after sign-off:** remove only `curveball-allowed-locations` from the same `mg-factory-corp` scope:
+**Reverse after sign-off:** remove only `curveball-allowed-locations` from the same `mg-factory-corp` scope as soon as the evidence is signed off, and in any case before C5 starts at 13:45 (confirm at the 16:30 check-out that it's gone):
 
 ```powershell
 az policy assignment delete `

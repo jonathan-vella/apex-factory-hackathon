@@ -7,9 +7,9 @@ The cutover mechanism is the one detail worth double-checking: the validated pat
 
 ## Before the team starts
 
-- **Graph grant.** The platform lead and a Privileged Role Administrator ran `Grant-SqlMiDirectoryRead.ps1` at T-7, and the team checked it in C2 task 4. On Day 2 at 08:30 confirm it again: `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf` prints that the permissions are already granted. If it wasn't done, the contained user in task 5 fails with "Server identity does not have Azure Active Directory Readers permission". That is the most likely stuck point for a whole team; get the Privileged Role Administrator to run the script, then retry.
+- **Graph grant.** The platform lead and a Privileged Role Administrator ran `Grant-SqlMiDirectoryRead.ps1` at T-7, and the team checked it in C2 task 4. On Day 2 at 08:30 confirm it again. You don't have `$s.sharedSubscriptionId` (it's in the platform lead's settings), so the platform lead (or the Privileged Role Administrator, signed in as themselves) runs `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf` while you watch: it prints that the permissions are already granted. Whoever runs it needs Reader on the shared services subscription (or on `rg-management`) to read the identity. If the grant wasn't done, the contained user in task 5 fails with "Server identity does not have Azure Active Directory Readers permission". That is the most likely stuck point for a whole team; get the Privileged Role Administrator to run the script, then retry.
 - **Both VMs running.** `vm-app01` must be up (it holds the source), and `vm-dev01` stays running all event.
-- **Link started at 08:30.** The members start the link in C7 tasks 1 and 2 (prepare the source, then start the link), so seeding overlaps the end of C6. The time counts toward C7's 120 minutes.
+- **Link started at 08:30.** The members start the link in C7 tasks 1 and 2 (prepare the source, then start the link), so seeding overlaps the end of C6. Tasks 1 and 2 count toward C7's 120 minutes, but the wait of up to 10 minutes while the link is created overlaps C6 and doesn't count.
 
 ## Maintenance window
 
@@ -19,7 +19,7 @@ At go/no-go agree a short window with each member (the page says so in task 4) a
 2. On `vm-app01`, the site and the `ContosoUniversity` pool show `Stopped` and the session count is 0.
 3. The **Lag** column in the Arc portal shows two dashes.
 
-Only then do they select **Complete cutover**. A write after the last lag reading is lost, because the source stays writable.
+Only then do they select **Cutover** (some portal builds label the button **Complete cutover**; it's the same action). A write after the last lag reading is lost, because the source stays writable.
 
 ## Day 2 curveball
 
@@ -36,13 +36,16 @@ The [curveball](../facilitator/curveballs.md) fails the replica go/no-go for **o
 
 ## Model answer
 
-1. Arc portal > SQL Server on `vm-app01` > **Migration** > **Database migration** > **Migrate data** > **Migrate using real-time replication (online)**; wait for seeding to finish and the status to show **Ready for cutover**.
-2. Validate: row counts per table match source vs. replica; spot-check a few `Students`/`Courses`/`Enrollment` rows.
-3. Go/no-go: stop the app's writes to the source (the source stays technically writable, so this is a procedural stop, not a technical one). Confirm the **Lag** column shows two dashes. Cut over via **Monitor and cutover > Complete cutover** (Learn calls it **Cutover**), ticking the box that confirms traffic is stopped and leaving forced failover unticked (it's for when lag isn't truly zero — ticking it with lag 0 adds risk for no benefit).
-4. After cutover: write the Key Vault secret `ConnectionStrings--DefaultConnection` with a normal managed instance connection string using `Authentication=Active Directory Default`, no user name or password. Create the contained user and grant roles.
-5. Point the web app's container config at the C6 image; restart; confirm the five pages, an upload round-trip, a notification round-trip, and Application Insights telemetry. If a coach gave the member the known-good image (or L5) for this step, record it in the scoreboard: it caps C7 at 10 of 20 member points (see the [lifelines](lifelines.md) and the rubric).
-6. Remove `-T1800 -T9567` from the source SQL Server's startup parameters (SQL Server Configuration Manager > the SQL Server service > Properties > **Startup Parameters**) and restart the SQL Server service (not the VM) to apply.
-7. Fill in the cutover/rollback runbook template with the actual sequence, including anything that needed a retry.
+The steps use the student page's task numbers.
+
+1. Task 1: on `vm-app01`, through Bastion, run `Prepare-MiLinkSource.ps1` until it prints `The source is ready for MI link.`
+2. Task 2: Arc portal > SQL Server on `vm-app01` > **Migration** > **Database migration** > **Migrate data** > **Migrate using real-time replication (online)**; wait for seeding to finish and the status to show **Ready for cutover**.
+3. Task 3: validate: row counts per table match source vs. replica; spot-check a few `Students`/`Courses`/`Enrollment` rows.
+4. Task 4: go/no-go: stop the app's writes to the source (the source stays technically writable, so this is a procedural stop, not a technical one). Confirm the **Lag** column shows two dashes. Cut over via **Monitor and cutover > Cutover** (some portal builds label it **Complete cutover**), ticking the box that confirms traffic is stopped and leaving forced failover unticked (it's for when lag isn't truly zero — ticking it with lag 0 adds risk for no benefit).
+5. Task 5: after cutover, write the Key Vault secret `ConnectionStrings--DefaultConnection` with a normal managed instance connection string using `Authentication=Active Directory Default`, no user name or password. Create the contained user and grant roles.
+6. Task 6: point the web app's container config at the C6 image; restart; confirm the five pages, an upload round-trip, a notification round-trip, and Application Insights telemetry. If a coach gave the member the known-good image (or L5) for this step, record it in the scoreboard: it caps C7 at 10 of 20 member points (see the [lifelines](lifelines.md) and the rubric).
+7. Task 7: remove `-T1800 -T9567` from the source SQL Server's startup parameters (SQL Server Configuration Manager > the SQL Server service > Properties > **Startup Parameters**) and restart the SQL Server service (not the VM) to apply.
+8. Task 8: fill in the cutover/rollback runbook template with the actual sequence, including anything that needed a retry.
 
 ## Common mistakes
 

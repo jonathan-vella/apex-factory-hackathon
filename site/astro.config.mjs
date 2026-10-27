@@ -92,8 +92,7 @@ export default defineConfig({
           items: [
             { label: "Overview", link: "/coach/" },
             { label: "Automation map", link: "/coach/automation-map/" },
-            { label: "Run of show", link: "/coach/run-of-show/" },
-            { label: "Lifelines", link: "/coach/lifelines/" },
+            { label: "Two-day agenda", link: "/coach/run-of-show/" },
             { label: "C0: Ready to hack", link: "/coach/c00/" },
             { label: "C1: Define the opportunity", link: "/coach/c01/" },
             { label: "C2: Secure, AI-ready foundation", link: "/coach/c02/" },

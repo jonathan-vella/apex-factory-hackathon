@@ -1,6 +1,6 @@
 ---
 title: Event overview
-description: The two-day agenda, the pre-work timeline (T-14 to T-1) and the readiness gates.
+description: The pre-work timeline (T-14 to T-1), the readiness gates and what happens each day. The agenda with times is on the About page.
 sidebar:
   order: 4
 ---
@@ -20,7 +20,7 @@ T-14 and T-3 are the gates for members. Missing either puts a member's start on 
 
 ## Day one
 
-Everyone starts at 09:00 with [C1: Define the opportunity](../../challenges/c01-define-the-opportunity/), the platform lead included; C1 needs no Azure access. After a coach's live portal demo of an Azure landing zone, [C2: Secure, AI-ready foundation](../../challenges/c02-secure-ai-ready-foundation/) verifies and explains the foundation that already exists: the platform lead walks the team through ALZ-lite, the Graph read grant for the SQL MI identity and vending, the coach asks about the policies, and each member checks their own exemptions and connectivity. Members assess the source in [C3: Assess the source](../../challenges/c03-assess-the-source/) in parallel. [C4: Choose target states](../../challenges/c04-choose-target-states/) and [C5: Deploy the CoE archetype with APEX](../../challenges/c05-deploy-the-coe-archetype/) (after a coach's APEX demo) follow. [C6: Modernize with GHCP](../../challenges/c06-modernize-with-ghcp/) starts on day one and spans into day two. The [agenda](../../about/#agenda) has the times.
+Everyone starts at 09:00 with [C1: Define the opportunity](../../challenges/c01-define-the-opportunity/), the platform lead included; C1 needs no Azure access. After a coach's live portal demo of an Azure landing zone, [C2: Secure, AI-ready foundation](../../challenges/c02-secure-ai-ready-foundation/) verifies and explains the foundation that already exists: the platform lead walks the team through ALZ-lite, the Graph read grant for the SQL MI identity and vending, the coach asks about the policies, and each member checks their own exemptions and connectivity. Members assess the source in [C3: Assess the source](../../challenges/c03-assess-the-source/) in parallel. [C4: Choose target states](../../challenges/c04-choose-target-states/) and [C5: Deploy the CoE archetype with APEX](../../challenges/c05-deploy-the-coe-archetype/) (after a coach's APEX demo) follow. [C6: Modernize with GHCP](../../challenges/c06-modernize-with-ghcp/) starts on day one and spans into day two. The [agenda](../../about/#agenda) on the About page has the times.
 
 ## Day two
 

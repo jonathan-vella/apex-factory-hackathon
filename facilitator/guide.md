@@ -35,6 +35,10 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - Book a Privileged Role Administrator (or Global Administrator) for each team for T-7, right after the platform lead deploys ALZ-lite. They run `scripts/Grant-SqlMiDirectoryRead.ps1` once per team (see `infra/foundation/README.md`, "Event prep: SQL MI directory identity"). It can't happen earlier, because ALZ-lite creates `id-sqlmi-directory`, and it must be done before C7. The grant is tenant-wide and read-only, and members can attach the identity to other resources during the event, so the tenant owner approves it first and names who deletes the identity afterwards (see [Accepted lab risks and adopter obligations](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/README.md#accepted-lab-risks-and-adopter-obligations)).
 - Decide the SQL MI start/stop schedule. It runs Monday to Friday, 07:30 to 18:30, `W. Europe Standard Time`, and applies only after cutover removes the link. For another time zone or for event days outside that window, set `sqlMiScheduleTimeZoneId`, `sqlMiScheduleStartTime`, `sqlMiScheduleStopTime` or `sqlMiScheduleDays` (day names such as `'Monday'`) before attendees deploy. `archetype/infra/bicep/university/main.bicepparam` doesn't set them today, so they take the defaults in `main.bicep`: either change those defaults, or add for example `param sqlMiScheduleStartTime = '08:00'` to the `.bicepparam` file. Attendees import that folder with `Import-Archetype.ps1`, so make the change in your event copy and have them import from it (see "Pointing the scripts at an event copy" below). If they import from upstream, they get the upstream schedule, and each attendee has to make the same change in their own `infra/bicep/university` before `azd provision`. Tell coaches that after cutover the MI can be stopped outside that window.
 - Decide who owns the APEX demo subscription and its cleanup (see the [APEX demo](apex-demo.md)).
+- Get the tenant owner's approval for the Owner-at-Tenant-Root pipeline identity (the platform lead's pipeline holds Owner at Tenant Root while it exists). Name the person who runs `scripts/Remove-PlatformPipeline.ps1` after the teardown stage, and the date (see [platform pipeline](platform-pipeline.md), "Accepted risk").
+- Use a dedicated non-production tenant and dedicated, empty subscriptions. ALZ-lite and vending turn off paid Defender for Cloud plans subscription-wide, so don't point them at subscriptions that hold other workloads.
+- Book the Privileged Role Administrator for T-7 with Reader on `rg-management` (or on the shared services subscription), so they can read the identity, and with PowerShell 7 and the Azure CLI installed. Name a backup person.
+- If a member is swapped or added after T-14, also re-run `Initialize-PlatformPipeline.ps1 -RosterPath <roster file>` in the platform lead's repo: the pipeline reads its members only from the roster secret it stores.
 - Tell attendees that certifications follow the event: infra roles hold AZ-104, GH-300 and DP-300 within six months after it, and no exam is a gate for attending (see the [learning path](../site/src/content/docs/guides/learning-path.md)).
 
 ### T-14: event owner, platform lead and members
@@ -55,10 +59,10 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 ### T-3: members
 
-- Each member, platform lead included, does C0 in their own repo, from the terminal or with the optional member pipeline profile: run the preflight, deploy the datacenter with Azure Hybrid Benefit on by default, confirm the legacy app with `scripts/Test-Datacenter.ps1` while both VMs are running, then onboard `vm-app01` to Arc with `scripts/Connect-DatacenterArc.ps1`, then run the first Arc SQL migration assessment in the portal and set up `vm-dev01`. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks, so the test goes before Arc.
+- Each member, platform lead included, does C0 in their own repo, with the member pipeline profile (preferred) or from the terminal: run the preflight, deploy the datacenter with Azure Hybrid Benefit on by default, confirm the legacy app with `scripts/Test-Datacenter.ps1` while both VMs are running, then onboard `vm-app01` to Arc with `scripts/Connect-DatacenterArc.ps1`, then run the first Arc SQL migration assessment in the portal and set up `vm-dev01`. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks, so the test goes before Arc.
 - Have a coach review every member's C0 output (see the [C0 answer key](../coach/c00-ready-to-hack.md)). A member who isn't ready at the kickoff roster lock stays on the roster with partial C0 credit unless the event owner swaps or drops them first.
 - Keep the datacenter ready for the event. Idle VMs can be stopped before the event (Bastion Standard, disks and networking still incur charges), but start both before the T-1 vending, which restarts them and runs probes inside them. During the event, never stop `vm-dev01`: it's each member's workstation.
-- A `vm-dev01` deployed before the sparse-checkout change still has the full kit clone, with `coach/` and `facilitator/` in it. Apply the "Slim an existing clone" block in `infra/datacenter/README.md` on that VM with the member. `Test-Datacenter.ps1` reports the full clone as a failed check until you do.
+- A `vm-dev01` deployed before the sparse-checkout change still has the full kit clone, with `coach/`, `facilitator/`, `docs/`, `site/` and `test/` in it, and the documentation and lint tooling at the repo root. Apply the "Slim an existing clone" block in `infra/datacenter/README.md` on that VM with the member. `Test-Datacenter.ps1` reports the full clone as a failed check until you do.
 - Check the private-network path and the exact region and naming values before the event. No availability zones are pinned or enabled.
 
 ### T-1: platform lead
@@ -72,16 +76,25 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 - Lock the roster at kickoff, after the T-3 review and the T-1 vending, and before scoring begins. Explain the evidence handoff. Don't announce lifelines: coaches decide when to use them.
 - Follow the [two-day agenda](agenda.md). The foundation and MI work deliberately overlap other challenges. Time boxes are pacing: coaches flex on the day, and the minutes and points don't change.
-- Staff at most one coach for every six attendees.
+- Staff at least one coach for every six attendees.
 - Day 1 starts at C1 for everyone at 09:00: the foundation already exists, so nobody deploys anything. C2 verifies and explains it. On Day 2 at 08:30, check both VMs are running and the Graph grant is done (`Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints "already granted"), then the members start the MI link.
 - Record every score and bonus in the [scoreboard](scoreboard.md); do not change the base contract. Teams with the same team score share the rank. Each team's bonus is capped at 30 points and awarded in the order the bonuses appear in the [rubric](scoring-rubric.md) until the team reaches the cap.
 - Give the [curveballs](curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link spike](../docs/spikes/B07-arc-mi-link/README.md) abort path for the Day 2 curveball. The staged Day 2 abort is part of the event and earns no bonus.
 
 ### T+2: event owner and platform lead
 
-- Collect the evidence and owner follow-ups, then run the cleanup steps in [cleanup.md](cleanup.md), starting with its "Before you delete anything" checklist. Clean each member scope before the shared team scope.
-- Confirm that the named kit resource groups and subscription-level artifacts are gone. The team cleanup intentionally preserves `rg-management`, `id-sqlmi-directory` and its Graph grant; the cleanup page says how to remove them.
+- Collect the evidence and owner follow-ups, then run the cleanup steps in [cleanup.md](cleanup.md), starting with its "Before you delete anything" checklist. Clean each member scope before the shared team scope. Members who are absent or haven't cleaned up by the owner's deadline are cleaned by the platform lead (see cleanup.md).
+- If the team used the pipeline, a named admin runs `scripts/Remove-PlatformPipeline.ps1` right after the `teardown` stage, on the date agreed at T-30: the lead profile in the platform lead's repo, and `-Profile Member` in each member's repo. The workflow never removes its own identity or roles.
+- Confirm that the named kit resource groups and subscription-level artifacts are gone. The team cleanup preserves `rg-management`, `id-sqlmi-directory` and its Graph grant by default (`-IncludeManagementResources` removes them). The event owner decides: delete them unless the tenant is reused for another event (see the cleanup page).
+- Remove access that was only needed for the event: the platform lead's Owner at Tenant Root, any Global Administrator elevation used to give it, and the Privileged Role Administrator's activation or Reader grant.
 - Record costs and unresolved follow-ups for the event report.
+
+### Verify after cleanup
+
+- `rg-datacenter`, `rg-spoke` and `rg-university-<suffix>` are gone in every member subscription, and the shared `rg-hub` is gone.
+- If the team used the pipeline: `rg-cicd`, the `id-factory-pipeline` identity and its role assignments are gone (in the shared services subscription for the lead profile, and in each member's workload subscription), and the `gh-lab` environment and the `ROSTER_JSON` secret are gone from the repo.
+- `id-sqlmi-directory` and its Graph grant are gone, unless the tenant is reused.
+- The elevated access in the list above has been removed.
 
 ## Room and tenant logistics
 
@@ -105,7 +118,7 @@ An event copy of this repository doesn't change what attendees run by default. `
 
 ## Lifeline handout and scoring
 
-Lifelines are coach-only. Students do not fetch branches or copy checkpoints themselves. Give a lifeline when a member has tried the documented hot-spot fixes and is blocked with the time box at risk; choose the earliest checkpoint that unblocks them. Save the member's work, fetch and apply the branch with them, and confirm the member can continue from the next task. The [lifeline index](../coach/lifelines.md) has the exact fetch steps. The clone on `vm-dev01` leaves out `coach/`, `facilitator/`, `docs/` and `site/` on newly deployed VMs, so members can't browse the answer keys there. Lifeline branches still work: they are fetched from `origin` and exist as git branches regardless of the sparse checkout.
+Lifelines are coach-only. Students do not fetch branches or copy checkpoints themselves. Give a lifeline when a member has tried the documented hot-spot fixes and is blocked with the time box at risk; choose the earliest checkpoint that unblocks them. Save the member's work, fetch and apply the branch with them, and confirm the member can continue from the next task. The [lifeline index](../coach/lifelines.md) has the exact fetch steps. The clone on `vm-dev01` leaves out `coach/`, `facilitator/`, `docs/`, `site/` and `test/` (and the documentation and lint tooling at the repo root: see `infra/datacenter/README.md`) on newly deployed VMs, so members can't browse the answer keys there. Lifeline branches still work: they are fetched from `origin` and exist as git branches regardless of the sparse checkout.
 
 Record the branch or image used in the member's scoreboard row. Apply the challenge-specific cap in the rubric; later challenges remain fully eligible. Do not cap a challenge merely because the member asked for help or used ordinary hints.
 

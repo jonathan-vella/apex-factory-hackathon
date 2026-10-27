@@ -21,32 +21,32 @@ Issue number N is item BNN: B00 creates issues #1–#13 in order, before any PR 
 
 | ID | Title | Milestone | Type | Depends on | Status |
 |---|---|---|---|---|---|
-| [B00](B00-create-repo.md) | Create the repo, milestones and issues | P1 | Both | — | Ready |
-| [B01](B01-scaffold-site.md) | Scaffold the repo tooling and the site | P1 | Both | B00 | Ready |
-| [B02](B02-build-sub-preflight.md) | Prepare the build subscriptions and write the preflight script | P1 | Agent | B00 | Ready |
-| [B03](B03-import-app.md) | Import Contoso University and publish the legacy package | P1 | Both | B01 | Ready |
-| [B04](B04-datacenter.md) | Build the datacenter kit | P1 | Both | B02, B03 | Ready |
-| [B05](B05-db-perf-kit.md) | Build the DB perf kit | P1 | Both | B04 | Ready |
-| [B06](B06-spike-ghcp.md) | Spike: GHCP golden path on the dev VM | P2 | Both | B04 | Ready |
-| [B07](B07-spike-arc-mi-link.md) | Spike: Arc onboarding and MI link migration | P2 | Both | B05, B06 | Ready |
-| [B08](B08-foundation.md) | Build the foundation: ALZ-lite, vending, probes and exemptions | P3 | Both | B02, B07 | Ready |
-| [B09](B09-archetype.md) | Build the CoE archetype with APEX | P3 | Both | B06, B07, B08 | Ready |
-| [B10](B10-playbook-lifelines.md) | Build the modernization playbook, skills and lifelines | P3 | Both | B06, B09 | Ready |
-| [B11](B11-challenge-content.md) | Write the challenges, module contracts and templates | P4 | Agent | B07, B08, B09, B10 | Ready |
-| [B12](B12-facilitator-kit.md) | Build the facilitator kit | P4 | Both | B11 | Ready |
-| [B13](B13-dry-run-v1.md) | Dry run, tune and release v1.0 | P5 | Both | B12 | Ready |
-| [B14](B14-archetype-adopt.md) | Build the archetype adoption agent (not needed for v1) | P3 | Both | B09 | Ready |
-| [B15](B15-learning-path.md) | Publish the partner learning path | P4 | Agent | B11 | Ready |
-| [B16](B16-pipeline-identity.md) | Spike: pipeline identity, privilege model and identity-safe scripts | P6 | Both | — | Ready |
-| [B17](B17-pipeline-onboarding.md) | Build the entry workflow, guard, onboarding and the what-if and foundation stages | P6 | Both | B16 | Ready |
-| [B18](B18-pipeline-member-vending.md) | Build the member and vending stages | P6 | Both | B17 | Ready |
-| [B19](B19-pipeline-teardown.md) | Build the teardown stage and the identity finalizer | P6 | Both | B18 | Ready |
-| [B20](B20-pipeline-docs-onboarding-test.md) | Write the student and coach docs and run the fresh-repo onboarding test | P6 | Both | B19 | Ready |
-| [B21](B21-pipeline-member-profile.md) | Build the member profile: a pipeline in each member's own repo for C0 | P6 | Both | B18 | Ready |
-| [B22](B22-event-resequence.md) | Re-sequence the event: the platform lead deploys ALZ-lite and vending before the event | P6 | Both | B18 | Ready |
-| [B23](B23-preflight-public-ip-feature.md) | Preflight checks the public IP feature on new subscriptions | P6 | Agent | — | Ready |
+| [B00](B00-create-repo.md) | Create the repo, milestones and issues | P1 | Both | — | Done |
+| [B01](B01-scaffold-site.md) | Scaffold the repo tooling and the site | P1 | Both | B00 | Done |
+| [B02](B02-build-sub-preflight.md) | Prepare the build subscriptions and write the preflight script | P1 | Agent | B00 | Done |
+| [B03](B03-import-app.md) | Import Contoso University and publish the legacy package | P1 | Both | B01 | Done |
+| [B04](B04-datacenter.md) | Build the datacenter kit | P1 | Both | B02, B03 | Done |
+| [B05](B05-db-perf-kit.md) | Build the DB perf kit | P1 | Both | B04 | Done |
+| [B06](B06-spike-ghcp.md) | Spike: GHCP golden path on the dev VM | P2 | Both | B04 | Done |
+| [B07](B07-spike-arc-mi-link.md) | Spike: Arc onboarding and MI link migration | P2 | Both | B05, B06 | Done |
+| [B08](B08-foundation.md) | Build the foundation: ALZ-lite, vending, probes and exemptions | P3 | Both | B02, B07 | Done |
+| [B09](B09-archetype.md) | Build the CoE archetype with APEX | P3 | Both | B06, B07, B08 | Done |
+| [B10](B10-playbook-lifelines.md) | Build the modernization playbook, skills and lifelines | P3 | Both | B06, B09 | Done |
+| [B11](B11-challenge-content.md) | Write the challenges, module contracts and templates | P4 | Agent | B07, B08, B09, B10 | Done |
+| [B12](B12-facilitator-kit.md) | Build the facilitator kit | P4 | Both | B11 | Done |
+| [B13](B13-dry-run-v1.md) | Dry run, tune and release v1.0 | P5 | Both | B12 | Not planned |
+| [B14](B14-archetype-adopt.md) | Build the archetype adoption agent (not needed for v1) | P3 | Both | B09 | Done |
+| [B15](B15-learning-path.md) | Publish the partner learning path | P4 | Agent | B11 | Done |
+| [B16](B16-pipeline-identity.md) | Spike: pipeline identity, privilege model and identity-safe scripts | P6 | Both | — | Done |
+| [B17](B17-pipeline-onboarding.md) | Build the entry workflow, guard, onboarding and the what-if and foundation stages | P6 | Both | B16 | Done |
+| [B18](B18-pipeline-member-vending.md) | Build the member and vending stages | P6 | Both | B17 | Done |
+| [B19](B19-pipeline-teardown.md) | Build the teardown stage and the identity finalizer | P6 | Both | B18 | Done |
+| [B20](B20-pipeline-docs-onboarding-test.md) | Write the student and coach docs and run the fresh-repo onboarding test | P6 | Both | B19 | Done |
+| [B21](B21-pipeline-member-profile.md) | Build the member profile: a pipeline in each member's own repo for C0 | P6 | Both | B18 | Done |
+| [B22](B22-event-resequence.md) | Re-sequence the event: the platform lead deploys ALZ-lite and vending before the event | P6 | Both | B18 | Done |
+| [B23](B23-preflight-public-ip-feature.md) | Preflight checks the public IP feature on new subscriptions | P6 | Agent | — | Done |
 
-**Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps. **Status** is "Ready" when the spec is written; it isn't updated afterwards. Check the item's issue for its current state.
+**Type:** *Agent* items need the owner only for approvals and the merge. *Both* items also have 🧑 HUMAN steps. **Status** mirrors the item's issue: "Done" when it's closed as completed, "Not planned" when it's closed as not planned (B13, the full dry run). Update it when an item's issue closes.
 
 ```mermaid
 flowchart LR
@@ -95,8 +95,8 @@ apex-factory-hackathon/
 ├── templates/              Attendee and team templates (B11)
 ├── facilitator/            Facilitator guide, scoring rubric (SSOT), curveballs, costs (B12)
 ├── coach/                  Answer keys, lifeline index, golden-path notes (B05, B10)
-├── test/                   Node tests for the site scripts
-└── .github/                Workflows, plus the modernization instructions, skills and playbook (B10)
+├── test/                   Node tests for the site scripts and PowerShell tests for the scripts (all run without Azure)
+└── .github/                Workflows, composite actions (`actions/`), plus the modernization instructions, skills and playbook (B10)
 ```
 
 Coach material is public, on the honor system. Lifelines are branches named `lifeline/*` in this repo (B10).

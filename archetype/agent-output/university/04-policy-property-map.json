@@ -130,7 +130,7 @@
       "rationale": "Not applicable: no classic resource types."
     },
     {
-      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/a15944e7-86a5-4adf-a36c-d851916c9001",
+      "policy_id": "/providers/Microsoft.Management/managementGroups/REDACTED-TENANT-ROOT-MG-ID/providers/Microsoft.Authorization/policyDefinitions/<custom-policy-guid>",
       "display_name": "Block Azure RM Resource Creation (Tenant Root Group; classic types)",
       "effect": "Deny",
       "target_property": {

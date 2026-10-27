@@ -9,7 +9,7 @@ Azure Hybrid Benefit (AHB) lets you use a Windows Server or SQL Server license y
 
 ## The rule
 
-**If you don't hold eligible licenses:** deploy `vm-app01` with `-NoHybridBenefit` in C0 (and run `Test-Datacenter.ps1` with `-NoHybridBenefit` too), tell your coach, and ask your coach what to do for the SQL Managed Instance in C5. `-NoHybridBenefit` covers `vm-app01` only.
+**If you don't hold eligible licenses:** deploy `vm-app01` with `-NoHybridBenefit` in C0 (and run `Test-Datacenter.ps1` with `-NoHybridBenefit` too), tell your coach, and ask your coach what to do for the SQL Managed Instance in C5. `-NoHybridBenefit` covers `vm-app01` only. The GitHub Actions stages can't pass this flag, so use the [scripts path](../../guides/deploy-with-scripts/#member) for the datacenter.
 
 If you do hold eligible licenses, leave AHB on.
 

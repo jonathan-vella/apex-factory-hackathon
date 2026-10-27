@@ -373,7 +373,7 @@ These are discovered Modify assignments. Modify applies in the create or update 
 
 ### Block Azure RM Resource Creation
 
-- **Policy ID**: `a15944e7-86a5-4adf-a36c-d851916c9001` (custom definition at Tenant Root Group)
+- **Policy ID**: `<custom-policy-guid>` (custom definition at Tenant Root Group)
 - **Effect**: deny
 - **Scope**: Tenant Root Group
 - **Category**: Uncategorized

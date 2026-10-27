@@ -8,7 +8,7 @@ C8 is a fixed checklist, so grading is mostly about completeness and evidence qu
 ## Expected evidence
 
 - Smoke checks: all five pages (home, Students, Courses, Instructors, Departments) load with migrated data, and the row counts on the source and on the managed instance match.
-- Upload round-trip: an image uploaded on **Courses > Edit** shows on the course and lands in `teaching-materials` (checked with `az storage blob list` on `vm-dev01`: the storage account is private-only); replace and delete both work; a non-image and a file over 5 MB are both rejected with a clear error, not a 500.
+- Upload round-trip: an image uploaded on **Courses > Edit** shows on the course and lands in `teaching-materials` (checked with `az storage blob list` on `vm-dev01`: the storage account is private-only); replacing the image on **Courses > Edit** changes the blob, and deleting the throwaway course (**Courses > Delete**) removes its blob (the app has no separate delete-image control, and a seeded course is never deleted); a non-image and a file over 5 MB are both rejected with a clear error, not a 500.
 - Notification round-trip: a toast within 5 seconds of a student edit, and `/Notifications/GetNotifications` returning success.
 - A light load check (10–20 concurrent page loads) with no errors.
 - Security check: `scripts/Test-Acceptance.ps1` output (or `acceptance.json`) ending in `ACCEPT`: the five pages and the HTTP-to-HTTPS redirect, web app HTTPS-only with TLS 1.2 minimum, and public network access off with an approved private endpoint on Storage, Service Bus, Key Vault and ACR, plus SQL MI's public data endpoint off.

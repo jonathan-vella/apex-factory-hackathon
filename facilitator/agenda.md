@@ -20,7 +20,7 @@ The challenge minutes are effort targets, not a serial schedule. The platform fo
 | 08:30–09:00 | Welcome, roles, roster lock and evidence walkthrough | Kickoff / event owner | The roster locks here, after the T-3 review and the T-1 vending. The member average uses this roster |
 | 09:00–09:45 | Define the opportunity | C1 / teams | Everyone starts here, platform lead included. C1 needs no Azure access |
 | 09:45–10:15 | Live portal ALZ demo | C2 task 2 / coach | Everyone watches. The demo is part of C2's 120 minutes |
-| 10:15–11:45 | Verify and explain the foundation | C2 / platform lead and teams | The platform lead walks the team through ALZ-lite, the Graph grant and vending (C2 tasks 3 to 5), and the coach asks about the core policies. Each member checks their exemptions and re-runs the probes (tasks 6 and 7, about 15 minutes) at a clean point in C3 |
+| 10:15–11:45 | Verify and explain the foundation | C2 / platform lead and teams | The platform lead walks the team through ALZ-lite, the Graph grant and vending (C2 tasks 3 to 5), and the coach asks about the core policies (the members' questions go in a 10 minute slot at 11:15, when C3 ends). Each member checks their exemptions and re-runs the probes (tasks 6 and 7, about 15 minutes) at a clean point in C3 |
 | 10:15–11:15 | Assess the source | C3 / members | Members work while the platform lead leads the C2 walk-through. The platform lead's own C3 follows it and overlaps C4 |
 | 11:45–12:30 | Choose target states | C4 / teams and members | Complete the ADRs and deferred-work register |
 | 12:30–13:15 | Lunch break | — | — |
@@ -28,13 +28,13 @@ The challenge minutes are effort targets, not a serial schedule. The platform fo
 | 13:45–14:45 | Deploy the CoE archetype | C5 / members | Adapt, preview, provision and document the deployed state |
 | 14:45–16:15 | Modernize with GHCP, part 1 | C6 / members | MI provisioning starts in the background; do not deploy the app to App Service yet |
 | 16:15–16:30 | Break | — | — |
-| 16:30–16:45 | Day 1 check-out and evidence capture | Event owner, coaches | Day 1 deny-policy curveball is scheduled in C2, after the policy walk-through; remove it after its evidence is signed off. Leave both VMs running |
+| 16:30–16:45 | Day 1 check-out and evidence capture | Event owner, coaches | The Day 1 deny-policy curveball runs in C2 at 11:25 and comes off after its evidence is signed off, before C5 starts at 13:45: confirm it's gone. Leave both VMs running |
 
 ## Day 2
 
 | Time | Activity | Challenge / owner | Notes |
 |---|---|---|---|
-| 08:30–09:00 | Reconnect, check both VMs are running and the Graph grant is done, then start the MI link | Platform lead, members | The link is C7 tasks 1 and 2 (prepare the source, then start the link), started early so seeding overlaps the end of C6. The time counts toward C7's 120 minutes |
+| 08:30–09:00 | Reconnect, check both VMs are running and the Graph grant is done, then start the MI link | Platform lead, members | The link is C7 tasks 1 and 2 (prepare the source, then start the link), started early so seeding overlaps the end of C6. Tasks 1 and 2 count toward C7's 120 minutes, but the wait of up to 10 minutes while the link is created overlaps C6 and doesn't count |
 | 09:00–10:30 | Modernize with GHCP, part 2 | C6 / members | Complete the 180-minute total across both days |
 | 10:30–12:30 | Migrate and go live | C7 / members | Validate the read-only replica, go/no-go, cutover and app checks; trigger the abort curveball at go/no-go |
 | 12:30–13:15 | Lunch break | — | — |

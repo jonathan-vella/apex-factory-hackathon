@@ -33,7 +33,7 @@ Three kinds of numbers appear here. **Task 1 to 5** are this page's tasks. **Age
 
 Locally, the app uses the `contosoapp` SQL login against the source database on `vm-app01`. It's the lab-only login the datacenter creates, with a documented lab password (the playbook's user-secrets command already has it). It's reachable only from inside the private network, and the app accepts it only in `Development`: outside `Development` the app refuses a user name or password. User secrets are per-user settings that `dotnet user-secrets` stores outside the repo, so nothing is committed.
 
-C6 changes Azure only by pushing the image (task 4): the archetype gives your sign-in Monitoring Metrics Publisher on Application Insights when you deploy it. If you deployed it before 2026-10-20, grant that role once yourself (the playbook's Step 2 check for agent task 06 has the command).
+C6 changes Azure only by pushing the image (task 4): the archetype gives your sign-in Monitoring Metrics Publisher on Application Insights when you deploy it. If the role is missing on your deployment, grant it once yourself (the playbook's Step 2 check for agent task 06 has the command).
 
 ## Your tasks
 

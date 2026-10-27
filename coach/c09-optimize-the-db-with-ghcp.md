@@ -11,7 +11,7 @@ Attendees measure three times, not six: a baseline, a checkpoint after P5, P1, P
 
 ## Set up
 
-1. Put the issues back and clear Query Store: `./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>`. See the [perf kit README](../db/perf-kit/README.md#reset).
+1. Demo-only: put the issues back and clear Query Store with `./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>`. Run it for your own rehearsal or demo, not as a member's first step: the student page says not to run it in C9 unless they start over, because it clears Query Store and wipes their baseline. See the [perf kit README](../db/perf-kit/README.md#reset).
 2. Run the workload: `./db/perf-kit/Start-Workload.ps1 -MemberIndex <n>`. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive` (on `vm-dev01`, `ActiveDirectoryInteractive` signs in as you with a browser prompt).
 3. In SSMS, open **ContosoUniversity > Query Store > Top Resource Consuming Queries**. Look at **Duration** and then **CPU Time**, with the **Total** statistic, over the last hour.
 

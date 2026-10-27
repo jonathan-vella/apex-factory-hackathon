@@ -36,7 +36,7 @@ $s = Get-Content .local/settings.json | ConvertFrom-Json
 
 `$s` holds your settings: `$s.tenantId`, `$s.subscriptionId`, `$s.memberIndex` and `$s.suffix`. If you aren't sure you're in the dev container, run `uname`: it prints `Linux` there, and the skill needs that.
 
-The `/apex-adapt-archetype` skill runs from the repo root (not `factory/`). `azd` is the Azure Developer CLI, already installed in the dev container: it deploys the Bicep template in `infra/bicep/university/` (`azure.yaml` is in that folder). Every other command here runs from `factory/`. If `az account show` fails, run `az login --use-device-code`.
+The `/apex-adapt-archetype` skill runs from the repo root (not `factory/`). `azd` is the Azure Developer CLI, already installed in the dev container: it deploys the Bicep template in `infra/bicep/university/` at the repo root (`azure.yaml` is in that folder). Every other command here runs from `factory/`, except task 4's `azd provision`, which runs from `infra/bicep/university/`. If `az account show` fails, run `az login --use-device-code`.
 
 When the skill runs its commands, Copilot opens a terminal in VS Code's **Terminal** panel (use the dropdown there to find it). `azd provision` must run in a PowerShell terminal where `./scripts/preflight.ps1` has just run, because preflight sets the values the deployment needs for that terminal only. Task 4 says how to get one if you closed the skill's terminal.
 
@@ -56,7 +56,7 @@ The highlighted parts are what C5 adds to the spoke that vending created at T-1:
    2. Open Copilot Chat, set the mode to **Agent** (the built-in one, not `01-Orchestrator`) and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` (the `$s.tenantId`, `$s.subscriptionId` and `$s.suffix` values from your terminal) and asks you to confirm them. It checks that a spoke is already vended, runs a lightweight live governance check and creates an `azd` environment named after your suffix (that's expected). Then it stops at `azd provision --preview`.
 
    Done when the skill shows the preview: its output ends with a list of the resources `azd` would create, and no error.
-4. Review the preview, then deploy for real. In the terminal where the skill ran, run `azd provision` from `infra/bicep/university/`. If you can't find that terminal, open a new one in the dev container (type `pwsh` if it's a bash prompt) and run these lines (`./scripts/preflight.ps1` only reads Azure):
+4. Review the preview, then deploy for real. In the terminal where the skill ran, run `azd provision` from `infra/bicep/university/` (it's at the repo root, not under `factory/`). If you can't find that terminal, open a new one in the dev container (type `pwsh` if it's a bash prompt), go to the repo root (`cd ..` if you're in `factory/`) and run these lines (`./scripts/preflight.ps1` only reads Azure):
 
    ```powershell
    cd infra/bicep/university
@@ -78,7 +78,7 @@ The highlighted parts are what C5 adds to the spoke that vending created at T-1:
    az role assignment list --assignee $id --all -o table
    ```
 
-   Done when there are no public endpoints other than the web app's front end and Application Insights ingestion (the four `publicNetworkAccess` values are `Disabled`), every resource name follows the convention in the [naming and IP plan](../../reference/naming-and-ip-plan/), and the web app's managed identity (`id-university-<suffix>`) holds five roles: AcrPull, Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, Key Vault Secrets User and Monitoring Metrics Publisher.
+   Done when there are no public endpoints other than the web app's front end and Application Insights ingestion (the four `publicNetworkAccess` values are `Disabled`), every resource name follows the convention in the [naming and IP plan](../../reference/naming-and-ip-plan/), and the web app's managed identity (`id-university-<suffix>`) holds six roles: AcrPull, Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, Key Vault Secrets User and Monitoring Metrics Publisher.
 
 ## Evidence
 

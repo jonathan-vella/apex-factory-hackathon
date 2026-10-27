@@ -13,7 +13,7 @@ What the kit automates, what people still do, and where attendees tend to stall.
 
 | Phase | Script | Agent | Person | Checked live |
 |---|---|---|---|---|
-| Pre-reqs | `Import-Kit.ps1`, `Initialize-Settings.ps1`, `Test-Preflight.ps1` | none | Create the repo from the template, open the dev container, sign in (`az`, `azd`, `gh`), coach assigns the member index | Yes |
+| Pre-reqs | `Import-Kit.ps1`, `Initialize-Settings.ps1`, `Test-Preflight.ps1` | none | Create the repo from the template, open the dev container, sign in (`az`, `azd`, `gh`); the event owner assigns the member index and the coach relays it | Yes |
 | C0 | `Deploy-Datacenter.ps1`, `Test-Datacenter.ps1` (46 checks), `Connect-DatacenterArc.ps1` | none | Run them in order, at T-3, in the member's own repo: **the test goes before Arc**, because run commands stop working after Arc. Run the first Arc assessment in the portal. Set up `vm-dev01`. A coach reviews every member's output before vending | Yes |
 | C1 | One `cp` creates the evidence folders | none | The team writes the canvas on one screen. Every member commits a copy | Pages only |
 | C2 | `Deploy-AlzLite.ps1` (T-7), `Deploy-Vending.ps1`, `New-DatacenterExemptions.ps1` and `Test-Connectivity.ps1` (T-1, and the probes again on Day 1) | none | The platform lead deploys ALZ-lite at T-7 and vends every member, one after another, at T-1. **A Privileged Role Administrator grants the SQL MI identity its Graph read at T-7, once per team.** On Day 1 the team verifies and explains it, and the coach asks the policy questions | Yes (the scripts). The new event order hasn't been rehearsed |
@@ -25,7 +25,7 @@ What the kit automates, what people still do, and where attendees tend to stall.
 | C8 | `Test-Acceptance.ps1` (security checker) | none | Smoke, upload and notification checks in the browser. Light load run. Record the results | Partly: the front-end checks passed in B10 |
 | C9 | `Start-Workload.ps1`, `Reset-PerfKit.ps1` | Fix suggestions | Read Query Store, fix the five planted issues, record before and after | Data and workload: yes. The fixes on a real MI: not yet (B13) |
 | C10 | none | none | Package one asset, complete the acceptance and AI-readiness documents, prepare the showcase | n/a |
-| Cleanup | `Remove-FactoryEnvironment.ps1` (member and team scope) | none | After the event, delete the shared identity and its Graph grants, then verify nothing billable is left | Member scope: yes (B10). Team scope: not yet (B13) |
+| Cleanup | `Remove-FactoryEnvironment.ps1` (member and team scope) | none | After the event, remove each member's resources, then the team's. The team scope keeps `id-sqlmi-directory` and its Graph grant by default (`-IncludeManagementResources` deletes them): the event owner decides, and the checklist deletes them unless the tenant is reused. Then verify nothing billable is left | Member scope: yes (B10). Team scope: not yet (B13) |
 
 ## The platform pipeline (preferred)
 

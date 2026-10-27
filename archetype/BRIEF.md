@@ -27,7 +27,7 @@ answer in the workflow state.
   `mg-factory-corp` (ALZ-lite, see `infra/foundation/README.md` in this repo) must pass.
   No production data; this is a training/demo environment, but security baselines are
   still enforced for realism.
-- **Budget:** about $4.63/hour while fully deployed (see Cost below). No hard budget
+- **Budget:** about $4.68/hour while fully deployed with ALZ-lite and the datacenter (see Cost below). No hard budget
   cap beyond the subscription's existing budget policy.
 
 ## Inputs and derivation (requirement 5)
@@ -127,9 +127,9 @@ holds eligible SQL Server core licences with Software Assurance).
 
 ## Cost (for the brief's budget/NFR phase)
 
-About $4.63/hour while fully deployed: SQL MI General Purpose 4 vCores with AHB ~$0.68,
+About $1.83/hour while fully deployed (the kit total with ALZ-lite and the datacenter is about $4.68/hour): SQL MI General Purpose 4 vCores with AHB ~$0.68,
 Service Bus Premium ~$0.93, App Service P0v3 ~$0.10, ACR Premium ~$0.07, private
-endpoints ~$0.05 (plus ALZ-lite ~$1.25 and the datacenter ~$1.55, which this brief's
+endpoints ~$0.05 (plus ALZ-lite ~$1.30 and the datacenter ~$1.55, which this brief's
 workload doesn't deploy but which run alongside it in the kit).
 
 ## Notes for the owner running Step 1

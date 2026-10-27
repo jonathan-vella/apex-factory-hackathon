@@ -61,7 +61,7 @@ C10 produces documents only, so there is no deployed state to reset. To redo a d
 
 ## Bonus
 
-Up to 10 pts for a showcase that includes a live demo of the modernized app against SQL Managed Instance, not just slides.
+Up to 10 pts for a showcase that includes a live demo of the modernized app against SQL Managed Instance, not just slides. Bonus points from all challenges share one cap of 30 points per team.
 
 ## Learn more
 

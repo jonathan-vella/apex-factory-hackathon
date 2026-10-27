@@ -22,7 +22,7 @@ This section introduces the challenges in order, with their time boxes and point
 | Day 2 | [C9: Optimize the DB with GHCP](./c09-optimize-the-db-with-ghcp/) | Member | 60 min | 10 |
 | Day 2 | [C10: Package, hand over, review AI readiness](./c10-package-hand-over-review-ai-readiness/) | Team | 60 min | 20 |
 
-**Totals: 975 min across 11 challenges, 200 base points (80 team + 120 member).** Bonus points (up to 30, noted per challenge) are separate from this base contract.
+**Totals: 975 min across 11 challenges, 200 base points (80 team + 120 member).** Bonus points (noted per challenge, and from badges) are separate from this base contract. They share one cap of 30 points per team: the per-challenge maxima add up to more than that, and points beyond the cap aren't awarded.
 
 Time boxes are pacing, not hard stops. Coaches flex on the day. C0 takes about 150 minutes, plus about 30 for the VM setup in task 7. The event's real gates are T-14 (14 days before day one) and T-3 (3 days before day one), both pre-work, and the end of each day. The [event overview](../getting-started/event-overview/#pre-work) has both gates.
 

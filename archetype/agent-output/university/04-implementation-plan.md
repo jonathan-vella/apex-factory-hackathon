@@ -146,7 +146,7 @@ IDs. No Deny is unsatisfiable.
 | `rg-workload` + all resources | `/providers/Microsoft.Authorization/policyDefinitions/7509877f-d414-4d79-8d1f-d600ea78d087` | Deny | `location` | not `westeurope` | ✅ satisfied (`@allowed` swedencentral, germanywestcentral) |
 | n/a — no `Microsoft.Sql/servers` | Tenant Root Group: `AzureSQL_WithoutAzureADOnlyAuthentication_Deny` | Deny | `administrators.azureADOnlyAuthentication` | `true` | ✅ satisfied (type not deployed) |
 | n/a — classic types | `/providers/Microsoft.Authorization/policyDefinitions/6c112d4e-5bc7-47ae-a041-ea2d9dccd749` | Deny | resource `type` | not in classic list | ✅ satisfied (no classic type) |
-| n/a — classic types | Tenant Root Group: `a15944e7-86a5-4adf-a36c-d851916c9001` | Deny | resource `type` | not a classic type | ✅ satisfied (no classic type) |
+| n/a — classic types | Tenant Root Group: `<custom-policy-guid>` | Deny | resource `type` | not a classic type | ✅ satisfied (no classic type) |
 | n/a — no VMs | Tenant Root Group: `VirtualMachine_SKU_Deny` (`BlockVMSKUs_H`) | Deny | `hardwareProfile.vmSize` | not in blocked list | ✅ satisfied (type not deployed) |
 | n/a — no VMs | Tenant Root Group: `VirtualMachine_SKU_Deny` (`BlockVMSKUs_M`) | Deny | `hardwareProfile.vmSize` | not in blocked list | ✅ satisfied (type not deployed) |
 | n/a — no VMs | Tenant Root Group: `VirtualMachine_SKU_Deny` (`BlockVMSKUs_N`) | Deny | `hardwareProfile.vmSize` | not in blocked list | ✅ satisfied (type not deployed) |

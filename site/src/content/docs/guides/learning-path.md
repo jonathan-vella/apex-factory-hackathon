@@ -72,7 +72,7 @@ Each row links to the challenge, lists the skills it exercises and points to Lea
 
 ### Badges and exam domains
 
-Each factory badge maps to the exam domain that validates the same skill. Domain names come from the study guides on the [last validated](#last-validated) date.
+A factory badge is a team bonus award, worth 5 points, that a coach signs off at the event when your evidence meets its criteria. Each badge maps to the exam domain that validates the same skill. Domain names come from the study guides on the [last validated](#last-validated) date.
 
 | Badge | Exam domain |
 | --- | --- |
