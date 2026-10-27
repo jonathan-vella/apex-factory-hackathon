@@ -6,6 +6,10 @@ A two-day, challenge-based hackathon kit for Microsoft partners. A team of up to
 
 **Start here:** [factory.apexops.pro](https://factory.apexops.pro/), the student site. It has the requirements, the deployment guide, ten challenges and the reference pages.
 
+[![From a simulated datacenter to a modernized application: the team tenant, the shared services subscription, each member's datacenter and spoke, the CoE archetype, and the stages that build them](site/public/diagrams/diagram-02-end-to-end-overview.svg)](site/public/diagrams/diagram-02-end-to-end-overview.svg)
+
+*What the kit builds, from the simulated datacenter to the modernized app. Select the image to open it full size.*
+
 ## How it works
 
 - **Everyone creates their own repo** from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template and imports this kit into `factory/` with `scripts/Import-Kit.ps1`. There is no shared team repo.
