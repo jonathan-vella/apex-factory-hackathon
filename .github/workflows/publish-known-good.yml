@@ -46,8 +46,11 @@ jobs:
             -p:ContainerImageTags="\"known-good;$commit\""
 
       - name: Record digest
+        env:
+          REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY_USER: ${{ github.actor }}
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          echo "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin
           digest=$(docker buildx imagetools inspect "$IMAGE:known-good" --format '{{json .Manifest.Digest}}' | tr -d '"')
           {
             echo "### Known-good image"

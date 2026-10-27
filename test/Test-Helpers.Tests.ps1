@@ -28,7 +28,8 @@ function Invoke-Child {
     $prefix = ($Variables.GetEnumerator() | ForEach-Object { "`$$($_.Key) = '$($_.Value.ToString().Replace("'", "''"))'" }) -join "`n"
     $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes("$prefix`n$Script"))
     $output = (& $pwsh -NoProfile -NonInteractive -EncodedCommand $encoded 2>&1 | Out-String)
-    return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $output }
+    # PowerShell wraps long error text at the console width, and boxes it with ' | ' markers: join the lines.
+    return [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = ($output -replace '(\r?\n\s*\|?\s*)+', ' ') }
 }
 
 try {
@@ -56,7 +57,7 @@ try {
     $passed++
 
     $run = Invoke-Child -Variables @{ s = $settingsScript } -Script "$stub`n& `$s -Suffix zzzzzz"
-    Assert-True ($run.ExitCode -ne 0 -and $run.Output -match 'never changed') 'A different suffix must be refused.'
+    Assert-True ($run.ExitCode -ne 0 -and $run.Output -match 'never changed') "A different suffix must be refused (exit $($run.ExitCode)): $($run.Output)"
     $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
     Assert-True ($settings.suffix -eq 'ab12cd') 'The suffix must not change.'
     $passed++

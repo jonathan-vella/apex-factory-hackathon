@@ -64,7 +64,7 @@ each member keeps evidence in `factory/evidence/` of their own repo.
 
 ## Checks to run
 
-`npm run check` (content invariants, node tests, markdownlint, Prettier on the site), PSScriptAnalyzer on changed scripts, `actionlint` on changed workflows, `az bicep build` and `az bicep lint` on changed Bicep. Don't run `npx prettier --write` on `docs/`: the repo doesn't format Markdown with it, and it rewrites unrelated tables.
+`npm run check` (content invariants, node tests, markdownlint, Prettier on the site), PSScriptAnalyzer on changed scripts (settings in `PSScriptAnalyzerSettings.psd1`), `actionlint` on changed workflows, `az bicep build` and `az bicep lint` on changed Bicep. CI enforces them: `validate-docs.yml` runs the docs checks and Vale, and `validate-scripts.yml` runs PSScriptAnalyzer, every `test/*.Tests.ps1`, `actionlint` and Bicep lint when scripts, tests, infra or workflows change. Don't run `npx prettier --write` on `docs/`: the repo doesn't format Markdown with it, and it rewrites unrelated tables.
 
 ## Git and PRs
 

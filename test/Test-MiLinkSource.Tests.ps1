@@ -60,7 +60,7 @@ Assert-True ($null -ne $validate) 'MiSubnetPrefix must validate its value.'
 $validator = $validate.PositionalArguments[0].ScriptBlock.GetScriptBlock()
 
 foreach ($good in '10.20.1.128/26', '10.20.3.128/26', '10.20.9.128/26', '10.20.10.128/26', '10.20.19.128/26', '10.20.20.128/26') {
-    $result = & { $_ = $good; $validator.InvokeWithContext($null, @(New-Object psvariable '_', $good)) }
+    $result = $validator.InvokeWithContext($null, @(New-Object psvariable '_', $good))
     Assert-True ($true -eq $result[0]) "$good should be accepted."
 }
 foreach ($bad in '10.20.0.128/26', '10.20.21.128/26', '10.20.3.0/24', '10.20.3.128/25', '10.10.3.128/26', '10.20.3.128', '10.20.03.128/26', '10.20.3.128/26 ', '', 'any') {
