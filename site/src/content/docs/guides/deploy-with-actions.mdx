@@ -127,7 +127,7 @@ You do the member steps above for your own datacenter, plus these.
 <details>
 <summary>What to send the Privileged Role Administrator</summary>
 
-They don't need your repo. They download the single file `https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Grant-SqlMiDirectoryRead.ps1`, which has no other kit dependencies. They need PowerShell 7, the Azure CLI and Reader on the shared services subscription, and they run it from their own computer, signed in as themselves. See [ALZ-lite](../alz-lite/) and [C2](../../challenges/c02-secure-ai-ready-foundation/#before-the-event).
+They don't need your repo. They download the single file `https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Grant-SqlMiDirectoryRead.ps1`, which has no other kit dependencies. They need PowerShell 7, the Azure CLI and Reader on the shared services subscription, and they run it from their own computer, signed in as themselves. If it stops with `InteractionRequired` or `TokenCreatedWithOutdatedPolicies`, their sign-in is stale: they run `az logout` and `az login` again, then repeat. See [ALZ-lite](../alz-lite/) and [C2](../../challenges/c02-secure-ai-ready-foundation/#before-the-event).
 
 </details>
 

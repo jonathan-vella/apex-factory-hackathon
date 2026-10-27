@@ -34,6 +34,7 @@ sidebar:
 
 - **Vending can't find the hub:** confirm the `foundation` stage finished and the expected hub resource names exist (`vnet-hub`, `afw-hub`, `afwp-hub`, `rg-hub`) before you run the `vending` stage.
 - **DNS stops resolving after vending changes a VNet's DNS servers:** running VMs cache their old DNS settings. The `vending` stage restarts both VMs at T-1; if yours were stopped or redeployed since, restart the VM, or run `ipconfig /renew` inside it.
+- **`Grant-SqlMiDirectoryRead.ps1` stops with `InteractionRequired` or `TokenCreatedWithOutdatedPolicies`:** the role holder's Microsoft Graph sign-in is stale. They run `az logout`, then `az login` again as themselves, and repeat.
 - **The datacenter shows as policy non-compliant:** expected until it has exemptions. The `vending` stage at T-1 records them, and you check them in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in C0.
 
 ## Platform pipeline
