@@ -79,7 +79,7 @@ jobs:
           REF_NAME: ${{ github.ref_name }}
         run: |
           set -euo pipefail
-          profile="${VAR_PROFILE:-lead}"
+          profile="${VAR_PROFILE:-member}"
           stage="$INPUT_STAGE"
           if [ -z "$stage" ]; then
             stage="${REF_NAME#ci-test/}"
