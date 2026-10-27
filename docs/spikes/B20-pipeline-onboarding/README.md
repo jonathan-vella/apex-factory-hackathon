@@ -46,7 +46,9 @@ This decision comes from the scope limits and from reading the scripts. We didn'
 
 Tested: the member profile from a fresh private repo, the lead setup, `whatif`, `foundation` and `teardown` from a fresh private repo, the finalizer for both profiles, and the check queries after each teardown.
 
-Not tested: parallel vending (it is serial by design), a required-reviewer gate in a private repo, Tenant Root Owner on a real event tenant, and more than two members.
+Added on 2026-10-26 (owner-approved lab, Owner at Tenant Root, no parent group, three members, two full cycles, each ending with an empty-lab check): `foundation`, three datacenters in parallel, vending, `teardown` and the finalizer all passed. Vending with three phases took 62 minutes against 112 for the old per-member flow. The Tenant Root run found that the ALZ-lite groups must be created first for a pipeline identity (fixed). The second cycle found that Arc did not install the Azure extension for SQL Server in a subscription with every Defender for Cloud plan on (fixed with an explicit install after 5 minutes, tested live).
+
+Not tested: vending the members themselves in parallel (the vend is serial by design), a required-reviewer gate in a private repo, a real event tenant (the owner's tenant gives the account elevated access), and more than three members.
 
 ## Follow-ups
 

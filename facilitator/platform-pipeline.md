@@ -58,16 +58,21 @@ An idle pipeline costs nothing. Runs use hosted runners: a 45-minute member run 
 Tested live in a test tenant:
 
 - Member profile from a fresh private repo on a free plan, on a never-used subscription: setup, preflight with provider and feature registration, datacenter, 46 of 46 checks, Arc, the evidence artifact. The identity held Owner on that one subscription only.
-- Lead profile: `whatif`, `foundation`, the member stage for two members in parallel, and vending for two members in order, with a sandbox parent management group.
-- `teardown`: both members, then the team including `rg-management`, then the finalizer.
+- Lead profile with a sandbox parent management group: `whatif`, `foundation`, the member stage for two members in parallel, and vending for two members in order.
+- Lead profile with **Owner at Tenant Root and no parent group**, in the owner's own tenant, with **three members**: `whatif`, `foundation` (about 11 minutes, twice), three datacenters at once (37 to 44 minutes), vending (62 minutes: each member vended in turn, then all six VMs restarted at once, then the probes in parallel, against 112 minutes when each member was finished before the next started), and `teardown` of three members in parallel then the team (about 45 minutes), then the finalizer. Each cycle ended with the queries showing nothing left.
+- `teardown`: members, then the team including `rg-management`, then the finalizer, in both labs.
 - The guard, with 12 scenarios and no Azure calls.
 
 Not tested, and not promised:
 
-- **Parallel vending.** It runs serially by design.
+- **Vending of the members in parallel.** The vend itself runs one member at a time by design, because each run updates the shared firewall policy. Only the restarts and the probes run in parallel.
 - **A member run with a required reviewer in a private repo.** Free plans have none.
-- **Tenant Root Owner at an event.** The test lab used a sandbox group. The Tenant Root path is the script's default and is unproven on a real event tenant.
-- **More than two members** in one lead run.
+- **A real event tenant.** The Tenant Root path ran in the owner's own tenant, where the account holds elevated access. An event tenant (for example CSP with delegated access) can differ, so keep the preflight's management-group check as a gate.
+- **More than three members** in one lead run. Three ran in parallel and in order without trouble; the numbering (address ranges, firewall priorities) is built for 20.
+
+## What the tests found
+
+Two problems showed up only at Tenant Root or on a second run, and are fixed. First, ARM can't authorize the ALZ-lite policies deployment for a pipeline identity at a group the same template creates, whatever the parent: the script now creates the three groups first everywhere (a person with elevated access hides it). Second, in one subscription state (every Defender for Cloud plan on) Arc connected `vm-app01` but never installed the Azure extension for SQL Server, so no SQL instance appeared; the Arc script now installs it after 5 minutes. If you see Arc **Connected** but no SQL Server instance after 5 minutes on an older copy of the kit, install the `WindowsAgent.SqlServer` extension from the portal (Azure Arc > Machines > `vm-app01` > Extensions)
 
 ## If a run fails
 

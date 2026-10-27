@@ -88,8 +88,9 @@ function Get-CallerRoleName {
 }
 
 function Initialize-ManagementGroup {
-    # Under a parent other than Tenant Root, ARM can't authorize a nested deployment at a group that the same
-    # template creates. Create the three groups first; the deployment then converges them.
+    # ARM can't authorize a nested deployment at a group that the same template creates, for an identity whose
+    # Owner is at the parent (Tenant Root included; a person with elevated access at / doesn't hit it). Create the
+    # three groups first; the deployment then converges them.
     param([string] $ParentId, [string] $Prefix)
     foreach ($group in @(@{ Name = $Prefix; Parent = $ParentId }, @{ Name = "$Prefix-platform"; Parent = $Prefix }, @{ Name = "$Prefix-corp"; Parent = $Prefix })) {
         $PSNativeCommandUseErrorActionPreference = $false
@@ -177,7 +178,7 @@ try {
     }
     $started = Get-Date
     Write-Information "Deployment started at $($started.ToString('HH:mm'))."
-    if ($parentId -ne $tenantId) { Initialize-ManagementGroup -ParentId $parentId -Prefix $MgPrefix }
+    Initialize-ManagementGroup -ParentId $parentId -Prefix $MgPrefix
     $deployment = Invoke-AzureCli -Arguments (@('deployment', 'mg', 'create') + $deploymentArgs)
 }
 finally {

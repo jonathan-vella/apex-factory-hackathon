@@ -191,16 +191,41 @@ Write-Information "$vmName is Connected after $([int] ($connected - $started).To
 
 Write-Information 'Waiting for the SQL Server extension to report the instance (up to 20 minutes).'
 $deadline = (Get-Date) + $timeout
+$autoInstallDeadline = (Get-Date).AddMinutes(5)
+$extensionInstalled = $false
 do {
     Start-Sleep -Seconds 30
     $sql = @(Invoke-AzureCli -Arguments @('resource', 'list', '--subscription', $SubscriptionId, '-g', $resourceGroup, '--resource-type', 'Microsoft.AzureArcData/sqlServerInstances') -AllowFailure)
     # The engine's default instance is named after the machine; Analysis Services and SSIS can report first.
     $engine = $sql | Where-Object { $_.name -eq $vmName } | Select-Object -First 1
+    if (-not $engine -and -not $extensionInstalled -and (Get-Date) -ge $autoInstallDeadline) {
+        # Arc normally installs the extension by itself. In some subscriptions it doesn't (seen with every Defender for
+        # Cloud plan on, and after a service delay), so after 5 minutes install it explicitly. It is idempotent.
+        $extensionInstalled = $true
+        $extensionUrl = "https://management.azure.com/subscriptions/$SubscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.HybridCompute/machines/$vmName/extensions/WindowsAgent.SqlServer?api-version=2025-01-13"
+        $present = Invoke-AzureCli -Arguments @('rest', '--method', 'get', '--url', $extensionUrl) -AllowFailure
+        if (-not $present) {
+            Write-Information 'The Azure extension for SQL Server was not installed automatically. Installing it now.'
+            $extensionBody = @{
+                location = $Location
+                properties = @{
+                    publisher = 'Microsoft.AzureData'; type = 'WindowsAgent.SqlServer'; enableAutomaticUpgrade = $true
+                    settings = @{ SqlManagement = @{ IsEnabled = $true }; LicenseType = 'LicenseOnly'; ExcludedSqlInstances = @() }
+                }
+            }
+            $extensionFile = Join-Path ([System.IO.Path]::GetTempPath()) "arc-sql-extension-$([guid]::NewGuid()).json"
+            try {
+                $extensionBody | ConvertTo-Json -Depth 6 | Set-Content -Path $extensionFile -Encoding utf8NoBOM
+                $null = Invoke-AzureCli -Arguments @('rest', '--method', 'put', '--url', $extensionUrl, '--body', "@$extensionFile")
+            }
+            finally { Remove-Item -Path $extensionFile -Force -ErrorAction SilentlyContinue }
+        }
+    }
 } while (-not $engine -and (Get-Date) -lt $deadline)
 if (-not $engine) {
     throw @"
-$vmName is Connected, but no SQL Server database engine instance ($vmName) appeared within 20 minutes. Check the WindowsAgent.SqlServer
-extension in the portal (Azure Arc > Machines > $vmName > Extensions); it installs automatically.
+$vmName is Connected, but no SQL Server database engine instance ($vmName) appeared within 20 minutes, even after the script installed
+the WindowsAgent.SqlServer extension. Check the extension in the portal (Azure Arc > Machines > $vmName > Extensions).
 $logHelp
 "@
 }
