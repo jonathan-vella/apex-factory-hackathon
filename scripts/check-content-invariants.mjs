@@ -71,7 +71,10 @@ async function checkTemplateCopies(root) {
     try {
       copy = await readFile(join(team, name));
     } catch (error) {
-      if (error.code === "ENOENT") continue;
+      if (error.code === "ENOENT") {
+        failures.push(`templates/team/templates/${name}: missing, copy it from templates/attendee/${name}`);
+        continue;
+      }
       throw error;
     }
     if (!copy.equals(await readFile(join(attendee, name)))) {

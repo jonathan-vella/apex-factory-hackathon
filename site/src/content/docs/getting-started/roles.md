@@ -2,7 +2,7 @@
 title: Roles
 description: What a member, the team lead and a coach each do, and when.
 sidebar:
-  order: 4
+  order: 5
 ---
 
 There are three roles. Every attendee is a **member**. One member per team is also the **team lead**. **Coaches** support the teams but are not part of them.
