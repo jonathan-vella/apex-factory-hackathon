@@ -13,6 +13,7 @@ Rules:
 - Write in plain, literal sentences. No invented numbers.
 - No identifiers, and no "C0": the readiness check is not a challenge.
 - Keep the headings `## Requirements` (a numbered list) and `## Success criteria` (a bullet list) exactly: the progress bar and the Done ticks find them by those names.
+- The order, scope, time, points, objective and business outcome of each challenge are in `site/src/data/challenges.json`. The page title, the `**Objective.**` sentence and the row in `challenges/index.md` must match it: `npm run check` fails if they drift. Change the file first, then the page.
 - Points and minutes must match `facilitator/scoring-rubric.md`. Write them in bold, as **45 min** and **25 pts**: `npm run check` reads that exact form. `npm run check` fails if they drift.
 
 Copy from the line below.
