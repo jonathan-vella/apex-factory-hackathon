@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { runChecks } from "../scripts/check-content-invariants.mjs";
 
-test("a team template that differs from its attendee template is blocked", async () => {
+test("a team template that differs from, or is missing next to, its attendee template is blocked", async () => {
   const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
   try {
     await mkdir(join(root, "templates/attendee"), { recursive: true });
@@ -16,7 +16,7 @@ test("a team template that differs from its attendee template is blocked", async
     const result = await runChecks(root);
     const text = result.failures.join("\n");
     assert.match(text, /templates\/team\/templates\/adr\.md: differs from/);
-    assert.doesNotMatch(text, /only-attendee/);
+    assert.match(text, /templates\/team\/templates\/only-attendee\.md: missing/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

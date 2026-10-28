@@ -10,6 +10,10 @@ A two-day, challenge-based hackathon kit for Microsoft partners. A team of up to
 
 *What the kit builds, from the simulated datacenter to the modernized app. Select the image to open it full size.*
 
+## The story
+
+Contoso University is a fictional public university. Its student enrollment app runs on .NET Framework 4.8 and IIS on a Windows VM that a small IT team patches by hand. An audit flagged the platform and the way the app stores its database password, and the registrar wants analytics the old stack cannot give safely. Your team is the delivery team of the partner the university hired. It leaves with a modernized app, evidence for six business outcomes and a pattern the university can repeat. [The customer story](site/src/content/docs/getting-started/customer-story.md) has the full page.
+
 ## How it works
 
 - **Everyone creates their own repo** from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template and imports this kit into `factory/` with `scripts/Import-Kit.ps1`. There is no shared team repo.

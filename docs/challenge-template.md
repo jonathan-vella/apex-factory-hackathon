@@ -8,6 +8,9 @@ Rules:
 - One requirement is one outcome. Number them, so coaches and the evidence list can point at them.
 - Every requirement appears in the success criteria. Every success criterion traces to a requirement.
 - Write "you must" or "the team must". Don't write "should".
+- Business context and outcome are plain paragraphs inside Background. Don't add a list before Requirements, and keep the outcome check as an item in the success criteria list, because the progress bar finds the first list under each heading.
+- The outcome check never adds points or a scoring row. It supports a row that already exists, and the coach page says which.
+- Write in plain, literal sentences. No invented numbers.
 - No identifiers, and no "C0": the readiness check is not a challenge.
 - Keep the headings `## Requirements` (a numbered list) and `## Success criteria` (a bullet list) exactly: the progress bar and the Done ticks find them by those names.
 - Points and minutes must match `facilitator/scoring-rubric.md`. Write them in bold, as **45 min** and **25 pts**: `npm run check` reads that exact form. `npm run check` fails if they drift.
@@ -25,6 +28,10 @@ description: One sentence, under 160 characters, saying what the team achieves.
 ## Background
 
 Two or three sentences on why this matters in the story of Contoso University's move to Azure.
+
+**Business context.** Who at the university is asking for this and why, in two sentences. Use a person from [the customer story](../../getting-started/customer-story/): Dana (CIO), Marcus (registrar), Priya (head of IT operations) or Tomás (security lead).
+
+**Business outcome.** Which of the six outcomes in the story this challenge serves, and what the university gets when the team is done. If you add an illustrative target, label it "illustrative target".
 
 **Objective.** One sentence beginning "Understand how to" or "Be able to".
 
@@ -61,6 +68,7 @@ To complete this challenge, show your coach:
 - [ ] Evidence for requirement 1, saved as `factory/evidence/cNN/<file>`.
 - [ ] Evidence for requirement 2.
 - [ ] One thing you can explain: the decision, its alternative and its consequence.
+- [ ] Outcome check (unscored guidance): the evidence that shows the business outcome. Name the scoring row it supports in the coach page.
 
 Save your evidence under `factory/evidence/cNN/` in your own repo on `main`.
 

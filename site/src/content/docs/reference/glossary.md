@@ -15,6 +15,7 @@ sidebar:
 | Archetype | The CoE's reference platform (App Service, ACR, SQL MI, Blob, Service Bus, Key Vault, Application Insights) that the modernized app runs on. |
 | `azd` | The Azure Developer CLI. In C5 you deploy the archetype with `azd provision`; it's the only tool that changes Azure for the archetype. |
 | Bastion | Azure Bastion Standard in each datacenter. It's the only way into `vm-app01` and `vm-dev01`: the VMs have no public IPs, so you connect from the Azure portal in your browser. |
+| Business outcome | A result the university wants, such as secure by default. [The customer story](../../getting-started/customer-story/) lists six, and each challenge page says which it serves. |
 | CoE | Center of Excellence: the central team whose reference design the archetype is. |
 | Cutover | The moment in C7 when the app switches from the source database on `vm-app01` to the managed instance, and the MI link is removed. |
 | Datacenter | This kit's simulated on-premises environment: `vm-app01` (the legacy app and database) and `vm-dev01` (the member's workstation). |
