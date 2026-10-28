@@ -7,6 +7,10 @@ description: Find and fix five planted performance issues with Query Store evide
 
 A migrated database can still be slow. The perf kit planted five performance issues in it. C9 is where you use GitHub Copilot to diagnose each plan and fix it, and prove with Query Store numbers that the fix worked.
 
+**Business context.** Marcus's office puts the heaviest load on the database during enrollment weeks. He needs the slow searches fixed before the next one.
+
+**Business outcome.** Reliable at enrollment peaks. The five slow queries are found, fixed and measured, so the team can say how much faster each one got.
+
 **Objective.** Be able to find the worst queries in Query Store, fix the cause with Copilot's help, and show the before and after.
 
 **Time and points.** Member, **60 min**, **10 pts** (member).
@@ -104,6 +108,7 @@ To complete this challenge, show your coach in `factory/evidence/c09/` of your o
 - [ ] The snapshot script's output (grids 1 and 4) for the baseline and each checkpoint, labeled with its window.
 - [ ] The five fix scripts you ran, committed to your own repo.
 - [ ] A one-line summary of what each fix changed and by how much.
+- [ ] Outcome check (unscored guidance): tell Marcus in one line which search got fastest to answer and by how much, using your Query Store numbers.
 
 <details>
 <summary>My cutover isn't complete, or the managed instance is stopped</summary>

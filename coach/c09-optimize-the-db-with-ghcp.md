@@ -180,6 +180,10 @@ Expected order of work. Attendees measure three times, not six, so the hour fits
 
 The page's order, P4 after P5, is on purpose: it isolates P5's effect on the view at checkpoint 1. If a member does P4 first, accept it, as long as the summary says which fix caused which change.
 
+## Business outcome check
+
+The outcome is reliability at enrollment peaks. Ask for one line that names a fixed query and its before and after average duration, taken from the saved Query Store output. This supports the scoring row on the summary of each change and its measured impact. It earns no points of its own.
+
 ## Partial credit
 
 - Score what's proven in Query Store, not what's claimed: every fix needs a before and after for the query it targets, from the baseline and the checkpoint that contains it. Don't ask for one run per fix: the page groups them on purpose to fit 60 minutes.

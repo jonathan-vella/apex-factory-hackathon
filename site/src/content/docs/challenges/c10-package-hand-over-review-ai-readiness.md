@@ -7,6 +7,10 @@ description: Close out the engagement as a team with a reusable asset, a handove
 
 Modernizing one app is only worth it if the next team can repeat it and the customer can run what you built. C10 closes the engagement: you package something reusable, hand over, and record honestly how much of the work needed a human.
 
+**Business context.** Dana, the CIO, has to tell the board what the university can do next and what it can't yet. C10 hands over what the team built and says how ready the university is to run AI on it.
+
+**Business outcome.** Documented path to AI. The handover says what is ready for AI use and what is not, with an owner and a next step for each gap, and another team can repeat the work from the package.
+
 **Objective.** Be able to package a reusable asset, complete a handover, and assess how ready a customer is to run GitHub Copilot's agents unattended.
 
 **Time and points.** Team, **60 min**, **20 pts** (team).
@@ -33,7 +37,7 @@ The package is scored once for the team, from the team lead's copy, so the other
 
 4. **Factory-kit checklist (about 5 min).** Copy `factory/templates/attendee/factory-kit-checklist.md` to `factory/evidence/c10/` and run through it as a final sanity pass across the team's deliverables.
 
-5. **Showcase (about 15 min).** Prepare a short showcase: what was modernized, what's deferred, and the single most useful thing Copilot did for the team. Write the outline in `factory/evidence/c10/showcase.md`, then deliver it to your coach. If you're short of time, a two-minute verbal showcase with one screen shown still counts.
+5. **Showcase (about 15 min).** Prepare a short showcase: what was modernized, what's deferred, how the work serves your top-ranked outcome from C1, and the single most useful thing Copilot did for the team. Write the outline in `factory/evidence/c10/showcase.md`, then deliver it to your coach. If you're short of time, a two-minute verbal showcase with one screen shown still counts.
 
 ## Success criteria
 
@@ -45,6 +49,7 @@ To complete this challenge, show your coach in `factory/evidence/c10/` on `main`
 - [ ] The factory-kit checklist, with all items addressed.
 - [ ] The showcase outline (`showcase.md`), delivered to your coach.
 - [ ] Every teammate's copies match the team lead's.
+- [ ] Outcome check (unscored guidance): every gap in your register has an owner and a next step, so Dana can say what comes after the handover.
 
 <details>
 <summary>What makes an asset "reusable"?</summary>

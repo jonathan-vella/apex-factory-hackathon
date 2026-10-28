@@ -39,6 +39,10 @@ az webapp config show --resource-group $rg --name <app-name> --query minTlsVersi
 
 All of the above should report disabled/`Disabled`/`false` for public access, `true` for `httpsOnly` and `1.2` for the minimum TLS version. The checker's own commands are `az webapp show` for `httpsOnly` and `az webapp config show` for the TLS version.
 
+## Business outcome check
+
+The outcome is secure by default. Ask the member to show the single result that proves public network access is off for every backend: the checker output or a portal screenshot. This supports the scoring row on public network access being off. It earns no points of its own.
+
 ## Common mistakes
 
 - Running the load check against `vm-dev01`'s local copy instead of the live App Service URL — the acceptance pack is specifically about production health, not the dev loop.
