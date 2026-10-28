@@ -7,6 +7,10 @@ description: Prepare the source, seed the link, validate the replica, cut over, 
 
 This is the go-live. You move the database to SQL Managed Instance with no data loss, then put the modernized app live on App Service against it.
 
+**Business context.** Marcus, the registrar, runs the office that can't stop enrollment for long. C7 moves the database and puts the app live, with a planned stop he can warn his staff about.
+
+**Business outcome.** Safe, repeatable change. The move is a planned cutover with a written rollback, and the stop for the registrar's office is as short as the team can make it. Illustrative target: under an hour.
+
 **Objective.** Be able to migrate a database online with the MI link, validate the replica, cut over safely, and bring the app up on the new platform.
 
 **Time and points.** Member, **120 min**, **20 pts** (member). Pacing: requirements 1 to 3 about 25, requirement 4 about 25, requirements 5 and 6 about 40, requirement 7 about 10 and requirement 8 about 15. The rest is slack.
@@ -247,6 +251,7 @@ To complete this challenge, show your coach. Save screenshots and output as file
 - [ ] `https://app-university-<suffix>.azurewebsites.net/` loading, with the five pages showing the migrated data.
 - [ ] The contained database user created, and the `CREATE USER` statement used (no `WITH SID`, no `TYPE = E`: SQL MI doesn't support them).
 - [ ] The source's trace flags removed (the empty `DBCC TRACESTATUS` output from requirement 7), your trace-flag row marked done in the register, and the cutover and rollback runbook committed to your own repo.
+- [ ] Outcome check (unscored guidance): Marcus could read your runbook and know when the office stops, for how long and how to go back. Record the stop you actually saw.
 
 <details>
 <summary>If link creation fails</summary>

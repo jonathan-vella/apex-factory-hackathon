@@ -26,6 +26,10 @@ The seven tasks, in order, and what each should produce:
 
 After all seven: package with `dotnet publish /t:PublishContainer` (no Dockerfile — see the `sdk-container-publish` skill), push to the archetype's ACR, then check (don't set) App Service's identity/app settings/Key Vault access using the `app-service-configuration` skill as a reference, stopping short of pointing the web app at the image.
 
+## Business outcome check
+
+The outcome is a current platform. Ask the member to show their search of the committed app and its configuration files for a database password or key, and the result. User secrets on the VM and Key Vault are expected; a password in a committed file is not. This supports the scoring row on the seven task commits and the clean vulnerability audit. It earns no points of its own.
+
 ## Common mistakes
 
 - Pointing the web app at the new image at the end of C6 "because it's ready" — this is explicitly wrong for this challenge: the database isn't migrated yet, so the app exits at every startup. That's C7's job, after the Key Vault secret and the contained database user exist.

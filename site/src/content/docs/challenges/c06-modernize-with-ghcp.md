@@ -7,6 +7,10 @@ description: Run the Upgrade agent's seven tasks to .NET 10, with the app runnin
 
 This is the core modernization. GitHub Copilot's Upgrade agent does the work in seven tasks, and you stay in charge: a build, a local run and a commit after every task. By the end Contoso University is on .NET 10 and packaged for the App Service you deployed in C5.
 
+**Business context.** Dana, the CIO, needs the app on a platform with a future. C6 moves Contoso University to .NET 10 and ASP.NET Core and packages it for App Service.
+
+**Business outcome.** Current platform. The app builds and runs on .NET 10, and its secrets come from Key Vault and managed identity, not from a configuration file.
+
 **Objective.** Be able to drive the Upgrade agent task by task, check its output, and package the result as a container image.
 
 **Time and points.** Member, **180 min**, **30 pts** (member). The time box is split across two days.
@@ -66,6 +70,7 @@ To complete this challenge, show your coach:
 - [ ] `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` reporting nothing, or a documented remediation.
 - [ ] The image tag in your registry (`az acr repository show-tags`).
 - [ ] The App Service identity, app settings and Key Vault access checked and recorded (the output of the `appsettings list` and `role assignment list` commands in requirement 5), not changed to point at your image.
+- [ ] Outcome check (unscored guidance): search the committed app and its configuration files for a database password or key, and record that none is left.
 
 Save your screenshots and notes as files in `factory/evidence/c06/` of your own repo, on `main`. On `vm-dev01`, that's `C:\src\<your-repo>\factory\evidence\c06\` (the plain clone of your own repo): run `git pull --rebase` first, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo). In the dev container, run `git pull` first. Commit with a conventional message (for example `docs: C6 evidence`) and run `git push`.
 
