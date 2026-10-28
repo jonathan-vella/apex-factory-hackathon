@@ -88,29 +88,43 @@ function Test-Vm {
     return $vm
 }
 
+function Wait-BeforeRetry {
+    Start-Sleep -Seconds 30
+}
+
 function Invoke-VmCheck {
     param([string] $Name, [string] $Script, [string[]] $Parameters)
-    try {
-        $arguments = @('vm', 'run-command', 'invoke', '-g', $resourceGroup, '-n', $Name, '--command-id', 'RunPowerShellScript',
-            '--scripts', "@$(Join-Path -Path $scriptsDir -ChildPath $Script)")
-        if ($Parameters) {
-            $arguments += @('--parameters') + $Parameters
-        }
-        $response = Invoke-AzureCli -Arguments $arguments
-        $message = ($response.value | ForEach-Object { $_.message }) -join "`n"
-        $lines = @($message -split "`r?`n" | Where-Object { $_ -like 'LABCHECK|*' })
-        if ($lines.Count -eq 0) {
-            Add-Result -Check "${Name}: in-VM checks" -Pass $false -Detail "no results: $($message.Trim() -replace '\s+', ' ')"
+    # A run command can fail once right after a deployment or restart, so try three times.
+    $attempts = 3
+    for ($attempt = 1; $attempt -le $attempts; $attempt++) {
+        try {
+            $arguments = @('vm', 'run-command', 'invoke', '-g', $resourceGroup, '-n', $Name, '--command-id', 'RunPowerShellScript',
+                '--scripts', "@$(Join-Path -Path $scriptsDir -ChildPath $Script)")
+            if ($Parameters) {
+                $arguments += @('--parameters') + $Parameters
+            }
+            $response = Invoke-AzureCli -Arguments $arguments
+            $message = ($response.value | ForEach-Object { $_.message }) -join "`n"
+            $lines = @($message -split "`r?`n" | Where-Object { $_ -like 'LABCHECK|*' })
+            if ($lines.Count -eq 0) {
+                Add-Result -Check "${Name}: in-VM checks" -Pass $false -Detail "no results: $($message.Trim() -replace '\s+', ' ')"
+                return
+            }
+            foreach ($line in $lines) {
+                $parts = $line -split '\|', 4
+                Add-Result -Check $parts[2] -Pass ($parts[1] -eq 'PASS') -Detail $parts[3]
+            }
             return
         }
-        foreach ($line in $lines) {
-            $parts = $line -split '\|', 4
-            Add-Result -Check $parts[2] -Pass ($parts[1] -eq 'PASS') -Detail $parts[3]
+        catch {
+            if ($attempt -lt $attempts) {
+                Write-Output "The in-VM checks on $Name failed (attempt $attempt of $attempts). Trying again in 30 seconds."
+                Wait-BeforeRetry
+                continue
+            }
+            $arcHint = if ($Name -eq 'vm-app01') { " If vm-app01 is already Arc-enabled, run commands no longer work: run this test before Arc onboarding." } else { '' }
+            Add-Result -Check "${Name}: in-VM checks" -Pass $false -Detail "$($_.Exception.Message)$arcHint"
         }
-    }
-    catch {
-        $arcHint = if ($Name -eq 'vm-app01') { " If vm-app01 is already Arc-enabled, run commands no longer work: run this test before Arc onboarding." } else { '' }
-        Add-Result -Check "${Name}: in-VM checks" -Pass $false -Detail "$($_.Exception.Message)$arcHint"
     }
 }
 
