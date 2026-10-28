@@ -9,6 +9,10 @@ import ArchitectureDiagram from "../../../components/ArchitectureDiagram.astro";
 
 The landing zone already exists. The team lead deployed ALZ-lite before the event and vended every member into it. C2 is where the team proves it understands what is there and why: you watch a live portal demo, walk through what ALZ-lite built, check the Graph grant, your own exemptions and your own connectivity, and answer the coach's questions on the policies.
 
+**Business context.** Tomás, the security lead, won't let a workload near student data until the landing zone enforces the rules the audit asked for. C2 is where the team shows him it does.
+
+**Business outcome.** Secure by default. The foundation's policies deny public data endpoints and send spoke traffic through the firewall, so the app lands in a governed place.
+
 **Objective.** Be able to verify and explain a landing zone: its management groups, hub, policies, exemptions and connectivity.
 
 **Time and points.** Team, **120 min**, **35 pts** (team). Nothing deploys during C2: the team lead deployed ALZ-lite at T-7 and vended every member at T-1 (see "Before the event" below). The coach's demo (requirement 2) opens C2 at 09:45. The team lead leads the walk-through (requirements 3 to 5) with the team; every member does requirements 1, 6 and 7 for their own datacenter.
@@ -141,6 +145,7 @@ To complete this challenge, show your coach. Save screenshots and output as file
 - [ ] The `vending` stage's run summary from T-1, covering every member in the team.
 - [ ] The exemptions table, with owner, reason and expiry for each, and your explanation of it (requirement 6).
 - [ ] `Test-Connectivity.ps1` from requirement 7: PASS on every applicable check.
+- [ ] Outcome check (unscored guidance): show Tomás one core policy that blocks a public data endpoint and the route that sends spoke traffic through the firewall.
 
 <details>
 <summary>Vending fails to find the hub</summary>

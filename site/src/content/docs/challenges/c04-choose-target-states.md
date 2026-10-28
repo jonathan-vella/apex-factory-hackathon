@@ -7,6 +7,10 @@ description: Commit to app, data, platform and migration-method decisions as ADR
 
 C3 told you what the source looks like. C4 turns that into decisions the team stands behind. The kit has already fixed the target states, so the value here is the alternative you weighed and the consequence you accept, not the choice itself.
 
+**Business context.** Dana, the CIO, has to take the plan to the board. C4 puts each decision in writing, with the road not taken and what the choice costs, so she can defend it.
+
+**Business outcome.** Current platform. The ADRs name the target stack (.NET 10, ASP.NET Core, App Service and SQL Managed Instance) and why each beats its alternative. Deferred work has an owner and a date, so nothing is forgotten.
+
 **Objective.** Be able to record a decision as an architecture decision record (ADR) with its alternative and consequence, and to track the work you are consciously not doing yet.
 
 **Time and points.** Team and member, **45 min**, **25 pts** (15 team + 10 member).
@@ -61,6 +65,7 @@ To complete this challenge, show your coach in your own repo's `factory/evidence
 - [ ] Your own `adr-app.md` and `adr-data.md`, each with a decision, an alternative and a consequence.
 - [ ] The deferred-work register with every deferred C3 finding present, and the trace-flag removal step listed for each member.
 - [ ] The team files match your teammates' copies.
+- [ ] Outcome check (unscored guidance): your ADRs tie back to the top-ranked outcome from C1, and Dana could read them without asking you a question.
 
 Evidence rule: in the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\c04\` (the plain clone of your own repo) and run `git pull --rebase` first. Commit with a conventional message, for example `docs: C4 target-state decisions`, and run `git push`.
 

@@ -5,13 +5,26 @@ Fill in every section below. Replace the prompt text under each heading with you
 This canvas is used in C1: Define the opportunity.
 -->
 
-## Business case
+## Outcomes ranked
 
-<!-- Who is the sponsor, and what problem does modernizing Contoso University solve for them? One or two sentences. -->
+<!--
+Rank the six business outcomes from the customer story, with 1 first. Write one sentence on why your top two are on top and one on why the last is last.
+For each outcome, name who cares most (Dana, Marcus, Priya or Tomás), the dimension it lands on (application, data, platform, security, operations or cost), one measure and one target.
+Label any number you invent "illustrative target". Replace the prompt text with your own content.
+-->
 
-## Current pain
+| Rank | Outcome | Voice | Dimension | Measure | Target |
+| --- | --- | --- | --- | --- | --- |
+| 1 | | | | | |
+| 2 | | | | | |
+| 3 | | | | | |
+| 4 | | | | | |
+| 5 | | | | | |
+| 6 | | | | | |
 
-<!-- What's actually wrong with the current state today (cost, risk, agility, support burden)? -->
+Why the top two are on top:
+
+Why the last is last:
 
 ## Target outcome
 

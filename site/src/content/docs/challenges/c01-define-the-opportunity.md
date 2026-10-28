@@ -1,13 +1,17 @@
 ---
 title: "C1: Define the opportunity"
-description: The team scopes the modernization opportunity and a six-dimension plan.
+description: The team ranks the university's six business outcomes and sets a measure and a target for each.
 ---
 
 ## Background
 
-Before any app or data work starts, the team needs one shared answer to "what does modernized mean for Contoso University?" C1 is where you write it down, so every later decision has something to point back to.
+Before any app or data work starts, the team needs one shared answer to what the university wants. [The customer story](../../getting-started/customer-story/) lists six business outcomes. C1 is where you rank them and decide how you would know each one was met.
 
-**Objective.** Be able to scope a modernization opportunity across six dimensions and agree a target outcome the whole team can repeat.
+**Business context.** Dana, the CIO, has asked your partner for a plan she can take to the board. She can't fund six outcomes at once, and she wants to know which comes first and how she will see progress.
+
+**Business outcome.** All six, in order. The ranking sets what the team protects when time runs short on day two.
+
+**Objective.** Be able to rank business outcomes, tie each to a measure and a modernization dimension, and agree a target outcome the whole team can repeat.
 
 **Time and points.** Team, **45 min**, **10 pts** (team). Everyone starts here at 09:00, the team lead included: the team lead deployed the foundation before the event, so there's nothing to deploy and C1 needs no Azure access. Members start [C3](../c03-assess-the-source/) later, at 10:15.
 
@@ -15,11 +19,11 @@ The one-time evidence set-up takes about 5 minutes and requirements 2 to 5 add u
 
 ## Challenge
 
-**Starting point.** Nothing beyond the kit brief: Contoso University, an ASP.NET MVC 5 app on .NET Framework 4.8, moving to .NET 10 and Azure.
+**Starting point.** The customer story: Contoso University, an ASP.NET MVC 5 app on .NET Framework 4.8, and the six outcomes its leaders want.
 
-**Fixed by the kit.** The target shape: .NET 10 on Azure App Service, SQL Managed Instance, private-by-default networking, central logging, and cost tracked against the vending budget (the budget alert that vending created for each member before the event).
+**Fixed by the kit.** The six outcomes, the six modernization dimensions (application, data, platform, security, operations and cost), and the target shape: .NET 10 on Azure App Service, SQL Managed Instance, private-by-default networking, central logging, and cost tracked against the vending budget (the budget alert that vending created for each member before the event).
 
-**You decide.** The sponsor, the problem you solve for them, the pains that matter most, and the one-sentence outcome that counts as done.
+**You decide.** The order of the outcomes, which dimension each one lands on, how you would measure it, and the one-sentence outcome that counts as done.
 
 **Where to work.** The dev container of your own repo, and only there: it has the tools and the GitHub sign-in you set up in [Set up your repo](../../deploy/set-up-your-repo/). Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if it isn't already open in it. The terminal opens at the repo root, so you don't need to `cd`. Work on one shared screen: one person types, everyone contributes. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer.
 
@@ -62,13 +66,13 @@ The `-n` keeps anything you already created in the readiness check (such as `fac
    cp factory/templates/attendee/opportunity-canvas.md factory/evidence/c01/opportunity-canvas.md
    ```
 
-2. **Business case (5 min).** Name the sponsor (a role, for example "the university's CIO") and write one or two sentences on the problem modernizing Contoso University solves for them.
+2. **Rank the outcomes (10 min).** Rank the six outcomes from the customer story, with 1 first. Write one sentence on why your top two are on top and one on why the last is last. Dana will read these.
 
-3. **Current pain (5 min).** List at least three concrete problems with today's app: for example a framework that's no longer evolving, IIS and Windows patching on a VM, MSMQ with no managed equivalent, manual deployment. Say whether each is cost, risk, agility or support burden.
+3. **Place and measure (10 min).** For each outcome, name who at the university cares most (Dana, Marcus, Priya or Tomás), the dimension it lands on, one measure and one target. Label any number you invent "illustrative target".
 
-4. **Six dimensions (20 min).** For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed shape as the target where it applies.
+4. **Six dimensions (10 min).** For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed shape as the target where it applies.
 
-5. **Target outcome (5 min).** Fill in the **Target outcome** section, which is third in the canvas but easiest to write last. Write one sentence a sponsor would accept as "done" at the end of day two, and make sure every teammate can say it from memory.
+5. **Target outcome (5 min).** Fill in the **Target outcome** section. Write one sentence a sponsor would accept as "done" at the end of day two, and make sure every teammate can say it from memory.
 
 6. **Open questions.** Record any disagreement under "Open questions" with the people holding each view, then move on. C4 decides.
 
@@ -86,24 +90,32 @@ The `-n` keeps anything you already created in the readiness check (such as `fac
 
 To complete this challenge, show your coach in your own repo:
 
-- [ ] `factory/evidence/c01/opportunity-canvas.md`, committed on `main`, with all six dimensions filled in (not left as the template's placeholder text). It's scored once per team, from the team lead's copy.
+- [ ] `factory/evidence/c01/opportunity-canvas.md`, committed on `main`, with all six outcomes ranked and each given a voice, a dimension, a measure and a target (not left as the template's placeholder text). It's scored once per team, from the team lead's copy.
 - [ ] Each of the six dimensions has both a `Today:` and a `Target:` line, and no `<!-- ... -->` comment lines remain in the file.
 - [ ] A one-sentence target outcome the whole team can repeat.
 - [ ] Every teammate's copy is committed on `main` of their own repo and matches the team lead's.
+- [ ] Outcome check (unscored guidance): the measure for your top-ranked outcome is one you could check at the end of C10.
 
 Next, continue with [C2: Secure, AI-ready foundation](../c02-secure-ai-ready-foundation/): the coach's live portal demo, then the team lead walks the team through the foundation they deployed before the event. Members start [C3: Assess the source](../c03-assess-the-source/) at 10:15.
 
 <details>
-<summary>We don't agree on scope</summary>
+<summary>We don't agree on the order</summary>
 
-Time-box the disagreement: write both views in the canvas's "open questions" area and move on. C4's ADRs are where you commit to specific choices; C1 is directional.
+Time-box the disagreement: write both views in the canvas's "open questions" area and move on. Rank by what Dana would fund first if she could fund one. C4's ADRs are where you commit to specific choices; C1 is directional.
 
 </details>
 
 <details>
 <summary>We're not sure what counts as a "dimension"</summary>
 
-Application: code and framework. Data: storage and schema. Platform: compute and networking. Security: identity and secrets. Operations: telemetry and support. Cost: what you'll spend and how you'll justify it. One line each is enough for C1.
+Application: code and framework. Data: storage and schema. Platform: compute and networking. Security: identity and secrets. Operations: telemetry and support. Cost: what you'll spend and how you'll justify it. One line each is enough for C1. An outcome can land on more than one dimension: pick the main one.
+
+</details>
+
+<details>
+<summary>What makes a good measure?</summary>
+
+Something you could look at in the portal, a log or a test at the end of the event. "No public data endpoints" can be checked. "Better security" can't.
 
 </details>
 

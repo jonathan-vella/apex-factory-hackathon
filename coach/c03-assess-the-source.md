@@ -24,6 +24,10 @@ A correct trace-flag triage entry reads something like:
 
 Other findings from the Upgrade agent's assessment (framework APIs retired in .NET 10, packages needing updates) should each get a one-line triage: most are "fix" (handled by the Upgrade agent's own tasks in C6), a few might be "accepted risk" if genuinely cosmetic.
 
+## Business outcome check
+
+The outcome is safe, repeatable change. Open the member's triage table and check that a reader like Priya can tell blockers from accepted risks without asking. This supports the scoring row on the triage table. It earns no points of its own.
+
 ## Common mistakes
 
 - Ticking the trace-flag finding as "fix: remove the trace flags now" — this breaks MI link prep before it's even started. The correct answer is to leave them until after cutover.

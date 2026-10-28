@@ -7,6 +7,10 @@ description: Triage the GHCP and Arc migration assessments, finding by finding.
 
 Assessment tools produce long lists. A migration only goes well if a person reads each finding and decides what it means. C3 is where you turn raw output from the Upgrade agent and from Azure Arc into a reviewed list: blocker, accepted risk, or fix.
 
+**Business context.** Priya, the head of IT operations, has patched this VM by hand for years and has never had a list of what a move would break. C3 gives her that list before anyone changes code.
+
+**Business outcome.** Safe, repeatable change. Risks are known before work starts. Every finding is triaged, and the one the kit set on purpose (the trace flags) has a removal decision.
+
 **Objective.** Be able to triage migration assessment findings and tell an expected, self-inflicted finding from a real blocker.
 
 **Time and points.** Member, **60 min** (pacing), **15 pts** (member). C3 starts at 10:15 on Day 1, while the team walks through the foundation in C2. If the Upgrade agent runs are slow, do the Arc review (requirement 2) while they run. Your VM is already set up ([set up `vm-dev01`](../../deploy/member-steps/#set-up-vm-dev01)), so none of the 60 minutes goes on setup.
@@ -52,6 +56,7 @@ To complete this challenge, show your coach in your own repo:
 - [ ] A triage table (`triage.md`): finding, source, triage (blocker / accepted risk / fix), and target-state impact.
 - [ ] The trace-flag finding specifically called out with its reason, impact and decision.
 - [ ] Nothing in `app/` changed yet.
+- [ ] Outcome check (unscored guidance): your triage table lets Priya see in one place which findings block the move and which can wait.
 
 <details>
 <summary>How do I tell a self-inflicted finding from a real blocker?</summary>
