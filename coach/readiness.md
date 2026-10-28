@@ -42,6 +42,7 @@ The manual path, for repairs only, is on the [deploy with scripts](deploy-with-s
 
 ## Hints
 
+- Ask each member to confirm Actions minutes are available for their private repo before the preflight (Settings, Billing and plans). With a failed payment or a zero spending limit, every run fails at once with no steps and no log, which looks like a kit fault and isn't.
 - Running preflight once and not re-running the `whatif` stage after resource provider registration (which takes up to 15 minutes to propagate) leaves a false red.
 - Trying a manual Arc onboarding through the portal "just to see" works but produces a differently named Arc resource that later scripts (`Test-Datacenter.ps1`, the migration assessment lookups) won't find. Redo it with the script if this happened.
 - Turning Azure Hybrid Benefit off "to compare" and forgetting to turn it back on: it should stay on throughout.

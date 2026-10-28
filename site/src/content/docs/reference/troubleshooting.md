@@ -40,6 +40,7 @@ sidebar:
 ## Pipeline
 
 - **`gh workflow run` says the workflow wasn't found (HTTP 404):** GitHub dispatches a workflow only from the default branch. Merge the import to `main` first, or run the stage from the **Actions** tab.
+- **A run fails at once, with no steps and no log:** open the job's annotation. If it says recent account payments have failed or the spending limit needs to be increased, the account that owns the repo has no Actions minutes for private repos. Fix it in **Settings** > **Billing and plans**, or ask your partner's GitHub owner, then run the stage again.
 - **A run waits and nothing happens:** it's waiting for the reviewer. Open the run and choose **Review deployments**. On a private repo with no reviewer option there's no gate, so a run that sits queued has lost its runner: cancel it and run the stage again.
 - **Login fails with `AADSTS700213`:** the identity's credential doesn't match what your repo presents. Run `./scripts/Test-PipelineSetup.ps1` (add `-PipelineProfile Member` in your own repo): it names the failing check. Re-running `Initialize-PlatformPipeline.ps1` repairs the credential.
 - **The guard refuses a subscription:** it isn't on the pipeline's approved list or is on its deny list. Check the roster and the repo's environment secrets with `Test-PipelineSetup.ps1`. Never add a subscription to the approved list to get past this unless it's part of the event.
