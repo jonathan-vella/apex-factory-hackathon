@@ -1,12 +1,12 @@
 /*
  * Tick-off tasks, the sticky task bar and the sidebar "done" flags on challenge pages.
  * The markup comes from src/scripts/progress.js. Colours are chosen for 4.5:1 text contrast
- * in both themes.
+ * on the light page.
  */
 
 :root {
   --task-done: #1a7f37;
-  --task-done-text: #3fb950;
+  --task-done-text: #1a7f37;
 
   /* Starlight's mobile table of contents is about 1rem taller than --sl-mobile-toc-height. */
   --task-bar-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + 1rem);
@@ -16,10 +16,6 @@
   :root {
     --task-bar-top: calc(var(--sl-nav-height) + 0.4rem);
   }
-}
-
-:root[data-theme="light"] {
-  --task-done-text: #1a7f37;
 }
 
 .task-sr-only {

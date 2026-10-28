@@ -6,44 +6,8 @@
   --font-mono: "IBM Plex Mono", "Consolas", monospace;
   --landing-content-width: 58rem;
   --sl-font: var(--font-body);
-  --sl-color-accent-low: #002b4d;
-  --sl-color-accent: #0078d4;
-  --sl-color-accent-high: #6cb8f7;
   --sl-hue-accent: 207;
-  --sl-color-white: #f0f6fc;
-  --sl-color-gray-1: #d0d7de;
-  --sl-color-gray-2: #8b949e;
-  --sl-color-gray-3: #7d8590;
-  --sl-color-gray-4: #484f58;
-  --sl-color-gray-5: #30363d;
-  --sl-color-gray-6: #21262d;
-  --sl-color-black: #0d1117;
   --sl-color-bg-inline-code: var(--sl-color-gray-6);
-
-  /* Landing page and journey map tokens (dark) */
-  --lp-heading: #f0f6fc;
-  --lp-body: #c6d6e8;
-  --lp-muted: #b2c1d2;
-  --lp-accent-text: #8fcfff;
-  --lp-line: rgba(143, 207, 255, 0.35);
-  --lp-border: rgba(124, 135, 160, 0.18);
-  --lp-surface: linear-gradient(
-    180deg,
-    rgba(20, 25, 35, 0.94),
-    rgba(13, 17, 24, 0.96)
-  );
-  --lp-panel: rgba(255, 255, 255, 0.02);
-  --lp-node: #0d1117;
-  --lp-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
-  --lp-bullet: linear-gradient(180deg, #8ad2ff, #63b7ff);
-  --lp-hover-border: rgba(124, 232, 255, 0.4);
-  --lp-page-bg:
-    radial-gradient(circle at 14% 12%, rgba(255, 180, 76, 0.12), transparent 16%),
-    radial-gradient(circle at 76% 14%, rgba(95, 183, 255, 0.16), transparent 24%),
-    radial-gradient(circle at 62% 30%, rgba(104, 74, 255, 0.12), transparent 18%),
-    linear-gradient(180deg, #0b1018 0%, #0a0d14 42%, #0d1119 100%);
-  --lp-dots: rgba(255, 255, 255, 0.08);
-  --lp-glow-opacity: 0.65;
 }
 
 :root[data-theme="light"] {
@@ -137,12 +101,6 @@ body:has(.landing-hero)::after {
     );
   filter: blur(40px);
   opacity: var(--lp-glow-opacity);
-}
-
-:root[data-theme="dark"] body:has(.landing-hero) header {
-  background: rgba(12, 16, 24, 0.84);
-  border-bottom: 1px solid rgba(124, 135, 160, 0.16);
-  backdrop-filter: blur(18px);
 }
 
 :root[data-theme="light"] body:has(.landing-hero) header {
@@ -622,14 +580,10 @@ tr:last-child td {
 .mermaid {
   border-radius: 0.75rem;
   padding: 1.5rem;
-  background: var(--sl-color-gray-6);
+  background: #ffffff;
   border: 1px solid var(--sl-color-gray-5);
   margin-block: 1rem;
   overflow-x: auto;
-}
-
-:root[data-theme="light"] .mermaid {
-  background: #ffffff;
 }
 
 @media (max-width: 767px) {
@@ -786,18 +740,10 @@ a {
   height: 0.75rem;
   border-radius: 999px;
   background: var(--lp-node);
-  border: 2px solid #63b7ff;
-}
-
-:root[data-theme="light"] .journey__step::before {
-  border-color: #0078d4;
+  border: 2px solid #0078d4;
 }
 
 .journey__step--team::before {
-  border-color: #ffb44c;
-}
-
-:root[data-theme="light"] .journey__step--team::before {
   border-color: #c26a00;
 }
 
