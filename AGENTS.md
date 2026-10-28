@@ -58,7 +58,7 @@ each member keeps evidence in `factory/evidence/` of their own repo. The readine
 - Clean under PSScriptAnalyzer. Run it on every script you touch.
 - A script must work for a user **and** for the pipeline's managed identity. Treat a login as the pipeline only when `az account show` reports `user.type` of `servicePrincipal`; take its object ID from the ARM token's `oid` claim, never from `az ad signed-in-user show` (Graph). List role assignments by scope and filter on `principalId`, not with `--assignee`.
 - Don't print IDs. Mask them in errors. Pipeline steps pipe their output through `scripts/Write-RedactedOutput.ps1`, which turns every GUID into `<id:abcd>`, as a second line of defence.
-- Tests live in `test/`. Every PowerShell test there runs without Azure (each uses stubs or fixtures, and its header says so): `Assert-PipelineGuard`, `Invoke-PipelineVending`, `Test-Acceptance`, `Test-DevSparse`, `Test-Helpers`, `Test-MiLinkSource`, `Test-Preflight` and `Write-RedactedOutput`, each as `./test/<name>.Tests.ps1`. The `.mjs` tests belong to `npm run check`. Keep them all green.
+- Tests live in `test/`. Every PowerShell test there runs without Azure (each uses stubs or fixtures, and its header says so): `Assert-PipelineGuard`, `Invoke-PipelineVending`, `Test-Acceptance`, `Test-DatacenterRetry`, `Test-DevSparse`, `Test-Helpers`, `Test-MiLinkSource`, `Test-Preflight` and `Write-RedactedOutput`, each as `./test/<name>.Tests.ps1`. The `.mjs` tests belong to `npm run check`. Keep them all green.
 - On Windows, `$h` is an alias of `Get-History`: don't name a helper `h`. Pass scripts to WSL with LF line endings.
 - Don't rewrite files with PowerShell string replaces: use the edit tool, because CRLF in the working copy defeats a `` `n `` match silently.
 
