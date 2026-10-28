@@ -59,12 +59,28 @@ test("retired artifact in an Astro component is blocked", async () => {
   const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
   try {
     await mkdir(join(root, "site/src/components"), { recursive: true });
-    await writeFile(
-      join(root, "site/src/components/retired.astro"),
-      "07-ab-operations-guide.md",
-    );
+    await writeFile(join(root, "site/src/components/retired.astro"), "07-ab-operations-guide.md");
     const result = await runChecks(root);
     assert.match(result.failures.join("\n"), /retired operations artifact name/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("a challenges overview row that differs from challenges.json is blocked", async () => {
+  const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
+  try {
+    await mkdir(join(root, "site/src/content/docs/challenges"), { recursive: true });
+    await writeFile(
+      join(root, "site/src/content/docs/challenges/c01-define-the-opportunity.md"),
+      "# C1\n",
+    );
+    await writeFile(
+      join(root, "site/src/content/docs/challenges/index.md"),
+      "| Day 1 | [C1: Define the opportunity](./c01-define-the-opportunity/) | Team | 50 min | 10 | All six, in order |\n",
+    );
+    const result = await runChecks(root);
+    assert.match(result.failures.join("\n"), /index\.md: the C1 row must read/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

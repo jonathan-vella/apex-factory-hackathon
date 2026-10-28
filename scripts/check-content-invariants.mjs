@@ -1,21 +1,22 @@
+import { readFileSync } from "node:fs";
 import { access, readFile, readdir } from "node:fs/promises";
 import { extname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const defaultRoot = fileURLToPath(new URL("..", import.meta.url));
 const textExtensions = new Set([".astro", ".md", ".mdx", ".yml", ".yaml"]);
-const challengeContract = [
-  ["C1", "c01-define-the-opportunity.md", 45, 10, 10, 0],
-  ["C2", "c02-secure-ai-ready-foundation.mdx", 120, 35, 35, 0],
-  ["C3", "c03-assess-the-source.md", 60, 15, 0, 15],
-  ["C4", "c04-choose-target-states.md", 45, 25, 15, 10],
-  ["C5", "c05-deploy-the-coe-archetype.mdx", 90, 15, 0, 15],
-  ["C6", "c06-modernize-with-ghcp.md", 180, 30, 0, 30],
-  ["C7", "c07-migrate-and-go-live.md", 120, 20, 0, 20],
-  ["C8", "c08-validate-the-pattern.md", 45, 10, 0, 10],
-  ["C9", "c09-optimize-the-db-with-ghcp.md", 60, 10, 0, 10],
-  ["C10", "c10-package-hand-over-review-ai-readiness.md", 60, 20, 20, 0],
-];
+// The challenge order, scope, time, points and objective live in site/src/data/challenges.json.
+const challengeData = JSON.parse(
+  readFileSync(new URL("../site/src/data/challenges.json", import.meta.url), "utf8"),
+).challenges;
+const challengeContract = challengeData.map((c) => [
+  c.id,
+  c.file,
+  c.minutes,
+  c.teamPoints + c.memberPoints,
+  c.teamPoints,
+  c.memberPoints,
+]);
 const expectedChallengeCount = 10;
 const expectedMinutes = 825;
 const expectedPoints = 190;
@@ -72,7 +73,9 @@ async function checkTemplateCopies(root) {
       copy = await readFile(join(team, name));
     } catch (error) {
       if (error.code === "ENOENT") {
-        failures.push(`templates/team/templates/${name}: missing, copy it from templates/attendee/${name}`);
+        failures.push(
+          `templates/team/templates/${name}: missing, copy it from templates/attendee/${name}`,
+        );
         continue;
       }
       throw error;
@@ -191,6 +194,33 @@ export async function runChecks(root = defaultRoot) {
     }
   }
 
+  let overviewRows = [];
+  try {
+    overviewRows = (await readFile(join(root, "site/src/content/docs/challenges/index.md"), "utf8"))
+      .replace(/\r\n/g, "\n")
+      .split("\n")
+      .filter((line) => line.startsWith("|"));
+  } catch {
+    // The missing overview is reported by each challenge row below.
+  }
+
+  let storyText = "";
+  try {
+    storyText = await readFile(
+      join(root, "site/src/content/docs/getting-started/customer-story.md"),
+      "utf8",
+    );
+  } catch {
+    failures.push("site/src/content/docs/getting-started/customer-story.md: missing");
+  }
+  for (const outcome of new Set(challengeData.map((c) => c.outcome))) {
+    if (outcome !== "All six, in order" && storyText && !storyText.includes(`| ${outcome} |`)) {
+      failures.push(
+        `customer-story.md: the outcome "${outcome}" in challenges.json is not in the outcomes table`,
+      );
+    }
+  }
+
   let totalMinutes = 0;
   let totalPoints = 0;
   for (const [, fileName, minutes, points] of challengeContract) {
@@ -211,6 +241,36 @@ export async function runChecks(root = defaultRoot) {
     if (!infoPattern.test(text)) {
       failures.push(
         `site/src/content/docs/challenges/${fileName}: expected ${minutes} min and ${points} pts`,
+      );
+    }
+
+    const challenge = challengeData.find((c) => c.file === fileName);
+    const challengePath = `site/src/content/docs/challenges/${fileName}`;
+    if (!text.includes(`title: "${challenge.id}: ${challenge.title}"`)) {
+      failures.push(`${challengePath}: title must be "${challenge.id}: ${challenge.title}"`);
+    }
+    if (!text.includes(`**Objective.** ${challenge.objective}`)) {
+      failures.push(`${challengePath}: objective differs from site/src/data/challenges.json`);
+    }
+    const slug = fileName.replace(/\.mdx?$/, "");
+    const row = overviewRows.find((line) => line.includes(`(./${slug}/)`));
+    const expectedRow = [
+      challenge.day,
+      `[${challenge.id}: ${challenge.title}](./${slug}/)`,
+      challenge.scope,
+      `${challenge.minutes} min`,
+      String(challenge.teamPoints + challenge.memberPoints),
+      challenge.outcome,
+    ];
+    const cells = row
+      ? row
+          .split("|")
+          .slice(1, -1)
+          .map((cell) => cell.trim())
+      : [];
+    if (JSON.stringify(cells) !== JSON.stringify(expectedRow)) {
+      failures.push(
+        `site/src/content/docs/challenges/index.md: the ${challenge.id} row must read ${expectedRow.join(" | ")}`,
       );
     }
 
