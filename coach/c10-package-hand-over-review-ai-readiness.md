@@ -24,6 +24,10 @@ A credible AI-readiness gap register entry for a team that used no lifelines:
 
 A reusable asset that passes the bar: the adapted archetype repository with the `/apex-adapt-archetype` outputs and As-Built document, committed with a short README explaining what subscription/tenant values a new team would need to supply — not "ask us how this works."
 
+## Business outcome check
+
+The outcome is a documented path to AI. Open the AI-readiness gap register and check that each entry has an owner and a next step, including the entries for where a person had to step in. This supports the scoring row on the AI-readiness register. It earns no points of its own.
+
 ## Common mistakes
 
 - An empty or token AI-readiness gap register ("we didn't need any help") — review C3–C7 with the team; every team has at least the deliberate human-in-the-loop points above, even with a perfect run.

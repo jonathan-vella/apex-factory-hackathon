@@ -7,6 +7,10 @@ description: Run the acceptance pack against the live, migrated app.
 
 A demo click-through proves little. C8 proves the modernized app is healthy in production with a fixed, repeatable acceptance pack: pages, data, uploads, notifications, load and security settings, each with evidence.
 
+**Business context.** Tomás, the security lead, wants proof, not a demo. C8 runs a fixed acceptance pack against the live app so he can see for himself that it is healthy and private.
+
+**Business outcome.** Secure by default. The live app passes a repeatable check, and every data service refuses public access.
+
 **Objective.** Be able to validate a migrated workload with a repeatable pack and record each result with evidence.
 
 **Time and points.** Member, **45 min**, **10 pts** (member).
@@ -131,6 +135,7 @@ To complete this challenge, show your coach in `factory/evidence/c08/` of your o
 - [ ] A filled-in acceptance and handover document, copied from `factory/templates/attendee/acceptance-handover.md` (the [template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md)): every check, its result and its evidence.
 - [ ] Telemetry (requests, dependencies) from this session's checks visible in Application Insights: the screenshot from requirement 6.
 - [ ] `Test-Acceptance.ps1`'s output (`acceptance.json`), which should end in `ACCEPT` and shows public network access off for every backend. If a check stayed UNKNOWN, the portal screenshot that explains it, noted in the pack.
+- [ ] Outcome check (unscored guidance): show Tomás the one result that proves no data service accepts public traffic.
 
 <details>
 <summary>What counts as "enough" load for the load check?</summary>
