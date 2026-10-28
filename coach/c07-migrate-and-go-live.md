@@ -47,6 +47,10 @@ The steps use the student page's task numbers.
 7. Requirement 7: remove `-T1800 -T9567` from the source SQL Server's startup parameters (SQL Server Configuration Manager > the SQL Server service > Properties > **Startup Parameters**) and restart the SQL Server service (not the VM) to apply.
 8. Requirement 8: fill in the cutover/rollback runbook template with the actual sequence, including anything that needed a retry.
 
+## Business outcome check
+
+The outcome is safe, repeatable change. Read the runbook as Marcus would: it states when the stop starts, how long it lasted and how to roll back. The under-an-hour figure is an illustrative target, so record what the team saw and don't fail them on it. This supports the scoring row on the cutover and rollback runbook. It earns no points of its own.
+
 ## Common mistakes
 
 - Ticking "forced failover" by habit — this is only for when you can't confirm zero lag. With a validated, zero-lag replica, it adds risk without a benefit.
