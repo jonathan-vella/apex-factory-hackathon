@@ -53,6 +53,10 @@ az vm restart -g rg-datacenter -n vm-app01 --subscription <member-subscription-i
 - Run `Deploy-Vending.ps1`, the restarts, the exemptions and the connectivity test once per member, after ALZ-lite and after that member's datacenter and approved readiness record. Take the other members' values from the roster the team lead keeps privately (captured at T-14).
 - Never rerun Arc, and never redeploy a datacenter after Arc. A datacenter redeployed after vending requires vending again.
 
+## Business outcome check
+
+The outcome is secure by default. Ask a team member to show one core policy that blocks a public data endpoint and the route through the firewall, in the portal or the run summary. This supports the scoring row on the team answering the core policy questions. It earns no points of its own: if the team can't show it, say so in the debrief and move on.
+
 ## Common mistakes
 
 - Vending before ALZ-lite finished propagating (management group moves can lag a few minutes) — vending then can't find the hub by name. Wait and retry rather than debugging a "missing resource."

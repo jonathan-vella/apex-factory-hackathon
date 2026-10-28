@@ -13,6 +13,10 @@ Four ADRs are the minimum bar: platform and migration method (team-level, `facto
 - **Data ADR (member):** decision = SQL Managed Instance, Microsoft Entra authentication only; alternative considered = SQL Server on an Azure VM; consequence = no SQL authentication path outside Development, simplifying secrets management.
 - **Deferred-work register (team, `factory/evidence/c04/deferred-work-register.md`, scored once from the team lead's copy):** every C3 finding not immediately fixed, each with an owner, a target and a timeline — one trace-flag removal entry per member must be present (owner = the member, target = "remove `-T1800 -T9567` from the source," timeline = "after C7 cutover"). The C2 exemptions should appear too.
 
+## Business outcome check
+
+The outcome is a current platform. Check that at least one ADR refers to the team's top-ranked outcome from C1 and that a reader outside the team could follow it. This supports the four ADR scoring rows. It earns no points of its own.
+
 ## Common mistakes
 
 - An ADR with no alternative considered — "we decided X" isn't a decision record without at least one road not taken and why.

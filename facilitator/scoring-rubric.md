@@ -36,7 +36,7 @@ This is the scoring single source of truth. The base contract is 80 team points 
 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
-| Committed opportunity canvas covers all six modernization dimensions | 6 | 0 |
+| Committed opportunity canvas ranks the six business outcomes, each with a voice, dimension, measure and target, and covers all six modernization dimensions | 6 | 0 |
 | Team can state one clear target outcome together | 4 | 0 |
 | **Total** | **10** | **0** |
 
