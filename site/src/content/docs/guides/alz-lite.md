@@ -31,7 +31,7 @@ The team lead deploys ALZ-lite with the `foundation` stage at T-7, before the ev
 - **`rg-hub`:** `vnet-hub`, `afw-hub` (Azure Firewall Standard) with its public IP and the `afwp-hub` policy (DNS proxy on), and the private DNS zones for Blob, Service Bus, the container registry and Key Vault, linked to the hub.
 - **Defender for Cloud and policy:** Foundational CSPM only (cloud security posture management: recommendations, no paid protection plans), and the core policies at `mg-factory-corp` (summarized in the table below; the full list is in the [foundation README](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/foundation/README.md)).
 
-It takes 15 to 25 minutes, mostly Azure Firewall, and costs about $1.30 an hour while it exists. The firewall bills until `rg-hub` is deleted. A re-run converges. Policies can take up to 30 minutes to take effect.
+See the [stage timing table](../../deploy/how-it-works/#stages) for the deployment estimate. The foundation costs about $1.30 an hour while it exists; the firewall bills until `rg-hub` is deleted. A re-run converges. Policies can take up to 30 minutes to take effect.
 
 :::note[Defender for Cloud changes the whole subscription]
 

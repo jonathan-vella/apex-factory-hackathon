@@ -121,8 +121,9 @@ repo and continue from there.
 
 A member who prefers APEX to drive the deployment itself, instead of azd, can hand off to
 **APEX Deploy** (agent `07b-Bicep Deploy`, workflow step 6) against `infra/bicep/university/`
-after the governance refresh, the same way the `/apex-adapt-archetype` skill used to. This still works,
-but isn't the path the skill or this README walks through by default.
+after the governance refresh, the same way the `/apex-adapt-archetype` skill used to. This path
+works, but it is unsupported during the event and coaches do not support it. Use the `azd` path
+above for the hackathon.
 
 **Tree hash ([#52](https://github.com/jonathan-vella/apex-factory-hackathon/issues/52), closed):** the
 packaged `infra/bicep/university/` tree hash matches the handoff APEX step `06b` re-emitted on 2026-10-20

@@ -105,7 +105,7 @@ foreach ($index in $MemberIndex) {
         $PSNativeCommandUseErrorActionPreference = $false
         & az network vnet show --subscription $workload -g rg-datacenter -n vnet-datacenter --only-show-errors --output none 2>$null
         if ($LASTEXITCODE -ne 0) {
-            throw "Member $index has no datacenter. Deploy it first: the datacenter comes before ALZ-lite and vending."
+            throw "Member $index has no datacenter. Complete the member's Step 3 datacenter setup before Step 4 vending; the team foundation must already be deployed at Step 2."
         }
         $arcStatus = (& az resource show --subscription $workload -g rg-datacenter --resource-type Microsoft.HybridCompute/machines -n vm-app01 --query properties.status -o tsv --only-show-errors 2>$null | Out-String).Trim()
         if ($LASTEXITCODE -ne 0 -or $arcStatus -ne 'Connected') {

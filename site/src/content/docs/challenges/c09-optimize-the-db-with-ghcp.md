@@ -29,7 +29,7 @@ A migrated database can still be slow. The perf kit planted five performance iss
 
 **You decide.** How to fix each one, and what the numbers show.
 
-**Where to work.** Everything runs on `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)), in PowerShell 7 and SSMS on the VM. Run the scripts from the kit clone at `C:\src\factory`, but save your evidence only in your own repo's clone, `C:\src\<your-repo>\factory\evidence\c09\`, on `main` (run `git pull --rebase` there first). Never save evidence under `C:\src\factory`: it's on the `vm-dev01-work` branch, which your assessors don't read. Use your own identity: it's the one with access to the managed instance. Sign in with the account you used for `azd` in C5: it's the managed instance's Microsoft Entra admin, so it can change the database. Never stop the VM during C9.
+**Where to work.** Everything runs on `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)), in PowerShell 7 and SSMS on the VM. Run the scripts from the kit clone at `C:\src\factory`, but save C9 evidence only in your own repo's clone, `C:\src\<your-repo>\factory\evidence\c09\`, on `main` (run `git pull --rebase` there first). C9 evidence isn't collected from `vm-dev01-work`; that branch holds the kit's app work. Use your own identity: it's the one with access to the managed instance. Sign in with the account you used for `azd` in C5: it's the managed instance's Microsoft Entra admin, so it can change the database. Never stop the VM during C9.
 
 **Query Store** is SQL Server's built-in record of every query's duration, reads and plans. You'll read it in SSMS, which shows it in reports.
 

@@ -116,6 +116,10 @@ Your import is on the `feat/...` branch. Merge it now so `main` holds the kit an
 
 Done when `factory/` is visible on `main` on GitHub and `git branch --show-current` prints `main`.
 
+### Assign member indexes before 1.4 (Team lead)
+
+Before anyone creates settings in Step 1.4, the team lead assigns each member a distinct index and shares it privately. Scripts accept indexes from `1` to `20`; teams use `1` to `5`, with the team lead as `1`. Members must use the index their team lead assigns, not choose their own.
+
 From now on, all your work is on `main`, except the `vm-dev01-work` branch on `vm-dev01`, which you never merge. Evidence follows one rule everywhere:
 
 - **Dev container:** evidence goes in `factory/evidence/` on `main`. Run `git pull` first.
@@ -150,7 +154,7 @@ Each member keeps evidence in their own repo. For a team document, one person ty
    gh auth setup-git
    ```
 
-4. **Create your settings file.** Run it from `factory/`. Your team lead assigns you a unique member index (`1` to `5`, where the team lead is `1`).
+4. **Create your settings file.** Run it from `factory/` with the unique index your team lead assigned before this step: scripts accept indexes from `1` to `20`; teams use `1` to `5`, with the team lead as `1`.
 
    ```powershell
    cd factory
@@ -162,10 +166,11 @@ Each member keeps evidence in their own repo. For a team document, one person ty
 5. **Check your vCPU quota.**
 
    ```powershell
-   az vm list-usage --location swedencentral --output table
+   $s = Get-Content .local/settings.json | ConvertFrom-Json
+   az vm list-usage --location $s.location --output table
    ```
 
-   For the rows `Total Regional vCPUs` and `Standard Dasv6 Family vCPUs`, `CurrentValue + 16` must be no larger than `Limit`. If not, ask for a quota increase under **Usage + quotas** and tell your team lead.
+   For the rows `Total Regional vCPUs` and `Standard DASv6 Family vCPUs`, `CurrentValue + 16` must be no larger than `Limit`. If not, ask for a quota increase under **Usage + quotas** and tell your team lead.
 
 </Steps>
 
@@ -174,7 +179,7 @@ Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`,
 <details>
 <summary>About the settings questions</summary>
 
-- **Member index:** your team lead assigns you a number from 1 to 20, unique within your team. Ask your team lead if you don't have one, and don't pick your own. It isn't the six-character suffix the script generates. Later pages show these as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
+- **Member index:** your team lead assigns you a number unique within your team. A team uses indexes 1 to 5, with the team lead as 1; the scripts accept indexes from 1 to 20. Ask your team lead if you don't have one, and don't pick your own. It isn't the six-character suffix the script generates. Later pages show these as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
 - **Shared services subscription, members:** press Enter to skip it for now. You can add it in [Step 4: Vending](../vending/) when your team lead shares it (`./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`). Re-running never changes your other values.
 - **Shared services subscription, team lead:** enter it now. The script prints its name on a `Shared:` line: check it is your shared services subscription and not another one you own.
 - **Wrong subscription name:** `az account list --refresh --output table` updates the cached names. `Initialize-Settings.ps1` can't tell a mistyped but valid ID from a real one, so read the name it shows.
@@ -200,7 +205,7 @@ Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`,
 
 **Team lead:**
 
-1. Assign each colleague a distinct member index (`1` to `5`, taking `1` yourself) and collect the four values above from every member, yourself included.
+1. Use the distinct team member indexes you assigned and shared before Step 1.4; teams use `1` to `5`, with you as `1`, and scripts accept indexes from `1` to `20`. Collect the four values above from every member, yourself included.
 2. Save `factory/.local/roster.json` (git-ignored) with one row per member:
 
    ```json
@@ -220,9 +225,11 @@ Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`,
 
 Done when `Initialize-PlatformPipeline.ps1` reports its checks as passed.
 
+Do not run the `foundation` stage yet. The team lead runs it at Step 2 (T-7), after the Step 1 preflight.
+
 ## 1.6 Run the T-14 preflight and manual checks
 
-The `whatif` stage checks your subscription and registers missing Azure resource providers. Allow about 15 minutes, plus up to 15 minutes if resource provider registrations need to propagate.
+The `whatif` stage checks your subscription and registers missing Azure resource providers. See the [stage timing table](../how-it-works/#stages) for the estimate, including time for provider registration to propagate.
 
 <Steps>
 

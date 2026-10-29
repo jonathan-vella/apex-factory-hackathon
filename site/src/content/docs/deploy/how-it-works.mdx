@@ -15,11 +15,11 @@ One workflow, `platform.yml`, runs in your own repo. You pick a stage and walk a
 
 | Stage | Profile | When | What it does | Time |
 | --- | --- | --- | --- | --- |
-| `whatif` | Member | T-14 ([Step 1](../set-up-your-repo/)), and again at T-3 | Runs the preflight. On a new subscription it also registers the Azure providers and the public IP feature. | a few minutes |
-| `whatif` | Lead | T-7 ([Step 2](../team-lead-steps/)) | A read-only what-if of ALZ-lite, and the preflight for every member in the roster. | 3 min, plus a few minutes per member |
-| `member` | Member | T-3 ([Step 3](../member-steps/)) | Deploys the datacenter, runs the datacenter test, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 45 min |
+| `whatif` | Member | T-14 ([Step 1](../set-up-your-repo/)), and again at T-3 | Runs the preflight. On a new subscription it also registers the Azure providers and the public IP feature. | About 15 min; allow up to 15 more for new provider registrations to propagate |
+| `whatif` | Lead | T-14 ([Step 1](../set-up-your-repo/)) and T-7 ([Step 2](../team-lead-steps/)) | Runs the member preflight at T-14; at T-7, previews ALZ-lite and runs a preflight for each roster member. | About 15 min at T-14; at T-7, about 3 min plus a few minutes per member; allow up to 15 more for provider registrations |
+| `member` | Member; Lead (own index) | T-3 ([Step 3](../member-steps/)) | Deploys the datacenter, runs the datacenter test, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 60 min |
 | `foundation` | Lead | T-7 ([Step 2](../team-lead-steps/)) | Deploys ALZ-lite for the team: management groups, hub, policies. | 15 to 25 min |
-| `vending` | Lead | T-1 ([Step 4](../vending/)) | Verifies each member's `vnet-datacenter` and `vm-app01` Arc `Connected` status, connects each member's subscription to the hub, restarts every VM, records policy exemptions and runs the connectivity probes. | about 1 hour for 3 members |
+| `vending` | Lead | T-1 ([Step 4](../vending/)) | Verifies each member's `vnet-datacenter` and `vm-app01` Arc `Connected` status, connects each member's subscription to the hub, restarts every VM, records policy exemptions and runs the connectivity probes. | About 60 min for 3 members; 75 min for 5 |
 | `teardown` | Both | T+2 | Removes what the other stages built. | about 20 min, then about 25 for the team |
 
 The order is fixed by the event: Step 1 (repo and preflight), Step 2 (foundation and the Graph grant), Step 3 (each member's datacenter and `vm-dev01` setup), and Step 4 (vending, which verifies each member's datacenter and Arc connection automatically). The [deployment guide](../) has the timeline.
@@ -68,4 +68,4 @@ Subscription IDs and the roster are stored as environment secrets, never in the 
 
 ## One profile per repo
 
-A repo has exactly one profile. The team lead sets up the lead profile in the lead's repo and doesn't run the member profile there. Every other member sets up the member profile in their own repo.
+A repo has exactly one pipeline profile. The team lead sets up the lead profile in their repo and uses it to run their own member stage for index 1; they don't configure a second member profile. Every other member sets up the member profile in their own repo.

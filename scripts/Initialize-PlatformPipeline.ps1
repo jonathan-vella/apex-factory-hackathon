@@ -492,11 +492,12 @@ if ($SmokeTest -and -not $WhatIfPreference -and -not $SkipGitHub) {
 Write-Information $(if ($member0Profile) {
         @"
 
-Done. Next, your preflight (it also registers any Azure providers and features your subscription is missing; approve it in the Actions tab if GitHub asks)
+Done. Run the preflight by Step 1 (T-14); it also registers any Azure providers and features your subscription is missing (approve it in the Actions tab if GitHub asks):
   gh workflow run platform.yml --repo $Repository -f stage=whatif
-Then your datacenter, test and Arc onboarding for the readiness check (about 45 minutes, unattended):
+At Step 3 (T-3), repeat the preflight, then run your datacenter, test and Arc onboarding:
+  gh workflow run platform.yml --repo $Repository -f stage=whatif
   gh workflow run platform.yml --repo $Repository -f stage=member
-Fetch the readiness evidence afterwards with ./scripts/Get-PipelineEvidence.ps1.
+Fetch the readiness evidence afterwards with ./scripts/Get-PipelineEvidence.ps1. See https://factory.apexops.pro/deploy/how-it-works/ for stage timings.
 Check the setup any time with ./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member. To remove the identity later:
 ./scripts/Remove-PlatformPipeline.ps1 -PipelineProfile Member
 "@
@@ -504,9 +505,15 @@ Check the setup any time with ./scripts/Test-PipelineSetup.ps1 -PipelineProfile 
     else {
         @"
 
-Done. Next, the preflight (it also registers any Azure providers and features the subscriptions are missing; approve it in the Actions tab if GitHub asks):
+Done. Run the preflight by Step 1 (T-14), then repeat it at Step 2 (T-7) before deploying the foundation (approve each Actions run if GitHub asks):
   gh workflow run platform.yml --repo $Repository -f stage=whatif
-Then the foundation: gh workflow run platform.yml --repo $Repository -f stage=foundation
+At Step 2 (T-7), after Step 1 is complete, run the foundation:
+  gh workflow run platform.yml --repo $Repository -f stage=foundation
+At Step 3 (T-3), run the team lead's member stage for index 1:
+  gh workflow run platform.yml --repo $Repository -f stage=member -f members=1
+At Step 4 (T-1), after every member completes Step 3 and starts both VMs, run vending:
+  gh workflow run platform.yml --repo $Repository -f stage=vending
+See https://factory.apexops.pro/deploy/how-it-works/ for stage timings.
 Check the setup any time with ./scripts/Test-PipelineSetup.ps1. To remove everything later, as an admin and
 after the platform's own teardown: ./scripts/Remove-PlatformPipeline.ps1
 "@

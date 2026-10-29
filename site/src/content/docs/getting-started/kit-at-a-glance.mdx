@@ -15,12 +15,14 @@ This page is the big picture. When you're ready to work, start with [Requirement
 
 | Where | What you do there |
 |---|---|
-| Dev container | VS Code on your laptop, in your own repo. You trigger your deployments from here with GitHub Actions, and run the readiness setup, C5 with APEX and `azd`, and the C8 load and security checks. [Set up your repo](../../deploy/set-up-your-repo/) creates it. |
-| [`vm-dev01`](../../guides/ghcp-upgrade/#switching-to-vm-dev01) | Your workstation, through Bastion. From C3 the app work happens here, next to the private network. Never stop it. |
+| Dev container | VS Code on your laptop, in your own repo. You trigger deployments with GitHub Actions and run the readiness setup, C1, C2, C4, C5 with APEX and `azd`, and C10 here. C8 uses both the dev container and `vm-dev01`. [Set up your repo](../../deploy/set-up-your-repo/) creates it. |
+| [`vm-dev01`](../../guides/ghcp-upgrade/#switching-to-vm-dev01) | Your workstation, through Bastion. From C3 the app work happens here, next to the private network. During the event, never stop it. |
 | Browser and Azure portal | The Azure Arc assessment (first run in the readiness check, triaged in C3), the MI link (C7), Bastion connections and the C8 smoke checks. |
 | [Your own repo](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) | Evidence goes in `factory/evidence/` on `main`; run `git pull` first. On `vm-dev01`, use your plain clone `C:\src\<your-repo>` and run `git pull --rebase` first. Your coach reads it. |
 
 Each challenge page has a **Where to run** block that says which one to use.
+
+Your team lead assigns a distinct member index to each person. Teams use `1` to `5`, with the team lead as `1`; the scripts accept indexes from `1` to `20`.
 
 ## What changes
 

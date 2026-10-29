@@ -46,13 +46,13 @@ Requirements 5 and 6 depend on which identity does what. The web app's own ident
 - C6's modernized, packaged app (image tag `c6`), not yet pointed at App Service.
 - `vm-app01` running, with its Azure Arc entry **Connected**. C3 had you start it; run `az vm start` for it if it's stopped. The portal shows the instance only while the machine is connected.
 
-Start the link at 08:30 on Day 2 (the agenda's "Reconnect and start the MI link"), before you finish C6, so it's already seeded when you reach requirement 3: requirements 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. If your coach calls the cutover off at go/no-go, plan another 20 to 30 minutes to reseed, validate again and agree a second window. Go/no-go is the check, with your coach, that the lag is clear and the replica is validated before you stop the writers.
+Start the link at 08:30 on Day 2, before you finish C6, so it's already seeded when you reach requirement 3: requirements 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. After the lag check in requirement 4.4, make the go/no-go decision with your coach. A no-go means restart the source site and pool, keep the link running, and postpone the cutover to a later window. If you must cancel the link and reseed, plan another 20 to 30 minutes to validate again and agree a second window.
 
-### What the kit already did for you
+**You decide.** Whether the validated replica is good enough to cut over (go or no-go, with your coach), and what you write in your runbook.
+
+### Fixed by the kit
 
 The datacenter deployment turned on availability groups on `vm-app01`'s SQL Server, set the startup trace flags `-T1800` and `-T9567`, made `NT AUTHORITY\SYSTEM` a sysadmin and onboarded the instance to Azure Arc (the readiness check). Vending opened the network path between `vm-app01` and your managed instance's subnet. Requirement 1 does the rest of what the link needs on the source: a Windows Firewall rule for port 5022, a database master key, the Azure root certificates and a full backup.
-
-**You decide.** Whether the replica is good enough to cut over (go or no-go, with your coach), and what you write in your runbook.
 
 ### Where to work
 
@@ -180,42 +180,15 @@ $mi
       ```
 
       An empty table and `Sessions: 0` is what you want. A row means a client is still connected: use `host_name` and `program_name` to find it (an SSMS window on `vm-dev01` is the usual one), close it, and run the check again.
-   4. **Watch the lag reach zero.** In the Azure portal, open the **Monitor and cutover** pane (**Database migration** > **Monitor migrations**). With no writers, the status of `ContosoUniversity` stays **Ready for cutover** and the **Lag** column shows two dashes, which means no lag, within a minute or two. If lag doesn't clear, or a writer keeps appearing, **abort the cutover**: restart the site and pool (`Start-WebAppPool -Name ContosoUniversity; Start-Website -Name ContosoUniversity`), and ask your coach.
+   4. **Watch the lag reach zero.** In the Azure portal, open the **Monitor and cutover** pane (**Database migration** > **Monitor migrations**). With no writers, the status of `ContosoUniversity` stays **Ready for cutover** and the **Lag** column shows two dashes, which means no lag, within a minute or two. If lag doesn't clear, or a writer keeps appearing, **postpone the cutover**: restart the site and pool (`Start-WebAppPool -Name ContosoUniversity; Start-Website -Name ContosoUniversity`), keep the link running, and agree a later window with your coach.
    5. **Cut over at no lag.** Select `ContosoUniversity`, then **Cutover** (Microsoft Learn's name; some portal builds label the button **Complete cutover**, and it's the same action). Tick the box that confirms you've stopped all incoming traffic to the source, and leave the **forced failover** box clear: a planned failover waits for the lag to reach zero, and forcing it with lag above zero can lose writes. The portal removes the link when the cutover completes: it offers no option to keep it.
    6. **Wait for it to finish.** It takes about 2 minutes. On **Monitor and cutover**, the migration for `ContosoUniversity` shows as completed and the link is gone. Then, in SSMS on the replica connection from requirement 3, run `SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability');`. It must return `READ_WRITE` (it said `READ_ONLY` in requirement 3).
 
    Done when the migration shows completed and the managed instance's database returns `READ_WRITE`. The managed instance is now the live database. Leave the legacy site on `vm-app01` stopped: restarting it would write to a source that's no longer authoritative.
-5. **Write the secret and create the database user.** On `vm-dev01`, do both for the web app's managed identity. The Key Vault stores the connection string, and the web app reads it at startup through its identity `id-university-<suffix>`.
+5. **Write the secret and create the database user.** After cutover, follow the first two go-live actions in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7). It is the single source for the Key Vault secret, the database user and its roles, and the checks. Run those actions on `vm-dev01`, in order, as the archetype's deployer.
+6. **Point the web app at your image** and restart it. Follow the remaining go-live action and checks in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7). The web app pulls from your private registry with its managed identity.
 
-   1. **Write the secret `ConnectionStrings--DefaultConnection`.** It uses Microsoft Entra authentication and has no password. The account that deployed the archetype has the rights to write it:
-
-      ```powershell
-      az keyvault secret set --vault-name "kv-university-$suffix" --name 'ConnectionStrings--DefaultConnection' --value "Server=$mi;Database=ContosoUniversity;Authentication=Active Directory Default;Encrypt=True;" --output none
-      az keyvault secret show --vault-name "kv-university-$suffix" --name 'ConnectionStrings--DefaultConnection' --query id --output tsv
-      ```
-
-      The second command prints the secret's ID: it exists. Never put the connection string in an app setting.
-   2. **Create the database user.** In SSMS, connect to the managed instance as in requirement 3 (host name, **Microsoft Entra MFA**, the account that deployed the archetype), open a new query on the `ContosoUniversity` database and run it. The user's name is the web app's identity: replace `<suffix>` with your suffix, for example `[id-university-ab12cd]`.
-
-      ```sql
-      CREATE USER [id-university-<suffix>] FROM EXTERNAL PROVIDER;
-      ALTER ROLE db_datareader ADD MEMBER [id-university-<suffix>];
-      ALTER ROLE db_datawriter ADD MEMBER [id-university-<suffix>];
-      ALTER ROLE db_ddladmin ADD MEMBER [id-university-<suffix>];
-      ```
-
-   Done when `az keyvault secret show` prints an ID and SSMS reports the four statements completed successfully.
-6. **Point the web app at your image** and restart it, then check it. The web app pulls the image from your private registry with its managed identity:
-
-   ```powershell
-   az webapp config container set --resource-group $rg --name "app-university-$suffix" --container-image-name "cruniversity$suffix.azurecr.io/contoso-university:c6" --container-registry-url "https://cruniversity$suffix.azurecr.io" --output none
-   az webapp config show --resource-group $rg --name "app-university-$suffix" --query acrUseManagedIdentityCreds
-   az webapp restart --resource-group $rg --name "app-university-$suffix"
-   ```
-
-   The second command must print `true`: the archetype set the image pull with the identity. The app takes a few minutes to start; follow it with `az webapp log tail --resource-group $rg --name "app-university-$suffix"`. If the tail prints nothing, turn on container logging first: `az webapp log config --resource-group $rg --name "app-university-$suffix" --docker-container-logging filesystem`. Playbook Step 5 (`.github/modernization/playbook.md` in your clone) has the same commands and the usual startup errors.
-
-   Done when `https://app-university-$suffix.azurewebsites.net/` (with your suffix) loads the five pages, the home page, Students, Courses, Instructors and Departments, showing the migrated data. Then confirm an upload lands in Blob, a notification round-trips, and telemetry reaches Application Insights.
+   Done when the playbook's checks pass and `https://app-university-<suffix>.azurewebsites.net/` loads the five pages with migrated data, an upload lands in Blob, a notification round-trips, and telemetry reaches Application Insights.
 7. **Follow up on C3's trace-flag decision:** remove `-T1800` and `-T9567` from the source now that the link is gone. On `vm-app01`, through Bastion:
 
    1. Open **SQL Server Configuration Manager**: press Win+R, type `SQLServerManager16.msc` and press Enter. Go to **SQL Server Services**, right-click the SQL Server service (`SQL Server (MSSQLSERVER)`) and open **Properties** > the **Startup Parameters** tab.

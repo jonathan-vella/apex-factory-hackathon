@@ -40,42 +40,13 @@ App settings use `__` where the code reads `:`: `ServiceBus__QueueName` is `Serv
 
 ### C7: connect to the migrated database and go live
 
-These steps change Azure. The member runs them in C7, after cutover removes the link and the database is writable. Never run them in C6, and don't run them for the member.
-
-1. **Write the connection secret.** It uses Microsoft Entra authentication and has no password:
-
-   ```powershell
-   $mi = az sql mi show -g rg-university-<suffix> -n sqlmi-university-<suffix> --query fullyQualifiedDomainName -o tsv
-   az keyvault secret set --vault-name kv-university-<suffix> --name 'ConnectionStrings--DefaultConnection' --value "Server=$mi;Database=ContosoUniversity;Authentication=Active Directory Default;Encrypt=True;" --output none
-   ```
-
-   No `User Id=` is needed: `AZURE_CLIENT_ID` selects the identity. Use the instance's standard host name, never a `privatelink` name, an IP address or the public endpoint.
-
-2. **Create the database user** for the identity. Connect to `ContosoUniversity` on the Managed Instance from SSMS on `vm-dev01` with **Microsoft Entra MFA**, as the archetype's deployer, and run:
-
-   ```sql
-   CREATE USER [id-university-<suffix>] FROM EXTERNAL PROVIDER;
-   ALTER ROLE db_datareader ADD MEMBER [id-university-<suffix>];
-   ALTER ROLE db_datawriter ADD MEMBER [id-university-<suffix>];
-   ALTER ROLE db_ddladmin ADD MEMBER [id-university-<suffix>];
-   ```
-
-   `WITH SID` and `TYPE = E` aren't supported on SQL Managed Instance.
-
-3. **Switch the web app to your image** and restart it:
-
-   ```powershell
-   az webapp config container set -g rg-university-<suffix> -n app-university-<suffix> --container-image-name cruniversity<suffix>.azurecr.io/contoso-university:<tag> --container-registry-url https://cruniversity<suffix>.azurecr.io --output none
-   az webapp config show -g rg-university-<suffix> -n app-university-<suffix> --query acrUseManagedIdentityCreds   # true: the archetype set the pull identity
-   az webapp restart -g rg-university-<suffix> -n app-university-<suffix>
-   ```
+These steps change Azure. The member runs them in C7, after cutover removes the link and the database is writable. Never run them in C6, and don't run them for the member. Use the sequence in
+[Step 5 of the modernization playbook](../../modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7)
+as the single source for writing the secret, creating the database user and roles, and switching the web app to the image.
 
 ## Checks
 
-- `az webapp config container show -g rg-university-<suffix> -n app-university-<suffix>` names your image.
-- `https://app-university-<suffix>.azurewebsites.net/` loads, and the Students, Courses, Instructors and Departments pages show the migrated data.
-- An upload on **Courses** > **Edit** lands in `teaching-materials`, a student edit shows a toast, and requests reach Application Insights.
-- `az webapp log tail -g rg-university-<suffix> -n app-university-<suffix>` shows no startup exception.
+Follow the go-live checks in [Step 5 of the modernization playbook](../../modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7): confirm the image, the migrated pages, Blob uploads, notifications and telemetry.
 
 | Symptom | Cause |
 |---|---|
