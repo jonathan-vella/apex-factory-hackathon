@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-A team is **3 to 5 people**. Every attendee on the team is a **member**, and one colleague the team nominates is also the **team lead**. The **event owner** coordinates the event, and **coaches** support teams on the two event days.
+A team is **3 to 5 people**. Every attendee on the team is a **member**, and one colleague the team nominates is also the **team lead** (called the **platform lead** in the workflow and scripts). The **event owner** coordinates the event, and **coaches** support teams on the two event days.
 
 ## Support before the event
 
