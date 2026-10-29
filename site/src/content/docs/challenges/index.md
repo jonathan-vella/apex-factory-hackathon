@@ -26,6 +26,14 @@ Contoso University is a fictional public university. Its student enrollment app 
 - If a step fails twice, ask your coach.
 - Never put tenant, subscription or object IDs, or a password, in anything you commit.
 
+## Before C1: 30-minute hackathon introduction
+
+Day one opens at 08:30 with a 30-minute PowerPoint presentation by the tech lead before any team starts C1. The briefing covers:
+
+1. **How the hackathon works:** the two-day schedule, team and member scopes, evidence rules and how coaches score each challenge.
+2. **The Contoso University scenario:** who the university is, the four leaders you work for (Dana, Priya, Marcus and Tomás), the problems that triggered this engagement and the six business outcomes they need.
+3. **The ten challenges end to end:** how business outcomes (C1) and platform guardrails (C2) connect to source assessment (C3), target-state decisions (C4), CoE archetype provisioning (C5), app modernization and cutover (C6 and C7), acceptance testing and database tuning (C8 and C9), and the final handover package (C10).
+
 ## The challenges
 
 | Day | Challenge | Scope | Time box | Points | Business outcome |
@@ -47,7 +55,7 @@ Time boxes are pacing, not hard stops. Coaches flex on the day. The event's real
 
 ## Before you start
 
-The readiness check is not a challenge. It is a gate before the event, with no points: your datacenter and `vm-dev01` must be ready, and a coach approves your readiness record, before the team lead vends your subscription. The steps are in [Deploy](../deploy/).
+The pre-hackathon setup is not a challenge and carries no points. Before day one, your team completes Steps 1 to 4 in [Deploy](../deploy/): each member's datacenter (`vm-app01` onboarded to Azure Arc as `Connected`) and `vm-dev01` workstation must be ready before the team lead runs `vending` at Step 4.
 
 ## Track your progress
 
