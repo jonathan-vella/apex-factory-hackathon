@@ -23,7 +23,7 @@ The script:
 
 Expect 10 to 20 minutes. Both VMs must be running. After it, run commands and VM extensions don't work on
 vm-app01 any more, and re-running Deploy-Datacenter.ps1 can't recover it: if onboarding didn't finish, or to
-start over, delete rg-datacenter and deploy again (or ask the coach). Run anything that needs a run command,
+start over, delete rg-datacenter and deploy again (or ask your team lead to escalate to the event owner). Run anything that needs a run command,
 such as Test-Datacenter.ps1's in-VM checks, before this script: they can't pass afterwards.
 .PARAMETER SubscriptionId
 The member's workload subscription, which holds rg-datacenter.

@@ -21,6 +21,7 @@ sidebar:
 | Datacenter | This kit's simulated on-premises environment: `vm-app01` (the legacy app and database) and `vm-dev01` (the member's workstation). |
 | Dev container | A ready-made Linux workspace that VS Code opens inside Docker, in your own repo (from `apex-accelerator`), with the Azure CLI, PowerShell 7, Git, `azd` and Bicep. You run the kit's scripts from `factory/` inside it. |
 | Evidence folder | `factory/evidence/` in your own repo, created in C1 from `factory/templates/team/evidence`. It holds your written evidence for each challenge (`cNN/`), committed to `main`. In the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\` and run `git pull --rebase` first. No code is deployed from it. |
+| Event owner | The person coordinating the event: confirms each team's roster and member indexes, handles escalations from team leads, and owns cleanup. |
 | Exemption | A recorded decision that a policy doesn't apply to a resource. The `vending` stage creates them for your datacenter when the team lead vends you at T-1, and you check them in C2. |
 | Gate | A checkpoint you pass before you go on. T-14 and T-3 are gates before the event. In C3 the assessment gate and the plan gate are the points where you review the Upgrade agent's output before it continues. |
 | GHCP | GitHub Copilot, as written in challenge titles. |
@@ -46,6 +47,7 @@ sidebar:
 | T-7 | 7 days before day one of the event. The team lead deploys the foundation and a Privileged Role Administrator runs the Graph read grant. |
 | T-3 | 3 days before day one of the event. The readiness check is due: the datacenter, Arc onboarding, the first assessment and `vm-dev01` setup. See the [event overview](../../getting-started/event-overview/#before-the-event). |
 | T-1 | 1 day before day one of the event. The team lead vends every member, restarts their VMs, records the exemptions and runs the connectivity probes. |
+| Tech lead | The person the event owner designates from the event delivery team—Microsoft, a partner or another third party—to give the 08:30 Day 1 kickoff. |
 | Team lead | A colleague the team nominates and the team's first point of contact during pre-hackathon setup and the event. One per team, and also a member. Collects the roster values, assigns member indexes, deploys the foundation in Step 2 (T-7) and vends every member in Step 4 (T-1). |
 | Tenant Root | The top management group of your Microsoft Entra tenant. The team lead needs the Owner role there. |
 | Trace flag | A SQL Server startup switch that changes how the engine behaves. The kit sets two on the source (1800 and 9567) to prepare it for the MI link, and the assessment reports them as findings. |

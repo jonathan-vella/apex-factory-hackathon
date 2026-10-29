@@ -18,17 +18,17 @@ sidebar:
 
 ## Preflight
 
-- **Preflight reports FAIL on Owner:** you have no unconditional Owner assignment on your workload subscription. Contributor doesn't pass. If Owner is eligible through Privileged Identity Management, activate it first; otherwise ask your coach.
+- **Preflight reports FAIL on Owner:** you have no unconditional Owner assignment on your workload subscription. Contributor doesn't pass. If Owner is eligible through Privileged Identity Management, activate it first; otherwise ask your team lead to escalate to the event owner.
 - **Preflight fails on a resource provider:** the `whatif` stage registers missing providers for you. Wait up to 15 minutes for the registration to propagate, then run the stage again.
 - **Preflight fails on the public IP feature, or a deployment stops with `SubscriptionNotRegisteredForFeature`:** a new subscription hasn't registered `Microsoft.Network/AllowBringYourOwnPublicIpAddress`, which the firewall, NAT and Bastion public IPs need. The `whatif` stage registers the feature and then `Microsoft.Network` again. Wait a few minutes and run it again.
 
 ## Datacenter and Arc
 
-- **The `member` stage stops or fails on quota or a VM size:** read the run log, then run the stage again; it converges. If a quota or size error comes back, check **Usage + quotas** for `swedencentral` in the Azure portal and tell your coach.
+- **The `member` stage stops or fails on quota or a VM size:** read the run log, then run the stage again; it converges. If a quota or size error comes back, check **Usage + quotas** for your event's region (`swedencentral` unless told otherwise) in the Azure portal and tell your team lead; they can escalate to the event owner.
 - **The datacenter test fails on in-VM checks:** the VMs must be running, and the test runs before Arc onboarding. After Arc onboarding the run commands no longer work, so don't run the `member` stage again. The stage stops before Arc when the test fails: read the run log, then run it again. Keep the PASS output from the run that passed as your evidence (`Get-PipelineEvidence.ps1` downloads it).
 - **Bastion won't connect:** connect from the Azure portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. Check the VM is running. The native client (`Connect-DatacenterVm.ps1`) is an optional shortcut that works only from Windows with the Azure CLI Bastion extension.
 - **Copilot isn't signed in on `vm-dev01`:** the VS Code extensions install at first logon, so give the first sign-in up to five minutes, then sign in to GitHub in VS Code.
-- **Arc onboarding times out:** don't run the `member` stage again. Once onboarding has started, it turns off the VM's guest agent and the stage refuses a second run, and a redeploy can't recover it. Read the run log, then connect to `vm-app01` through Bastion and read `C:\LabTools\logs\Connect-AppArc.log` (open it in Notepad). Check outbound access to Arc's endpoints through the NAT gateway first if the log shows a network error. Before C5, use the recovery below; after C5, ask the event owner for a coach repair.
+- **Arc onboarding times out:** don't run the `member` stage again. Once onboarding has started, it turns off the VM's guest agent and the stage refuses a second run, and a redeploy can't recover it. Read the run log, then connect to `vm-app01` through Bastion and read `C:\LabTools\logs\Connect-AppArc.log` (open it in Notepad). Check outbound access to Arc's endpoints through the NAT gateway first if the log shows a network error. Before C5, use the recovery below; if it still fails, ask your team lead to escalate to the event owner. After C5, ask the event owner for a coach repair.
 
 ## ALZ-lite and vending
 
@@ -53,7 +53,7 @@ gh workflow run platform.yml -f stage=teardown -f members=<your index>
 gh workflow run platform.yml -f stage=member -f members=<your index>
 ```
 
-Member `teardown` removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If the member does not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If the member was already vended, the team lead must run `vending` for that index afterward. Before T+2, never run a full, unfiltered team `teardown` in the team lead's repo; pass `-f members=<your index>` or ask the event owner for a coach repair. After C5, do not use this recovery; ask the event owner for a coach repair.
+Member `teardown` removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If the member does not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If the member was already vended, the team lead must run `vending` for that index afterward. Before T+2, never run a full, unfiltered team `teardown` in the team lead's repo; pass `-f members=<your index>` or ask your team lead to escalate to the event owner for a coach repair. After C5, do not use this recovery; ask the event owner for a coach repair.
 
 ## Pipeline
 
@@ -80,7 +80,7 @@ Member `teardown` removes `rg-datacenter`, `rg-spoke` and the archetype, includi
 ## APEX and the archetype
 
 - **A native Windows checkout changes the archetype's tree hash:** APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`. Always run `/apex-adapt-archetype` in the dev container, never natively on Windows.
-- **Preflight stops with `snet-sqlmi already hosts another managed instance`:** the suffix you ran it with isn't the suffix of the managed instance already in your subnet. Preflight accepts only `sqlmi-university-<suffix>` there, so a different suffix looks like someone else's instance. This happens when `SUFFIX` or `factory/.local/settings.json` holds a different value than your first deployment, for example after a new dev container, a second clone or a re-imported kit. Find the suffix you deployed with, from any resource name such as `rg-university-<suffix>`, set it again (`./scripts/Initialize-Settings.ps1 -Suffix '<old suffix>'` from `factory/`, and `azd env set SUFFIX <old suffix>` in `infra/bicep/university/`), and re-run. Never delete the managed instance to get past it. If the suffix is right and the message stays, a different instance really is on your subnet: ask your coach.
+- **Preflight stops with `snet-sqlmi already hosts another managed instance`:** the suffix you ran it with isn't the suffix of the managed instance already in your subnet. Preflight accepts only `sqlmi-university-<suffix>` there, so a different suffix looks like someone else's instance. This happens when `SUFFIX` or `factory/.local/settings.json` holds a different value than your first deployment, for example after a new dev container, a second clone or a re-imported kit. Find the suffix you deployed with, from any resource name such as `rg-university-<suffix>`, set it again (`./scripts/Initialize-Settings.ps1 -Suffix '<old suffix>'` from `factory/`, and `azd env set SUFFIX <old suffix>` in `infra/bicep/university/`), and re-run. Never delete the managed instance to get past it. If the suffix is right and the message stays, a different instance really is on your subnet: stop and ask your team lead, who can escalate to the event owner.
 - **`azd provision --preview` looks incomplete:** the preview only lists resource types `azd` has display names for. SQL MI, the managed identity, role assignments and diagnostic settings are still being created even though the preview doesn't name them.
 
 ## Migration
@@ -91,4 +91,4 @@ Member `teardown` removes `rg-datacenter`, `rg-spoke` and the archetype, includi
 
 ## Where to go next
 
-If your problem isn't here, ask your coach. Otherwise go back to [Requirements](../../getting-started/requirements/), [Member steps](../../deploy/member-steps/) or the [challenges overview](../../challenges/).
+Before day one, ask your team lead; they can escalate to the event owner. On event days, ask a coach if the documented recovery steps don't resolve your problem. Otherwise go back to [Requirements](../../getting-started/requirements/), [Member steps](../../deploy/member-steps/) or the [challenges overview](../../challenges/).

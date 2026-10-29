@@ -109,7 +109,7 @@ Step 1 runs in your dev container and step 2 in the Azure portal on your own com
 <details>
 <summary>C:\src\factory is missing (step 5)</summary>
 
-Ask your coach first. If you're told to clone it yourself, make the same sparse clone that the deployment makes, so the coach and facilitator folders stay out of it. (A sparse clone leaves some folders out of the working tree.) Run the commands exactly as written:
+Before the event, ask your team lead; on event days, ask your coach. If your team lead asks you to clone it yourself, make the same sparse clone that the deployment makes, so the coach and facilitator folders stay out of it. (A sparse clone leaves some folders out of the working tree.) Run the commands exactly as written:
 
 ```powershell
 git clone --no-checkout https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\factory

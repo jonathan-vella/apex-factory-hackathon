@@ -34,7 +34,7 @@ The outcome is repeatable provisioning. Check that the deployment summary and th
 - Running `/apex-adapt-archetype` natively on Windows "because the dev container is slow to start" — this is the single most impactful mistake in C5; insist on the dev container every time.
 - Treating `azd provision --preview`'s partial output as a failure — it only lists resource types `azd` has display names for; SQL MI, the managed identity, role assignments and the maintenance schedule are created even though the preview doesn't name them.
 - Skipping the As-Built step because the deployment "obviously worked" — As-Built is graded evidence, not optional.
-- Trying to run `/apex-adapt-archetype` for a member who hasn't been vended yet (vending is the team lead's T-1 run, or later for a member whose readiness record was approved late) — it fails fast with a clear "spoke not found" message; this is a sequencing issue, not a bug. A preflight that stops with "cannot be read" or a missing `assign/action` permission on `id-sqlmi-directory` means vending ran without the member's `-MemberPrincipalId`: the team lead re-runs vending with it.
+- Trying to run `/apex-adapt-archetype` for a member who hasn't been vended yet (vending is the team lead's T-1 run, or later for a member who finished Step 3 late) — it fails fast with a clear "spoke not found" message; this is a sequencing issue, not a bug. A preflight that stops with "cannot be read" or a missing `assign/action` permission on `id-sqlmi-directory` means vending ran without the member's `-MemberPrincipalId`: the team lead re-runs vending with it.
 
 ## Partial credit
 
