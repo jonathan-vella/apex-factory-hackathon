@@ -1,6 +1,6 @@
 ---
 title: About
-description: Agenda, audience and feedback.
+description: Audience, learning path and feedback.
 sidebar:
   label: Overview
   order: 0
@@ -20,34 +20,6 @@ See [Roles](../getting-started/roles/) for who does what, and [Requirements](../
 ## Certifications
 
 The event is hands-on first, and the exams come after it: infra roles hold AZ-104, GH-300 and DP-300 within six months after the event. No exam is a gate for attending the event. The [Partner learning path](../guides/learning-path/) has the details.
-
-## Agenda
-
-Deployment comes first: [Requirements](../getting-started/requirements/) and repo setup, with preflight by T-14 (14 days before day one). Then by T-3 (3 days before day one) the readiness check passes: the datacenter is deployed and tested, `vm-app01` is connected to Azure Arc, your first migration assessment has run, the legacy app is healthy, and `vm-dev01` is set up with Copilot working in VS Code. In between, the team lead deploys the team's foundation at T-7 and vends every member at T-1, so day one starts at C1 on a foundation that already exists. The [event overview](../getting-started/event-overview/#before-the-event) has the dates. The times below are the plan; your coach may adjust them.
-
-| Day 1 | Activity |
-|---|---|
-| 08:30 | 30-minute kickoff presentation (scenario, roles, challenges) and roster lock |
-| 09:00 | C1 Define the opportunity |
-| 09:45 | C2 Secure, AI-ready foundation (test an AI coding agent against APEX and ALZ guardrails) |
-| 10:30 | C3 Assess the source |
-| 11:30 | C4 Choose target states |
-| 12:15 | Lunch |
-| 13:15 | APEX archetype demo, then C5 Deploy the CoE archetype |
-| 14:45 | C6 Modernize with GHCP, part 1 |
-| 16:30 | Check-out |
-
-| Day 2 | Activity |
-|---|---|
-| 08:30 | Reconnect and start the MI link |
-| 09:00 | C6 Modernize with GHCP, part 2 |
-| 10:30 | C7 Migrate and go live |
-| 12:30 | Lunch |
-| 13:15 | C8 Validate the pattern, then C9 Optimize the DB with GHCP |
-| 15:15 | C10 Package, hand over, review AI readiness |
-| 16:15 | Showcase, scoring and close, until 17:00 |
-
-Challenge time boxes overlap in places, so they don't add up to the clock. Each is a guide for pacing, not a hard stop. The [challenges overview](../challenges/) has the minutes and points.
 
 ## Feedback
 

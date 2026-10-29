@@ -36,6 +36,8 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 1. **Assess and plan (about 25 min).** Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks), and commit and push `app: assess and plan` as the playbook's Step 1 says. This is the plan approval for the whole run; don't start task execution: that's C6. Done when `assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
 
+The kit clone at `C:\src\factory` on `vm-dev01-work` has no commit hook. Use the playbook's `app:` messages there; use conventional commit types for commits in your own repo.
+
 2. **Review the Arc assessment.** Review the Arc SQL migration assessment from the readiness check against the source SQL Server: in the Azure portal, search for **Azure Arc**, choose **SQL Server instances**, open the instance on `vm-app01`, then **Migration** > **Database migration** > **Assess source instance** > **View report**. Run the assessment again if there's no result. Done when you have both reports open side by side and a list of every finding in them.
 
 3. **Triage every finding** from both assessments: blocker, accepted risk, or fix, and what it means for the target state. Done when every finding on your list has a triage and a one-line impact (you write them into the table in requirement 6).

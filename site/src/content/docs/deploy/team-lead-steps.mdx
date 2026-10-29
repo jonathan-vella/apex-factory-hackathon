@@ -8,7 +8,7 @@ sidebar:
 import Diagram from "../../../components/Diagram.astro";
 
 **Who:** **Team lead** (books the role holder) + **Privileged Role Administrator**. (Members have nothing to run in Step 2; skip to [Step 3: Datacenter and workstation (T-3)](../member-steps/).)
-**When:** By **T-7** (7 days before day one). About 20 to 30 minutes.
+**When:** By **T-7** (7 days before day one). See the [stage timing table](../how-it-works/#stages).
 
 In Step 2, the team lead deploys the team's shared foundation (`ALZ-lite`) once for the whole team, then books a Privileged Role Administrator (or Global Administrator) to grant the shared SQL Managed Instance identity its Microsoft Graph read permissions. If the team lead cannot find a role holder, they escalate to the event owner. Run every command from `factory/` in the team lead's repository.
 
@@ -28,7 +28,7 @@ Use only a dedicated, non-production tenant and dedicated, empty subscriptions. 
 
 Before running this stage, confirm that [Step 1](../set-up-your-repo/) is complete: `.local/roster.json` is registered with `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, and your account holds **Owner** at Tenant Root plus **Owner** on the shared services subscription.
 
-The `whatif` stage checks every member in the roster and previews the foundation changes. The `foundation` stage deploys ALZ-lite (management groups `mg-factory`, `mg-factory-platform`, `mg-factory-corp`, `rg-management` with `log-management` and `id-sqlmi-directory`, `rg-hub` with `vnet-hub`, Azure Firewall, private DNS zones, and the core policies) in 15 to 25 minutes.
+The `whatif` stage checks every member in the roster and previews the foundation changes. The `foundation` stage deploys ALZ-lite (management groups `mg-factory`, `mg-factory-platform`, `mg-factory-corp`, `rg-management` with `log-management` and `id-sqlmi-directory`, `rg-hub` with `vnet-hub`, Azure Firewall, private DNS zones, and the core policies). See the [stage timing table](../how-it-works/#stages) for estimates.
 
 ```bash
 gh workflow run platform.yml -f stage=whatif

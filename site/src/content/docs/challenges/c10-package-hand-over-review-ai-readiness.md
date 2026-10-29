@@ -17,15 +17,17 @@ Modernizing one app is only worth it if the next team can repeat it and the cust
 
 ## Challenge
 
-**Starting point.** Every prior challenge's evidence, in each member's own repo: the `factory/evidence/cNN/` folders for C1 to C9, including every member's C8 acceptance pack. Each member packages in their own repo, which may be private, so share files instead of opening each other's repos. Ask every teammate to share their C8 pack (`factory/evidence/c08/acceptance-handover.md` and its `acceptance.json`) on one screen or in your team chat. Save each as `factory/evidence/c10/member-packs/member-<n>.md` and `member-<n>-acceptance.json`, where `<n>` is that member's index.
+**Starting point.** The source material lives in each member's own repo: the `factory/evidence/cNN/` folders for C1 to C9, including every member's C8 acceptance pack. Ask every teammate to share their C8 pack (`factory/evidence/c08/acceptance-handover.md` and its `acceptance.json`) on one screen or in your team chat. Save each as `factory/evidence/c10/member-packs/member-<n>.md` and `member-<n>-acceptance.json`, where `<n>` is that member's index.
+
+**Fixed by the kit.** The three attendee templates and the scoring rule: the team lead's copy is the one coaches score.
 
 **You decide.** Which asset to package, who the engagement is handed to and how they operate it, and where Copilot's agents needed a human.
 
 **Where to work.** The dev container of your own repo, with VS Code open on it (the repo you created in [Set up your repo](../../deploy/set-up-your-repo/)). No `vm-dev01` or Azure access is needed. Run `git pull` first, so you start from the latest `main`.
 
-Write the package together on one person's screen, in `factory/evidence/c10/`. Split the work so nobody waits: one person on the handover (requirement 2), one on the gap register and checklist (requirements 3 and 4), and the others on the asset (requirement 1) and the showcase (requirement 5). Then swap to review each other's parts. One person types each document.
+One person, ideally the team lead, owns the package in their repo at `factory/evidence/c10/` and types the final files on one screen; don't open each other's repos. The other members draft their assigned parts and send them to that person. Split the work so nobody waits: one person on the handover (requirement 2), one on the gap register and checklist (requirements 3 and 4), and the others on the asset (requirement 1) and the showcase (requirement 5). Then swap to review each other's parts. When the package is final, everyone copies the files unchanged to their own repo.
 
-The package is scored once for the team, from the team lead's copy, so the other copies must match it. When the files are final, every teammate saves them under the same names in their own `factory/evidence/c10/`, commits with a conventional message (for example `docs: C10 package`) and pushes `main`.
+When the files are final, every teammate saves the same files under the same names in their own `factory/evidence/c10/`, commits with a conventional message (for example `docs: C10 package`) and pushes `main`.
 
 ## Requirements
 

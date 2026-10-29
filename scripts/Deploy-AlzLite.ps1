@@ -13,8 +13,10 @@ Deploys infra/foundation/alz-lite/main.bicep at the Tenant Root management group
   privatelink zones for Blob, Service Bus, ACR and Key Vault linked to vnet-hub;
 - Microsoft Defender for Cloud on Foundational CSPM only (every paid plan off, unless -SkipDefender);
 - the core policies at <MgPrefix>-corp (built-in definitions, display names prefixed ALZ-lite:).
-The platform lead runs it once per team, then scripts/Deploy-Vending.ps1 for every member. It needs
-Owner at the Tenant Root management group and checks that first. A re-run converges. Use -WhatIf to
+The team lead runs it once per team at Step 2 (T-7), then a directory administrator grants the SQL MI identity
+its Microsoft Graph read permissions. The team lead runs vending through GitHub Actions at Step 4 (T-1),
+after every member completes Step 3; this script does not vend subscriptions. It needs Owner at the Tenant Root
+management group and checks that first. A re-run converges. Use -WhatIf to
 see the changes (az deployment mg what-if) without deploying. The deployment takes 15-25 minutes, mostly Azure Firewall.
 .PARAMETER SharedSubscriptionId
 The team's shared services subscription.
@@ -197,6 +199,7 @@ ALZ-lite is deployed ($([int] $elapsed.TotalMinutes) minutes).
 Policies can take up to 30 minutes to take effect.
 Once per team, a Privileged Role Administrator grants id-sqlmi-directory its Microsoft Graph read permissions:
   ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <shared-services-subscription-id>
-Next, for every member (after their datacenter exists):
-  ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId <workload-subscription-id> -SharedSubscriptionId <shared-services-subscription-id> -MemberIndex <n> -BudgetEmail <email>
+At Step 4 (T-1), after Step 2 and every member's Step 3 are complete, the team lead runs the vending stage in GitHub Actions for every member:
+  gh workflow run platform.yml -f stage=vending
+See https://factory.apexops.pro/deploy/how-it-works/ for stage timings.
 "@

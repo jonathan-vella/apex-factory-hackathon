@@ -222,7 +222,7 @@ One task per new chat. For each task: start it, let the agent make its changes, 
 
 ## Model guidance
 
-The golden path used Claude Opus 5.5 at Medium reasoning for assess and plan, and Claude Sonnet 5.5 at Medium reasoning for execution. You choose the model, and its reasoning level, in the model picker in the Chat panel. Faster or cheaper models can work, but haven't been validated against this app's specific traps (see the playbook's hot-spot notes per task).
+Use a balanced model for assessment, the most capable model for planning, and a balanced model for execution. See the playbook's [Models table](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#models) for current picker guidance. These model classes were validated on 2026-10-02; names change, so follow the class guidance rather than a fixed model name.
 
 ## Local configuration after task 01
 

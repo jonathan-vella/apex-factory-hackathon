@@ -45,7 +45,7 @@ Cut over through the portal's **Monitor and cutover** pane, not with a command, 
 
 ## After cutover
 
-Create the database user for the web app's managed identity, `id-university-<suffix>`. It's a contained user, which lives in the database itself and needs no server login. Run it in SSMS on `vm-dev01`, connected to the managed instance with **Microsoft Entra MFA** as the account that deployed the archetype, on the `ContosoUniversity` database ([C7 requirement 5](../../challenges/c07-migrate-and-go-live/#requirements) has the steps): `CREATE USER [id-university-<suffix>] FROM EXTERNAL PROVIDER`, then add it to `db_datareader`, `db_datawriter` and `db_ddladmin`. Don't use `WITH SID` or `TYPE = E`, which SQL MI doesn't support. This only works once the replica is writable, which is after cutover, not before.
+After cutover, follow [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7) for the single, ordered go-live sequence. It creates the contained user for the web app's managed identity after the replica becomes writable; do not create it before cutover.
 
 It also needs the Microsoft Graph read grant for `id-sqlmi-directory` that a Privileged Role Administrator made for your team at T-7 (checked in [C2](../../challenges/c02-secure-ai-ready-foundation/)). Without it, the statement fails with "Server identity does not have Azure Active Directory Readers permission": ask your coach to confirm the grant. The playbook's Step 5 has the full sequence, including the Key Vault secret.
 

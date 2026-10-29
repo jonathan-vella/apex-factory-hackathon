@@ -19,7 +19,8 @@ The Entra tenant ID.
 .PARAMETER SubscriptionId
 Your workload subscription ID.
 .PARAMETER MemberIndex
-Your member number, 1 to 20, assigned by your team lead.
+Your member index, assigned by your team lead. Teams use 1 to 5, with the team lead as 1; scripts
+accept indexes from 1 to 20.
 .PARAMETER Location
 The Azure region. Defaults to swedencentral.
 .PARAMETER SharedSubscriptionId
@@ -106,7 +107,7 @@ $TenantId = Read-Setting -Name 'tenantId' -Prompt 'Tenant ID' -Value $TenantId `
 $SubscriptionId = Read-Setting -Name 'subscriptionId' -Prompt 'Your workload subscription ID' -Value $SubscriptionId `
     -Default ($current['subscriptionId'] ?? $account.id) -Validate $isGuid -Hint 'Expected a GUID.'
 $memberDefault = if ($current['memberIndex']) { [string]$current['memberIndex'] } else { '' }
-$MemberIndex = [int](Read-Setting -Name 'memberIndex' -Prompt 'Your member index (1-20, from your team lead)' -Value $(if ($MemberIndex) { [string]$MemberIndex }) `
+$MemberIndex = [int](Read-Setting -Name 'memberIndex' -Prompt 'Your member index (team uses 1-5; team lead is 1; scripts accept 1-20; assigned by your team lead)' -Value $(if ($MemberIndex) { [string]$MemberIndex }) `
     -Default $memberDefault -Validate { param($v) $v -match '^\d+$' -and [int]$v -ge 1 -and [int]$v -le 20 } -Hint 'Expected a whole number from 1 to 20.')
 $Location = Read-Setting -Name 'location' -Prompt 'Location' -Value $Location `
     -Default ($current['location'] ?? 'swedencentral') -Validate { param($v) $v -match '^[a-z0-9]+$' } -Hint 'Expected a region name like swedencentral.'

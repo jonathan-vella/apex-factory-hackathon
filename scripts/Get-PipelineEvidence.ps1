@@ -10,7 +10,7 @@ artifact, downloads it and saves it as evidence/readiness/test-datacenter.txt ne
 (factory/evidence/readiness/ in your repo). It also writes
 .local/<subscription-id>/datacenter.json with the documented fixed lab credentials, unless that file exists, because the runner
 deployed the datacenter and the later challenges read the passwords from that file. It prints nothing that identifies your
-subscription. Commit the evidence file yourself, with a conventional message, as C1 explains.
+subscription. Commit the evidence file yourself to main with a conventional message, as Step 1 explains.
 .PARAMETER Repository
 owner/name of your repo. Defaults to the git remote.
 .PARAMETER RunId

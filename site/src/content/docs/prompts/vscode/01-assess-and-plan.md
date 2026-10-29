@@ -24,34 +24,10 @@ Get-Content -Raw -Encoding utf8 .github\modernization\plan-prompt.txt | Set-Clip
 Then paste the clipboard into the chat and send it. Answer the pre-initialization confirmation as the prompt
 says: target `net10.0`, **Guided**, stay on the current branch, commit strategy **Manual**, branch sync off.
 
-## Check the assessment gate
+## Check the assessment and plan gates
 
-- `.github/upgrades/scenarios/dotnet-version-upgrade/` has `assessment.md`, `assessment.json` and
-  `dependencies-health.json`.
-- The Upgrade dashboard's **Assessment** tab shows data.
-
-Switch to the most capable model (Opus- or Sol-class, Medium reasoning; see the playbook's
-[Models](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#models)
-table for the picker names), then approve planning. Check the plan
-gate:
-
-- `plan.md`, `scenario-instructions.md` and `scenario.json` exist.
-- Exactly seven tasks, in a strict chain: .NET 10, SQL Managed Instance, Blob, Service Bus, Key Vault,
-  OpenTelemetry, CVE audit.
-- All 9 rows of the rules table (at the end of `plan-prompt.txt`) are met.
-- No task mentions `#skill:migrating-webapi-odata`.
-- `git status --short -- app` prints nothing.
-
-If a check fails, tell the agent which one, in the same chat — it can revise its own plan. Commit and push
-`app: assess and plan` — your baseline for C6. If you ever have to restart the seven tasks, `git reset --hard`
-to this commit (it discards uncommitted work, and your next push needs `git push --force-with-lease`), then
-confirm the tree is clean again with the last command in the playbook's Step 0 ([VS Code: prerequisites](../00-prerequisites/) links to it).
-
-## Hot spots
-
-| Symptom | Fix |
-|---|---|
-| The agent picks the `azure-migrate` scenario, or asks for GitHub Copilot modernization | The prompt wasn't sent whole — start a new chat and paste it again |
-| The prompt arrives garbled | Copy it with the UTF-8 block above |
-| "The Upgrade workflow tools aren't available", or no `assessment.json` | Reload the window (**Developer: Reload Window**) and start a new chat. Don't accept a hand-written assessment |
-| The plan includes Entra ID user sign-in, Azure SQL Database or Azure Files | Point the agent at the rules table at the end of `plan-prompt.txt` and ask it to revise the plan |
+Follow the assessment and plan gates, required-output checks, recovery steps and commit guidance in
+[Step 1 of the playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-1-assess-and-plan-c3).
+Use a balanced model for assessment, then switch to the most capable model before approving planning; the
+playbook's [Models table](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#models)
+is the source for picker guidance.

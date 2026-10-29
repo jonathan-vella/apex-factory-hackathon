@@ -66,6 +66,7 @@ C6 changes Azure only by pushing the image (requirement 4): the archetype gives 
 To complete this challenge, show your coach:
 
 - [ ] Seven agent task commits (`app: task 0N <name>`), each preceded by a passing build and a local run, pushed to `vm-dev01-work` in your own repo.
+- [ ] Coaches read those seven `app:` task commits on `vm-dev01-work` only for C6; they read your challenge evidence from `main` in your own repo.
 - [ ] The app running on `vm-dev01` against the source database, with uploads landing in Blob, a notification toast (a small pop-up at the top right) appearing within 5 seconds of an edit, and telemetry reaching Application Insights.
 - [ ] `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` reporting nothing, or a documented remediation.
 - [ ] The image tag in your registry (`az acr repository show-tags`).

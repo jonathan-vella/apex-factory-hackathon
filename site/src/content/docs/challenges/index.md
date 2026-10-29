@@ -63,4 +63,4 @@ On a challenge page, tick **Done** on each requirement as you finish it. The bar
 
 ## Where to go next
 
-Start with [C1: Define the opportunity](./c01-define-the-opportunity/), after your [readiness check](../deploy/).
+Start with [C1: Define the opportunity](./c01-define-the-opportunity/) after completing the [pre-hackathon setup (Steps 1 to 4)](../deploy/).
