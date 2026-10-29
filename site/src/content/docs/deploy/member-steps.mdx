@@ -129,7 +129,7 @@ Check with your team lead first, or follow [If you need to start over](#if-you-n
 <details>
 <summary>Save money between sessions</summary>
 
-Before the event you can stop both VMs when you're not working: `az vm deallocate -g rg-datacenter -n vm-app01`, then the same with `-n vm-dev01`. Deallocating releases the VM's compute and stops its compute billing. Shutting Windows down from inside the VM does not. Bastion, the NAT gateway and the disks bill even when the VMs are stopped.
+Before the event you can stop both VMs when you're not working: `az vm deallocate -g rg-datacenter -n vm-app01`, then the same with `-n vm-dev01`. Running `az vm deallocate` releases the VM's compute and stops its compute billing. Shutting Windows down from inside the VM does not. Bastion, the NAT gateway and the disks bill even when the VMs are stopped.
 
 Start both again before your team lead runs Step 4 at T-1 (`az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`), because vending restarts them and runs the connectivity probes inside them. During the event, never stop `vm-dev01`: it's your workstation.
 
