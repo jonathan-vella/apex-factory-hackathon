@@ -12,6 +12,12 @@ import Diagram from "../../../components/Diagram.astro";
 
 Vending places each member's workload subscription under the `mg-factory-corp` management group, deploys `rg-spoke` (`vnet-spoke`, subnets for App Service, private endpoints and SQL Managed Instance, plus route tables and NSGs), peers the spoke and the datacenter with `vnet-hub`, points datacenter DNS to the hub firewall, restarts both datacenter VMs, creates the datacenter policy exemptions, and runs `Test-Connectivity.ps1`.
 
+:::caution[Use only dedicated, empty subscriptions]
+
+Step 4 moves each workload subscription under `mg-factory-corp`, applies Deny policies and turns every paid Defender for Cloud plan off subscription-wide. This is why the event needs a dedicated, non-production tenant and empty subscriptions; never use subscriptions with other workloads. The shared firewall continues to cost about $1.30 per hour until teardown at T+2. See [Requirements](../../getting-started/requirements/) and [Cost](../../reference/cost/).
+
+:::
+
 <Diagram
   name="diagram-04-hub-and-spoke-routing"
   alt="Traffic between a member's datacenter and spoke crosses the hub firewall. The shared hub holds Azure Firewall. Each member has a datacenter network with vm-app01 and vm-dev01 and a spoke network with subnets for the app, private endpoints and SQL Managed Instance. Route tables send datacenter-to-spoke traffic and the spoke's outbound traffic to the firewall, and the datacenter's internet traffic leaves through a NAT Gateway."

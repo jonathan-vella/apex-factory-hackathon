@@ -336,10 +336,10 @@ foreach ($subscription in $subscriptions) {
 }
 
 Add-Result -Check 'MFA' -Status MANUAL -Reason 'Confirm MFA is registered for the account.'
-Add-Result -Check 'GitHub Copilot' -Status MANUAL -Reason "Confirm a Copilot seat and org policies allowing agent mode, MCP servers and Copilot CLI."
+Add-Result -Check 'GitHub Copilot' -Status MANUAL -Reason "Confirm a Copilot seat and org policies allowing agent mode, MCP servers and the APEX agents' models. Copilot CLI is optional and needed only for the playbook's CLI path."
 Add-Result -Check 'GitHub repositories' -Status MANUAL -Reason "Confirm the account can create private repos in the partner's GitHub org."
 Add-Result -Check 'APEX' -Status MANUAL -Reason 'Confirm Docker Desktop is available.'
-Add-Result -Check 'Azure Hybrid Benefit' -Status MANUAL -Reason 'Confirm you hold eligible Windows Server licenses with Software Assurance. Azure Hybrid Benefit is on by default for vm-app01; without eligible licenses, deploy the datacenter with -NoHybridBenefit.'
+Add-Result -Check 'Azure Hybrid Benefit' -Status MANUAL -Reason 'Confirm eligible Windows Server licenses for vm-app01 or plan -NoHybridBenefit; separately confirm per-user Windows 11 multitenant hosting rights for vm-dev01. -NoHybridBenefit does not change vm-dev01.'
 
 $failures = @($results | Where-Object { $_.Status -eq 'FAIL' }).Count
 if ($OutFile) {

@@ -12,6 +12,12 @@ import Diagram from "../../../components/Diagram.astro";
 
 In Step 2, the team lead deploys the team's shared foundation (`ALZ-lite`) once for the whole team, then books a Privileged Role Administrator (or Global Administrator) to grant the shared SQL Managed Instance identity its Microsoft Graph read permissions. If the team lead cannot find a role holder, they escalate to the event owner. Run every command from `factory/` in the team lead's repository.
 
+:::caution[Use a dedicated non-production tenant]
+
+Use only a dedicated, non-production tenant and dedicated, empty subscriptions. The foundation and later vending move workload subscriptions under `mg-factory-corp`, apply Deny policies and turn every paid Defender for Cloud plan off subscription-wide. Do not use subscriptions that contain other workloads. The shared foundation's firewall costs about $1.30 per hour from this deployment until teardown at T+2; see [Cost](../../reference/cost/).
+
+:::
+
 <Diagram
   name="diagram-03-alz-lite-and-vending"
   alt="Two stages. The foundation stage, once per team, builds the management groups, the shared hub with firewall, private DNS and policies, and the shared SQL Managed Instance directory identity, then waits for a person to grant Graph read permissions. The vending stage, once per member, places the member's subscription under the factory group, builds the spoke network, peers it to the hub, adds routes, DNS and firewall rules, applies RBAC and a budget, and records datacenter policy exemptions."

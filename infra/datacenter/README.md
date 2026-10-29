@@ -191,11 +191,11 @@ It prints PASS or FAIL per check and an overall verdict, and exits `0` only if e
 
 ## Cost
 
-List prices in `swedencentral`, per hour:
+Approximate list prices in `swedencentral`, checked 2026-10-08, per hour:
 
 | State | With Azure Hybrid Benefit (default) | Without |
 |---|---|---|
-| Running | About $1.55 | About $2.30 |
+| Running | About $1.55 | About $1.92 |
 | Stopped (deallocated) | About $0.78 | About $0.78 |
 
 Running means 2 × D8as_v6 at the Linux rate ($0.39 each with Hybrid Benefit), 2 × P30 ($0.20 each: the `vm-app01` data disk and the `vm-dev01` OS disk, billed at its P30 tier), 1 × P10 OS disk ($0.03), the NAT gateway and its IP ($0.05), and Bastion Standard ($0.29) and its IP ($0.005). Native client support has no extra charge. Stopped VMs still pay for their disks, the NAT gateway, Bastion and the IPs: Bastion bills while it exists.
@@ -216,7 +216,7 @@ Hybrid Benefit is **on by default**:
 | VM | `licenseType` | What it means |
 |---|---|---|
 | `vm-app01` | `Windows_Server` | Hybrid Benefit for Windows Server: compute is billed at the Linux rate. It assumes the partner holds eligible Windows Server licenses with Software Assurance or subscriptions, as partners in CSP usually do |
-| `vm-dev01` | `Windows_Client` | Multitenant hosting rights, which Windows 11 on Azure needs. It isn't optional, and compute is billed at the Linux rate |
+| `vm-dev01` | `Windows_Client` | Requires the user's eligible per-user Windows 11 multitenant hosting rights; this is separate from Windows Server AHB. It isn't optional, and compute is billed at the Linux rate |
 
 SQL Server 2022 Developer is free, so it needs no license setting.
 

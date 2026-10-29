@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-Azure Hybrid Benefit (AHB) lets you use a Windows Server or SQL Server license you already own, with Software Assurance (a Microsoft licensing option that lets you move licenses to Azure), for a lower Azure rate. The kit turns it on everywhere it deploys a Windows Server or SQL Server license, because its cost figures assume it.
+Azure Hybrid Benefit (AHB) can lower the Azure rate for eligible Windows Server and SQL Server licenses. The kit enables it for `vm-app01` by default. The Windows 11 workstation, `vm-dev01`, requires separate per-user Windows 11 on Azure rights and is not covered by the `no-hybrid-benefit` input.
 
 ## The rule
 
@@ -21,8 +21,12 @@ If you do hold eligible licenses, leave AHB on.
 | Resource | AHB setting |
 |---|---|
 | `vm-app01` (Windows Server license) | `Windows_Server`, on by default. Optional |
-| `vm-dev01` (Windows 11 dev VM) | `Windows_Client` (multi-tenant hosting rights, which Windows 11 on Azure needs). Mandatory, not optional |
+| `vm-dev01` (Windows 11 dev VM) | `Windows_Client`. The user needs an eligible per-user Windows 11 license for use on Azure; this is mandatory and separate from Windows Server AHB. |
 | SQL Managed Instance (`licenseType`) | `BasePrice` (AHB applied), never the SQL MI free offer |
+
+## Windows 11 per-user entitlement
+
+Each user of `vm-dev01` needs an eligible per-user license that grants rights to run Windows 11 on Azure. Qualifying subscriptions include Windows 11 Enterprise E3/E5, Microsoft 365 E3/E5/A3/A5/F3 or Business Premium, Windows VDA E3/E5, and Windows Education A3/A5. See Microsoft's [Windows 11 licensing guidance](https://learn.microsoft.com/azure/virtual-machines/windows/windows-desktop-multitenant-hosting-deployment). The `no-hybrid-benefit` input changes `vm-app01` only; it is not a workaround for missing Windows 11 rights. If you do not have an eligible license, contact your team lead before Step 3.
 
 ## If Arc onboarding needs recovery
 

@@ -28,15 +28,21 @@ So a team of five has six subscriptions. The team lead is a colleague your team 
 
 ## Accounts and access
 
-| What | Requirement |
-| --- | --- |
-| GitHub | A personal account in your partner's GitHub org, with GitHub Copilot enabled. Agent mode and the Upgrade agent must be allowed by policy. |
-| GitHub Actions | Actions minutes for private repos on your account or org. The pipeline runs in your private repo, so a failed payment or a spending limit of zero blocks every run. Check **Settings** > **Billing and plans** before the event. |
-| Azure subscription | One paid workload subscription per member, in your team's Microsoft Entra tenant. Your partner organization supplies it; ask your team lead if you need help identifying your tenant. Trial, Azure Pass and sponsorship subscriptions are not supported. Preflight doesn't check the offer type, so confirm in the Azure portal that yours is paid. |
-| Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group). If it's eligible through Privileged Identity Management (PIM), [activate it first](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles). Contributor doesn't pass. If your organization blocks Owner, ask your team lead to escalate to the event owner well before T-14. |
-| MFA | Registered for your Azure identity. Set it up at [aka.ms/mysecurityinfo](https://aka.ms/mysecurityinfo) if you haven't. |
-| Region quota | Enough regional vCPU quota in your event's region (`swedencentral` unless told otherwise) for two Standard_D8as_v6 VMs (16 vCPU in total), plus quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. To look it up, open your subscription in the Azure portal, choose **Usage + quotas** and filter by your event's region. If quota is short, ask your team lead to escalate to the event owner. |
-| Team lead only | A **second** subscription (shared services) plus Owner at Tenant Root, the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for that, so ask early: the team lead deploys the foundation at T-7. The team lead also books a Privileged Role Administrator for the T-7 Graph grant; that role holder needs PowerShell 7, Azure CLI and Reader on the shared services subscription. If you can't find a role holder, escalate to the event owner. You are also a member, so you still need your own workload subscription. |
+| What | Requirement | Who grants it and by when |
+| --- | --- | --- |
+| Tenant and subscriptions | Use a dedicated, non-production Microsoft Entra tenant and dedicated, empty subscriptions: one shared services subscription and one paid workload subscription per member. The kit moves workload subscriptions under `mg-factory-corp`, applies Deny policies, leaves Foundational CSPM only, turns every paid Defender for Cloud plan off subscription-wide and sets budgets. Teardown removes the kit's named resource groups. Never use subscriptions with other workloads. | The event owner and partner Azure administrator, before T-14. |
+| Azure subscription type | Use a paid, supported subscription type. Azure Pass, Sponsorship and Microsoft Partner Network benefit offers are not supported; check the [supported SQL Managed Instance subscription types](https://learn.microsoft.com/azure/azure-sql/managed-instance/resource-limits?view=azuresql). Preflight does not check the offer type. | Partner billing administrator, before T-14. |
+| GitHub account and organization | Have a personal GitHub account in your partner's organization. The organization must let you create a private repo from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template and allow `actions/checkout`, `actions/upload-artifact` and `azure/login`. Keep the repo private. | Partner GitHub organization owner, before T-14. |
+| GitHub environments | The owner reported a successful private-repo pipeline test on GitHub Free in October 2026. Current [GitHub documentation](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments) says private-repo environments require Pro for personal accounts or Team for organizations; private-repo required reviewers are Enterprise-only. A later private-repo test confirmed environment, branch-policy, variable and dummy-secret setup, but could not verify the account plan or required-reviewer availability ([issue #203](https://github.com/jonathan-vella/apex-factory-hackathon/issues/203)). Verify Step 1.5 in your partner organization before T-14. If required reviewers are unavailable, repo write access is the gate, so keep the repo private and the writers few. | Partner GitHub organization owner, before T-14. |
+| GitHub Actions billing | Private-repo runs draw from the plan's included compute usage; additional usage is billed to the repository owner. Check the organization's **Billing & Licensing** page, budget and payment method before the event ([GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions)). | Partner GitHub billing administrator, before T-14. |
+| GitHub Copilot | Each attendee needs a paid Copilot seat: Business or Enterprise through the organization, or Pro/Pro+ individually. The organization must allow agent mode, MCP servers (disabled by default) and the models used by the APEX agents. Copilot CLI is optional and is needed only for the playbook's CLI path. | Partner GitHub organization owner, before T-14. |
+| Azure role | Each member needs unconditional **Owner** on their workload subscription (direct, inherited or through a group). If it is eligible through Privileged Identity Management (PIM), [activate it first](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles). Contributor does not pass. | Partner Azure administrator, before T-14. |
+| Team lead only | In addition to being a member with Owner on their workload subscription, the team lead needs Owner at Tenant Root and Owner on the shared services subscription. A Global Administrator must [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) to grant Tenant Root Owner. It must be in place for Step 1 pipeline setup at T-14. The team lead books a Privileged Role Administrator for the T-7 Graph grant; that role holder needs PowerShell 7, Azure CLI and Reader on the shared services subscription. Escalate to the event owner if you cannot find a role holder. | Partner directory administrator grants the roles by T-14; team lead books the role holder for T-7. |
+| MFA | Register MFA for your Azure identity. Set it up at [aka.ms/mysecurityinfo](https://aka.ms/mysecurityinfo) if you have not. | Each attendee, before T-14. |
+| Region quota | Enough regional vCPU quota in your event's region (`swedencentral` unless told otherwise) for two Standard_D8as_v6 VMs (16 vCPU in total), plus quota for the archetype's SQL Managed Instance and App Service in C5. Preflight does not check quota. In the Azure portal, choose **Usage + quotas** and filter by your event's region. If quota is short, ask your team lead to escalate to the event owner. | Partner Azure administrator, before T-14. |
+| Azure Hybrid Benefit | Windows Server Azure Hybrid Benefit is on by default for `vm-app01`; if you lack eligible Windows Server licenses, use the `no-hybrid-benefit` input. This does not change the separate Windows 11 requirement below. See [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/). | Each attendee confirms their entitlement before Step 3 (T-3). |
+| Windows 11 licensing | Each `vm-dev01` user needs an eligible per-user license that grants rights to run Windows 11 on Azure. Qualifying subscriptions include Windows 11 Enterprise E3/E5, Microsoft 365 E3/E5/A3/A5/F3 or Business Premium, Windows VDA E3/E5, and Windows Education A3/A5. See Microsoft's [Windows 11 licensing guidance](https://learn.microsoft.com/azure/virtual-machines/windows/windows-desktop-multitenant-hosting-deployment). | Each attendee and the partner licensing administrator, before Step 3 (T-3). |
+| Cost | The shared foundation costs about **$1.30 per team-hour** from T-7 through teardown at T+2. When a member's datacenter and archetype are both running, add about **$3.38 per member-hour**. The [cost page](../../reference/cost/) gives per-member rates and estimated totals for teams of three, four and five. | Event owner and partner budget owner, before T-14. |
 
 Done when you can sign in to the Azure portal, see your workload subscription, and the role shown for it is Owner.
 
@@ -51,12 +57,12 @@ Every member's datacenter, network and archetype live in their own workload subs
 
 You only need a few host tools to open the dev container. Everything else, including the Azure CLI, is inside it.
 
-| Tool | Why | Verify |
-| --- | --- | --- |
-| [VS Code](https://code.visualstudio.com/) 1.100 or newer | The editor, agent mode, and **Git: Clone** | `code --version` |
-| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Runs the dev container | `docker version` |
-| [Git](https://git-scm.com/downloads) | VS Code's **Git: Clone** needs it | `git --version` |
-| VS Code extensions: Dev Containers (`ms-vscode-remote.remote-containers`) and GitHub Copilot Chat (`github.copilot-chat`) | Open the container; Copilot sign-in | `code --list-extensions` |
+| Tool | Why | Who / by when | Verify |
+| --- | --- | --- | --- |
+| [VS Code](https://code.visualstudio.com/) latest stable (1.106 or newer; checked 2026-10-29) | The editor, agent mode and **Git: Clone** | Each attendee, before T-14 | `code --version` |
+| [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Runs the dev container. For professional use, organizations with 250 or more employees or $10 million or more in annual revenue need a paid Docker subscription; [confirm your license](https://docs.docker.com/subscription-billing/desktop-license/) before T-14. | Each attendee and the partner licensing administrator, before T-14 | `docker version` |
+| [Git](https://git-scm.com/downloads) | VS Code's **Git: Clone** needs it | Each attendee, before T-14 | `git --version` |
+| VS Code extensions: Dev Containers (`ms-vscode-remote.remote-containers`) and GitHub Copilot Chat (`github.copilot-chat`) | Open the container and sign in to Copilot | Each attendee, before T-14 | `code --list-extensions` |
 
 ```powershell
 code --install-extension ms-vscode-remote.remote-containers
@@ -81,15 +87,15 @@ Done when each verify command prints a version or lists the extensions.
 
 ## Network
 
-Allow outbound HTTPS to these hosts:
+Ask your network administrator to allow outbound HTTPS to the endpoints the kit uses. GitHub's service ranges can change; consult the [GitHub metadata API](https://api.github.com/meta) and the [VS Code network list](https://code.visualstudio.com/docs/setup/network) rather than copying a static list into a firewall rule.
 
-- **GitHub and Copilot:** `github.com`, `api.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `api.githubcopilot.com`.
+- **GitHub and Copilot:** `github.com`, `api.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `*.githubassets.com`, `api.githubcopilot.com`, `*.githubcopilot.com` and `default.exp-tas.com`.
 - **Azure and Microsoft:** `*.azure.com`, `*.microsoft.com`, `login.microsoftonline.com`, `learn.microsoft.com`.
-- **Docker Hub:** `docker.io`, `registry-1.docker.io`.
-- **The dev container:** `ghcr.io` (its features come from there), `mcr.microsoft.com` (its base image, covered by `*.microsoft.com`) and `packagefeedproxy.microsoft.io` (its Node.js and Python package proxy).
-- **VS Code:** `marketplace.visualstudio.com` for extensions.
+- **Docker Hub:** `docker.io`, `registry-1.docker.io`, `auth.docker.io` and `production.cloudflare.docker.com`.
+- **The dev container:** `ghcr.io`, `mcr.microsoft.com`, `registry.npmjs.org`, `pypi.org` and `files.pythonhosted.org`. `packagefeedproxy.microsoft.io` is not the partner default; allow it only if your organization specifically uses that proxy.
+- **VS Code:** `update.code.visualstudio.com`, `code.visualstudio.com`, `go.microsoft.com`, `marketplace.visualstudio.com`, `*.gallery.vsassets.io`, `*.gallerycdn.vsassets.io`, `raw.githubusercontent.com`, `*.vscode-cdn.net`, `vscode.download.prss.microsoft.com`, `download.visualstudio.microsoft.com`, `vscode-sync.trafficmanager.net`, `vscode-sync-insiders.trafficmanager.net`, `vscode.dev` and `*.vscode-unpkg.net`.
 
-Done when you can open each host in a browser or with `curl` from the network you will work on.
+The exact VS Code endpoints can change; check its current network list before the event. A wildcard is not a testable URL by itself: have the network administrator verify the endpoints seen during extension installation, dev-container build and Copilot sign-in. Test exact hosts with HTTPS from the network you will use.
 
 ## Next
 

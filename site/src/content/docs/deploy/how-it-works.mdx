@@ -58,8 +58,8 @@ Why Owner: the kit assigns roles and policies, which Contributor can't do.
 
 The risk is real: anyone who can run a workflow in the environment can use that identity. Use only a non-production tenant. Three guards limit it:
 
-1. The environment accepts only the branches you list.
-2. A required reviewer approves each run, where your GitHub plan offers it. On a private repo without that feature, write access to the repo is the gate, so keep the repo private and the writers few.
+1. The environment accepts only the branches you list. Current GitHub documentation says private-repo environments and deployment-branch rules require Pro for personal accounts or Team for organizations. The owner reported a successful private-repo Free test; verify the capability in your own organization, as explained in [Requirements](../../getting-started/requirements/#accounts-and-access).
+2. A required reviewer approves each run where your GitHub plan offers it. GitHub lists Enterprise for required reviewers on private repos; if they are unavailable, write access is the gate, so keep the repo private and the writers few.
 3. The guard step refuses any subscription that isn't on its approved list.
 
 ## Secrets
