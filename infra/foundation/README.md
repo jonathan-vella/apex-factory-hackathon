@@ -1,6 +1,6 @@
 # Foundation: ALZ-lite, vending, exemptions and probes
 
-The foundation is the team's landing zone. **ALZ-lite** is the small landing zone that attendees deploy: a management group hierarchy, a hub with Azure Firewall and central private DNS, a central Log Analytics workspace, and core policies. **Vending** puts each member's workload subscription under it and connects the member's spoke and datacenter to the hub. The team's platform lead runs both: ALZ-lite at T-7 and vending for every member at T-1, before the event (Day 1 starts at C1, and C2 verifies and explains the foundation), through the platform pipeline or these scripts. A full portal ALZ isn't part of the kit: a coach demos it live.
+The foundation is the team's landing zone. **ALZ-lite** is the small landing zone that attendees deploy: a management group hierarchy, a hub with Azure Firewall and central private DNS, a central Log Analytics workspace, and core policies. **Vending** puts each member's workload subscription under it and connects the member's spoke and datacenter to the hub. The team's platform lead runs both: ALZ-lite at Step 2 (T-7) and vending for every member at Step 4 (T-1), before the event (Day 1 starts with the kickoff intro and C1, and C2 tests an AI coding agent against the foundation's guardrails), through the platform pipeline or these scripts.
 
 ## Two subscriptions per member
 

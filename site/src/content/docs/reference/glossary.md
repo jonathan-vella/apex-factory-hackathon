@@ -24,7 +24,7 @@ sidebar:
 | Exemption | A recorded decision that a policy doesn't apply to a resource. The `vending` stage creates them for your datacenter when the team lead vends you at T-1, and you check them in C2. |
 | Gate | A checkpoint you pass before you go on. T-14 and T-3 are gates before the event. In C3 the assessment gate and the plan gate are the points where you review the Upgrade agent's output before it continues. |
 | GHCP | GitHub Copilot, as written in challenge titles. |
-| Graph read grant | The Microsoft Graph read permission given to the SQL MI identity `id-sqlmi-directory`, so C7 can create the web app's database user. Someone with the Privileged Role Administrator role runs it once per team at T-7, right after the foundation, and the team checks it in C2. |
+| Graph read grant | The Microsoft Graph read permission given to the SQL MI identity `id-sqlmi-directory`, so C7 can create the web app's database user. Someone with the Privileged Role Administrator role runs it once per team in Step 2 (T-7), right after the foundation. |
 | Harness | Where the Upgrade agent runs. **Local** runs next to the app on `vm-dev01`; you pick it in Copilot Chat. |
 | Hub | The team's shared virtual network `vnet-hub` in the shared services subscription, with Azure Firewall. Every member's spoke is peered to it. |
 | Kit | This repository's content as you use it: the scripts, infrastructure, app, templates and archetype, imported into the `factory/` folder of your own repo. |
@@ -36,7 +36,7 @@ sidebar:
 | Preflight | The automated and manual checks you run before the event with the `whatif` stage of the platform pipeline. They are the first part of the readiness check. |
 | Private endpoint | A private IP address in your virtual network for an Azure service, so traffic to it stays off the public internet. |
 | Query Store | SQL Server's built-in record of query plans and run times. C9 uses it to show that each fix worked. |
-| Readiness check | The gate before the event that confirms your datacenter and `vm-dev01` are ready. It has no points and isn't a challenge. A coach approves your readiness record before the team lead vends your subscription. |
+| Readiness check | The Step 3 checklist before the event that confirms your datacenter (`vm-app01` connected to Azure Arc) and `vm-dev01` are ready. It has no points and isn't a challenge. The Step 4 `vending` run checks each member's datacenter and Arc status automatically before vending their subscription. |
 | Run command | An Azure feature that runs a script inside a VM without signing in to it. Arc onboarding turns it off for `vm-app01`, so the datacenter test must run before it (the `member` stage does). |
 | Scenario | The kind of job the Upgrade agent runs. C3 uses `dotnet-version-upgrade`. |
 | Spoke | A member's virtual network `vnet-spoke` in their workload subscription. Vending creates it and peers it to the hub. The archetype runs in it. |
@@ -46,7 +46,7 @@ sidebar:
 | T-7 | 7 days before day one of the event. The team lead deploys the foundation and a Privileged Role Administrator runs the Graph read grant. |
 | T-3 | 3 days before day one of the event. The readiness check is due: the datacenter, Arc onboarding, the first assessment and `vm-dev01` setup. See the [event overview](../../getting-started/event-overview/#before-the-event). |
 | T-1 | 1 day before day one of the event. The team lead vends every member, restarts their VMs, records the exemptions and runs the connectivity probes. |
-| Team lead | A colleague the team nominates. One per team, and also a member. Collects the roster values, assigns member indexes, deploys the foundation at T-7, vends every member at T-1 and walks the team through both in C2. |
+| Team lead | A colleague the team nominates and the team's first point of contact during pre-hackathon setup and the event. One per team, and also a member. Collects the roster values, assigns member indexes, deploys the foundation in Step 2 (T-7) and vends every member in Step 4 (T-1). |
 | Tenant Root | The top management group of your Microsoft Entra tenant. The team lead needs the Owner role there. |
 | Trace flag | A SQL Server startup switch that changes how the engine behaves. The kit sets two on the source (1800 and 9567) to prepare it for the MI link, and the assessment reports them as findings. |
 | UDR | User-defined route: a routing rule on a subnet. Vending adds one that sends a member's traffic through the hub firewall. |

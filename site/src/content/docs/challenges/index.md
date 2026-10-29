@@ -14,7 +14,7 @@ Contoso University is a fictional public university. Its student enrollment app 
 
 ## How the challenges work
 
-- **Team and member challenges.** Team challenges (C1, C2, C4 and C10) are done together on one shared screen. Member challenges (C3 and C5 to C9) are done by each person in their own repo and subscription. C4 has both.
+- **Team and member challenges.** Team challenges (C1, C4 and C10) are done together on one shared screen. Member challenges (C2, C3 and C5 to C9) are done by each person in their own repo and subscription. C4 has both.
 - **Five parts on every page.** Background says why it matters and which business outcome it serves. Challenge gives the starting point, what the kit fixes and what you decide. Requirements say what you must do. Success criteria say what you show your coach. References link to Microsoft Learn.
 - **Hints are folded away.** Open them when you are stuck. Where a challenge leaves a choice to you (C1, C4 and C10), there is no single right answer, and your coach looks at your reasoning.
 - **Evidence goes in your own repo.** Commit it under `factory/evidence/` as you finish each challenge, not at the end of the day.
@@ -39,7 +39,7 @@ Day one opens at 08:30 with a 30-minute PowerPoint presentation by the tech lead
 | Day | Challenge | Scope | Time box | Points | Business outcome |
 |---|---|---|---|---|---|
 | Day 1 | [C1: Define the opportunity](./c01-define-the-opportunity/) | Team | 45 min | 10 | All six, in order |
-| Day 1 | [C2: Secure, AI-ready foundation](./c02-secure-ai-ready-foundation/) | Team | 120 min | 35 | Secure by default |
+| Day 1 | [C2: Secure, AI-ready foundation](./c02-secure-ai-ready-foundation/) | Member | 45 min | 15 | Secure by default |
 | Day 1 | [C3: Assess the source](./c03-assess-the-source/) | Member | 60 min | 15 | Safe, repeatable change |
 | Day 1 | [C4: Choose target states](./c04-choose-target-states/) | Team + member | 45 min | 25 | Current platform |
 | Day 1 | [C5: Deploy the CoE archetype with APEX](./c05-deploy-the-coe-archetype/) | Member | 90 min | 15 | Repeatable provisioning |
@@ -49,7 +49,7 @@ Day one opens at 08:30 with a 30-minute PowerPoint presentation by the tech lead
 | Day 2 | [C9: Optimize the DB with GHCP](./c09-optimize-the-db-with-ghcp/) | Member | 60 min | 10 | Reliable at enrollment peaks |
 | Day 2 | [C10: Package, hand over, review AI readiness](./c10-package-hand-over-review-ai-readiness/) | Team | 60 min | 20 | Documented path to AI |
 
-**Totals: 825 min across 10 challenges, 190 base points (80 team + 110 member).** Bonus points (noted per challenge, and from badges) are separate from this base contract. They share one cap of 30 points per team: the per-challenge maxima add up to more than that, and points beyond the cap aren't awarded. The maximum score is 220.
+**Totals: 750 min across 10 challenges, 170 base points (45 team + 125 member).** Bonus points (noted per challenge, and from badges) are separate from this base contract. They share one cap of 30 points per team: the per-challenge maxima add up to more than that, and points beyond the cap aren't awarded. The maximum score is 200.
 
 Time boxes are pacing, not hard stops. Coaches flex on the day. The event's real gates are T-14 (14 days before day one) and T-3 (3 days before day one), both before the event, and the end of each day. The [event overview](../getting-started/event-overview/#before-the-event) has both gates.
 

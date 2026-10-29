@@ -17,8 +17,8 @@ Contoso University is a fictional public university. Its student enrollment app 
 ## How it works
 
 - **Everyone creates their own repo** from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template and imports this kit into `factory/` with `scripts/Import-Kit.ps1`. There is no shared team repo.
-- **Deployment is GitHub Actions only.** Each member deploys their own simulated datacenter. The team lead, a colleague the team nominates, also deploys the shared foundation and connects every member. A coach approves each member's readiness record before that. The kit's PowerShell scripts are the engine the pipeline runs; a coach can run one by hand to repair a run.
-- **The challenges are C1 to C10.** Each page has five parts: Background, Challenge, Requirements, Success criteria and References. The scoring is 190 base points (80 team and 110 member) over 825 minutes, with a maximum score of 220 including bonuses.
+- **Deployment is GitHub Actions only.** Each member deploys their own simulated datacenter in Step 3. The team lead, a colleague the team nominates and the team's first point of contact, deploys the shared foundation in Step 2 and connects every ready member in Step 4 (`vending` checks each member's datacenter and Arc status automatically). The kit's PowerShell scripts are the engine the pipeline runs; a coach can run one by hand to repair a run.
+- **The challenges are C1 to C10.** Each page has five parts: Background, Challenge, Requirements, Success criteria and References. The scoring is 170 base points (45 team and 125 member) over 750 minutes, with a maximum score of 200 including bonuses.
 - **Students modernize the app themselves** with GitHub Copilot. The kit never changes Contoso University's code.
 
 ## What is in the repo

@@ -27,12 +27,12 @@ Deployment comes first: [Requirements](../getting-started/requirements/) and rep
 
 | Day 1 | Activity |
 |---|---|
-| 08:30 | Welcome, roles and roster lock |
+| 08:30 | 30-minute kickoff presentation (scenario, roles, challenges) and roster lock |
 | 09:00 | C1 Define the opportunity |
-| 09:45 | C2 Secure, AI-ready foundation, starting with a live portal ALZ demo, then a walk-through of the foundation built before the event |
-| 10:15 | C3 Assess the source, in parallel with the team's C2 walk-through |
-| 11:45 | C4 Choose target states |
-| 12:30 | Lunch |
+| 09:45 | C2 Secure, AI-ready foundation (test an AI coding agent against APEX and ALZ guardrails) |
+| 10:30 | C3 Assess the source |
+| 11:30 | C4 Choose target states |
+| 12:15 | Lunch |
 | 13:15 | APEX archetype demo, then C5 Deploy the CoE archetype |
 | 14:45 | C6 Modernize with GHCP, part 1 |
 | 16:30 | Check-out |

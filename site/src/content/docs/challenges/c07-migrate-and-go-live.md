@@ -42,7 +42,7 @@ Requirements 5 and 6 depend on which identity does what. The web app's own ident
 
 **Starting point.**
 
-- C5's deployed SQL Managed Instance, with its directory read access granted: the Microsoft Graph read grant a Privileged Role Administrator made at T-7 (C2 requirement 4 checks it). Ask your coach to confirm it before you start, or `CREATE USER` fails in requirement 5.
+- C5's deployed SQL Managed Instance, with its directory read access granted: the Microsoft Graph read grant a Privileged Role Administrator made at Step 2 (T-7). Ask your coach to confirm it before you start, or `CREATE USER` fails in requirement 5.
 - C6's modernized, packaged app (image tag `c6`), not yet pointed at App Service.
 - `vm-app01` running, with its Azure Arc entry **Connected**. C3 had you start it; run `az vm start` for it if it's stopped. The portal shows the instance only while the machine is connected.
 

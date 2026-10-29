@@ -1,12 +1,12 @@
 # Scoring rubric
 
-This is the scoring single source of truth. The base contract is 80 team points and 110 member points: 190 total before bonuses. Challenge minutes and base points match the challenge pages. The readiness check before the event has no points: it is a gate, described on the [readiness gate page](../coach/readiness.md).
+This is the scoring single source of truth. The base contract is 45 team points and 125 member points: 170 total before bonuses. Challenge minutes and base points match the challenge pages. The pre-hackathon setup has no points: it is checked automatically by `vending` and described on the [readiness gate page](../coach/readiness.md).
 
 ## Scoring rules
 
 - Lock the roster at kickoff. The member average includes every person on that roster; a missing or unverified item scores zero. Do not remove an absent member from the denominator after kickoff.
 - Award team evidence once per team. Award member evidence separately for each member.
-- Base team score = team base points + the arithmetic mean of member base points. The maximum base score is 190.
+- Base team score = team base points + the arithmetic mean of member base points. The maximum base score is 170.
 - Score each evidence row independently. Full points require the listed evidence. Award half the row value, rounded down, when evidence is present but one verifiable subcomponent is incomplete; award zero when evidence is absent, unverified or materially incorrect. Record the reason for partial credit. Never exceed a row's maximum or move unused points between rows.
 - Lifelines cap the affected challenge only; later challenges remain eligible. Record the branch or image in the scoreboard. C6 use of L1, L2, L3, L4 caps C6 at **15 of 30 member points**. C7 use of L5, or of the known-good image at go-live, caps C7 at **10 of 20 member points**. Ordinary hints and coach discussion do not trigger a cap.
 - Challenge bonus tasks and badges draw from one bonus allowance per team, capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. Award the bonuses in the order they appear in this rubric until the team reaches the cap. Once a team has reached it, further eligible bonus evidence is recorded but adds no points.
@@ -19,7 +19,7 @@ This is the scoring single source of truth. The base contract is 80 team points 
 | Challenge | Scope | Minutes | Team points | Member points |
 |---|---|---:|---:|---:|
 | C1 Define the opportunity | Team | 45 | 10 | 0 |
-| C2 Secure, AI-ready foundation | Team | 120 | 35 | 0 |
+| C2 Secure, AI-ready foundation | Member | 45 | 0 | 15 |
 | C3 Assess the source | Member | 60 | 0 | 15 |
 | C4 Choose target states | Team + member | 45 | 15 | 10 |
 | C5 Deploy the CoE archetype with APEX | Member | 90 | 0 | 15 |
@@ -28,7 +28,7 @@ This is the scoring single source of truth. The base contract is 80 team points 
 | C8 Validate the pattern | Member | 45 | 0 | 10 |
 | C9 Optimize the DB with GHCP | Member | 60 | 0 | 10 |
 | C10 Package, hand over, review AI readiness | Team | 60 | 20 | 0 |
-| **Total** |  | **825** | **80** | **110** |
+| **Total** |  | **750** | **45** | **125** |
 
 ## Evidence points
 
@@ -42,15 +42,14 @@ This is the scoring single source of truth. The base contract is 80 team points 
 
 ### C2 — Secure, AI-ready foundation
 
-The team lead deploys ALZ-lite at T-7 and vends every member at T-1, so C2 scores a "verify and explain" challenge on Day 1: the evidence comes from the work done before the event, and the team shows it understands it. The base points stay 35.
+Each member runs C2 in their own dev container and vended `rg-spoke` to test an AI coding agent against two guardrail layers (APEX repository baseline and Azure Landing Zone `Deny` policies), plus datacenter exemptions and connectivity.
 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
-| ALZ-lite management groups, hub and policies are shown in the T-7 deployment evidence, and the team answers the coach's questions on the core policies | 10 | 0 |
-| Vending output from T-1 covers every member subscription and the expected network setup | 10 | 0 |
-| Datacenter exemptions have an owner, reason and expiry, and the members explain them | 5 | 0 |
-| Connectivity probes pass every applicable check, re-run by each member on Day 1 | 10 | 0 |
-| **Total** | **35** | **0** |
+| Layer 1 (`guardrail-test.md`): AI agent prompt/response against `iac-security-baseline.md`, failing `validate:iac-security-baseline` output on `registry.bicep`, and clean `git restore` | 0 | 5 |
+| Layer 2 (`guardrail-test.md`): `RequestDisallowedByPolicy` errors in `rg-spoke` for `alzl-deny-public-acr` and `alzl-deny-nic-pip`, with `pip-guardrail-test` cleaned up | 0 | 5 |
+| Exemptions, connectivity and takeaway (`guardrail-test.md`): `rg-datacenter` exemptions table, `Test-Connectivity.ps1` `PASS` output, and two-sentence explanation of why ALZ guardrails are mandatory for agentic AI | 0 | 5 |
+| **Total** | **0** | **15** |
 
 ### C3 — Assess the source
 

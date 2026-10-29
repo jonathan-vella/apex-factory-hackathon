@@ -1,45 +1,86 @@
 # C2 answer key: Secure, AI-ready foundation
 
 > [!WARNING]
-> Coach material. This page has the answers to C2. The team lead runs the team's landing zone from GitHub Actions; the kit scripts are only for a coach's repair.
+> Coach material. This page has the answers to C2. Each member runs C2 in their own dev container and vended `rg-spoke`. The team lead ran the landing zone and vending from GitHub Actions before the event; the kit scripts below are only for a coach's repair.
 
-This is a "verify and explain" challenge. The team lead deployed ALZ-lite at T-7 and vended every member at T-1, so nothing deploys on Day 1. The team lead needed elevated rights (Owner at Tenant Root scope) for that work, which most members don't have: confirm at T-14 that the right person is driving, and at T-7 that the Privileged Role Administrator is booked. Your job on Day 1 is to ask the questions below and check that the team can answer them in their own words, not read from the output.
+C2 is a **Member** challenge (45 minutes, 15 member points). Instead of a passive walk-through, each member tries to make an AI coding agent bypass two layers of guardrails:
+
+1. **Layer 1 (APEX in-repo guardrails):** `.github/instructions/references/iac-security-baseline.md` and `npm run validate:iac-security-baseline -- --public-web-app infra/bicep/university/modules/web-app.bicep`.
+2. **Layer 2 (Azure Landing Zone `Deny` policies in Azure):** `alzl-deny-public-acr` and `alzl-deny-nic-pip` assigned at `mg-factory-corp` and inherited by each member's vended `rg-spoke`.
+
+Each member also checks their `rg-datacenter` policy exemptions and runs `Test-Connectivity.ps1`, then commits `factory/evidence/c02/guardrail-test.md`.
 
 ## Expected evidence
 
-- Evidence of the `foundation` stage from T-7 (the run summary, GUIDs redacted as `<id:abcd>`, counts as the `Deploy-AlzLite.ps1` output): management groups (`mg-factory` under Tenant Root, with `mg-factory-platform` and `mg-factory-corp`), the hub (`vnet-hub`, `afw-hub`, `afwp-hub` in `rg-hub`), the central Log Analytics workspace, and the core policies assigned at `mg-factory-corp`.
-- `Grant-SqlMiDirectoryRead.ps1` output from T-7: the three Graph permissions granted to `id-sqlmi-directory`, and the `-WhatIf` check from task 4 that says they are already granted. Without the grant C7's `CREATE USER ... FROM EXTERNAL PROVIDER` fails, and only a Privileged Role Administrator can run it. No pipeline runs it.
-- Evidence of the `vending` stage from T-1 for every member's workload subscription (the run summary counts as the `Deploy-Vending.ps1`, exemptions and `Test-Connectivity.ps1` output): spoke VNet, subnets, peering to the hub, UDRs pointing at the firewall, DNS pointing at the hub firewall (which acts as the DNS proxy), RBAC and a budget. The run log redacts GUIDs, but check the copy in the member's own repo (`factory/evidence/c02/`) names none. Vending keeps a member's existing direct Owner assignment; it only adds one when the member has none.
-- The exemptions table, with an owner, a reason and an expiry per exemption (the datacenter predates the policy move, so it needs exemptions, not fixes). The owner is a person, or `GitHub Actions pipeline` for the `vending` stage's exemptions: in that case check the C4 deferred-work register names a person. An empty list on Day 1 usually means the policies hadn't taken effect when vending ran (up to 30 minutes): ask the member to create them as task 6 says.
-- `Test-Connectivity.ps1` from task 7: PASS on every applicable check, run by the member from their own dev container (it probes inside the VMs through Azure).
+In each member's own repo (`factory/evidence/c02/guardrail-test.md`), with no tenant, subscription or object IDs:
 
-## Questions to ask
-
-Ask the questions at fixed points, because members are in C3 from 10:15 (the agenda doesn't change). The members' questions go in a 10 minute slot at 11:15, when C3 ends, the members have done tasks 6 and 7, and C4 doesn't start until 11:45. Ask each question of a different person. Let the team lead answer only what no one else can; the lead's walk-through of tasks 3 to 5 happens earlier, from 10:15. Answers in the team's own words are enough; the model answers are short on purpose.
-
-1. Which core policies only audit, which deny, and which add a missing setting? (Audit: allowed locations and resource location matching the resource group. Deny: a public IP on a NIC, and public network access on Storage, Key Vault, Service Bus, the container registry and SQL MI. DeployIfNotExists: private DNS zone registration for Blob, Service Bus, the container registry and Key Vault, and diagnostics to the central workspace.)
-2. What would the Deny on public network access stop in C5, and what would the member do instead? (A public backend: it uses a private endpoint in `snet-pe`.)
-3. Why does the hub firewall answer DNS? (DNS proxy: the VMs resolve the private names of Azure services through the central private DNS zones.)
-4. Why does the datacenter have exemptions and not fixes? Who owns them, and what happens at expiry? (It was deployed before the subscription moved under `mg-factory-corp`; it's an on-premises simulation that migrates in C7. The owner records the deferred work, and it goes into C4's register.)
-5. Why did vending come after the datacenter and after `vm-dev01` setup? (Vending connects the datacenter, so it has to exist; vending changes its DNS to the firewall, which `vm-dev01` setup doesn't test.)
-6. What would a full portal ALZ have that ALZ-lite leaves out? (The comparison table in the ALZ-lite guide: more management groups, more landing zone archetypes, the full policy initiative set, paid Defender plans, ExpressRoute or VPN gateways.)
-7. Why does C7 need the Graph grant, and who can make it? (SQL MI uses `id-sqlmi-directory` to look up Entra principals for `CREATE USER ... FROM EXTERNAL PROVIDER`; a Privileged Role Administrator or Global Administrator.)
+- **Layer 1 (5 member pts):**
+  - What the AI coding agent did when prompted to enable `adminUserEnabled: true` and `publicNetworkAccess: 'Enabled'` in `infra/bicep/university/modules/registry.bicep` (whether it refused citing `.github/instructions/references/iac-security-baseline.md`, or edited the file).
+  - Output of `npm run validate:iac-security-baseline -- --public-web-app infra/bicep/university/modules/web-app.bicep` showing the scanner catching `publicNetworkAccess: 'Enabled'` in `registry.bicep`.
+  - Confirmation that `infra/bicep/university/modules/registry.bicep` was restored cleanly (`git status --short -- infra/bicep/university` is empty) so C5 can deploy without errors.
+- **Layer 2 (5 member pts):**
+  - `RequestDisallowedByPolicy` output from attempting to create a public Container Registry (`az acr create -g rg-spoke -n "acrguard$($s.suffix)" --sku Basic --public-network-enabled true -l $s.location`), naming `alzl-deny-public-acr`.
+  - `RequestDisallowedByPolicy` output from attempting to attach `pip-guardrail-test` to a NIC in `vnet-spoke/snet-app`, naming `alzl-deny-nic-pip`, with `pip-guardrail-test` deleted afterward.
+- **Exemptions, connectivity and takeaway (5 member pts):**
+  - Output of `az policy exemption list --resource-group rg-datacenter -o table` showing the time-limited exemptions created by Step 4 (`vending`), with owner, reason and expiry.
+  - Output of `./scripts/Test-Connectivity.ps1` showing `PASS` on every applicable check.
+  - Two sentences explaining why repository instructions alone are not enough for autonomous AI agents and why Azure Landing Zone `Deny` policies are mandatory.
 
 ## Model answer
 
-Before the event, in the team lead's repo (each stage needs an approval once):
+### Layer 1: Repository security baseline
 
-1. T-7, team lead: `gh workflow run platform.yml -f stage=foundation` (ALZ-lite, about 15 to 25 minutes). `-f stage=whatif` previews it.
-2. T-7, a Privileged Role Administrator, once per team, outside the pipeline: `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId`. Values come from each person's `.local/settings.json` (`$s`).
-3. T-1, team lead, after the coach approves the readiness records (see the [readiness gate](readiness.md)): `gh workflow run platform.yml -f stage=vending`. It vends every member in the roster, one after another (yourself included), restarts both VMs of every member (tell members first: a restart ends their Bastion session), records the exemptions with a real reason ("deployed before ALZ-lite; pending retirement after the event") and a real expiry, and runs the connectivity probes. Add `-f members=<n>,<n>` to vend only some members, for example one whose datacenter was redeployed.
+From the repo root (`/workspaces/<your-repo>`) in the dev container:
 
-On Day 1:
+```bash
+# After prompting the agent or editing infra/bicep/university/modules/registry.bicep
+# to set publicNetworkAccess: 'Enabled':
+npm run validate:iac-security-baseline -- --public-web-app infra/bicep/university/modules/web-app.bicep
 
-4. Every member, against their own workload subscription: list the exemptions (task 6) and re-run `./scripts/Test-Connectivity.ps1 -SubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex`. It runs from the dev container and probes inside the VMs. This is a challenge task, so students run it themselves.
+# Restore cleanly before C5:
+git restore --source=HEAD -- infra/bicep/university/modules/registry.bicep
+git status --short -- infra/bicep/university
+```
+
+Why `--public-web-app infra/bicep/university/modules/web-app.bicep` is passed: Contoso University's web front end is a documented public HTTPS exception in the archetype brief, while all data backends (ACR, SQL MI, Storage, Service Bus, Key Vault) must keep `publicNetworkAccess: 'Disabled'`.
+
+### Layer 2: Azure Landing Zone `Deny` policies
+
+From `/workspaces/<your-repo>/factory` in PowerShell:
+
+```powershell
+./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
+$s = Get-Content .local/settings.json | ConvertFrom-Json
+az account set --subscription $s.subscriptionId
+
+# Denied by alzl-deny-public-acr:
+az acr create -g rg-spoke -n "acrguard$($s.suffix)" --sku Basic --public-network-enabled true -l $s.location
+
+# Denied by alzl-deny-nic-pip:
+az network public-ip create -g rg-spoke -n pip-guardrail-test --sku Standard -l $s.location
+az network nic create -g rg-spoke -n nic-guardrail-test --vnet-name vnet-spoke --subnet snet-app --public-ip-address pip-guardrail-test -l $s.location
+az network public-ip delete -g rg-spoke -n pip-guardrail-test
+```
+
+Note for coaches: in tenants with MCAPS Modify policies (such as the build tenant), Storage and Key Vault resources have `publicNetworkAccess` silently modified to `Disabled` before `Deny` runs. Container Registry (`alzl-deny-public-acr`) and NIC public IP (`alzl-deny-nic-pip`) reliably trigger `RequestDisallowedByPolicy` in both customer tenants and MCAPS tenants.
+
+### Exemptions and connectivity
+
+```powershell
+az policy assignment list --disable-scope-strict-match -o table
+az policy exemption list --resource-group rg-datacenter --query "[].{name:displayName, category:exemptionCategory, expires:expiresOn, description:description}" -o table
+./scripts/Test-Connectivity.ps1 -SubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex
+```
+
+And the team lead confirms the Graph grant from Step 2.2 once for the team:
+
+```powershell
+./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf
+```
 
 ### Repair (coaches only)
 
-Use this only when a stage run can't be repaired in time (rerun the stage first: the stages are idempotent). A coach runs the same scripts by hand, in this order. Students don't run them:
+Use this only when a pre-hackathon stage run can't be repaired in time (rerun the stage first: the stages are idempotent). A coach runs the same scripts by hand, in this order. Students don't run them:
 
 ```powershell
 ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
@@ -50,32 +91,29 @@ az vm restart -g rg-datacenter -n vm-app01 --subscription <member-subscription-i
 ./scripts/Test-Connectivity.ps1 -SubscriptionId <member-subscription-id> -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <n>
 ```
 
-- Run `Deploy-Vending.ps1`, the restarts, the exemptions and the connectivity test once per member, after ALZ-lite and after that member's datacenter and approved readiness record. Take the other members' values from the roster the team lead keeps privately (captured at T-14).
+- Run `Deploy-Vending.ps1`, the restarts, the exemptions and the connectivity test once per member, after ALZ-lite and after that member's datacenter and Arc onboarding. Take the other members' values from the roster the team lead keeps privately (captured at Step 1).
 - Never rerun Arc, and never redeploy a datacenter after Arc. A datacenter redeployed after vending requires vending again.
 
 ## Business outcome check
 
-The outcome is secure by default. Ask a team member to show one core policy that blocks a public data endpoint and the route through the firewall, in the portal or the run summary. This supports the scoring row on the team answering the core policy questions. It earns no points of its own: if the team can't show it, say so in the debrief and move on.
+The outcome is secure by default. Check that the member's two-sentence takeaway in `guardrail-test.md` clearly distinguishes repository guardrails (which catch mistakes in code before deployment, but can be bypassed) from Azure Landing Zone `Deny` policies (which enforce rules at the Azure control plane regardless of how a human or AI agent calls Azure).
 
 ## Common mistakes
 
-- Vending before ALZ-lite finished propagating (management group moves can lag a few minutes) — vending then can't find the hub by name. Wait and retry rather than debugging a "missing resource."
-- Vending a member before their datacenter exists or before the coach approves their readiness record: vending can't connect a datacenter that isn't there, and a datacenter redeployed after vending loses the DNS and route settings, so that member is vended again.
-- A member with their own elevated rights running the `foundation` stage a second time "to be sure" — this is the team lead's job, once, for the whole team. Running it twice doesn't break anything but wastes time.
-- Skipping exemptions because "the datacenter already works" — the point is to record the exception deliberately, not to silence the alert. A dismissed policy finding with no exemption record is a gap in C10's AI-readiness register.
-- Not restarting `vm-app01`/`vm-dev01` after vending changes DNS — connectivity tests then fail for a reason unrelated to the actual foundation (see the troubleshooting hint on the challenge page).
-- Reading out the T-7 and T-1 output without being able to explain it. The evidence only counts when the team can answer the questions above.
+- Forgetting to run `git restore --source=HEAD -- infra/bicep/university/modules/registry.bicep` after Layer 1. If `publicNetworkAccess: 'Enabled'` is left in `registry.bicep`, C5's `azd provision` will fail on `alzl-deny-public-acr`.
+- Running `npm run validate:iac-security-baseline` from `factory/` instead of the repo root (`/workspaces/<your-repo>`), or omitting `-- --public-web-app infra/bicep/university/modules/web-app.bicep`.
+- Leaving `pip-guardrail-test` in `rg-spoke` after the NIC creation is denied. Remind members to run `az network public-ip delete -g rg-spoke -n pip-guardrail-test`.
+- Not restarting `vm-app01`/`vm-dev01` if a VM was stopped or redeployed after vending, causing `Test-Connectivity.ps1` DNS checks to fail.
 
 ## Partial credit
 
-- ALZ-lite and vending evidence complete, but exemptions missing owner/expiry: partial credit, fix before C10's checklist.
-- Evidence complete, but the team lead alone answers the policy questions and the members can't explain the exemptions: partial credit on the matching row, then ask the members again after C3.
-- Connectivity tests mostly pass with one explained, coach-acknowledged FAIL (for example, a probe that depends on a resource not yet deployed until C5): accept as complete, with the FAIL noted.
+- Layer 1 and Layer 2 evidence complete, but `Test-Connectivity.ps1` or the exemptions table is missing from `guardrail-test.md`: award the Layer 1 and Layer 2 rows (10 pts) and ask the member to add the exemptions and connectivity output before C4.
+- Member forgot to restore `registry.bicep`: have them restore it on the spot before signing off Layer 1.
 
 ## Bonus
 
-Running the negative tests from the foundation's validation record (`infra/foundation/validation.md`: a public-network container registry denied, a NIC with a public IP denied, a private endpoint auto-registers in central DNS) is worth up to 5 bonus points if the team records the actual denial messages, not just "it worked." The public storage account test isn't a reliable one: in a tenant with a "disable public network access" Modify policy the account is created private instead of denied.
+Up to 5 member bonus points (under the shared 30-point team bonus cap) for testing a `DeployIfNotExists` policy from `infra/foundation/validation.md`: creating a temporary private endpoint in `rg-spoke` / `snet-pe` without a DNS zone group, waiting for Azure Policy remediation (~12 minutes) to register its `A` record in the hub's central private DNS zone, recording the result in `guardrail-test.md`, and deleting the test resources afterward.
 
 ## Reset
 
-Rerun the failed stage with the same inputs: the `foundation` and `vending` stages are idempotent and converge a failed or partial deployment. Then check the exemptions and connectivity again (the `vending` stage re-records both). Redeploying a datacenter after vending drops the DNS and route settings vending applied, so if a member's datacenter must be redeployed (the `member` stage, before Arc only), run the `vending` stage for that member again afterwards. The scripts in the Repair block have no `-Force` parameter either.
+If a member left changes in `infra/bicep/university/`, run `git restore --source=HEAD -- infra/bicep/university`. If `pip-guardrail-test` remains in `rg-spoke`, delete it with `az network public-ip delete -g rg-spoke -n pip-guardrail-test`. If a member's spoke or exemptions need to be recreated, rerun the `vending` stage for that member (`-f members=<n>`).

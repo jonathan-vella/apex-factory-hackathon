@@ -23,8 +23,6 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 **You decide.** How you triage each finding, and what the trace-flag finding means for the target state.
 
-**Also during C3.** C2 requirements 1, 6 and 7 (requirement 1 takes a few minutes; requirements 6 and 7 about 15 minutes) are yours to do at a clean point in C3, for example right after the `app: assess and plan` commit. Do requirement 1 first, because requirement 7 needs the shared services subscription ID it records (see [C2](../c02-secure-ai-ready-foundation/)). **Restart `vm-dev01` only when no agent run is in progress:** a restart ends your Bastion session and the run in it.
-
 **Terms.** The **harness** is where the Upgrade agent runs (**Local** means on `vm-dev01`). A **scenario** is the agent's workflow (`dotnet-version-upgrade`). A **gate** is a point where the agent stops so you can review before it continues (the playbook's Step 1 shows each one). The **dashboard** is the Upgrade view in VS Code, with an **Assessment** tab.
 
 **Where to work.**
