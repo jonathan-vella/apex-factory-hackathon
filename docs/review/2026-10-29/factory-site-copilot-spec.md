@@ -2,7 +2,7 @@
 
 | Field | Value |
 |---|---|
-| Issue | One per theme, T01 to T10 (bodies in `factory-site-copilot-issues.md`). Fill in the numbers once the issues exist. |
+| Issue | T01 #190 · T02 #191 · T03 #192 · T04 #193 · T05 #194 · T06 #195 · T07 #196 · T08 #197 · T09 #198 · T10 #199 |
 | Milestone | Site review, before the site is shared |
 | Type | Agent. Owner decisions recorded on 29 October 2026 (below); one owner-approved pipeline change (T01, requirement 1) |
 | Depends on | Nothing |
