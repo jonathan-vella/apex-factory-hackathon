@@ -1,6 +1,6 @@
 ---
-title: Set up your repo
-description: Create your own repo, import the kit, sign in and write your settings file. About 60 to 90 minutes, mostly downloads and the first dev container build.
+title: "Step 1: Repo and preflight (T-14)"
+description: Create your repo, import the kit, write your settings, set up the pipeline and run the T-14 preflight. Everyone does this, plus the team lead collects the roster.
 sidebar:
   order: 2
 ---
@@ -8,14 +8,17 @@ sidebar:
 import { Steps } from "@astrojs/starlight/components";
 import Diagram from "../../../components/Diagram.astro";
 
-Do this once, by T-14, before you run the [member steps](../member-steps/). It gives you a repo with the kit on `main`, a signed-in `az` and `gh`, and a settings file. GitHub runs a workflow only from the default branch, so the kit must be merged to `main` before anything deploys. You need the accounts, access and tools from [Requirements](../../getting-started/requirements/) first.
+**Who:** **Everyone** (team lead included), plus the **Team lead** collects the team roster.
+**When:** By **T-14** (14 days before day one). About 60 to 90 minutes, mostly downloads and the first dev container build.
+
+Complete this step first. It gives you a private repository with the kit on `main`, a signed-in `az` and `gh`, your `.local/settings.json` file, and a passing `whatif` preflight. GitHub Actions runs workflows only from the default branch, so the kit must be merged to `main` before anything deploys. Check that you have the accounts, access, and tools from [Requirements](../../getting-started/requirements/) first. If anything blocks you, contact your **designated team lead** first (no coach is on duty before day one; pre-hackathon support is best-effort).
 
 ## How you work
 
 - **One repo of your own.** A private repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template. It brings the **APEX agents**, Copilot custom agents that appear in Copilot Chat's agent picker.
 - **One dev container.** A ready-made Linux workspace that VS Code opens inside Docker, so every member has the same tools: Azure CLI, PowerShell 7, Git, `azd` and Bicep.
-- **One import.** A single command copies the kit into a `factory/` folder in your repo. Run every script and command from `factory/`, inside the dev container.
-- **One exception.** `vm-dev01`, which you set up in the [member steps](../member-steps/#set-up-vm-dev01). From C3 the app work happens there (C3, C6, C7 and C9). C4, C5 and C10 run in the dev container again, and C8 uses both. Each challenge page has a **Where to run** block.
+- **One import.** A single command copies the kit into a `factory/` folder in your repo and the CoE archetype into the repo root.
+- **One exception.** `vm-dev01`, which you set up in [Step 3: Datacenter and workstation](../member-steps/#33-set-up-vm-dev01). From C3 the app work happens there (C3, C6, C7 and C9). C1, C2, C4, C5 and C10 run in the dev container, and C8 uses both. Each challenge page has a **Where to run** block.
 - **Evidence** lives in your own repo, under `factory/evidence/`. There is no shared team repo.
 
 <Diagram
@@ -24,11 +27,11 @@ Do this once, by T-14, before you run the [member steps](../member-steps/). It g
   caption="Your repo comes from the template. The kit is imported into its factory/ folder."
 />
 
-## Create your repo
+## 1.1 Create your repo (Everyone)
 
 <Steps>
 
-1. **Create the repo.** Open the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template, choose **Use this template** > **Create a new repository**, set the owner to your partner org, and make it **Private**. Add your coach as a collaborator (**Settings** > **Collaborators**) so they can read your evidence.
+1. **Create the repo.** Open the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template, choose **Use this template** > **Create a new repository**, set the owner to your partner org, and make it **Private**. Add your team lead and your coach as collaborators (**Settings** > **Collaborators**) so they can read your evidence.
 
 2. **Clone it with VS Code.** On Windows 11, press `F1` > `WSL: Connect to WSL` first, so VS Code runs inside Ubuntu. Then press `F1` > `Git: Clone`, choose **Clone from GitHub**, sign in when asked, pick your repo and a folder in your home folder, and choose **Open**.
 
@@ -45,7 +48,7 @@ Your new repo opens on the template's README and its Quick Start. Follow this pa
 
 Done when a terminal prompt opens inside the dev container.
 
-## Import the kit
+## 1.2 Import the kit
 
 <Steps>
 
@@ -92,11 +95,35 @@ Done when `ls factory` lists `scripts`, `infra`, `app`, `db`, `templates` and `a
 - The import refuses to overwrite an existing `factory/` unless you add `-Force`. If a run fails, the third line has already deleted the script, so repeat all three lines, and add `-Force` to the second one (`pwsh ./Import-Kit.ps1 -Force`) when the script says `factory/` exists. `-Force` replaces only the kit folders: it keeps `factory/.local/` (your settings and datacenter credentials) and your archetype work. Add `-ReplaceArchetype` only if you want the kit's archetype copy back and accept losing your changes to it.
 - If you commit by hand, run `git switch -c feat/import-kit` first and check that `git branch --show-current` does not print `main`. Don't use `/apex-git-commit`: it skips `agent-output/` and `infra/`, which hold the imported archetype.
 - The import keeps `factory/` out of the repo's linters and the weekly upstream sync, and excludes the imported archetype (`infra/bicep/university`) from the template's `iac-security-baseline` hook, because its two accepted lab findings would otherwise block every commit that touches it. If the hook still blocks a commit that only touches the archetype, re-run the import with `-Force`, or use the prompt's exception.
-- The archetype was built against APEX commit `c209d8b` (recorded in `archetype/README.md`). If the APEX agents behave differently from the C5 instructions, tell your coach.
+- The archetype was built against APEX commit `c209d8b` (recorded in `archetype/README.md`). If the APEX agents behave differently from the C5 instructions, tell your team lead.
 
 </details>
 
-## Sign in and settings
+## 1.3 Merge your import
+
+Your import is on the `feat/...` branch. Merge it now so `main` holds the kit and `.github/workflows/platform.yml`.
+
+<Steps>
+
+1. On GitHub, open your repo. Choose **Compare & pull request** for the `feat/...` branch (or **Pull requests** > **New pull request**), then **Create pull request**, **Merge pull request** and **Confirm merge**. This is the only branch you merge into `main`. If a rule blocks the merge, tell your team lead.
+2. In the dev container, bring `main` up to date:
+
+   ```powershell
+   git switch main && git pull
+   ```
+
+</Steps>
+
+Done when `factory/` is visible on `main` on GitHub and `git branch --show-current` prints `main`.
+
+From now on, all your work is on `main`, except the `vm-dev01-work` branch on `vm-dev01`, which you never merge. Evidence follows one rule everywhere:
+
+- **Dev container:** evidence goes in `factory/evidence/` on `main`. Run `git pull` first.
+- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`. Run `git pull --rebase` first.
+
+Each member keeps evidence in their own repo. For a team document, one person types it, then every teammate saves the final file under the same name in their own `factory/evidence/cNN/`.
+
+## 1.4 Sign in and create settings
 
 <Steps>
 
@@ -123,7 +150,7 @@ Done when `ls factory` lists `scripts`, `infra`, `app`, `db`, `templates` and `a
    gh auth setup-git
    ```
 
-4. **Create your settings file.** Run it from `factory/`.
+4. **Create your settings file.** Run it from `factory/`. Your team lead assigns you a unique member index (`1` to `5`, where the team lead is `1`).
 
    ```powershell
    cd factory
@@ -138,25 +165,80 @@ Done when `ls factory` lists `scripts`, `infra`, `app`, `db`, `templates` and `a
    az vm list-usage --location swedencentral --output table
    ```
 
-   For the rows `Total Regional vCPUs` and `Standard Dasv6 Family vCPUs`, `CurrentValue + 16` must be no larger than `Limit`. If not, ask for a quota increase under **Usage + quotas** and tell your coach.
+   For the rows `Total Regional vCPUs` and `Standard Dasv6 Family vCPUs`, `CurrentValue + 16` must be no larger than `Limit`. If not, ask for a quota increase under **Usage + quotas** and tell your team lead.
 
 </Steps>
 
-Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`, `location`, `memberIndex` and `suffix`, and the quota check passes. `factory/.local/` is git-ignored, so your IDs never go to GitHub. Run every script from the `factory/` folder.
+Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`, `location`, `memberIndex` and `suffix`, and the quota check passes. `factory/.local/` is git-ignored, so your IDs never go to GitHub.
 
 <details>
 <summary>About the settings questions</summary>
 
-- **Member index:** your team lead assigns you a number from 1 to 20, unique within your team. Ask your lead if you don't have one, and don't pick your own. It isn't the six-character suffix the script generates. Later pages show these as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
-- **Shared services subscription, members:** press Enter to skip it. The team lead shares its ID when they connect you at T-1, and you add it with `./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'` (C2 requirement 1). Re-running never changes your other values.
+- **Member index:** your team lead assigns you a number from 1 to 20, unique within your team. Ask your team lead if you don't have one, and don't pick your own. It isn't the six-character suffix the script generates. Later pages show these as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
+- **Shared services subscription, members:** press Enter to skip it for now. You can add it in [Step 4: Vending](../vending/) when your team lead shares it (`./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`). Re-running never changes your other values.
 - **Shared services subscription, team lead:** enter it now. The script prints its name on a `Shared:` line: check it is your shared services subscription and not another one you own. Preflight then also checks your Tenant Root rights, so a missing role shows up at T-14 and not at T-7.
 - **Wrong subscription name:** `az account list --refresh --output table` updates the cached names. `Initialize-Settings.ps1` can't tell a mistyped but valid ID from a real one, so read the name it shows.
 
 </details>
 
-## Manual checks
+## 1.5 Send your roster values and set up the pipeline
 
-The preflight (the `whatif` stage in the [member steps](../member-steps/#t-14-preflight)) prints five MANUAL rows because it can't verify these. Confirm them yourself before T-14. The **Preflight row** column shows which MANUAL row each check belongs to.
+**Members (other than the team lead):**
+
+1. Send these four values **privately** to your team lead (a direct message or private team channel, never in a repo, issue, or pull request):
+   - your workload subscription ID (`$s.subscriptionId`)
+   - your member index (`$s.memberIndex`)
+   - your Entra object ID (`az ad signed-in-user show --query id -o tsv`)
+   - your work email
+2. Set up the member pipeline in your repo (run from `factory/`):
+
+   ```powershell
+   ./scripts/Initialize-PlatformPipeline.ps1 -Profile Member
+   ```
+
+   On a private repo it may warn that write access is the gate. That is expected. Check the setup any time with `./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member`.
+
+**Team lead:**
+
+1. Assign each colleague a distinct member index (`1` to `5`, taking `1` yourself) and collect the four values above from every member, yourself included.
+2. Save `factory/.local/roster.json` (git-ignored) with one row per member:
+
+   ```json
+   [
+     { "index": 1, "subscriptionId": "<workload-subscription-id>", "memberPrincipalId": "<entra-object-id>", "budgetEmail": "<email>" }
+   ]
+   ```
+
+3. Make sure your account has **Owner** at Tenant Root (a Global Administrator must [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) to grant it) and **Owner** on the shared services subscription.
+4. Set up the lead pipeline in your repo (run from `factory/`):
+
+   ```powershell
+   ./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json
+   ```
+
+   A repo has one profile: do not run `-Profile Member` in the team lead's repo. To add or swap a member later, edit `.local/roster.json` and run this command again.
+
+Done when `Initialize-PlatformPipeline.ps1` reports its checks as passed.
+
+## 1.6 Run the T-14 preflight and manual checks
+
+The `whatif` stage checks your subscription and registers missing Azure resource providers. Allow about 15 minutes, plus up to 15 minutes if resource provider registrations need to propagate.
+
+<Steps>
+
+1. Run the `whatif` stage from `factory/`:
+
+   ```bash
+   gh workflow run platform.yml -f stage=whatif
+   ```
+
+2. Open the **Actions** tab on GitHub and approve the run if asked.
+3. Fix every FAIL the run log reports. If resource providers were just registered, wait 10 to 15 minutes and run `gh workflow run platform.yml -f stage=whatif` again.
+4. Confirm every row in the manual checks table below before T-14.
+
+</Steps>
+
+**Team lead:** your `whatif` run also checks the shared services subscription, your Tenant Root permissions, and every member in `roster.json`. Treat a warning on the `Management groups` row as a blocker and resolve it before Step 2 (T-7).
 
 | # | Check | How to verify | Preflight row |
 | --- | --- | --- | --- |
@@ -165,36 +247,13 @@ The preflight (the `whatif` stage in the [member steps](../member-steps/#t-14-pr
 | 3 | The agents' models are permitted | The picker lets you select and run them (no policy block message). | GitHub Copilot |
 | 4 | The MCP servers in `.mcp.json` (repo root) load | VS Code shows them started and authenticated. Your organization's Copilot policy must also allow MCP servers and Copilot CLI. | GitHub Copilot |
 | 5 | Dev container opens | You can run `az version` and `pwsh --version` in its terminal. | APEX |
-| 6 | One subscription per member | Ask your coach to confirm that no other member uses yours. | Not a MANUAL row |
+| 6 | One subscription per member | Confirm with your team lead that no other member uses yours. | Not a MANUAL row |
 | 7 | Your roles match your kit role | Team lead: Tenant Root Owner and a separate shared services subscription. Members: Owner on your own workload subscription. | Not a MANUAL row |
 | 8 | MFA is registered | Sign in to the Azure portal and confirm your MFA method works. | MFA |
-| 9 | You can create private repos in the partner's GitHub org | You did this when you created your repo above. | GitHub repositories |
+| 9 | You can create private repos in the partner's GitHub org | You did this when you created your repo above. Also check **Settings** > **Billing and plans** so private-repo GitHub Actions minutes are not blocked by a zero spending limit. | GitHub repositories |
 | 10 | Azure Hybrid Benefit | You hold eligible Windows Server licenses with Software Assurance. If you don't, follow the rule on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page. | Azure Hybrid Benefit |
 
-See the [ALZ-lite guide](../../guides/alz-lite/) for why the model needs two kinds of subscription.
+Done when the `whatif` run is green and every manual check is confirmed.
 
-## Merge your import
+Next: the team lead continues to [Step 2: Foundation and Graph grant (T-7)](../team-lead-steps/). Members continue to [Step 3: Datacenter and workstation (T-3)](../member-steps/).
 
-Your import is still on the `feat/...` branch. Merge it, so `main` holds the kit and everything that follows runs on `main`.
-
-<Steps>
-
-1. On GitHub, open your repo. Choose **Compare & pull request** for the `feat/...` branch (or **Pull requests** > **New pull request**), then **Create pull request**, **Merge pull request** and **Confirm merge**. This is the only branch you merge into `main`. If a rule blocks the merge, tell your coach.
-2. In the dev container, bring `main` up to date:
-
-   ```powershell
-   git switch main && git pull
-   ```
-
-</Steps>
-
-Done when `factory/` is visible on `main` on GitHub and `git branch --show-current` prints `main`.
-
-From now on, all your work is on `main`, except the `vm-dev01-work` branch on `vm-dev01`, which you never merge. Evidence follows one rule everywhere:
-
-- **Dev container:** evidence goes in `factory/evidence/` on `main`. Run `git pull` first.
-- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`. Run `git pull --rebase` first.
-
-Each member keeps evidence in their own repo. For a team document, one person types it, then every teammate saves the final file under the same name in their own `factory/evidence/cNN/`.
-
-Next: the [member steps](../member-steps/), starting with the preflight.

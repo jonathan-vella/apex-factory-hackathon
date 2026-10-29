@@ -13,11 +13,11 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 **Objective.** Be able to triage migration assessment findings and tell an expected, self-inflicted finding from a real blocker.
 
-**Time and points.** Member, **60 min** (pacing), **15 pts** (member). C3 starts at 10:15 on Day 1, while the team walks through the foundation in C2. If the Upgrade agent runs are slow, do the Arc review (requirement 2) while they run. Your VM is already set up ([set up `vm-dev01`](../../deploy/member-steps/#set-up-vm-dev01)), so none of the 60 minutes goes on setup.
+**Time and points.** Member, **60 min** (pacing), **15 pts** (member). C3 starts at 10:30 on Day 1. If the Upgrade agent runs are slow, do the Arc review (requirement 2) while they run. Your VM is already set up ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), so none of the 60 minutes goes on setup.
 
 ## Challenge
 
-**Starting point.** The first Arc migration assessment from the [readiness check](../../deploy/member-steps/#readiness-check), and a ready `vm-dev01` ([set up `vm-dev01`](../../deploy/member-steps/#set-up-vm-dev01)). C2's verification doesn't need to be finished to start this challenge. Both datacenter VMs must be running: in your dev container (with `$s` loaded from `factory/.local/settings.json`, as in C2), `az vm list -g rg-datacenter -d -o table` shows their power state, and `az vm start -g rg-datacenter -n vm-app01 --subscription $s.subscriptionId`, then the same with `-n vm-dev01`, starts them if you stopped them.
+**Starting point.** The first Arc migration assessment from [Step 3: Datacenter and workstation](../../deploy/member-steps/#readiness-checklist), and a ready `vm-dev01` ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)). Both datacenter VMs must be running: in your dev container (with `$s` loaded from `factory/.local/settings.json`), `az vm list -g rg-datacenter -d -o table` shows their power state, and `az vm start -g rg-datacenter -n vm-app01 --subscription $s.subscriptionId`, then the same with `-n vm-dev01`, starts them if you stopped them.
 
 **Fixed by the kit.** Your subscription was vended at T-1, so `vm-dev01` already uses the hub's DNS. The kit set the trace flags `1800` and `9567` on the source on purpose.
 

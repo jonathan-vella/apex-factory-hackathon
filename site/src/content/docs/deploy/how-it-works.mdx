@@ -2,7 +2,7 @@
 title: How it works
 description: What each stage builds, how the pipeline signs in and what it is allowed to do.
 sidebar:
-  order: 5
+  order: 6
 ---
 
 import Diagram from "../../../components/Diagram.astro";
@@ -15,16 +15,16 @@ One workflow, `platform.yml`, runs in your own repo. You pick a stage and walk a
 
 | Stage | Profile | When | What it does | Time |
 | --- | --- | --- | --- | --- |
-| `whatif` | Member | T-14, and again at T-3 | Runs the preflight. On a new subscription it also registers the Azure providers and the public IP feature. | a few minutes |
-| `whatif` | Lead | T-7 | A read-only what-if of ALZ-lite, and the preflight for every member in the roster. | 3 min, plus a few minutes per member |
-| `member` | Member | T-3 | Deploys the datacenter, runs the datacenter test, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 45 min |
-| `foundation` | Lead | T-7 | Deploys ALZ-lite for the team: management groups, hub, policies. | 15 to 25 min |
-| `vending` | Lead | T-1 | Connects each member's subscription to the hub, restarts every VM, records policy exemptions and runs the connectivity probes. | about 1 hour for 3 members |
+| `whatif` | Member | T-14 ([Step 1](../set-up-your-repo/)), and again at T-3 | Runs the preflight. On a new subscription it also registers the Azure providers and the public IP feature. | a few minutes |
+| `whatif` | Lead | T-7 ([Step 2](../team-lead-steps/)) | A read-only what-if of ALZ-lite, and the preflight for every member in the roster. | 3 min, plus a few minutes per member |
+| `member` | Member | T-3 ([Step 3](../member-steps/)) | Deploys the datacenter, runs the datacenter test, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 45 min |
+| `foundation` | Lead | T-7 ([Step 2](../team-lead-steps/)) | Deploys ALZ-lite for the team: management groups, hub, policies. | 15 to 25 min |
+| `vending` | Lead | T-1 ([Step 4](../vending/)) | Verifies each member's `vnet-datacenter` and `vm-app01` Arc `Connected` status, connects each member's subscription to the hub, restarts every VM, records policy exemptions and runs the connectivity probes. | about 1 hour for 3 members |
 | `teardown` | Both | T+2 | Removes what the other stages built. | about 20 min, then about 25 for the team |
 
-The order is fixed by the event: foundation, then the Graph grant (a person), then vending, with each member's readiness approved by a coach first. The [deployment guide](../) has the timeline.
+The order is fixed by the event: Step 1 (repo and preflight), Step 2 (foundation and the Graph grant), Step 3 (each member's datacenter and `vm-dev01` setup), and Step 4 (vending, which verifies each member's datacenter and Arc connection automatically). The [deployment guide](../) has the timeline.
 
-`all` runs `whatif`, `foundation`, `member` and `vending` in the event order in one go. Use it only in a test lab: it skips the coach's readiness approval that vending waits for at an event.
+`all` runs `whatif`, `foundation`, `member` and `vending` in the event order in one go. Use it only in a test lab: it runs a single repo rather than separate member and team-lead repos.
 
 ## What gets deployed
 

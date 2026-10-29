@@ -1,0 +1,69 @@
+---
+title: "Step 4: Vending (T-1)"
+description: Connect every member's workload subscription and datacenter to the team's hub, restart the VMs, record policy exemptions and verify connectivity.
+sidebar:
+  order: 5
+---
+
+import Diagram from "../../../components/Diagram.astro";
+
+**Who:** **Everyone** starts their VMs; the **Team lead** runs the `vending` stage; **Members** save the shared services subscription ID.
+**When:** By **T-1** (1 day before day one), after [Step 2: Foundation](../team-lead-steps/) and every member's [Step 3: Datacenter and workstation](../member-steps/) are complete. About 60 minutes for three members and 75 minutes for five.
+
+Vending places each member's workload subscription under the `mg-factory-corp` management group, deploys `rg-spoke` (`vnet-spoke`, subnets for App Service, private endpoints and SQL Managed Instance, plus route tables and NSGs), peers the spoke and the datacenter with `vnet-hub`, points datacenter DNS to the hub firewall, restarts both datacenter VMs, creates the datacenter policy exemptions, and runs `Test-Connectivity.ps1`.
+
+<Diagram
+  name="diagram-04-hub-and-spoke-routing"
+  alt="Traffic between a member's datacenter and spoke crosses the hub firewall. The shared hub holds Azure Firewall. Each member has a datacenter network with vm-app01 and vm-dev01 and a spoke network with subnets for the app, private endpoints and SQL Managed Instance. Route tables send datacenter-to-spoke traffic and the spoke's outbound traffic to the firewall, and the datacenter's internet traffic leaves through a NAT Gateway."
+  caption="What Step 4 (vending) connects: routes and DNS across each member's datacenter, the shared hub firewall, and the vended spoke."
+/>
+
+## 4.1 Start both datacenter VMs (Everyone)
+
+Before the team lead starts the `vending` stage, every member (including the team lead) must have `vm-app01` and `vm-dev01` running so the pipeline can restart them and run the in-VM connectivity probes.
+
+From `factory/` in your dev container:
+
+```powershell
+$s = Get-Content .local/settings.json | ConvertFrom-Json
+az vm start -g rg-datacenter -n vm-app01 --subscription $s.subscriptionId
+az vm start -g rg-datacenter -n vm-dev01 --subscription $s.subscriptionId
+```
+
+If you have an open Bastion session to `vm-dev01`, save your work: the VM restart during vending will disconnect your session.
+
+## 4.2 Run the vending stage (Team lead)
+
+From `factory/` in the team lead's repository, start the `vending` stage:
+
+```bash
+gh workflow run platform.yml -f stage=vending
+```
+
+Open the **Actions** tab on GitHub and approve the run if asked. The stage runs in three phases:
+
+1. **Automatic readiness check and spoke vending (one member at a time):** for each member in `roster.json`, the pipeline verifies that `vnet-datacenter` exists and `vm-app01` is connected to Azure Arc (`Connected`), then runs `Deploy-Vending.ps1`. If a member has not finished Step 3, the stage stops before vending that member and names their member index.
+2. **Parallel VM restart:** restarts `vm-app01` and `vm-dev01` for all vended members at once so they pick up the hub firewall's DNS proxy.
+3. **Parallel exemptions and connectivity probes:** runs `New-DatacenterExemptions.ps1` and `Test-Connectivity.ps1` for every vended member.
+
+If one member fails (for example, because they had not finished Step 3 or their VMs were stopped), fix the cause and re-run `vending` for that member index only:
+
+```bash
+gh workflow run platform.yml -f stage=vending -f members=<n>
+```
+
+When the run is green, post "vended" in your team's private channel along with the **shared services subscription ID** so your teammates can save it in `4.3`.
+
+## 4.3 Save the shared services subscription ID (Members)
+
+Once the team lead confirms that Step 4 is green and shares the shared services subscription ID in your team channel, save it in your `factory/.local/settings.json` from `factory/` in your dev container:
+
+```powershell
+./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
+```
+
+Re-running `Initialize-Settings.ps1` with `-SharedSubscriptionId` keeps your existing `tenantId`, `subscriptionId`, `memberIndex`, `location`, and `suffix` unchanged.
+
+Done when `vending` is green for every member on the roster and `.local/settings.json` holds `sharedSubscriptionId`.
+
+Next: on Day 1 at 08:30, join the tech lead's 30-minute hackathon introduction, then start [C1: Define the opportunity](../../challenges/c01-define-the-opportunity/) at 09:00.

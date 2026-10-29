@@ -1,31 +1,31 @@
-# Readiness gate
+# Readiness verification
 
 > [!WARNING]
-> Coach material. This page is the sign-off for the readiness check that every member does before the event. Attendees work it out from the [member steps](https://factory.apexops.pro/deploy/member-steps/#readiness-check).
+> Coach and team-lead reference. No coach is on duty during the pre-hackathon window; support before day one is best-effort and attendees contact their designated team lead first. Attendees follow the numbered steps in [Step 3: Datacenter and workstation](https://factory.apexops.pro/deploy/member-steps/#readiness-checklist) and [Step 4: Vending](https://factory.apexops.pro/deploy/vending/).
 
-The readiness check has no points. It is a go/no-go gate at T-1: only a coach-approved readiness record enters vending. Members do the work before the event, on their own time, against their own workload subscription, so there is no coach in the room and the evidence has to be unambiguous when you review it.
+The readiness setup has no points. Before day one, each member runs [Step 1](https://factory.apexops.pro/deploy/set-up-your-repo/) (T-14) and [Step 3](https://factory.apexops.pro/deploy/member-steps/) (T-3) in their own repository against their own workload subscription. At T-1 ([Step 4](https://factory.apexops.pro/deploy/vending/)), the team lead runs the `vending` stage once for the whole team: `Invoke-PipelineVending.ps1` automatically checks that each member's `vnet-datacenter` exists and `vm-app01` is `Connected` in Azure Arc before vending their spoke.
 
-The team lead (called the platform lead in the workflow and scripts) runs the `vending` stage once for the whole team. Vending needs each member's datacenter and changes its DNS, so a datacenter without an approved record isn't vended. A member who finishes after T-1 is vended as soon as their record is approved: the team lead runs the `vending` stage for that member alone. The team lead is also a member and goes through the same gate.
+If a coach is reviewing readiness evidence at kickoff on day one (or helping a team lead troubleshoot a member before T-1), use the checklist below.
 
-## The gate
+## How readiness is verified
 
-1. Review every member's readiness record at T-3, in the member's own repo (`factory/evidence/readiness/`). Use the checklist below.
-2. Tell the team lead which members are approved. Don't approve a record you haven't checked against the checklist.
-3. A member who isn't ready stays out of the T-1 `vending` run. The member fixes the gap, you approve the record again, and the team lead vends that member alone with `-f members=<index>`.
-4. A datacenter redeployed after vending requires vending again (see Recovery).
+1. **Automated check in Step 4 (`vending` at T-1):** for each member in `roster.json`, `Invoke-PipelineVending.ps1` verifies that `vnet-datacenter` exists in `rg-datacenter` and that the Azure Arc machine `vm-app01` has `properties.status == 'Connected'`. Because the `member` stage only runs `Connect-DatacenterArc.ps1` after `Test-Datacenter.ps1` passes all 46 checks, an Arc `Connected` status proves the datacenter deployed and passed the pre-Arc validation.
+2. **Evidence in `factory/evidence/readiness/`:** each member commits their readiness artifacts to `main` in their own repository during Step 3.
+3. **Late or repaired members:** a member who isn't ready when the team lead runs `vending` at T-1 can finish Step 3 and be vended individually with `gh workflow run platform.yml -f stage=vending -f members=<index>`.
+4. **Datacenter redeploy:** a datacenter redeployed after vending requires vending again (see Recovery).
 
-## Sign-off checklist
+## Readiness checklist
 
-Tick every line before you approve a record.
+Use this list when spot-checking `factory/evidence/readiness/` in a member's repository at kickoff or when helping a team lead unblock a member.
 
-- Preflight is green. The output is in the Actions run summary (GUIDs show as `<id:abcd>`), so there is no preflight file: `Get-PipelineEvidence.ps1` saves only `test-datacenter.txt`. Accept a link to the successful `whatif` or `member` run in the member's repo, or a screenshot of the preflight step showing the GO verdict. A member who skipped a manual check (MFA, GitHub Copilot, GitHub repositories, APEX, Azure Hybrid Benefit) usually surfaces later in C2 or C5: ask them to re-run the `whatif` stage if C5 behaves oddly.
+- Preflight is green. The output is in the Actions run summary (GUIDs show as `<id:abcd>`), so there is no preflight file: `Get-PipelineEvidence.ps1` saves only `test-datacenter.txt`. Check the successful `whatif` or `member` run in the member's repo, or a screenshot of the preflight step showing the GO verdict. A member who skipped a manual check (MFA, GitHub Copilot, GitHub repositories, APEX, Azure Hybrid Benefit) usually surfaces later in C2 or C5: ask them to re-run the `whatif` stage if C5 behaves oddly.
 - `Test-Datacenter.ps1` PASS from before Arc onboarding: all green, including the perf kit's planted objects and data present on `vm-app01`'s SQL Server (C9 depends on them: if they're missing, the perf kit needs resetting before C9). It can't pass after Arc onboarding, so don't ask for a re-run. The `member` stage runs the test first and onboards Arc only if it passes, so a pipeline member can't hit the order mistake. The run summary, or `evidence/readiness/test-datacenter.txt` from `Get-PipelineEvidence.ps1`, counts as this output.
-- Arc connected: the Arc resource for `vm-app01` shows Connected, with the SQL Server extension installed and the instance listed.
+- Arc connected: the Arc resource for `vm-app01` shows Connected (`Invoke-PipelineVending.ps1` checks this automatically), with the SQL Server extension installed and the instance listed.
 - Arc assessment output: a screenshot or export of the first Arc migration assessment. They don't need to have acted on it, because C3 is where that happens. If the assessment isn't available yet (Arc's own assessment feature is still initializing), accept the pre-Arc `Test-Datacenter.ps1` green output and have the member pull the assessment first thing in C3.
 - Hybrid Benefit and cost check: the member confirms Azure Hybrid Benefit is on (or gives the reason it isn't) and says what state the VMs are in. A member without eligible licenses used `-f no-hybrid-benefit=true`, and `vm-app01` then bills about $0.75 an hour more (about $2.30 instead of $1.55 an hour while running).
 - The credentials file: `Get-PipelineEvidence.ps1` writes `.local/<subscription-id>/datacenter.json` with the documented fixed lab credentials, because the runner deployed the datacenter. Later password lookups (the `vm-dev01` setup, C7 to C9) read it. If the file is missing, have them run the script again.
-- Evidence in `evidence/readiness`: the member's own repo holds the files on `main`, in `factory/evidence/readiness/`. Evidence kept only on the member's laptop doesn't count: ask them to copy it into their repo and push it before your review, because the review gates vending at T-1.
-- `vm-dev01` and Copilot validated: a screenshot of Copilot Chat answering in VS Code on `vm-dev01`, signed in to GitHub. If it's missing or Copilot is blocked, it's a blocker: C3 and C6 depend on it, so fix the access before the event.
+- Evidence in `evidence/readiness`: the member's own repo holds the files on `main`, in `factory/evidence/readiness/`.
+- `vm-dev01` and Copilot validated: a screenshot of Copilot Chat answering in VS Code on `vm-dev01`, signed in to GitHub. If it's missing or Copilot is blocked, it's a blocker: C3 and C6 depend on it, so fix the access before C3.
 
 ## How members get there
 
@@ -49,7 +49,7 @@ The manual path, for repairs only, is on the [deploy with scripts](deploy-with-s
 - Leaving both VMs running between sessions isn't a correctness problem, but it bills for nothing, so remind members. Stopping `vm-dev01` during the event is the opposite mistake: it's the members' workstation.
 - Arc **Connected** but no SQL Server instance after 5 minutes on an older copy of the kit: install the `WindowsAgent.SqlServer` extension from the portal (Azure Arc > Machines > `vm-app01` > Extensions). The current script installs it after 5 minutes (see [platform pipeline](../facilitator/platform-pipeline.md)).
 - Arc onboarding before `Test-Datacenter.ps1` is only possible in a hand-run repair. The in-VM rows can't pass after Arc. Accept the in-VM FAIL, with the member's written explanation, if every Azure-side row (the ones that start with `azure:`: VM state, size and license type, Trusted Launch, disks, no public IPs, Bastion) is green and Arc shows Connected with the SQL instance. Redo only if an Azure-side row fails: that means the datacenter itself is wrong. The perf kit's planted data can't be checked after Arc, so look at it at the start of C9.
-- Preflight and datacenter deployed, but Arc onboarding not finished: don't approve the record. The member finishes onboarding, and you approve it again. If it still isn't done at the event's start, the member finishes it in the first break of day one and is vended then.
+- Preflight and datacenter deployed, but Arc onboarding not finished: `vending` refuses to vend that member until `vm-app01` shows `Connected` in Azure Arc. Once the member finishes onboarding (or recreates the datacenter and onboards Arc), the team lead runs `vending` for that member index (`-f members=<index>`).
 
 ## Recovery
 

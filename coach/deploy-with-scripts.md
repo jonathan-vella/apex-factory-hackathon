@@ -17,9 +17,9 @@ $s = Get-Content .local/settings.json | ConvertFrom-Json
 
 The team lead's sequence: T-7 `Deploy-AlzLite.ps1`, then the Graph grant (a person), then T-1 `Deploy-Vending.ps1`, then the VM restarts, the exemptions and the connectivity probes.
 
-Each member's sequence, team lead included: `Test-Preflight.ps1`, `Deploy-Datacenter.ps1`, `Test-Datacenter.ps1`, `Connect-DatacenterArc.ps1`, then a coach approves the readiness record (a person).
+Each member's sequence, team lead included: `Test-Preflight.ps1`, `Deploy-Datacenter.ps1`, `Test-Datacenter.ps1`, `Connect-DatacenterArc.ps1`, then `vm-dev01` setup and readiness evidence commit.
 
-Vending needs both ALZ-lite and the member's approved readiness record.
+Vending needs both ALZ-lite and each member's Arc-connected datacenter (`Invoke-PipelineVending.ps1` checks `vnet-datacenter` and `vm-app01`'s Arc `Connected` status automatically).
 
 - Run `Test-Datacenter.ps1` **before** Arc: Arc turns off the guest agent the test relies on.
 - Never redeploy a datacenter after Arc, and never run the Arc script a second time.
@@ -75,7 +75,7 @@ The team lead needs Owner at Tenant Root, the shared services subscription in `.
 
 3. The team lead does their own datacenter as a member, above.
 
-4. At T-1, vend each member one after another, after a coach has approved their readiness record. Each run updates the same firewall policy, and takes 4 to 5 minutes:
+4. At T-1, vend each member one after another, after confirming their Step 3 datacenter and Arc connection are complete. Each run updates the same firewall policy, and takes 4 to 5 minutes:
 
    ```powershell
    ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location
