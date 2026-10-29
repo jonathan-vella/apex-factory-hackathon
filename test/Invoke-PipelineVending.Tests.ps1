@@ -56,10 +56,17 @@ else {
 # The fake az is a PowerShell script, so every call logs to its own uniquely named file.
 Set-Content (Join-Path $bin 'az-stub.ps1') @'
 $stamp = [DateTime]::Now.ToString('HH:mm:ss.fff')
-Set-Content (Join-Path $env:TEST_LOG ([guid]::NewGuid())) "$stamp az $($args -join ' ')"
+$joined = $args -join ' '
+Set-Content (Join-Path $env:TEST_LOG ([guid]::NewGuid())) "$stamp az $joined"
+if ("$($args[0]) $($args[1])" -eq 'resource show' -and $joined -match 'Microsoft\.HybridCompute/machines') {
+    if ($joined -match 'missing-arc') { exit 1 }
+    if ($joined -match 'disconnected-arc') { Write-Output 'Disconnected'; exit 0 }
+    Write-Output 'Connected'
+    exit 0
+}
 if ("$($args[0]) $($args[1])" -eq 'vm restart') {
     Start-Sleep -Seconds 2
-    if (($args -join ' ') -match 'fail-vm') { exit 1 }
+    if ($joined -match 'fail-vm') { exit 1 }
 }
 exit 0
 '@
@@ -133,9 +140,27 @@ try {
     Assert-True ($r.Output -match 'failed for member\(s\) 3') 'the failing member is not named'
     Assert-True ($r.Output -match 'Member 1: vended and connected' -and $r.Output -match 'Member 2: vended and connected') 'the passing members are not reported'
     Write-Output 'PASS: a failed probe names its member and still reports the others'
+
+    $oldRoster = $roster
+    $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = $(if ($_ -eq 2) { 'missing-arc-0000-0000-0000-000000000000' } else { & $guid $_ }); budgetEmail = 'a@b.c' } } | ConvertTo-Json -Compress)
+    $r = Invoke-Scenario -Name arc-missing
+    Assert-True ($r.Exit -ne 0) 'missing Arc machine did not fail the stage'
+    Assert-True ($r.Output -match 'Vending stopped at member 2' -and $r.Output -match 'status: missing') 'missing Arc failure did not name member 2 and status'
+    Assert-True (-not ($r.Log | Where-Object { $_ -match 'vend-start 2|vm restart| exempt | probe ' })) 'Deploy-Vending ran for an unready member (missing Arc)'
+    $roster = $oldRoster
+    Write-Output 'PASS: missing Arc machine stops before Deploy-Vending for that member'
+
+    $oldRoster = $roster
+    $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = $(if ($_ -eq 2) { 'disconnected-arc-0000-0000-0000-000000000000' } else { & $guid $_ }); budgetEmail = 'a@b.c' } } | ConvertTo-Json -Compress)
+    $r = Invoke-Scenario -Name arc-disconnected
+    Assert-True ($r.Exit -ne 0) 'disconnected Arc machine did not fail the stage'
+    Assert-True ($r.Output -match 'Vending stopped at member 2' -and $r.Output -match 'status: Disconnected') 'disconnected Arc failure did not name member 2 and status'
+    Assert-True (-not ($r.Log | Where-Object { $_ -match 'vend-start 2|vm restart| exempt | probe ' })) 'Deploy-Vending ran for an unready member (Disconnected Arc)'
+    $roster = $oldRoster
+    Write-Output 'PASS: disconnected Arc machine stops before Deploy-Vending for that member'
 }
 finally {
     Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
 }
-Write-Output 'PASS: 5 vending scenarios (no Azure calls).'
+Write-Output 'PASS: 7 vending scenarios (no Azure calls).'
 exit 0

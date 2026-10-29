@@ -11,7 +11,7 @@ The MI link is a database mirror from `vm-app01` to your SQL Managed Instance. I
 
 ## Onboarding
 
-`vm-app01`'s SQL Server instance is onboarded to Azure Arc by the `member` stage during the [readiness check](../../deploy/member-steps/#readiness-check), unattended, with no manual portal steps. This is the kit's only onboarding path. If it fails, don't run the stage again: follow the Arc hint in [Member steps](../../deploy/member-steps/) and tell your coach.
+`vm-app01`'s SQL Server instance is onboarded to Azure Arc by the `member` stage during [Step 3: Datacenter and workstation](../../deploy/member-steps/#readiness-checklist), unattended, with no manual portal steps. This is the kit's only onboarding path. If it fails, don't run the stage again: follow the Arc hint in [Step 3](../../deploy/member-steps/) and check with your team lead.
 
 ## Assessment
 

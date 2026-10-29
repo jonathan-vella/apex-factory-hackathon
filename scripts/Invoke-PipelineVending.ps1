@@ -7,8 +7,8 @@ Vends every member of a team, one after another, for the platform pipeline.
 The vending stage of platform.yml, in three phases, each starting with a fresh OIDC login so a long run never outlives
 its token:
 1. For each member index, in the order given: the guard for that member's subscription, a check that the member's
-   datacenter exists (the datacenter comes before vending, and vending connects it), then Deploy-Vending.ps1. Members are
-   vended strictly one at a time, because every run updates the shared firewall policy afwp-hub.
+   datacenter exists and vm-app01 is Arc-connected (the member stage comes before vending, and vending connects it), then
+   Deploy-Vending.ps1. Members are vended strictly one at a time, because every run updates the shared firewall policy afwp-hub.
 2. Every VM of every member restarts at once, and the script waits once, so the VMs pick up the hub's DNS. The SQL VM alone
    takes about 25 minutes, so restarting member by member would multiply that wait.
 3. New-DatacenterExemptions.ps1 and Test-Connectivity.ps1 for all members in parallel, each on its own subscription.
@@ -106,6 +106,11 @@ foreach ($index in $MemberIndex) {
         & az network vnet show --subscription $workload -g rg-datacenter -n vnet-datacenter --only-show-errors --output none 2>$null
         if ($LASTEXITCODE -ne 0) {
             throw "Member $index has no datacenter. Deploy it first: the datacenter comes before ALZ-lite and vending."
+        }
+        $arcStatus = (& az resource show --subscription $workload -g rg-datacenter --resource-type Microsoft.HybridCompute/machines -n vm-app01 --query properties.status -o tsv --only-show-errors 2>$null | Out-String).Trim()
+        if ($LASTEXITCODE -ne 0 -or $arcStatus -ne 'Connected') {
+            $seen = if ($arcStatus) { $arcStatus } else { 'missing' }
+            throw "Member $index is not ready for vending: vm-app01 in rg-datacenter is not Arc-connected (status: $seen). Finish Step 3 (the member stage) first."
         }
 
         $vending = @{

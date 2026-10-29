@@ -13,7 +13,7 @@ APEX agents adapt the archetype template and document the result. They don't dep
 
 ## Get the archetype into your own repo
 
-You did this in [Set up your repo](../../deploy/set-up-your-repo/#import-the-kit): your repo is created from the `apex-accelerator` template, and the import copied the kit into `factory/` and the archetype's APEX project into the repo root. There are two copies of the archetype: the kit's own under `factory/archetype/`, and the working copy at the repo root (`agent-output/university/`, `infra/bicep/university/` and the `/apex-adapt-archetype` skill). Edit and deploy only the root copy.
+You did this in [Step 1: Repo and preflight](../../deploy/set-up-your-repo/#12-import-the-kit): your repo is created from the `apex-accelerator` template, and the import copied the kit into `factory/` and the archetype's APEX project into the repo root. There are two copies of the archetype: the kit's own under `factory/archetype/`, and the working copy at the repo root (`agent-output/university/`, `infra/bicep/university/` and the `/apex-adapt-archetype` skill). Edit and deploy only the root copy.
 
 To redo only the archetype import, run `./factory/archetype/Import-Archetype.ps1 -Force` from the repo root. `-Force` replaces your copy of the archetype, so you lose any changes you made to it.
 

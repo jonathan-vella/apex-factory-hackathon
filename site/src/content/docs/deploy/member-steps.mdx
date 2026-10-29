@@ -1,18 +1,19 @@
 ---
-title: Member steps
-description: Everyone does these, the team lead included. Run the preflight, deploy your datacenter, set up vm-dev01 and get your readiness record approved.
+title: "Step 3: Datacenter and workstation (T-3)"
+description: Deploy your simulated datacenter, connect vm-app01 to Azure Arc, run the first SQL migration assessment, set up vm-dev01 and commit your readiness evidence.
 sidebar:
-  order: 3
+  order: 4
 ---
 
 import { Steps } from "@astrojs/starlight/components";
 import Diagram from "../../../components/Diagram.astro";
 
-You deploy with GitHub Actions: you start a stage from your dev container with `gh`, then walk away, and the **Actions** tab shows the run. Plan on about 15 minutes of your time for each stage, plus waiting, and about 30 minutes to set up `vm-dev01`. Do [Set up your repo](../set-up-your-repo/) first. Run every command from the `factory/` folder, in PowerShell (`pwsh`).
+**Who:** **Everyone** (every member, including the team lead).
+**When:** By **T-3** (3 days before day one). About 35 to 60 minutes unattended for the `member` stage, plus 30 minutes to set up `vm-dev01`.
 
-**Team lead:** you do these steps too, with the lead setup in [Team lead steps](../team-lead-steps/) instead of the member setup below. Everything else is the same.
+Complete [Step 1: Repo and preflight (T-14)](../set-up-your-repo/) first. Run every command from the `factory/` folder in PowerShell (`pwsh`) inside your dev container. Your **designated team lead** is your first point of contact if you hit a problem.
 
-Check you're signed in and load your settings in each new terminal:
+Check that you are signed in and load your settings in each new terminal:
 
 ```powershell
 az account show --output table
@@ -22,53 +23,7 @@ az account set --subscription $s.subscriptionId
 
 If `az account show` fails, sign in again with `az login --use-device-code`. `$s` holds `subscriptionId`, `memberIndex`, `suffix` and `location`.
 
-## Set up the pipeline, once
-
-It asks nothing: it prints what it will do, creates the pipeline identity and checks the result.
-
-```powershell
-./scripts/Initialize-PlatformPipeline.ps1 -Profile Member
-```
-
-On a private repo it may warn that write access is the gate. That is expected. Check the setup any time with `./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member`.
-
-Done when the script reports its checks as passed.
-
-## T-14 preflight
-
-The preflight checks your subscription and fixes what it can, such as registering missing Azure resource providers. Allow about 15 minutes, plus up to 15 minutes while the registrations propagate.
-
-<Steps>
-
-1. Run the stage:
-
-   ```bash
-   gh workflow run platform.yml -f stage=whatif
-   ```
-
-2. Open the **Actions** tab and approve the run if GitHub asks.
-3. Fix every FAIL the run log reports. The Owner role on your subscription is an automated check, not a manual one.
-4. Work through the five MANUAL rows yourself: MFA, GitHub Copilot, GitHub repositories, APEX and Azure Hybrid Benefit. The [manual checks](../set-up-your-repo/#manual-checks) say how to confirm each.
-5. [Send your roster values to your team lead](#send-your-roster-values-to-your-team-lead).
-
-</Steps>
-
-Done when the run is green and no row is FAIL.
-
-**Team lead:** the same stage also checks the shared services subscription, your Tenant Root rights and every member in the roster. Treat a warning on the "Management groups" row as a blocker and tell your coach before the event.
-
-## Send your roster values to your team lead
-
-Your team lead needs four values to connect you at T-1. Send them **privately** (a direct message or the team's private channel), never in a repo, issue or pull request:
-
-- your workload subscription ID (`$s.subscriptionId`)
-- your member index (`$s.memberIndex`)
-- your Entra object ID (`az ad signed-in-user show --query id -o tsv`)
-- your work email
-
-The lead assigns member indexes, so you may be waiting on yours: see [the settings questions](../set-up-your-repo/#sign-in-and-settings).
-
-## T-3 deploy your datacenter
+## 3.1 Deploy your datacenter and onboard Azure Arc
 
 <Diagram
   name="diagram-05-simulated-datacenter"
@@ -76,132 +31,115 @@ The lead assigns member indexes, so you may be waiting on yours: see [the settin
   caption="What the member stage builds: vm-app01 (the legacy app) and vm-dev01 (your workstation), reached through Bastion."
 />
 
-Run the preflight again, then the datacenter. The member stage takes 35 to 60 minutes unattended: you don't need to keep anything open.
+The `member` stage creates `rg-datacenter` with `vm-app01` (legacy Contoso University on IIS, SQL Server 2022, MSMQ) and `vm-dev01` (your Windows 11 workstation), runs `Test-Datacenter.ps1` while both VMs are running, and only if every check passes connects `vm-app01` to Azure Arc.
 
 <Steps>
 
-1. Run the preflight again, then the member stage:
+1. **Start the `whatif` and `member` stages.**
+   - **Members:**
 
-   ```bash
-   gh workflow run platform.yml -f stage=whatif
-   gh workflow run platform.yml -f stage=member
-   ```
+     ```bash
+     gh workflow run platform.yml -f stage=whatif
+     gh workflow run platform.yml -f stage=member
+     ```
 
-   The stage creates `rg-datacenter` with `vm-app01` (legacy Contoso University on IIS, SQL Server 2022, MSMQ) and `vm-dev01`, your workstation for the rest of the kit. Then it tests the datacenter, and only if every check passes it connects `vm-app01` to Azure Arc.
+   - **Team lead** (pass your own member index from `roster.json`, normally `1`):
 
-2. **Check the test result in the run summary.** The test checks VM state and size, license type, Trusted Launch (secure boot and a virtual TPM chip), no public IPs, Azure Bastion Standard, and in-VM checks: IIS up, SQL Server up, and the performance kit's planted data present. It must run before Arc, because Arc turns off the guest agent that receives the in-VM checks, so the test can't pass for `vm-app01` afterward. Done when every row is PASS. An explained FAIL counts only if your coach has seen it and agrees.
+     ```bash
+     gh workflow run platform.yml -f stage=member -f members=1
+     ```
 
-3. **Confirm Arc.** In the Azure portal, open **Azure Arc** > **Machines**. Done when `vm-app01` shows as Connected and **SQL Server instances** lists its instance.
+2. **Check the test result in the Actions run summary.** `Test-Datacenter.ps1` checks VM state and size, license type, Trusted Launch (secure boot and vTPM), no public IPs, Azure Bastion Standard, and in-VM checks (IIS up, SQL Server up, and the performance kit's planted data present). It runs before Arc because Arc turns off the VM run commands that the in-VM checks use. Done when every row is PASS.
 
-4. **Run the first Arc SQL migration assessment** (about 15 minutes). In **Azure Arc** > **SQL Server instances**, select the instance on `vm-app01`. Choose **Migration** > **Database migration**, then **Assess source instance** > **View report**. If there's no result yet, choose **Run assessment** with Azure SQL Managed Instance as the target and wait. Export the report and skim the findings for `ContosoUniversity`. C3 is where you triage them. Done when you have the exported report or a screenshot of its findings.
+3. **Confirm Azure Arc.** In the Azure portal, open **Azure Arc** > **Machines**. Done when `vm-app01` shows as **Connected** and **SQL Server instances** lists its SQL Server instance. The `vending` stage in Step 4 checks `vm-app01`'s Arc connection automatically before vending your spoke.
 
-5. **Confirm Azure Hybrid Benefit and what the datacenter costs** (about 5 minutes):
+</Steps>
+
+If a run fails, read the run log. The `member` stage is safe to run again until Arc onboarding starts. After Arc starts, see [If you need to start over](#if-you-need-to-start-over).
+
+**No Windows Server licenses?** Azure Hybrid Benefit is on by default for `vm-app01`. If you do not hold eligible licenses, run the stage with `no-hybrid-benefit=true` (`gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`) as described on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page, and let your team lead know.
+
+## 3.2 Run the first Arc SQL assessment and check Hybrid Benefit
+
+<Steps>
+
+1. **Run the first Arc SQL migration assessment** (about 15 minutes). In **Azure Arc** > **SQL Server instances**, select the instance on `vm-app01`. Choose **Migration** > **Database migration**, then **Assess source instance** > **View report**. If there is no result yet, choose **Run assessment** with Azure SQL Managed Instance as the target and wait. Export the report or take a screenshot of its findings for `ContosoUniversity`. You triage these findings on day one in C3.
+
+2. **Confirm Azure Hybrid Benefit and VM power state** (about 5 minutes):
 
    ```powershell
    az vm list -g rg-datacenter -d -o table
    az vm show -g rg-datacenter -n vm-app01 --query licenseType -o tsv
    ```
 
-   Done when both VMs are running and the second command prints `Windows_Server` (Hybrid Benefit on), or prints nothing or `None` because you deployed without it and your coach agreed. Otherwise don't change it yourself: tell your coach.
+   Done when both VMs are running and the second command prints `Windows_Server` (or `None` if you used `no-hybrid-benefit=true`).
 
 </Steps>
 
-If a run fails, read the run log. The member stage is safe to run again until Arc onboarding starts: it picks up where it stopped. If it fails twice, message your coach with the error text. After Arc starts, see [If you need to start over](#if-you-need-to-start-over).
+## 3.3 Set up vm-dev01
 
-**No Windows Server licenses?** Azure Hybrid Benefit, a discount for Windows Server licenses you already own, is on by default for `vm-app01`. If you don't hold eligible licenses, tell your coach and run the stage with the `no-hybrid-benefit` input instead of step 1's `member` run:
+From C3 onward you do the application and database modernization work on `vm-dev01`, so set it up completely now. First download your readiness evidence and lab credentials file (`datacenter.json`) from `factory/` in your dev container:
 
-```bash
-gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true
+```powershell
+./scripts/Get-PipelineEvidence.ps1
 ```
 
-It covers `vm-app01` only, so ask your coach what to do for the SQL Managed Instance in C5. The rule is on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page.
+Then follow steps 1 to 9 of [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) in order: the password lookup, Bastion connection, GitHub and Azure sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the kit clone at `C:\src\factory`, the `member` remote and `vm-dev01-work` branch, a plain clone of your own repo at `C:\src\<your-repo>`, VS Code on `C:\src\factory` with Copilot signed in, and the Upgrade agent in the **Local** harness.
 
-<details>
-<summary>Why it works this way</summary>
-
-- The first preflight on a new subscription registers the Azure providers and the public IP feature. That can take a few minutes.
-- The `member` stage never redeploys a datacenter that is already Arc-enabled, because Arc can't be undone.
-- Arc shows a server outside Azure (here, your simulated datacenter) as an Azure resource.
-
-</details>
-
-## Set up vm-dev01
-
-From C3 you work on this VM, so set it up completely now. On event day you then only open VS Code. Both VMs must be running. It takes about 30 minutes.
-
-Follow steps 1 to 9 of [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) in order: the password lookup, Bastion, the GitHub and Azure sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the kit clone, the `member` remote and `vm-dev01-work` branch, a plain clone of your own repo at `C:\src\<your-repo>`, VS Code on `C:\src\factory` with Copilot signed in, and the Upgrade agent in the **Local** harness.
-
-Done when every line of the guide's [Check your setup](../../guides/ghcp-upgrade/#check-your-setup) is true:
+Done when every line of [Check your setup](../../guides/ghcp-upgrade/#check-your-setup) is true:
 
 - GitHub, Azure and git identity are set on the VM, and `AZURE_TOKEN_CREDENTIALS` is `AzureCliCredential`.
 - `C:\src\factory` has `origin` (the public kit) and `member` (your repo), and is on `vm-dev01-work` tracking `member/vm-dev01-work`.
 - `C:\src\<your-repo>` is a plain clone of your own repo on `main`.
 - VS Code is open on `C:\src\factory`, the agent picker lists **Upgrade**, the harness is **Local**, and Copilot Chat answers "hello".
 
-If Copilot is blocked by your organization's policy, tell your coach before the event. If a step fails, the guide says what to check. After two attempts, ask your coach.
+## 3.4 Save and commit your readiness evidence
 
-## Save your evidence
-
-Your coach reads your evidence in your own repo, in `factory/evidence/readiness/` (create the folder if it isn't there). To add a screenshot from your laptop, drag it into that folder in VS Code's Explorer, in the dev container. Download the test output the run kept:
-
-```powershell
-./scripts/Get-PipelineEvidence.ps1
-```
-
-It saves `evidence/readiness/test-datacenter.txt` and creates `.local/<subscription-id>/datacenter.json`, the lab credentials that later tasks read (`vm-dev01`, C7, C8, C9). Then commit with a conventional message such as `docs: readiness evidence`, and push. The rule is the same everywhere:
+`./scripts/Get-PipelineEvidence.ps1` saved `factory/evidence/readiness/test-datacenter.txt` in your dev container and created `.local/<subscription-id>/datacenter.json`. Add your screenshots or exports to `factory/evidence/readiness/`, commit with a conventional message such as `docs: readiness evidence`, and push to `main`. The evidence rule is the same everywhere:
 
 - **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
 - **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
 
-Redact subscription, tenant and object IDs from anything you commit. [C1](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) later sets up the rest of the `factory/evidence/` folders around what you saved.
+Redact subscription, tenant, and object IDs from anything you commit.
 
-Done when `evidence/readiness/` holds the items in the checklist below.
+### Readiness checklist
 
-## Readiness check
+Confirm that `factory/evidence/readiness/` in your repository on `main` holds these six items before Step 4 (T-1):
 
-This is the list a coach signs off. A coach reads the evidence in your repo and approves your readiness record. Your team lead connects your subscription at T-1 only after that approval.
+1. **Preflight green.** The `whatif` run summary or a screenshot with every automated check green.
+2. **Datacenter test PASS before Arc.** `evidence/readiness/test-datacenter.txt` with every check PASS.
+3. **Arc connected, with the SQL extension.** `vm-app01` showing as **Connected** under **Azure Arc** > **Machines**, and its instance listed under **SQL Server instances** (checked automatically by Step 4 Vending).
+4. **Arc migration assessment output.** A screenshot or exported report for `ContosoUniversity`.
+5. **Hybrid Benefit and VM state confirmation.** Output or screenshot of `az vm list -g rg-datacenter -d -o table` and `vm-app01`'s `licenseType`.
+6. **`vm-dev01` and Copilot working.** A screenshot of Copilot Chat answering in VS Code on `vm-dev01`, saved into `C:\src\<your-repo>\factory\evidence\readiness\` and pushed to `main`.
 
-1. **Preflight green.** The `whatif` run summary or a screenshot: every automated check green.
-2. **Datacenter test PASS before Arc.** `evidence/readiness/test-datacenter.txt`: every check PASS. An explained FAIL counts only if your coach has seen it and agrees.
-3. **Arc connected, with the SQL extension.** The Arc resource for `vm-app01` with the Connected Machine agent connected, and the SQL Server extension showing the instance.
-4. **Arc migration assessment output.** A screenshot or the exported report. You don't need to act on it yet.
-5. **Hybrid Benefit and cost confirmation.** Hybrid Benefit on for `vm-app01`'s Windows Server license, or why it isn't (you deployed without it and your coach agreed). Add a screenshot of `az vm list -g rg-datacenter -d -o table` showing both VMs and their power state.
-6. **`vm-dev01` and Copilot working.** A screenshot of Copilot Chat answering in VS Code on `vm-dev01`, signed in to GitHub. Take it on the VM, save it in `C:\src\<your-repo>\factory\evidence\readiness\`, then commit and push from there as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
-
-Done when your coach has approved your readiness record. If any item can't be met, tell your coach now.
+Let your team lead know as soon as your Step 3 checklist is complete so they know you are ready for [Step 4: Vending (T-1)](../vending/).
 
 ## Hints
 
 <details>
-<summary>I'm stuck on preflight</summary>
-
-Most preflight failures are missing resource provider registrations or a role assignment that hasn't propagated yet. The stage registers providers for you. Wait a few minutes (propagation can take up to 15 minutes), run the `whatif` stage again, and read the failing row in the run log.
-
-</details>
-
-<details>
 <summary>Arc onboarding doesn't finish</summary>
 
-Arc onboarding needs outbound internet from `vm-app01` to Arc's endpoints. The datacenter's NAT gateway (its shared outbound path) should already allow this. Don't run the `member` stage again if it timed out after Arc onboarding started: it refuses once `vm-app01` is an Arc machine or its guest agent is off, and it can't recover the machine either. To see what happened, read the run log, then connect to `vm-app01` through Bastion as in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 1 and 2, `vm-app01` instead of `vm-dev01`, same password) and open `C:\LabTools\logs\Connect-AppArc.log` in Notepad.
+Arc onboarding needs outbound internet from `vm-app01` to Arc's endpoints through the datacenter's NAT gateway. Don't run the `member` stage again if it timed out after Arc onboarding started: it refuses once `vm-app01` is an Arc machine or its guest agent is off. To see what happened, read the run log, then connect to `vm-app01` through Bastion as in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 1 and 2, `vm-app01` instead of `vm-dev01`, same password) and open `C:\LabTools\logs\Connect-AppArc.log` in Notepad.
 
-There are two ways out. Message your coach, who may have a faster fix. Or [start over](#if-you-need-to-start-over).
+Check with your team lead first, or follow [If you need to start over](#if-you-need-to-start-over).
 
 </details>
 
 <details>
 <summary>Save money between sessions</summary>
 
-Before the event you can stop both VMs when you're not working: `az vm deallocate -g rg-datacenter -n vm-app01`, then the same with `-n vm-dev01`. Deallocating releases the VM's compute and stops its compute billing. Shutting Windows down from inside the VM does not. Bastion, the NAT gateway and the disks bill even when the VMs are stopped.
+Before the event you can stop both VMs when you're not working: `az vm deallocate -g rg-datacenter -n vm-app01`, then the same with `-n vm-dev01`. Running `az vm deallocate` releases the VM's compute and stops its compute billing. Shutting Windows down from inside the VM does not. Bastion, the NAT gateway and the disks bill even when the VMs are stopped.
 
-Start both again before your team lead connects you at T-1 (`az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`), because vending restarts them and the connectivity probes run inside them. Don't re-run the `member` stage after Arc. During the event, never stop `vm-dev01`: it's your workstation.
+Start both again before your team lead runs Step 4 at T-1 (`az vm start -g rg-datacenter -n vm-app01`, then `-n vm-dev01`), because vending restarts them and runs the connectivity probes inside them. During the event, never stop `vm-dev01`: it's your workstation.
 
 </details>
 
 ## If you need to start over
 
-Ask your coach before you do either of these.
+Let your team lead know before you run either option below.
 
-- **Before Arc:** run the `member` stage again to repair the datacenter. It converges to the same result. If your datacenter was already connected at T-1 or later, the re-run resets its DNS servers and routes, so your team lead must run vending for you again, and you restart both VMs.
+- **Before Arc:** run the `member` stage again to repair the datacenter. If your datacenter was already vended in Step 4, the re-run resets its DNS servers and routes, so your team lead must re-run `vending` for your member index (`-f members=<n>`).
 - **After Arc, or if onboarding didn't finish:** the `member` stage refuses once `vm-app01` is an Arc machine or its guest agent is off. Run the `teardown` stage, then the `member` stage again:
 
   ```bash
@@ -209,14 +147,11 @@ Ask your coach before you do either of these.
   gh workflow run platform.yml -f stage=member
   ```
 
-  This removes `vm-app01`, `vm-dev01` and everything on them, so you repeat the datacenter steps and the `vm-dev01` setup.
+  This removes `vm-app01`, `vm-dev01` and everything on them, so you repeat Step 3 (`member` stage and `vm-dev01` setup).
 
 :::caution
 After C5, `teardown` also removes your archetype, including the SQL Managed Instance, which takes hours to provision again. Never run it after C5 without asking your coach first.
 :::
 
-## Learn more
+Next: [Step 4: Vending (T-1)](../vending/).
 
-- [Connect hybrid machines to Azure using a deployment script](https://learn.microsoft.com/azure/azure-arc/servers/onboard-portal)
-- [SQL Server registration with Azure Arc overview](https://learn.microsoft.com/sql/sql-server/azure-arc/overview)
-- [Azure Hybrid Benefit for Windows Server](https://learn.microsoft.com/azure/virtual-machines/windows/hybrid-use-benefit-licensing)

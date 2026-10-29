@@ -1,112 +1,60 @@
 ---
-title: Team lead steps
-description: What the team lead adds to the member steps. Collect the roster, deploy the foundation, arrange the Graph grant and connect every member.
+title: "Step 2: Foundation and Graph grant (T-7)"
+description: Deploy the team's shared landing zone (ALZ-lite) and grant the SQL Managed Instance identity its Microsoft Graph read permissions.
 sidebar:
-  order: 4
+  order: 3
 ---
 
-import { Steps } from "@astrojs/starlight/components";
 import Diagram from "../../../components/Diagram.astro";
 
-The team lead is a colleague your team nominates. You do every [member step](../member-steps/) for your own datacenter, plus the steps here: the roster, the foundation at T-7 and vending at T-1. Run every command from `factory/` in your own repo.
+**Who:** **Team lead** + **Privileged Role Administrator**. (Members have nothing to run in Step 2; skip to [Step 3: Datacenter and workstation (T-3)](../member-steps/).)
+**When:** By **T-7** (7 days before day one). About 20 to 30 minutes.
+
+In Step 2, the team lead deploys the team's shared foundation (`ALZ-lite`) once for the whole team, and a Privileged Role Administrator grants the shared SQL Managed Instance identity its Microsoft Graph read permissions. Run every command from `factory/` in the team lead's repository.
 
 <Diagram
   name="diagram-03-alz-lite-and-vending"
   alt="Two stages. The foundation stage, once per team, builds the management groups, the shared hub with firewall, private DNS and policies, and the shared SQL Managed Instance directory identity, then waits for a person to grant Graph read permissions. The vending stage, once per member, places the member's subscription under the factory group, builds the spoke network, peers it to the hub, adds routes, DNS and firewall rules, applies RBAC and a budget, and records datacenter policy exemptions."
-  caption="The foundation is built once for the team. Vending then connects each member's subscription to it."
+  caption="Step 2 builds the shared foundation once for the team. Step 4 (vending) connects each member's subscription to it at T-1."
 />
 
-## Before you start
+## 2.1 Deploy the foundation stage (Team lead)
 
-You need a second subscription (shared services) plus Owner at Tenant Root, the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for that, so ask early: you deploy the foundation at T-7. You also still need your own workload subscription.
+Before running this stage, confirm that [Step 1](../set-up-your-repo/) is complete: `.local/roster.json` is registered with `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, and your account holds **Owner** at Tenant Root plus **Owner** on the shared services subscription.
 
-<Steps>
-
-1. **Collect the roster.** Each colleague sends you four values privately, never in a repo or issue: workload subscription ID, member index, Entra object ID and work email (see [Member steps](../member-steps/#send-your-roster-values-to-your-team-lead)). A team is at most 5 people including you.
-
-2. **Assign member indexes.** Each member needs a distinct number from 1 to 20. Use 1 to 5, and take 1 yourself. Tell each colleague theirs, because they need it for their settings file.
-
-3. **Build the roster file.** One row per member, you included. Save it as `factory/.local/roster.json`, which stays out of git.
-
-   ```json
-   [
-     { "index": 1, "subscriptionId": "<workload-subscription-id>", "memberPrincipalId": "<entra-object-id>", "budgetEmail": "<email>" }
-   ]
-   ```
-
-4. **Set up the pipeline, once.** Use the lead profile with the roster. To add or change a member later, edit the file and run this again.
-
-   ```powershell
-   ./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json
-   ```
-
-</Steps>
-
-Done when the script reports its checks as passed. A repo has exactly one profile: don't run the member setup in the lead's repo.
-
-## T-7 foundation
-
-The `whatif` stage runs the preflight for every member in the roster, so a missing role or quota shows up now. The foundation takes 15 to 25 minutes.
+The `whatif` stage checks every member in the roster and previews the foundation changes. The `foundation` stage deploys ALZ-lite (management groups `mg-factory`, `mg-factory-platform`, `mg-factory-corp`, `rg-management` with `log-management` and `id-sqlmi-directory`, `rg-hub` with `vnet-hub`, Azure Firewall, private DNS zones, and the core policies) in 15 to 25 minutes.
 
 ```bash
 gh workflow run platform.yml -f stage=whatif
 gh workflow run platform.yml -f stage=foundation
 ```
 
-Open the **Actions** tab and approve each run if GitHub asks. Done when both runs are green.
+Open the **Actions** tab on GitHub and approve each run if asked. Done when both runs are green.
 
-## Graph grant
+## 2.2 Grant Microsoft Graph read permissions (Privileged Role Administrator)
 
-A Privileged Role Administrator runs `Grant-SqlMiDirectoryRead.ps1` once for the team. No pipeline does this, and it must happen after the foundation and before C7. Send them the details below.
+ALZ-lite creates the user-assigned managed identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses this identity in C7 so `CREATE USER ... FROM EXTERNAL PROVIDER` can resolve Microsoft Entra principals.
+
+Someone holding the **Privileged Role Administrator** (or Global Administrator) directory role in your tenant runs `Grant-SqlMiDirectoryRead.ps1` once for the team, right after `2.1` completes:
+
+```powershell
+./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
+```
 
 <details>
 <summary>What to send the Privileged Role Administrator</summary>
 
-They don't need your repo. They download the single file `https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Grant-SqlMiDirectoryRead.ps1`, which has no other kit dependencies. They need PowerShell 7, the Azure CLI and Reader on the shared services subscription, and they run it from their own computer, signed in as themselves.
+They do not need your repository. They can download the standalone script [`Grant-SqlMiDirectoryRead.ps1`](https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Grant-SqlMiDirectoryRead.ps1), which has no other kit dependencies. They need PowerShell 7, the Azure CLI, and Reader on the shared services subscription, and they run it on their own computer signed in as themselves.
 
-If it stops with `InteractionRequired` or `TokenCreatedWithOutdatedPolicies`, their sign-in is stale: they run `az logout` and `az login` again, then repeat. See the [ALZ-lite guide](../../guides/alz-lite/) and [C2](../../challenges/c02-secure-ai-ready-foundation/).
-
-</details>
-
-Done when the administrator confirms the script finished.
-
-## T-3 your own datacenter
-
-Do the member steps for your own datacenter. Use your own member index, the one you assigned yourself:
-
-```bash
-gh workflow run platform.yml -f stage=member -f members=<your-member-index>
-```
-
-## T-1 vending
-
-Vending connects each member's subscription to the hub, restarts every VM, records policy exemptions and runs the connectivity probes. Wait until every member's datacenter exists and a coach has approved every readiness record, yours included. One approval of the run covers the whole stage.
-
-```bash
-gh workflow run platform.yml -f stage=vending
-```
-
-Plan on about an hour for three members and about 75 minutes for five. Done when the run is green.
-
-If one member fails, fix the cause and run the stage for that member only. A member who is already connected is quick on a re-run.
-
-```bash
-gh workflow run platform.yml -f stage=vending -f members=<n>
-```
-
-<details>
-<summary>Why it works this way</summary>
-
-- The pipeline reads its members only from the roster, which setup stores as an environment secret. It never discovers members in Azure, and the guard accepts only those subscriptions.
-- Members are connected one after another, because each run updates the shared firewall policy (4 to 5 minutes each). Then every VM restarts at once (about 25 minutes, the SQL VM is the slow one), and the policy scan and connectivity probes run in parallel.
-- If a member redeploys their datacenter after vending, run vending for that member again.
+If it stops with `InteractionRequired` or `TokenCreatedWithOutdatedPolicies`, their sign-in is stale: they run `az logout` and `az login` again, then repeat. To verify that the three permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) are in place without changing anything, run the script with `-WhatIf`. See the [ALZ-lite guide](../../guides/alz-lite/) for details.
 
 </details>
 
-## Save the foundation evidence
-
-C2 asks for evidence of the foundation. Copy the run summaries of the `foundation` and `vending` stages into your `factory/evidence/` as C2 describes. The pipeline already redacts IDs: they show as `<id:abcd>`.
+Done when the administrator confirms the script finished (or `-WhatIf` reports all three permissions as already granted).
 
 ## If something breaks
 
-Read the run's log, fix the cause and run the stage again: the stages are safe to repeat. After two attempts, ask your coach. [Troubleshooting](../../reference/troubleshooting/) lists the common errors.
+Read the run log in the **Actions** tab, fix the cause, and run the stage again: `foundation` is idempotent and safe to repeat. [Troubleshooting](../../reference/troubleshooting/) lists the common errors.
+
+Next: everyone (the team lead included) runs [Step 3: Datacenter and workstation (T-3)](../member-steps/).
+

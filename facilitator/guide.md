@@ -9,9 +9,9 @@ for points.
 | Role | Owns |
 |---|---|
 | Event owner | Copy and brand the kit, set dates and region, confirm each team's roster and member indexes, confirm access and logistics, book the Privileged Role Administrator for T-7, lock the roster, handle escalations, own cleanup and the final record |
-| Coach | Give the live portal ALZ and APEX demos, approve each member's readiness record at T-3 (before vending), ask the C2 policy questions, sign off evidence, hand out and apply lifelines, trigger and reverse the curveballs |
-| Team lead (called the platform lead in the workflow and scripts) | A colleague the team nominates. Keeps the team's roster, assigns member indexes, deploys ALZ-lite once for the team at T-7, vends each member subscription at T-1 (then restarts the VMs, records exemptions and runs the connectivity probes), and coordinates policy exemptions and shared network changes. Also a member: does every member challenge on their own workload subscription |
-| Member | Complete the individual challenges, review AI changes, keep evidence and run the app modernization work in their own repository |
+| Coach | On duty during the two event days (not during pre-hackathon setup, where support is best-effort). Give the live portal ALZ and APEX demos, sign off challenge evidence, hand out and apply lifelines, trigger and reverse the curveballs |
+| Team lead (called the platform lead in the workflow and scripts) | A colleague the team nominates and the **first point of contact** for teammates during pre-hackathon setup (Steps 1 to 4) and the event. Keeps the team's roster, assigns member indexes, deploys ALZ-lite once for the team in Step 2 (T-7), vends each member subscription in Step 4 (T-1, where the pipeline checks each member's datacenter and Arc status automatically), and coordinates policy exemptions and shared network changes. Also a member: does every member step and member challenge on their own workload subscription |
+| Member | Complete the pre-hackathon setup (Steps 1, 3, and 4) and the challenges, review AI changes, keep evidence and run the app modernization work in their own repository |
 
 ## Timeline and gates
 
@@ -41,36 +41,36 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - If a member is swapped or added after T-14, also re-run `Initialize-PlatformPipeline.ps1 -RosterPath <roster file>` in the team lead's repo: the pipeline reads its members only from the roster secret it stores.
 - Tell attendees that certifications follow the event: infra roles hold AZ-104, GH-300 and DP-300 within six months after it, and no exam is a gate for attending (see the [learning path](../site/src/content/docs/guides/learning-path.md)).
 
-### T-14: team leads, members and coaches
+### Step 1 (T-14): team leads and members
 
+- No coach is on duty during the pre-hackathon window; support is best-effort and the designated team lead is each member's first point of contact.
 - Confirm each team has one shared-services subscription and each member has a separate workload subscription.
-- Members run the preflight (the first step of the [member steps](https://factory.apexops.pro/deploy/member-steps/)) and fix every FAIL. Each member shares their workload subscription ID, member index, Entra object ID and email privately with the team lead. Vending at T-1 can't run without those values. A member added or swapped after T-14 needs the same four values shared and a vending run.
+- Everyone creates their repo, imports the kit, sets up the pipeline, runs the `whatif` preflight ([Step 1: Repo and preflight](https://factory.apexops.pro/deploy/set-up-your-repo/)) and fixes every FAIL. Each member shares their workload subscription ID, member index, Entra object ID and email privately with the team lead, who registers `roster.json` with `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`.
 - Confirm the team lead has the rights described in the [ALZ-lite guide](../site/src/content/docs/guides/alz-lite.md), including rights at Tenant Root to create management groups and move subscriptions. The team lead deploys ALZ-lite a week later, so this is the last point to fix it.
 - Confirm the Privileged Role Administrator for each team is booked for T-7.
 - Check member MFA, resource-provider registration, quota, Copilot policies and access to the APEX runtime. Do not put tenant, subscription or object IDs in this public kit.
 - Confirm the attendees can use the approved Copilot features and extensions on the dev VM. Escalate organizational Copilot policy issues before the event.
 - Confirm the draft roster and publish the agenda, room details and escalation channel. The roster stays open until kickoff, so you can still swap or drop a member who can't get ready.
 
-### T-7: team lead and Privileged Role Administrator
+### Step 2 (T-7): team lead and Privileged Role Administrator
 
-- The team lead deploys ALZ-lite for the team: run 1 of the platform pipeline, the `foundation` stage in the lead's repo (see C2, "Before the event"). It takes about 15 to 25 minutes and creates `id-sqlmi-directory`. The firewall bills about $1.30 an hour from here until cleanup.
+- The team lead deploys ALZ-lite for the team: run 1 of the platform pipeline, the `foundation` stage in the lead's repo ([Step 2: Foundation and Graph grant](https://factory.apexops.pro/deploy/team-lead-steps/)). It takes about 15 to 25 minutes and creates `id-sqlmi-directory`. The firewall bills about $1.30 an hour from here until cleanup.
 - Right after it, the Privileged Role Administrator runs `scripts/Grant-SqlMiDirectoryRead.ps1` for the team. Check it with `-WhatIf`: it prints that the three permissions are already granted.
-- Keep the output of both: it's C2's evidence.
 
-### T-3: members
+### Step 3 (T-3): everyone (members and team lead)
 
-- Each member, team lead included, does the readiness check in their own repo with the `whatif` and `member` stages of the member pipeline profile: preflight, then the datacenter with Azure Hybrid Benefit on by default (a member without eligible licenses sets the `no-hybrid-benefit` input), then `Test-Datacenter.ps1` while both VMs are running, then Arc onboarding of `vm-app01`, all in one `member` run. After it they run the first Arc SQL migration assessment in the portal and set up `vm-dev01`. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks, so the stage tests before Arc. Students don't run the deploy scripts by hand; a coach does only as a repair (see [deploy with scripts](../coach/deploy-with-scripts.md)).
-- Have a coach approve every member's readiness record against the sign-off checklist on the [readiness gate](../coach/readiness.md) page. Only an approved record enters vending at T-1. A member who isn't ready at the kickoff roster lock stays on the roster, and the event owner can swap or drop them first.
-- Keep the datacenter ready for the event. Idle VMs can be stopped before the event (Bastion Standard, disks and networking still incur charges), but start both before the T-1 vending, which restarts them and runs probes inside them. During the event, never stop `vm-dev01`: it's each member's workstation.
+- Every member, team lead included, runs [Step 3: Datacenter and workstation](https://factory.apexops.pro/deploy/member-steps/) in their own repo with the `whatif` and `member` stages: preflight, then the datacenter with Azure Hybrid Benefit on by default (a member without eligible licenses sets the `no-hybrid-benefit` input), then `Test-Datacenter.ps1` while both VMs are running, then Arc onboarding of `vm-app01`, all in one `member` run. After it they run the first Arc SQL migration assessment in the portal, set up `vm-dev01`, and commit their readiness evidence to `factory/evidence/readiness/`. The order matters: Arc onboarding turns off the run commands that `Test-Datacenter.ps1` uses for its in-VM checks, so the stage tests before Arc. Students don't run the deploy scripts by hand; a coach does only as a repair (see [deploy with scripts](../coach/deploy-with-scripts.md)).
+- There is no pre-event coach sign-off gate: instead, the `vending` stage in Step 4 automatically checks that each member's `vnet-datacenter` exists and `vm-app01` is `Connected` in Azure Arc before vending their spoke. Each member notifies their team lead when their Step 3 checklist is complete.
+- Keep the datacenter ready for the event. Idle VMs can be stopped before the event (Bastion Standard, disks and networking still incur charges), but start both before Step 4 (`vending` at T-1), which restarts them and runs probes inside them. During the event, never stop `vm-dev01`: it's each member's workstation.
 - A `vm-dev01` deployed before the sparse-checkout change still has the full kit clone, with `coach/`, `facilitator/`, `docs/`, `site/` and `test/` in it, and the documentation and lint tooling at the repo root. Apply the "Slim an existing clone" block in `infra/datacenter/README.md` on that VM with the member. `Test-Datacenter.ps1` reports the full clone as a failed check until you do.
 - Check the private-network path and the exact region and naming values before the event. No availability zones are pinned or enabled.
 
-### T-1: team lead
+### Step 4 (T-1): everyone starts VMs, team lead vends
 
-- Vend every approved member, yourself included, in order: run 2 of the platform pipeline, the `vending` stage in the lead's repo (see C2, "Before the event"). It restarts both VMs of each member, records the exemptions and runs the connectivity probes, so one run does all four steps. A coach repairs a failed run by hand only with the commands in the [C2 answer key](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only).
-- Vending comes after each member's `vm-dev01` setup and the coach's approval of their readiness record on purpose. It changes the datacenter's DNS servers to the hub firewall, and nothing before it tests that. The hard dependencies are only these: ALZ-lite and each member's datacenter before vending, and `Test-Datacenter.ps1` before Arc. The datacenter still exists before the subscription moves under the Corp group, so the exemptions lesson stays.
+- Every member starts `vm-app01` and `vm-dev01`. Then the team lead runs [Step 4: Vending](https://factory.apexops.pro/deploy/vending/), the `vending` stage in the lead's repo. For each member in `roster.json`, `Invoke-PipelineVending.ps1` verifies that `vnet-datacenter` exists and `vm-app01` is `Connected` in Azure Arc, vends the spoke, restarts both VMs, records the datacenter exemptions and runs the connectivity probes. A coach repairs a failed run by hand only with the commands in [deploy with scripts](../coach/deploy-with-scripts.md).
+- Vending comes after each member's Step 3 datacenter and `vm-dev01` setup on purpose. It changes the datacenter's DNS servers to the hub firewall, and nothing before it tests that. The hard dependencies are only these: ALZ-lite and each member's Arc-connected datacenter before vending, and `Test-Datacenter.ps1` before Arc. The datacenter still exists before the subscription moves under the Corp group, so the exemptions lesson stays.
 - A restart ends a member's Bastion session, so tell members first. A member whose datacenter is redeployed after vending is vended again.
-- Post "vended" with each member's name and the shared services subscription ID in the team channel. Keep the vending output, the exemptions table and the probe output: they're C2's evidence.
+- Post "vended" with each member's name and the shared services subscription ID in the team channel so members can save `sharedSubscriptionId` with `Initialize-Settings.ps1 -SharedSubscriptionId`.
 
 ### Kickoff and event days
 

@@ -2,6 +2,7 @@
 ACR
 ADR
 ADRs
+agentic
 AHB
 AKS
 ALZ
@@ -27,7 +28,9 @@ cutover
 cutovers
 datacenter
 datacenters
+deallocate
 deallocated
+deallocating
 deliverable
 deliverables
 deployer
@@ -47,6 +50,8 @@ IIS
 inlining
 IP
 IPs
+KPI
+KPIs
 lifeline
 lifelines
 MCP
