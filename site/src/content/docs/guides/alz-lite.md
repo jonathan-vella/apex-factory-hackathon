@@ -5,7 +5,7 @@ sidebar:
   order: 4
 ---
 
-This guide covers the mechanics of the kit's landing zone. [C2](../../challenges/c02-secure-ai-ready-foundation/) is the what, the stages the team lead runs before the event, and the acceptance bar for the day-one walk-through. The commands are in [Team lead steps](../../deploy/team-lead-steps/).
+This guide covers the mechanics of the kit's landing zone. [C2](../../challenges/c02-secure-ai-ready-foundation/) tests an AI coding agent against the landing zone's `Deny` policies and the APEX repository baseline. The deployment commands are in [Step 2: Foundation and Graph grant](../../deploy/team-lead-steps/) and [Step 4: Vending](../../deploy/vending/).
 
 ## The two-subscription model
 

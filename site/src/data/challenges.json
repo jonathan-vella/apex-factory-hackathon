@@ -24,13 +24,13 @@
       "title": "Secure, AI-ready foundation",
       "file": "c02-secure-ai-ready-foundation.mdx",
       "day": "Day 1",
-      "scope": "Team",
-      "minutes": 120,
-      "teamPoints": 35,
-      "memberPoints": 0,
+      "scope": "Member",
+      "minutes": 45,
+      "teamPoints": 0,
+      "memberPoints": 15,
       "voice": "Tomás",
       "outcome": "Secure by default",
-      "objective": "Be able to verify and explain a landing zone: its management groups, hub, policies, exemptions and connectivity."
+      "objective": "Be able to test an AI coding agent against repository security guardrails and Azure Landing Zone Deny policies, and explain why platform guardrails are mandatory for agentic AI."
     },
     {
       "id": "C3",

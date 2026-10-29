@@ -18,10 +18,10 @@ const challengeContract = challengeData.map((c) => [
   c.memberPoints,
 ]);
 const expectedChallengeCount = 10;
-const expectedMinutes = 825;
-const expectedPoints = 190;
-const expectedTeamPoints = 80;
-const expectedMemberPoints = 110;
+const expectedMinutes = 750;
+const expectedPoints = 170;
+const expectedTeamPoints = 45;
+const expectedMemberPoints = 125;
 const evidenceRule = [
   "- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.",
   "- **`vm-dev01`:** evidence goes in `C:\\src\\<your-repo>\\factory\\evidence\\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.",

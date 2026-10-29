@@ -4,21 +4,19 @@ Copy one scoreboard per team. Lock the roster at kickoff and enter every member,
 
 ## Team summary
 
-| Team | C1 / 10 | C2 / 35 | C4 / 15 | C10 / 20 | Team base / 80 | Team bonus | Coach sign-off |
-|---|---:|---:|---:|---:|---:|---:|---|
-| `<team>` |  |  |  |  |  |  |  |
-
-Enter C2's 35 points after the Day 1 walk-through: the evidence is the team lead's T-7 ALZ-lite and T-1 vending output, the members' exemptions tables and their own probe runs, plus the team's answers to the coach's policy questions (see the rubric's C2 rows).
+| Team | C1 / 10 | C4 / 15 | C10 / 20 | Team base / 45 | Team bonus | Coach sign-off |
+|---|---:|---:|---:|---:|---:|---|
+| `<team>` |  |  |  |  |  |  |
 
 ## Member scores
 
-| Member | C3 / 15 | C4 / 10 | C5 / 15 | C6 / 30 | C7 / 20 | C8 / 10 | C9 / 10 | Member base / 110 | Member bonus | Lifelines used | Coach sign-off |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
-| `<member 1>` |  |  |  |  |  |  |  |  |  |  |  |
-| `<member 2>` |  |  |  |  |  |  |  |  |  |  |  |
-| `<member 3>` |  |  |  |  |  |  |  |  |  |  |  |
-| `<member 4>` |  |  |  |  |  |  |  |  |  |  |  |
-| `<member 5>` |  |  |  |  |  |  |  |  |  |  |  |
+| Member | C2 / 15 | C3 / 15 | C4 / 10 | C5 / 15 | C6 / 30 | C7 / 20 | C8 / 10 | C9 / 10 | Member base / 125 | Member bonus | Lifelines used | Coach sign-off |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|---|
+| `<member 1>` |  |  |  |  |  |  |  |  |  |  |  |  |
+| `<member 2>` |  |  |  |  |  |  |  |  |  |  |  |  |
+| `<member 3>` |  |  |  |  |  |  |  |  |  |  |  |  |
+| `<member 4>` |  |  |  |  |  |  |  |  |  |  |  |  |
+| `<member 5>` |  |  |  |  |  |  |  |  |  |  |  |  |
 
 Remove unused member rows only before kickoff, then freeze the roster. Leave a zero for missing evidence; do not remove that member from the average.
 
@@ -38,12 +36,12 @@ Remove unused member rows only before kickoff, then freeze the roster. Leave a z
 ## Formula
 
 ```text
-Team base = C1 + C2 + team portion of C4 + C10                 (maximum 80)
-Member base = C3 + member portion of C4 + C5 + C6 + C7
-              + C8 + C9                                       (maximum 110 per member)
+Team base = C1 + team portion of C4 + C10                     (maximum 45)
+Member base = C2 + C3 + member portion of C4 + C5 + C6 + C7
+              + C8 + C9                                       (maximum 125 per member)
 Average member base = sum(member base for kickoff roster) / roster size
 Awarded bonus = min(30, team bonus + average member bonus)
-Team score = team base + average member base + awarded bonus  (maximum 220)
+Team score = team base + average member base + awarded bonus  (maximum 200)
 ```
 
 Rank teams by team score. Teams with the same score share the rank.

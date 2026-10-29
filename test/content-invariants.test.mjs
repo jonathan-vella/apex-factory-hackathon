@@ -48,8 +48,8 @@ test("the scoring contract has ten challenges and no C0", async () => {
     assert.match(text, /scoring-rubric\.md: missing C10 evidence table/);
     assert.doesNotMatch(text, /missing C0 evidence table/);
     assert.doesNotMatch(text, /c00-ready-to-hack/);
-    assert.match(text, /expected 190 base points/);
-    assert.match(text, /expected 825 total minutes/);
+    assert.match(text, /expected 170 base points/);
+    assert.match(text, /expected 750 total minutes/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
