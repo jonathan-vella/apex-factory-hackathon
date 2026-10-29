@@ -5,9 +5,9 @@ sidebar:
   order: 7
 ---
 
-After the event (T+2), members can remove their own scopes in their repos. The team lead then runs the full teardown in the lead repo, and an admin removes the pipeline identity. Run commands from `factory/`.
+After the event (T+2), members can remove their own scopes in their repos. The team lead then runs the full `teardown` in the lead repo, and an admin removes the pipeline identity. Run commands from `factory/`.
 
-## Run the teardown stage
+## Run the `teardown` stage
 
 **In your own repo (member profile):** this removes only your member scope.
 
@@ -29,7 +29,7 @@ If the tenant will be reused, omit `-f include-management=true`.
 gh workflow run platform.yml -f stage=teardown -f members=<your index>
 ```
 
-Before T+2, never run an unfiltered team teardown in the lead repo.
+Before T+2, never run an unfiltered team `teardown` in the lead repo.
 
 `include-management` also deletes `rg-management` and `id-sqlmi-directory`.
 
