@@ -176,7 +176,7 @@ Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`,
 
 - **Member index:** your team lead assigns you a number from 1 to 20, unique within your team. Ask your team lead if you don't have one, and don't pick your own. It isn't the six-character suffix the script generates. Later pages show these as `$s.memberIndex` and `$s.suffix`, read from `factory/.local/settings.json`.
 - **Shared services subscription, members:** press Enter to skip it for now. You can add it in [Step 4: Vending](../vending/) when your team lead shares it (`./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'`). Re-running never changes your other values.
-- **Shared services subscription, team lead:** enter it now. The script prints its name on a `Shared:` line: check it is your shared services subscription and not another one you own. Preflight then also checks your Tenant Root rights, so a missing role shows up at T-14 and not at T-7.
+- **Shared services subscription, team lead:** enter it now. The script prints its name on a `Shared:` line: check it is your shared services subscription and not another one you own.
 - **Wrong subscription name:** `az account list --refresh --output table` updates the cached names. `Initialize-Settings.ps1` can't tell a mistyped but valid ID from a real one, so read the name it shows.
 
 </details>
@@ -196,7 +196,7 @@ Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`,
    ./scripts/Initialize-PlatformPipeline.ps1 -Profile Member
    ```
 
-   On a private repo it may warn that write access is the gate. That is expected. Check the setup any time with `./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member`.
+   On a private repo it may warn that write access is the gate. That is expected when required reviewers are unavailable. GitHub's current environment-plan guidance conflicts with the owner's reported Free-plan private-repo test; verify Step 1.5 in your partner organization before T-14. See [Requirements](../../getting-started/requirements/#accounts-and-access) and check the setup any time with `./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member`.
 
 **Team lead:**
 
@@ -238,20 +238,20 @@ The `whatif` stage checks your subscription and registers missing Azure resource
 
 </Steps>
 
-**Team lead:** your `whatif` run also checks the shared services subscription, your Tenant Root permissions, and every member in `roster.json`. Treat a warning on the `Management groups` row as a blocker and resolve it before Step 2 (T-7).
+**Team lead:** Step 1.5 verifies that your account can assign Owner at Tenant Root when it creates the pipeline identity. The later `whatif` run checks the pipeline identity's Tenant Root and shared-services permissions, plus every member in `roster.json`. Treat a warning on the `Management groups` row as a blocker and resolve it before Step 2 (T-7).
 
 | # | Check | How to verify | Preflight row |
 | --- | --- | --- | --- |
 | 1 | Copilot Chat responds in VS Code | Open Copilot Chat, send "hello". | GitHub Copilot |
 | 2 | The APEX custom agents appear | In Copilot Chat's agent picker, `01-Orchestrator` and `08-As-Built` are listed. | GitHub Copilot |
 | 3 | The agents' models are permitted | The picker lets you select and run them (no policy block message). | GitHub Copilot |
-| 4 | The MCP servers in `.mcp.json` (repo root) load | VS Code shows them started and authenticated. Your organization's Copilot policy must also allow MCP servers and Copilot CLI. | GitHub Copilot |
+| 4 | The MCP servers in `.mcp.json` (repo root) load | VS Code shows them started and authenticated. Your organization's Copilot policy must allow MCP servers. Copilot CLI is optional and is needed only for the playbook's CLI path. | GitHub Copilot |
 | 5 | Dev container opens | You can run `az version` and `pwsh --version` in its terminal. | APEX |
 | 6 | One subscription per member | Confirm with your team lead that no other member uses yours. | Not a MANUAL row |
-| 7 | Your roles match your kit role | Team lead: Tenant Root Owner and a separate shared services subscription. Members: Owner on your own workload subscription. | Not a MANUAL row |
+| 7 | Your roles match your kit role | Team lead: Owner at Tenant Root, Owner on the shared services subscription, and Owner on their own workload subscription. Members: Owner on your own workload subscription. Tenant Root Owner must be in place for pipeline setup by T-14. | Not a MANUAL row |
 | 8 | MFA is registered | Sign in to the Azure portal and confirm your MFA method works. | MFA |
-| 9 | You can create private repos in the partner's GitHub org | You did this when you created your repo above. Also check **Settings** > **Billing and plans** so private-repo GitHub Actions minutes are not blocked by a zero spending limit. | GitHub repositories |
-| 10 | Azure Hybrid Benefit | You hold eligible Windows Server licenses with Software Assurance. If you don't, follow the rule on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page. | Azure Hybrid Benefit |
+| 9 | You can create private repos in the partner's GitHub org | You did this when you created your repo above. Private-repo Actions uses included compute first; the repo owner is billed for additional usage. Check the organization owner's **Billing & Licensing** page, budget and payment method. | GitHub repositories |
+| 10 | Azure licensing | Confirm Windows Server AHB eligibility for `vm-app01` or follow the [AHB rule](../../reference/azure-hybrid-benefit/). Separately, confirm your per-user Windows 11 license grants rights to run Windows 11 on Azure for `vm-dev01`; the preflight input does not cover it. | Azure Hybrid Benefit |
 
 Done when the `whatif` run is green and every manual check is confirmed.
 
