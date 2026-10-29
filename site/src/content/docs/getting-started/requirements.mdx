@@ -8,7 +8,7 @@ sidebar:
 import { Steps } from "@astrojs/starlight/components";
 import Diagram from "../../../components/Diagram.astro";
 
-This page lists what you need before you deploy anything. Checking it takes about 30 minutes, plus any time your organization needs to grant access. Ask for access early: that is the slow part. If a check fails, tell your coach.
+This page lists what you need before you deploy anything. Checking it takes about 30 minutes, plus any time your organization needs to grant access. Ask for access early: that is the slow part. If something blocks you before day one, ask your team lead; they can escalate to the event owner.
 
 ## Team size
 
@@ -32,11 +32,11 @@ So a team of five has six subscriptions. The team lead is a colleague your team 
 | --- | --- |
 | GitHub | A personal account in your partner's GitHub org, with GitHub Copilot enabled. Agent mode and the Upgrade agent must be allowed by policy. |
 | GitHub Actions | Actions minutes for private repos on your account or org. The pipeline runs in your private repo, so a failed payment or a spending limit of zero blocks every run. Check **Settings** > **Billing and plans** before the event. |
-| Azure subscription | One paid workload subscription per member, in your team's Microsoft Entra tenant. Your partner organization supplies it, and your coach can tell you which tenant is yours. Trial, Azure Pass and sponsorship subscriptions are not supported. Preflight doesn't check the offer type, so confirm in the Azure portal that yours is paid. |
-| Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group). If it's eligible through Privileged Identity Management (PIM), [activate it first](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles). Contributor doesn't pass. If your organization blocks Owner, raise it with your coach well before T-14. |
+| Azure subscription | One paid workload subscription per member, in your team's Microsoft Entra tenant. Your partner organization supplies it; ask your team lead if you need help identifying your tenant. Trial, Azure Pass and sponsorship subscriptions are not supported. Preflight doesn't check the offer type, so confirm in the Azure portal that yours is paid. |
+| Azure role | An unconditional **Owner** assignment on your workload subscription (direct, inherited or through a group). If it's eligible through Privileged Identity Management (PIM), [activate it first](https://learn.microsoft.com/entra/id-governance/privileged-identity-management/pim-resource-roles-activate-your-roles). Contributor doesn't pass. If your organization blocks Owner, ask your team lead to escalate to the event owner well before T-14. |
 | MFA | Registered for your Azure identity. Set it up at [aka.ms/mysecurityinfo](https://aka.ms/mysecurityinfo) if you haven't. |
-| Region quota | Enough regional vCPU quota in `swedencentral` for two Standard_D8as_v6 VMs (16 vCPU in total), plus quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. To look it up, open your subscription in the Azure portal, choose **Usage + quotas** and filter by `swedencentral`. |
-| Team lead only | A **second** subscription (shared services) plus Owner at Tenant Root, the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for that, so ask early: the team lead deploys the foundation at T-7. You are also a member, so you still need your own workload subscription. |
+| Region quota | Enough regional vCPU quota in your event's region (`swedencentral` unless told otherwise) for two Standard_D8as_v6 VMs (16 vCPU in total), plus quota for the archetype's SQL Managed Instance and App Service in C5. Preflight doesn't check quota. To look it up, open your subscription in the Azure portal, choose **Usage + quotas** and filter by your event's region. If quota is short, ask your team lead to escalate to the event owner. |
+| Team lead only | A **second** subscription (shared services) plus Owner at Tenant Root, the top management group of your tenant. A Global Administrator has to [elevate access](https://learn.microsoft.com/azure/role-based-access-control/elevate-access-global-admin) for that, so ask early: the team lead deploys the foundation at T-7. The team lead also books a Privileged Role Administrator for the T-7 Graph grant; that role holder needs PowerShell 7, Azure CLI and Reader on the shared services subscription. If you can't find a role holder, escalate to the event owner. You are also a member, so you still need your own workload subscription. |
 
 Done when you can sign in to the Azure portal, see your workload subscription, and the role shown for it is Owner.
 

@@ -7,10 +7,10 @@ sidebar:
 
 import Diagram from "../../../components/Diagram.astro";
 
-**Who:** **Team lead** + **Privileged Role Administrator**. (Members have nothing to run in Step 2; skip to [Step 3: Datacenter and workstation (T-3)](../member-steps/).)
+**Who:** **Team lead** (books the role holder) + **Privileged Role Administrator**. (Members have nothing to run in Step 2; skip to [Step 3: Datacenter and workstation (T-3)](../member-steps/).)
 **When:** By **T-7** (7 days before day one). About 20 to 30 minutes.
 
-In Step 2, the team lead deploys the team's shared foundation (`ALZ-lite`) once for the whole team, and a Privileged Role Administrator grants the shared SQL Managed Instance identity its Microsoft Graph read permissions. Run every command from `factory/` in the team lead's repository.
+In Step 2, the team lead deploys the team's shared foundation (`ALZ-lite`) once for the whole team, then books a Privileged Role Administrator (or Global Administrator) to grant the shared SQL Managed Instance identity its Microsoft Graph read permissions. If the team lead cannot find a role holder, they escalate to the event owner. Run every command from `factory/` in the team lead's repository.
 
 <Diagram
   name="diagram-03-alz-lite-and-vending"
@@ -35,7 +35,7 @@ Open the **Actions** tab on GitHub and approve each run if asked. Done when both
 
 ALZ-lite creates the user-assigned managed identity `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses this identity in C7 so `CREATE USER ... FROM EXTERNAL PROVIDER` can resolve Microsoft Entra principals.
 
-Someone holding the **Privileged Role Administrator** (or Global Administrator) directory role in your tenant runs `Grant-SqlMiDirectoryRead.ps1` once for the team, right after `2.1` completes:
+The team lead books someone holding the **Privileged Role Administrator** (or Global Administrator) directory role in your tenant to run `Grant-SqlMiDirectoryRead.ps1` once for the team, right after `2.1` completes. If they cannot find a role holder, they escalate to the event owner:
 
 ```powershell
 ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
@@ -57,4 +57,3 @@ Done when the administrator confirms the script finished (or `-WhatIf` reports a
 Read the run log in the **Actions** tab, fix the cause, and run the stage again: `foundation` is idempotent and safe to repeat. [Troubleshooting](../../reference/troubleshooting/) lists the common errors.
 
 Next: everyone (the team lead included) runs [Step 3: Datacenter and workstation (T-3)](../member-steps/).
-

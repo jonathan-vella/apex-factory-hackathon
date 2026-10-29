@@ -6,7 +6,7 @@ The challenge minutes are effort targets, not a serial schedule. The platform fo
 
 | When | Activity | Owner |
 |---|---|---|
-| T-30 to T-14 | Event-owner setup: team size, tenant and subscription access, Privileged Role Administrator booking for T-7, and each team nominates its team lead (see the [guide](guide.md#t-30-to-t-14-event-owner)) | Event owner |
+| T-30 to T-14 | Event-owner setup: team size, tenant and subscription access, each team nominates its team lead, and the team lead books the Privileged Role Administrator for T-7 (see the [guide](guide.md#t-30-to-t-14-event-owner)) | Event owner, team lead |
 | Step 1 (T-14) | Repo setup and preflight; each member shares their subscription ID, index, object ID and email privately with the team lead | Team lead, members |
 | Step 2 (T-7) | Team lead runs the `foundation` stage (ALZ-lite, pipeline run 1), then a Privileged Role Administrator runs the Graph grant for the SQL MI identity | Team lead, directory administrator |
 | Step 3 (T-3) | Each member runs the `whatif` and `member` stages (preflight, datacenter, `Test-Datacenter.ps1` while the VMs run, then Arc onboarding), saves `factory/evidence/readiness/test-datacenter.txt`, runs the first migration assessment and sets up `vm-dev01` with Copilot working in VS Code through Bastion | Members (team lead is first point of contact) |

@@ -140,7 +140,7 @@ Start both again before your team lead runs Step 4 at T-1 (`az vm start -g rg-da
 
 ## If you need to start over
 
-Before T+2, never run a full, unfiltered `teardown` in the team lead's repo. To recover one member there, pass `-f members=<your index>` to both `teardown` and `member`, or ask the event owner for a coach repair.
+Before T+2, never run a full, unfiltered `teardown` in the team lead's repo. To recover one member there, pass `-f members=<your index>` to both `teardown` and `member`, or ask your team lead to escalate to the event owner for a coach repair.
 
 - **Before Arc:** in your own repo (member profile), run the `member` stage again to repair the datacenter. In the team lead's repo, add `-f members=<your index>` to the `member` command.
 - **After Arc, before C5:** the `member` stage refuses once `vm-app01` is an Arc machine or its guest agent is off. To recover, run `teardown`, then `member`. In your own repo (member profile), run:

@@ -40,7 +40,7 @@ gh workflow run platform.yml -f stage=teardown -f members=<your index>
 gh workflow run platform.yml -f stage=member -f members=<your index>
 ```
 
-Member teardown removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If you do not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If you were already vended, the team lead must run `vending` for your index afterward. Before T+2, never run a full, unfiltered teardown in the team lead's repo; pass `-f members=<your index>` or ask the event owner for a coach repair. After C5, do not use this recovery; ask the event owner for a coach repair.
+Member teardown removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If you do not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If you were already vended, the team lead must run `vending` for your index afterward. Before T+2, never run a full, unfiltered teardown in the team lead's repo; pass `-f members=<your index>` or ask your team lead to escalate to the event owner for a coach repair. After C5, do not use this recovery; ask the event owner for a coach repair.
 
 ## Where to go next
 
