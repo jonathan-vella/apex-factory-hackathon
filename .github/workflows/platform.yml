@@ -5,8 +5,8 @@ name: Platform
 # The stages follow the event: ALZ-lite once for the team first (T-7, the lead's pipeline), every member's datacenter next
 # (the readiness check, T-3), then vending for every member (T-1). A team has one shared services subscription and one workload subscription
 # per member.
-# Each stage runs in the gh-lab environment, where the reviewer approves it once for the stage. "all" runs them in that
-# order, for a test lab: at an event, run each stage on its own date, because vending waits for the coach to approve each readiness record.
+# A reviewer approves only where the gh-lab environment offers a deployment gate. "all" runs the stages in event order,
+# for a test lab; at an event, run each stage on its own date. Vending checks each member's readiness automatically.
 # Every job sits in this file because a reusable workflow can't read the environment's secrets.
 # The teardown stage removes what the other stages built: every member's datacenter, then the team's foundation. It never
 # removes the pipeline identity: an admin runs scripts/Remove-PlatformPipeline.ps1 for that, afterwards.
@@ -28,11 +28,15 @@ on:
           - teardown
           - all
       include-management:
-        description: Teardown only. Also delete rg-management and id-sqlmi-directory, which a normal lab keeps (its Graph grant is lost).
+        description: Teardown only. Also delete rg-management and id-sqlmi-directory. Use at T+2 unless the event owner will reuse the tenant; a later event then needs the Graph grant again.
+        type: boolean
+        default: false
+      confirm-team-teardown:
+        description: Teardown only. Confirm removal of the team's foundation in the team lead's repo.
         type: boolean
         default: false
       members:
-        description: Member indexes, comma separated, for example 1,2,3. Empty means every member in the MEMBER_INDEXES variable.
+        description: Member indexes, comma separated (for example 1,2,3), or all. In the team lead's repo, member, teardown and all need a value.
         type: string
         default: ''
       no-hybrid-benefit:
@@ -64,6 +68,7 @@ jobs:
       stage: ${{ steps.plan.outputs.stage }}
       profile: ${{ steps.plan.outputs.profile }}
       include-management: ${{ steps.plan.outputs.include-management }}
+      team-teardown: ${{ steps.plan.outputs.team-teardown }}
       members: ${{ steps.plan.outputs.members }}
       member-list: ${{ steps.plan.outputs.member-list }}
     steps:
@@ -74,6 +79,7 @@ jobs:
           INPUT_STAGE: ${{ inputs.stage }}
           INPUT_MEMBERS: ${{ inputs.members }}
           INPUT_INCLUDE_MANAGEMENT: ${{ inputs.include-management }}
+          INPUT_CONFIRM_TEAM_TEARDOWN: ${{ inputs.confirm-team-teardown }}
           VAR_MEMBERS: ${{ vars.MEMBER_INDEXES }}
           VAR_PROFILE: ${{ vars.PIPELINE_PROFILE }}
           REF_NAME: ${{ github.ref_name }}
@@ -95,11 +101,30 @@ jobs:
               *) echo "::error::This is a member pipeline: it runs only the whatif (your preflight), member (your datacenter) and teardown (removes it) stages. The foundation and vending belong to the team lead's pipeline."; exit 1 ;;
             esac
           fi
+          requested="${INPUT_MEMBERS// /}"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$profile" = "lead" ]; then
+            case "$stage" in
+              member|teardown|all)
+                if [ -z "$requested" ]; then
+                  echo "::error::In the team lead's repo, '$stage' needs -f members=<your index> or -f members=all."
+                  exit 1
+                fi
+                ;;
+            esac
+          fi
           echo "profile=$profile" >> "$GITHUB_OUTPUT"
           include=false
           if [ "$INPUT_INCLUDE_MANAGEMENT" = true ] || [[ "$REF_NAME" == ci-test/teardown-with-management* ]]; then include=true; fi
           echo "include-management=$include" >> "$GITHUB_OUTPUT"
-          list="${INPUT_MEMBERS:-${VAR_MEMBERS:-1}}"
+          if [ "$requested" = "all" ] && [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$profile" = "lead" ]; then
+            list="${VAR_MEMBERS:-}"
+            if [ -z "$list" ]; then
+              echo "::error::The MEMBER_INDEXES variable must be set to use members=all."
+              exit 1
+            fi
+          else
+            list="${requested:-${VAR_MEMBERS:-1}}"
+          fi
           list="${list// /}"
           IFS=',' read -ra parts <<< "$list"
           json="["; seen=","
@@ -110,8 +135,17 @@ jobs:
             json="$json\"$part\","
           done
           json="${json%,}]"
+          team=false
+          if [ "$stage" = "teardown" ] && [ "$profile" = "lead" ]; then
+            if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
+              team=true
+            elif [ "$requested" = "all" ] && [ "$INPUT_CONFIRM_TEAM_TEARDOWN" = "true" ]; then
+              team=true
+            fi
+          fi
           {
             echo "stage=$stage"
+            echo "team-teardown=$team"
             echo "members=$json"
             echo "member-list=$list"
           } >> "$GITHUB_OUTPUT"
@@ -236,7 +270,7 @@ jobs:
           $id = "/subscriptions/$env:WORKLOAD/resourceGroups/rg-datacenter/providers/Microsoft.HybridCompute/machines/vm-app01"
           & az resource show --ids $id --only-show-errors --output none 2>$null
           if ($LASTEXITCODE -eq 0) {
-            Write-Error 'vm-app01 is already an Arc machine. The datacenter can not be deployed over it. Remove the member (teardown), then run this stage again.'
+            Write-Error 'vm-app01 is already an Arc machine. The member stage cannot redeploy over Arc. Before C5, run member teardown then member again; in the team lead repo, pass -f members=<your index> to both stages. Teardown removes rg-spoke and the archetype too, so rerun vending for this index if it was already vended. After C5, ask the event owner for a coach repair.'
             exit 1
           }
           exit 0
@@ -320,7 +354,7 @@ jobs:
         run: |
           ./scripts/Connect-DatacenterArc.ps1 -SubscriptionId $env:WORKLOAD -MemberIndex $env:MEMBER_INDEX -Location $env:LOCATION *>&1 | ./scripts/Write-RedactedOutput.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. Vending comes after the foundation and every member's readiness record is approved." |
+          "The datacenter for member $env:MEMBER_INDEX is deployed, tested and Arc-enabled. The VMs bill about `$1.55 an hour. The team lead's vending stage at T-1 checks your Arc status automatically." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
 
   foundation:
@@ -452,7 +486,7 @@ jobs:
 
   teardown-team:
     needs: [plan, teardown-member]
-    if: ${{ needs.plan.outputs.stage == 'teardown' && needs.plan.outputs.profile == 'lead' && needs.teardown-member.result == 'success' }}
+    if: ${{ needs.plan.outputs.stage == 'teardown' && needs.plan.outputs.profile == 'lead' && needs.plan.outputs.team-teardown == 'true' && needs.teardown-member.result == 'success' }}
     runs-on: ubuntu-latest
     environment: gh-lab
     timeout-minutes: 240

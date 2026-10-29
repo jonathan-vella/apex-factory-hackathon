@@ -5,21 +5,36 @@ sidebar:
   order: 7
 ---
 
-After the event (T+2), each member runs the `teardown` stage in their own repo, the team lead runs it last, and an admin then removes the pipeline identity. Run commands from `factory/`.
+After the event (T+2), members can remove their own scopes in their repos. The team lead then runs the full `teardown` in the lead repo, and an admin removes the pipeline identity. Run commands from `factory/`.
 
-## Run the teardown stage
+## Run the `teardown` stage
+
+**In your own repo (member profile):** this removes only your member scope.
 
 ```bash
 gh workflow run platform.yml -f stage=teardown
 ```
 
-- A **member's** run removes that member's datacenter, spoke and archetype.
-- The **team lead's** run removes every member first, then the team's foundation and management groups.
+**In the team lead's repo at T+2:** remove every member, then the team's foundation. Add `-f include-management=true` unless the event owner will reuse the tenant; a later event then needs the Graph grant again.
 
-Tick `include-management` only for a lab you are retiring completely: it also deletes `rg-management` and `id-sqlmi-directory`, so a later event needs the Graph grant again.
+```bash
+gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true -f include-management=true
+```
+
+If the tenant will be reused, omit `-f include-management=true`.
+
+**In the team lead's repo, for one member only:** add their index and omit the team confirmation:
+
+```bash
+gh workflow run platform.yml -f stage=teardown -f members=<your index>
+```
+
+Before T+2, never run an unfiltered team `teardown` in the lead repo.
+
+`include-management` also deletes `rg-management` and `id-sqlmi-directory`.
 
 :::caution
-After C5, the member `teardown` stage removes the archetype, including the SQL Managed Instance, which takes hours to provision again. Never run it, or `teardown` followed by a new `member` run, after C5 without asking your coach first.
+After C5, the member `teardown` stage removes the archetype, including the SQL Managed Instance, which takes hours to provision again. Do not start over after C5; ask the event owner for a coach repair.
 :::
 
 Done when the run is green.

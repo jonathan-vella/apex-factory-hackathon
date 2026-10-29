@@ -42,11 +42,11 @@ gh workflow run platform.yml -f stage=vending
 
 Open the **Actions** tab on GitHub and approve the run if asked. The stage runs in three phases:
 
-1. **Automatic readiness check and spoke vending (one member at a time):** for each member in `roster.json`, the pipeline verifies that `vnet-datacenter` exists and `vm-app01` is connected to Azure Arc (`Connected`), then runs `Deploy-Vending.ps1`. If a member has not finished Step 3, the stage stops before vending that member and names their member index.
+1. **Automatic readiness check and spoke vending (one member at a time):** for each member in `roster.json`, the pipeline verifies that `vnet-datacenter` exists and `vm-app01` is connected to Azure Arc (`Connected`), then runs `Deploy-Vending.ps1`. If a member has not finished Step 3, the stage stops at the first unready member. Earlier members are vended but not restarted, exempted or probed; later members are not vended.
 2. **Parallel VM restart:** restarts `vm-app01` and `vm-dev01` for all vended members at once so they pick up the hub firewall's DNS proxy.
 3. **Parallel exemptions and connectivity probes:** runs `New-DatacenterExemptions.ps1` and `Test-Connectivity.ps1` for every vended member.
 
-If one member fails (for example, because they had not finished Step 3 or their VMs were stopped), fix the cause and re-run `vending` for that member index only:
+If phase 1 stops at an unready member, or phase 2 fails while restarting VMs, fix the cause and re-run `vending` for all members. It is safe to repeat. If phase 3 names members whose exemptions or connectivity probes failed, fix the cause and re-run only for those named indexes:
 
 ```bash
 gh workflow run platform.yml -f stage=vending -f members=<n>

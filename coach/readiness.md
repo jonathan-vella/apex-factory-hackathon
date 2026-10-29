@@ -11,7 +11,7 @@ If a coach is reviewing readiness evidence at kickoff on day one (or helping a t
 
 1. **Automated check in Step 4 (`vending` at T-1):** for each member in `roster.json`, `Invoke-PipelineVending.ps1` verifies that `vnet-datacenter` exists in `rg-datacenter` and that the Azure Arc machine `vm-app01` has `properties.status == 'Connected'`. Because the `member` stage only runs `Connect-DatacenterArc.ps1` after `Test-Datacenter.ps1` passes all 46 checks, an Arc `Connected` status proves the datacenter deployed and passed the pre-Arc validation.
 2. **Evidence in `factory/evidence/readiness/`:** each member commits their readiness artifacts to `main` in their own repository during Step 3.
-3. **Late or repaired members:** a member who isn't ready when the team lead runs `vending` at T-1 can finish Step 3 and be vended individually with `gh workflow run platform.yml -f stage=vending -f members=<index>`.
+3. **Vending failures:** if phase 1 stops at the first unready member, earlier members are vended but not restarted, exempted or probed, and later members are not vended. Fix the cause and rerun `vending` for all members; it is safe to repeat. If phase 2 fails while restarting VMs, fix the cause and rerun for all members. If phase 3 names members whose exemptions or connectivity probes failed, rerun only for those named indexes.
 4. **Datacenter redeploy:** a datacenter redeployed after vending requires vending again (see Recovery).
 
 ## Readiness checklist
@@ -45,16 +45,29 @@ The manual path, for repairs only, is on the [deploy with scripts](deploy-with-s
 - Ask each member to confirm Actions minutes are available for their private repo before the preflight (Settings, Billing and plans). With a failed payment or a zero spending limit, every run fails at once with no steps and no log, which looks like a kit fault and isn't.
 - Running preflight once and not re-running the `whatif` stage after resource provider registration (which takes up to 15 minutes to propagate) leaves a false red.
 - Trying a manual Arc onboarding through the portal "just to see" works but produces a differently named Arc resource that later scripts (`Test-Datacenter.ps1`, the migration assessment lookups) won't find. Redo it with the script if this happened.
-- Turning Azure Hybrid Benefit off "to compare" and forgetting to turn it back on: it should stay on throughout.
+- Turning Azure Hybrid Benefit off during the event: it should stay on throughout. A member without eligible Windows Server licenses must set `no-hybrid-benefit=true` on the initial `member` stage, before Arc onboarding.
 - Leaving both VMs running between sessions isn't a correctness problem, but it bills for nothing, so remind members. Stopping `vm-dev01` during the event is the opposite mistake: it's the members' workstation.
 - Arc **Connected** but no SQL Server instance after 5 minutes on an older copy of the kit: install the `WindowsAgent.SqlServer` extension from the portal (Azure Arc > Machines > `vm-app01` > Extensions). The current script installs it after 5 minutes (see [platform pipeline](../facilitator/platform-pipeline.md)).
 - Arc onboarding before `Test-Datacenter.ps1` is only possible in a hand-run repair. The in-VM rows can't pass after Arc. Accept the in-VM FAIL, with the member's written explanation, if every Azure-side row (the ones that start with `azure:`: VM state, size and license type, Trusted Launch, disks, no public IPs, Bastion) is green and Arc shows Connected with the SQL instance. Redo only if an Azure-side row fails: that means the datacenter itself is wrong. The perf kit's planted data can't be checked after Arc, so look at it at the start of C9.
-- Preflight and datacenter deployed, but Arc onboarding not finished: `vending` refuses to vend that member until `vm-app01` shows `Connected` in Azure Arc. Once the member finishes onboarding (or recreates the datacenter and onboards Arc), the team lead runs `vending` for that member index (`-f members=<index>`).
+- Preflight and datacenter deployed, but Arc onboarding not finished: `vending` refuses to vend that member until `vm-app01` shows `Connected` in Azure Arc. Once the member finishes onboarding, the team lead reruns `vending` for all members; it is safe to repeat.
 
 ## Recovery
 
-Rerun the stage first: the stages are idempotent. Rerunning the `member` stage is safe before Arc onboarding: it redeploys the datacenter with the same parameters, and the stage refuses to redeploy over Arc. There is no `-Force` parameter. What happens next depends on where the member is:
+Rerunning the `member` stage is safe before Arc onboarding: it redeploys the datacenter with the same parameters, and the stage refuses to redeploy over Arc. There is no `-Force` parameter. After Arc onboarding, use the recovery below.
 
-- **Vended, not Arc-enabled:** rerun the `member` stage, then the team lead runs the `vending` stage for that member again (`-f members=<index>`; it restarts both of their VMs and records their exemptions again, because redeploying drops the DNS and route settings vending applied; see [C2](c02-secure-ai-ready-foundation.md#reset)).
-- **Arc-enabled:** there's no in-place reset. The member deletes `rg-datacenter` in the portal (which also deletes `vm-dev01`, so they repeat the `vm-dev01` setup), then reruns the `member` stage. If the member was already vended, the team lead runs the `vending` stage for them again too.
+- **Arc-enabled, before C5:** there is no in-place reset. To recover, run `teardown`, then `member`. In the member's own repo (member profile), run:
+
+  ```bash
+  gh workflow run platform.yml -f stage=teardown
+  gh workflow run platform.yml -f stage=member
+  ```
+
+  In the team lead's repo, run the same stages with the member's index:
+
+  ```bash
+  gh workflow run platform.yml -f stage=teardown -f members=<your index>
+  gh workflow run platform.yml -f stage=member -f members=<your index>
+  ```
+
+  Member teardown removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If the member does not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If the member was already vended, the team lead runs `vending` for that index afterward. Before T+2, never run a full, unfiltered teardown in the team lead's repo; pass `-f members=<your index>` or ask the event owner for a coach repair. After C5, do not use this recovery; ask the event owner for a coach repair.
 - **A run that can't be repaired in time:** a coach runs the scripts by hand, from the commands on the [deploy with scripts](deploy-with-scripts.md#member) page. Never rerun Arc, and never redeploy the datacenter after Arc.

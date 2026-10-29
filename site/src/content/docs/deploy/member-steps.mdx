@@ -36,17 +36,17 @@ The `member` stage creates `rg-datacenter` with `vm-app01` (legacy Contoso Unive
 <Steps>
 
 1. **Start the `whatif` and `member` stages.**
-   - **Members:**
+   - **In your own repo (member profile):**
 
      ```bash
      gh workflow run platform.yml -f stage=whatif
      gh workflow run platform.yml -f stage=member
      ```
 
-   - **Team lead** (pass your own member index from `roster.json`, normally `1`):
+   - **In the team lead's repo:** run `member` only for your index from `roster.json`:
 
      ```bash
-     gh workflow run platform.yml -f stage=member -f members=1
+     gh workflow run platform.yml -f stage=member -f members=<your index>
      ```
 
 2. **Check the test result in the Actions run summary.** `Test-Datacenter.ps1` checks VM state and size, license type, Trusted Launch (secure boot and vTPM), no public IPs, Azure Bastion Standard, and in-VM checks (IIS up, SQL Server up, and the performance kit's planted data present). It runs before Arc because Arc turns off the VM run commands that the in-VM checks use. Done when every row is PASS.
@@ -57,7 +57,10 @@ The `member` stage creates `rg-datacenter` with `vm-app01` (legacy Contoso Unive
 
 If a run fails, read the run log. The `member` stage is safe to run again until Arc onboarding starts. After Arc starts, see [If you need to start over](#if-you-need-to-start-over).
 
-**No Windows Server licenses?** Azure Hybrid Benefit is on by default for `vm-app01`. If you do not hold eligible licenses, run the stage with `no-hybrid-benefit=true` (`gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`) as described on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page, and let your team lead know.
+**No Windows Server licenses?** Azure Hybrid Benefit is on by default for `vm-app01`. If you do not hold eligible licenses, set the input on the initial member stage and let your team lead know, as described on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page:
+
+- In your own repo (member profile): `gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`
+- In the team lead's repo: `gh workflow run platform.yml -f stage=member -f members=<your index> -f no-hybrid-benefit=true`
 
 ## 3.2 Run the first Arc SQL assessment and check Hybrid Benefit
 
@@ -137,21 +140,27 @@ Start both again before your team lead runs Step 4 at T-1 (`az vm start -g rg-da
 
 ## If you need to start over
 
-Let your team lead know before you run either option below.
+Before T+2, never run a full, unfiltered `teardown` in the team lead's repo. To recover one member there, pass `-f members=<your index>` to both `teardown` and `member`, or ask the event owner for a coach repair.
 
-- **Before Arc:** run the `member` stage again to repair the datacenter. If your datacenter was already vended in Step 4, the re-run resets its DNS servers and routes, so your team lead must re-run `vending` for your member index (`-f members=<n>`).
-- **After Arc, or if onboarding didn't finish:** the `member` stage refuses once `vm-app01` is an Arc machine or its guest agent is off. Run the `teardown` stage, then the `member` stage again:
+- **Before Arc:** in your own repo (member profile), run the `member` stage again to repair the datacenter. In the team lead's repo, add `-f members=<your index>` to the `member` command.
+- **After Arc, before C5:** the `member` stage refuses once `vm-app01` is an Arc machine or its guest agent is off. To recover, run `teardown`, then `member`. In your own repo (member profile), run:
 
   ```bash
   gh workflow run platform.yml -f stage=teardown
   gh workflow run platform.yml -f stage=member
   ```
 
-  This removes `vm-app01`, `vm-dev01` and everything on them, so you repeat Step 3 (`member` stage and `vm-dev01` setup).
+  In the team lead's repo, run the same stages with your index:
+
+  ```bash
+  gh workflow run platform.yml -f stage=teardown -f members=<your index>
+  gh workflow run platform.yml -f stage=member -f members=<your index>
+  ```
+
+  Member teardown removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If you do not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If you were already vended, the team lead must run `vending` for your index afterward.
 
 :::caution
-After C5, `teardown` also removes your archetype, including the SQL Managed Instance, which takes hours to provision again. Never run it after C5 without asking your coach first.
+After C5, do not use this recovery; member teardown removes the archetype, including the SQL Managed Instance, which takes hours to provision again. Ask the event owner for a coach repair.
 :::
 
 Next: [Step 4: Vending (T-1)](../vending/).
-
