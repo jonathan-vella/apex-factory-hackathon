@@ -9,7 +9,10 @@ Azure Hybrid Benefit (AHB) lets you use a Windows Server or SQL Server license y
 
 ## The rule
 
-**If you don't hold eligible licenses:** run the `member` stage with `no-hybrid-benefit` in [Step 3: Datacenter and workstation](../../deploy/member-steps/#31-deploy-your-datacenter-and-onboard-azure-arc), so `vm-app01` is deployed and tested without Hybrid Benefit: `gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`. Let your team lead know, and ask your coach on day one what to do for the SQL Managed Instance in C5. The input covers `vm-app01` only.
+**If you don't hold eligible licenses:** run the `member` stage with `no-hybrid-benefit` in [Step 3: Datacenter and workstation](../../deploy/member-steps/#31-deploy-your-datacenter-and-onboard-azure-arc), so `vm-app01` is deployed and tested without Hybrid Benefit. Let your team lead know, and ask your coach on day one what to do for the SQL Managed Instance in C5. The input covers `vm-app01` only.
+
+- **In your own repo (member):** `gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`
+- **In the team lead's repo:** add `-f members=<your index>`: `gh workflow run platform.yml -f stage=member -f members=<your index> -f no-hybrid-benefit=true`
 
 If you do hold eligible licenses, leave AHB on.
 
@@ -21,9 +24,21 @@ If you do hold eligible licenses, leave AHB on.
 | `vm-dev01` (Windows 11 dev VM) | `Windows_Client` (multi-tenant hosting rights, which Windows 11 on Azure needs). Mandatory, not optional |
 | SQL Managed Instance (`licenseType`) | `BasePrice` (AHB applied), never the SQL MI free offer |
 
-## Turning it off to compare costs
+## If you need to start over after Arc
 
-Not during the event, and only with your coach's agreement: if you want to compare costs with and without AHB, turn it off for `vm-app01` only, with the `member` stage's `no-hybrid-benefit` input or `az vm update -g rg-datacenter -n vm-app01 --license-type None`, or set the managed instance's `licenseType` to `LicenseIncluded`, and redeploy. Leave `vm-dev01` on `Windows_Client`. Turn AHB back on afterward if you hold eligible licenses: the kit's cost figures throughout this site assume it's on.
+After Arc, there is no in-place reset. In your own repo (member), run `teardown`, then `member`; in the team lead's repo, add `-f members=<your index>` to both commands:
+
+```bash
+gh workflow run platform.yml -f stage=teardown
+gh workflow run platform.yml -f stage=member
+```
+
+```bash
+gh workflow run platform.yml -f stage=teardown -f members=<your index>
+gh workflow run platform.yml -f stage=member -f members=<your index>
+```
+
+Member teardown removes `rg-datacenter`, `rg-spoke` and the archetype. If the member was already vended, the team lead must run `vending` again for that member (`-f members=<your index>`). Team leads: never run a full teardown in the lead repo before T+2; to start over, use the named-member form above or ask the event owner for a coach repair. After C5, ask the event owner before member teardown because it removes the archetype, including the SQL Managed Instance, which takes hours to provision again.
 
 ## Where to go next
 

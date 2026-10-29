@@ -5,18 +5,30 @@ sidebar:
   order: 7
 ---
 
-After the event (T+2), each member runs the `teardown` stage in their own repo, the team lead runs it last, and an admin then removes the pipeline identity. Run commands from `factory/`.
+After the event (T+2), each member runs the `teardown` stage in their own repo, the team lead runs the full teardown last, and an admin then removes the pipeline identity. Run commands from `factory/`.
 
 ## Run the teardown stage
+
+**In your own repo (member):**
 
 ```bash
 gh workflow run platform.yml -f stage=teardown
 ```
 
 - A **member's** run removes that member's datacenter, spoke and archetype.
-- The **team lead's** run removes every member first, then the team's foundation and management groups.
+- **In the team lead's repo**, add `-f members=<your index>` to remove only that member:
 
-Tick `include-management` only for a lab you are retiring completely: it also deletes `rg-management` and `id-sqlmi-directory`, so a later event needs the Graph grant again.
+  ```bash
+  gh workflow run platform.yml -f stage=teardown -f members=<your index>
+  ```
+
+- **Team lead's full teardown at T+2** removes every member first, then the team's foundation:
+
+  ```bash
+  gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true
+  ```
+
+Unless the event owner will reuse the tenant, add `-f include-management=true` to the full teardown command. It also deletes `rg-management` and `id-sqlmi-directory`, so a later event needs the Graph grant again.
 
 :::caution
 After C5, the member `teardown` stage removes the archetype, including the SQL Managed Instance, which takes hours to provision again. Never run it, or `teardown` followed by a new `member` run, after C5 without asking your coach first.

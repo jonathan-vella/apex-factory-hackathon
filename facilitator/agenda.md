@@ -10,7 +10,7 @@ The challenge minutes are effort targets, not a serial schedule. The platform fo
 | Step 1 (T-14) | Repo setup and preflight; each member shares their subscription ID, index, object ID and email privately with the team lead | Team lead, members |
 | Step 2 (T-7) | Team lead runs the `foundation` stage (ALZ-lite, pipeline run 1), then a Privileged Role Administrator runs the Graph grant for the SQL MI identity | Team lead, directory administrator |
 | Step 3 (T-3) | Each member runs the `whatif` and `member` stages (preflight, datacenter, `Test-Datacenter.ps1` while the VMs run, then Arc onboarding), saves `factory/evidence/readiness/test-datacenter.txt`, runs the first migration assessment and sets up `vm-dev01` with Copilot working in VS Code through Bastion | Members (team lead is first point of contact) |
-| Step 4 (T-1) | Team lead runs the `vending` stage (pipeline run 2): it checks that each member's `vm-app01` is `Connected` in Azure Arc, vends every ready member in order, restarts the VMs, records the exemptions and runs the connectivity probes | Team lead |
+| Step 4 (T-1) | Team lead runs the `vending` stage (pipeline run 2): it stops at the first member who is not ready. Earlier members are vended but not restarted, exempted or probed; later members are not vended. Fix the cause and rerun vending for all members (safe to repeat); use `-f members=<n>` only for indexes named in phase 3's failure output | Team lead |
 | Before Day 1 | Start both VMs of every datacenter (idle ones may have been stopped), check the room and projection, stage demo materials and publish this agenda | Event owner, coaches |
 
 ## Day 1

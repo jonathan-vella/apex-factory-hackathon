@@ -28,7 +28,7 @@ sidebar:
 - **The datacenter test fails on in-VM checks:** the VMs must be running, and the test runs before Arc onboarding. After Arc onboarding the run commands no longer work, so don't run the `member` stage again. The stage stops before Arc when the test fails: read the run log, then run it again. Keep the PASS output from the run that passed as your evidence (`Get-PipelineEvidence.ps1` downloads it).
 - **Bastion won't connect:** connect from the Azure portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. Check the VM is running. The native client (`Connect-DatacenterVm.ps1`) is an optional shortcut that works only from Windows with the Azure CLI Bastion extension.
 - **Copilot isn't signed in on `vm-dev01`:** the VS Code extensions install at first logon, so give the first sign-in up to five minutes, then sign in to GitHub in VS Code.
-- **Arc onboarding times out:** don't run the `member` stage again. Once onboarding has started, it turns off the VM's guest agent and the stage refuses a second run, and a redeploy can't recover it. Read the run log, then connect to `vm-app01` through Bastion and read `C:\LabTools\logs\Connect-AppArc.log` (open it in Notepad). Check outbound access to Arc's endpoints through the NAT gateway first if the log shows a network error. If onboarding didn't finish, stop and tell your coach: the recovery is the `teardown` stage, then the `member` stage again. Before C5 only: after C5, `teardown` also removes the archetype, including the SQL Managed Instance, which takes hours to provision again, so never run it then without asking your coach first.
+- **Arc onboarding times out:** don't run the `member` stage again. Once onboarding has started, it turns off the VM's guest agent and the stage refuses a second run, and a redeploy can't recover it. Read the run log, then connect to `vm-app01` through Bastion and read `C:\LabTools\logs\Connect-AppArc.log` (open it in Notepad). Check outbound access to Arc's endpoints through the NAT gateway first if the log shows a network error. If onboarding didn't finish, use the recovery under **`vm-app01 is already an Arc machine`** below.
 
 ## ALZ-lite and vending
 
@@ -44,7 +44,19 @@ sidebar:
 - **A run waits and nothing happens:** it's waiting for the reviewer. Open the run and choose **Review deployments**. On a private repo with no reviewer option there's no gate, so a run that sits queued has lost its runner: cancel it and run the stage again.
 - **Login fails with `AADSTS700213`:** the identity's credential doesn't match what your repo presents. Run `./scripts/Test-PipelineSetup.ps1` (add `-PipelineProfile Member` in your own repo): it names the failing check. Re-running `Initialize-PlatformPipeline.ps1` repairs the credential.
 - **The guard refuses a subscription:** it isn't on the pipeline's approved list or is on its deny list. Check the roster and the repo's environment secrets with `Test-PipelineSetup.ps1`. Never add a subscription to the approved list to get past this unless it's part of the event.
-- **`vm-app01 is already an Arc machine`:** the member stage never redeploys over Arc, because Arc can't be undone. Before C5, run the `teardown` stage for that member, then the `member` stage again. After C5, never do this without asking your coach first: the member `teardown` stage removes the archetype, including the SQL Managed Instance, which takes hours to provision again.
+- **`vm-app01 is already an Arc machine`:** the member stage never redeploys over Arc, because Arc can't be undone. After Arc, there is no in-place reset. In your own repo (member), run `teardown`, then `member`; in the team lead's repo, add `-f members=<your index>` to both commands:
+
+  ```bash
+  gh workflow run platform.yml -f stage=teardown
+  gh workflow run platform.yml -f stage=member
+  ```
+
+  ```bash
+  gh workflow run platform.yml -f stage=teardown -f members=<your index>
+  gh workflow run platform.yml -f stage=member -f members=<your index>
+  ```
+
+  Member teardown removes `rg-datacenter`, `rg-spoke` and the archetype. If the member was already vended, the team lead must run `vending` again for that member (`-f members=<your index>`). Team leads: never run a full teardown in the lead repo before T+2; to start over, use the named-member form above or ask the event owner for a coach repair. After C5, ask the event owner before member teardown because it removes the archetype, including the SQL Managed Instance, which takes hours to provision again.
 - **`Vending stopped at member N ... hub is incomplete`:** run the `foundation` stage first. Vending needs `vnet-hub`, `afw-hub`, `log-management` and `id-sqlmi-directory`.
 - **The ALZ-lite what-if prints "First deployment":** expected. The what-if can't compare against management groups that don't exist yet. Run the `foundation` stage.
 - **Removal stops before the team step:** a member's removal failed. Fix it, run `teardown` again, and the finished members are skipped. It also stops if a subscription under the Corp group isn't in the roster.

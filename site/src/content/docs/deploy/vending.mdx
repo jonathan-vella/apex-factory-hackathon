@@ -42,14 +42,14 @@ gh workflow run platform.yml -f stage=vending
 
 Open the **Actions** tab on GitHub and approve the run if asked. The stage runs in three phases:
 
-1. **Automatic readiness check and spoke vending (one member at a time):** for each member in `roster.json`, the pipeline verifies that `vnet-datacenter` exists and `vm-app01` is connected to Azure Arc (`Connected`), then runs `Deploy-Vending.ps1`. If a member has not finished Step 3, the stage stops before vending that member and names their member index.
+1. **Automatic readiness check and spoke vending (one member at a time):** for each member in `roster.json`, the pipeline verifies that `vnet-datacenter` exists and `vm-app01` is connected to Azure Arc (`Connected`), then runs `Deploy-Vending.ps1`. If a member has not finished Step 3, the stage stops at that first unready member. Earlier members have been vended but not restarted, exempted or probed; later members have not been vended.
 2. **Parallel VM restart:** restarts `vm-app01` and `vm-dev01` for all vended members at once so they pick up the hub firewall's DNS proxy.
 3. **Parallel exemptions and connectivity probes:** runs `New-DatacenterExemptions.ps1` and `Test-Connectivity.ps1` for every vended member.
 
-If one member fails (for example, because they had not finished Step 3 or their VMs were stopped), fix the cause and re-run `vending` for that member index only:
+If readiness stops at an unready member, or the parallel restart phase fails, fix the cause and re-run `vending` for all members; repeating it is safe. A restart failure skips phase 3 for everyone. Use `-f members=<n>` only for member indexes named in phase 3's failure output:
 
 ```bash
-gh workflow run platform.yml -f stage=vending -f members=<n>
+gh workflow run platform.yml -f stage=vending
 ```
 
 When the run is green, post "vended" in your team's private channel along with the **shared services subscription ID** so your teammates can save it in `4.3`.
