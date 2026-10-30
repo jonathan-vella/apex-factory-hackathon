@@ -14,7 +14,7 @@ C8 is a fixed checklist, so grading is mostly about completeness and evidence qu
 - Notification round-trip: a toast within 5 seconds of a student edit, and `/Notifications/GetNotifications` returning success.
 - A light load check (10–20 concurrent page loads) with no errors.
 - Security check: `acceptance.json` showing **Verdict ACCEPT**, with no FAIL or UNKNOWN: the five pages and HTTPS redirect, HTTPS-only/TLS 1.2 minimum, backend public access off and approved private endpoints, plus SQL MI's public data endpoint off.
-- Application Insights **Transaction search** (last hour or a custom range from C8's start) showing requests and dependencies from this session's checks.
+- Application Insights **Investigate > Search (formerly Transaction search)** (last hour or a custom range from C8's start) showing requests and dependencies from this session's checks.
 - A filled-in acceptance and handover document with the member index.
 
 ## Model answer

@@ -15,9 +15,9 @@ No exam is a gate for attending the event. Exam rules, outlines and Partner Cent
 
 - Microsoft partners, mostly infrastructure architects and engineers. The app and database work in the factory is Copilot-assisted.
 - Any partner. Nothing here depends on your Solutions Partner qualification track. Where a designation gate counts certified people, aim for two per gate. That covers every track.
-- Everyone on an infra track (team lead, workloads, security) holds all three core certifications: AZ-104 (Azure Administrator), GH-300 (GitHub Copilot) and DP-300 (Azure Database Administrator). The [Last validated](#last-validated) table names every exam.
+- Everyone on an infra track (team lead, workloads, security) takes all three core certifications within six months after the event: AZ-104 (Azure Administrator), GH-300 (GitHub Copilot) and DP-300 (Azure Database Administrator). The [Last validated](#last-validated) table names every exam.
 - Applied Skills are short, hands-on Microsoft assessments of one skill. They're recommended stepping stones, never gates.
-- Coaches: GH-300 plus DP-300 or AZ-104 is recommended, not required.
+- Coaches: AZ-104 is core for the certification track; GH-300 and DP-300 are recommended. None is an admission gate for the event.
 
 The role tracks below are about certifications. For who does what during the event, see [Roles](../../getting-started/roles/).
 
@@ -46,7 +46,7 @@ These are certification tracks, not event roles. On the event you're a member of
 | Infra member: security | AZ-104, GH-300, DP-300 | SC-500 | None | C2, C8 |
 | Data member | DP-300, DP-800 | SC-500 or AZ-104 | None | C3, C4, C7, C9 |
 | Developer member | GH-300 | AI-200; AZ-400 (after AZ-104); AKS and Container Apps paths | GH-600, AI-103 | C6, C8 |
-| Coach | Recommended: GH-300 plus DP-300 or AZ-104 | AZ-305 | GH-600 | All, as coach |
+| Coach | AZ-104; recommended GH-300 and DP-300 | AZ-305 | GH-600 | All, as coach |
 
 DP-800 is the extra group that Infra and Database Migration requires, so a team needs at least one DP-800 holder. The data member takes it. AI-200 is Python-oriented and covers Cosmos DB, PostgreSQL vectors and Redis, so it stays on the developer track.
 
@@ -59,13 +59,13 @@ Each row links to the challenge, lists the skills it exercises and points to Lea
 | [C1: Define the opportunity](../../challenges/c01-define-the-opportunity/) | Scoping a modernization opportunity and a plan | [Cloud Adoption Framework strategy](https://learn.microsoft.com/azure/cloud-adoption-framework/strategy/); [Well-Architected Framework path](https://learn.microsoft.com/training/paths/azure-well-architected-framework/) | AZ-305 |
 | [C2: Secure, AI-ready foundation](../../challenges/c02-secure-ai-ready-foundation/) | Landing zone, management groups, policy, RBAC, hub and spoke networking, private DNS | [AZ-104 identities and governance](https://learn.microsoft.com/training/paths/az-104-manage-identities-governance/); [AZ-700 networking path](https://learn.microsoft.com/training/paths/design-implement-microsoft-azure-networking-solutions-az-700/); [Azure landing zone](https://learn.microsoft.com/azure/cloud-adoption-framework/ready/landing-zone/) | AZ-104, AZ-700, SC-500, AZ-305 |
 | [C3: Assess the source](../../challenges/c03-assess-the-source/) | Reviewing migration assessment findings, SQL Managed Instance compatibility | [Migrate SQL Server workloads to Azure SQL](https://learn.microsoft.com/training/paths/migrate-sql-workloads-azure/); [Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation) | DP-300, GH-300 |
-| [C4: Choose target states](../../challenges/c04-choose-target-states/) | Architecture decisions, migration method, deferred work | [Architect migration, BCDR and disaster recovery](https://learn.microsoft.com/training/paths/architect-migration-bcdr/); [SQL Server to Azure SQL Managed Instance: Migration Overview](https://learn.microsoft.com/azure/azure-sql/migration-guides/managed-instance/sql-server-to-managed-instance-overview) | AZ-305, DP-300 |
+| [C4: Choose target states](../../challenges/c04-choose-target-states/) | Architecture decisions, migration method, deferred work | [Architect migration, BCDR and disaster recovery](https://learn.microsoft.com/training/paths/architect-migration-bcdr/); [SQL MI migration overview](https://learn.microsoft.com/data-migration/sql-server/managed-instance/overview) | AZ-305, DP-300 |
 | [C5: Deploy the CoE archetype](../../challenges/c05-deploy-the-coe-archetype/) | Infrastructure as code, `azd`, App Service, registry, SQL Managed Instance, Key Vault, agent-assisted deployment | [AZ-104 compute resources](https://learn.microsoft.com/training/paths/az-104-manage-compute-resources/); [Azure Developer CLI overview](https://learn.microsoft.com/azure/developer/azure-developer-cli/overview) | AZ-104, DP-300, GH-600 |
-| [C6: Modernize with GHCP](../../challenges/c06-modernize-with-ghcp/) | .NET upgrade with Copilot, managed identity, Blob, Service Bus, container image | [GitHub Copilot Fundamentals Part 2](https://learn.microsoft.com/training/paths/gh-copilot-2/); [Modernize ASP.NET Framework to ASP.NET Core with the .NET Upgrade Assistant](https://learn.microsoft.com/training/modules/modernize-aspnet-framework-to-core/); the [Applied Skill](https://learn.microsoft.com/credentials/applied-skills/accelerate-app-development-by-using-github-copilot/) | GH-300 (AI-200 for the developer track) |
+| [C6: Modernize with GHCP](../../challenges/c06-modernize-with-ghcp/) | .NET upgrade with Copilot, managed identity, Blob, Service Bus, container image | [GitHub Copilot Fundamentals Part 2](https://learn.microsoft.com/training/paths/gh-copilot-2/); [GitHub Copilot upgrade](https://learn.microsoft.com/dotnet/core/porting/github-copilot-upgrade/); the [Applied Skill](https://learn.microsoft.com/credentials/applied-skills/accelerate-app-development-by-using-github-copilot/) | GH-300 (AI-200 for the developer track) |
 | [C7: Migrate and go live](../../challenges/c07-migrate-and-go-live/) | Managed Instance link, replica validation, cutover, App Service go-live | [Migrate with the Managed Instance link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-migrate); [Migrate to SQL Managed Instance with Azure Arc](https://learn.microsoft.com/sql/sql-server/azure-arc/migrate-to-azure-sql-managed-instance) | DP-300 |
 | [C8: Validate the pattern](../../challenges/c08-validate-the-pattern/) | Acceptance checks, private endpoints, identity, monitoring | [AZ-104 monitor and back up](https://learn.microsoft.com/training/paths/az-104-monitor-backup-resources/); [Monitor App Service](https://learn.microsoft.com/azure/app-service/monitor-app-service); [Private endpoints for Storage](https://learn.microsoft.com/azure/storage/common/storage-private-endpoints) | SC-500, AZ-104 |
 | [C9: Optimize the DB with GHCP](../../challenges/c09-optimize-the-db-with-ghcp/) | Query Store, query tuning, Copilot-assisted database changes | [Optimize query performance in Azure SQL](https://learn.microsoft.com/training/paths/optimize-query-performance-sql-server/); [Query Store overview](https://learn.microsoft.com/sql/relational-databases/performance/monitoring-performance-by-using-the-query-store) | DP-300, DP-800 |
-| [C10: Package, hand over, review AI readiness](../../challenges/c10-package-hand-over-review-ai-readiness/) | Reusable asset, handover, AI-readiness review | [Build a cloud governance team](https://learn.microsoft.com/azure/cloud-adoption-framework/govern/); [Introduction to AI landing zones](https://learn.microsoft.com/training/modules/intro-ai-landing-zones/) | AZ-305, GH-600 |
+| [C10: Package, hand over, review AI readiness](../../challenges/c10-package-hand-over-review-ai-readiness/) | Reusable asset, handover, AI-readiness review | [Build a cloud governance team](https://learn.microsoft.com/azure/cloud-adoption-framework/govern/build-cloud-governance-team); [Introduction to AI landing zones](https://learn.microsoft.com/training/modules/intro-ai-landing-zones/) | AZ-305, GH-600 |
 | Beyond v1: AKS and Container Apps | The same container on AKS or Container Apps | The [AKS](https://learn.microsoft.com/training/paths/deploy-manage-containers-azure-kubernetes-service/) and [Container Apps](https://learn.microsoft.com/training/paths/deploy-cloud-native-applications-to-azure-container-apps/) paths | AI-200, SC-500, AZ-104 |
 
 ### Badges and exam domains
@@ -87,10 +87,8 @@ The factory supports two Partner Center specializations. A specialization is an 
 
 | Specialization | Required designation | Skilling |
 | --- | --- | --- |
-| [Infra and Database Migration to Microsoft Azure](https://partner.microsoft.com/en-us/partnership/specialization/infra-and-database-migration) | Data & AI (Azure) or Infrastructure (Azure) | Four or more people, with at least one certification from each group: DevOps Engineer Expert (AZ-400); Azure Administrator Associate (AZ-104); Cloud and AI Security Engineer Associate (SC-500); Azure Database Administrator Associate (DP-300); SQL AI Developer Associate (DP-800) |
+| [Infra and Database Migration to Microsoft Azure](https://partner.microsoft.com/en-us/partnership/specialization/infra-and-database-migration) | Data & AI (Azure) or Infrastructure (Azure) | Four or more people, with at least one certification from each group: DevOps Engineer Expert (AZ-400); Azure Administrator Associate (AZ-104); Cloud and AI Security Engineer Associate (SC-500), or the retired Azure Security Engineer Associate (AZ-500); Azure Database Administrator Associate (DP-300); SQL AI Developer Associate (DP-800) |
 | [App Modernization on Microsoft Azure](https://partner.microsoft.com/en-us/partnership/specialization/app-modernization-on-microsoft-azure) | Data & AI (Azure) or Digital & App Innovation (Azure) | Three or more people, with at least one certification from each group: DevOps Engineer Expert (AZ-400); Azure AI Cloud Developer Associate (AI-200) or the retired Azure Developer Associate; Azure Administrator Associate (AZ-104) |
-
-DP-800 counts as a required group for Infra and Database Migration, in addition to DP-300.
 
 ### Sample plan for five people
 
@@ -99,16 +97,18 @@ A team of five can cover both specializations. Each person here is a team member
 | Person | Exams |
 | --- | --- |
 | Team lead | AZ-104, GH-300, DP-300, AZ-305, AZ-700 |
-| DevOps | AZ-104, GH-300, DP-300, AZ-400 |
-| Data | DP-300, DP-800 |
-| Security | AZ-104, GH-300, DP-300, SC-500 |
-| Developer | GH-300, AI-200 |
+| Infra member: workloads | AZ-104, GH-300, DP-300, AZ-400 |
+| Data member | DP-300, DP-800 |
+| Infra member: security | AZ-104, GH-300, DP-300, SC-500 |
+| Developer member | GH-300, AI-200 |
 
 Infra and Database Migration needs four or more people across five groups. The team lead, DevOps, data and security people cover them: AZ-400 (DevOps), AZ-104 (team lead), SC-500 (security), DP-300 (team lead) and DP-800 (data). App Modernization needs three or more people across three groups. The DevOps, developer and team lead people cover them: AZ-400, AI-200 and AZ-104. Every group in both tables has a holder.
 
 ### Designation gates
 
-The Solutions Partner designation pages count certified people per gate. Aim for two AZ-104 holders and two AZ-305 holders, which covers every qualification track. The sample plan has three AZ-104 holders and one AZ-305 holder, so a second person, such as your coach, should also hold AZ-305. The Infrastructure designation takes the Azure Network Engineer Associate certification (AZ-700) for its second step. See [Solutions Partner for Data & AI, Infrastructure, and Digital & App Innovation](https://learn.microsoft.com/partner-center/membership/solutions-partner-azure).
+The Solutions Partner designation pages count certified people per gate. Aim for two AZ-104 holders and two AZ-305 holders, which covers every qualification track. The sample has only one AZ-305 holder: add a **second AZ-104 plus AZ-305 holder in your organization**, such as your coach. The Infrastructure designation takes AZ-700 for its second step. See [Solutions Partner for Data & AI, Infrastructure, and Digital & App Innovation](https://learn.microsoft.com/partner-center/membership/solutions-partner-azure).
+
+For Digital & App Innovation, **GH-600** counts toward intermediate certifications after the AZ-104 gate; **GH-300** counts toward advanced certifications after the Azure Solutions Architect Expert gate (AZ-104 plus AZ-305). These are different metrics, not interchangeable certifications. Meet both prerequisite gates for the full plan.
 
 Requirements change. Partner Center is the source of truth.
 
@@ -134,27 +134,28 @@ This stage is optional. It prepares your people for the "Enable AI tomorrow" fol
 
 ## Last validated
 
-**October 20, 2026.** On that date every link on this page was opened, each exam's study guide was checked for its status and skills outline date, and the retirement and designation pages were checked again. The specialization skilling groups were last compared with this page on October 10, 2026.
+**October 30, 2026:** rechecked the DP-300 and DP-800 outline dates, Azure Solutions Architect prerequisite, current Upgrade guidance and Partner Center designation metrics. The previous full link and exam-status review was October 20; the specialization groups were last compared on October 10. Recheck all study guides and Partner Center requirements before each event.
 
 | Exam | Certification | Status | Skills outline date |
 | --- | --- | --- | --- |
 | [AZ-104](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-104) | Azure Administrator Associate | Active | April 17, 2026 |
 | [GH-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-300) | GitHub Copilot | Active | August 7, 2026 |
-| [DP-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-300) | Azure Database Administrator Associate | Active | October 27, 2026 (announced, not yet in effect) |
+| [DP-300](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-300) | Azure Database Administrator Associate | Active | October 27, 2026 (in effect) |
 | [AZ-305](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-305) | Azure Solutions Architect Expert | Active | April 17, 2026 |
 | [AZ-400](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-400) | DevOps Engineer Expert | Active | July 27, 2026 |
 | [SC-500](https://learn.microsoft.com/credentials/certifications/resources/study-guides/sc-500) | Cloud and AI Security Engineer Associate | Active | Not shown |
 | [AZ-700](https://learn.microsoft.com/credentials/certifications/resources/study-guides/az-700) | Azure Network Engineer Associate | Active | July 27, 2026 |
 | [AI-200](https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-200) | Azure AI Cloud Developer Associate | Active | October 7, 2026 |
-| [DP-800](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-800) | SQL AI Developer Associate | Active | October 19, 2026 |
+| [DP-800](https://learn.microsoft.com/credentials/certifications/resources/study-guides/dp-800) | SQL AI Developer Associate | Active | March 12, 2026 |
 | [GH-600](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-600) | [GitHub Certified: Agentic AI Developer](https://learn.microsoft.com/credentials/certifications/agentic-ai-developer/) | Active | Not shown |
 | [AI-103](https://learn.microsoft.com/credentials/certifications/resources/study-guides/ai-103) | Azure AI Apps and Agents Developer Associate | Active | April 16, 2026 |
 | [GH-900](https://learn.microsoft.com/credentials/certifications/resources/study-guides/gh-900) | GitHub Foundations (optional) | Active | January 2026 |
 
-None of these exams is on the retirement page, and none is renamed.
+Reconfirm active status and retirement dates before booking; the dates above identify the reviews actually performed.
 
 ## Things to know
 
+- **AZ-305 needs AZ-104.** Passing AZ-305 earns Azure Solutions Architect Expert only when you also hold Azure Administrator Associate (AZ-104); see the [certification prerequisites](https://learn.microsoft.com/credentials/certifications/azure-solutions-architect/).
 - **AZ-400 needs a prerequisite.** The DevOps Engineer Expert certification needs the Azure Administrator Associate (AZ-104) or the Azure Developer Associate certification first. AZ-204 has retired and AI-200 isn't a listed prerequisite, so take AZ-104 first. A developer who holds only GH-300 and AI-200 can sit the AZ-400 exam but needs AZ-104 to earn the certification.
 - **Partner Center lists lag behind exam changes.** The Infrastructure designation still lists the Windows Server Hybrid Administrator certification, although AZ-800 and AZ-801 retired. Don't plan on those exams: use AZ-700 for Infrastructure points. The Digital & App Innovation designation lists both the retired Azure Developer Associate and the Azure AI Cloud Developer Associate (AI-200), so AI-200 now appears there. Check Partner Center before you rely on a list.
 - **Some exams show no outline date.** The SC-500 and GH-600 study guides show no skills outline date yet, so check them again before you book. The SC-500 study guide doesn't offer a practice assessment yet. The AI-200 practice assessment is on AI Skills Navigator, not on the study guide.

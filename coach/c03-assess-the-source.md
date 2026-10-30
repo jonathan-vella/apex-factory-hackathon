@@ -32,7 +32,7 @@ The outcome is safe, repeatable change. Open the member's triage table and check
 
 ## Common mistakes
 
-- Ticking the trace-flag finding as "fix: remove the trace flags now" — this breaks MI link prep before it's even started. The correct answer is to leave them until after cutover.
+- Ticking the trace-flag finding as "fix: remove the trace flags now" removes the recommended seeding and replication optimizations before they are used. Leave them until after cutover.
 - Treating every Arc assessment warning as a blocker — most warnings in this environment are expected/self-inflicted; a true blocker needs an actual unsupported feature in use by the application, not a setting the kit itself introduced.
 - Starting to run the Upgrade agent's tasks during C3 — the challenge stops at the assessment and the approved plan. Task execution is C6's job.
 

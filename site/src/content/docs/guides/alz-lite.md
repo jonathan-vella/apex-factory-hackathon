@@ -71,7 +71,7 @@ A full Azure Landing Zone, as the [portal accelerator deploys it](https://learn.
 | Full ALZ | ALZ-lite |
 |---|---|
 | Platform, Landing Zones, Sandbox and Decommissioned management groups | `mg-factory` (under Tenant Root) with `mg-factory-platform` and `mg-factory-corp` beneath it |
-| Multiple landing zone archetypes (Corp, Online, confidential) | One archetype (Corp) |
+| Multiple landing zone management groups (Corp, Online, Local) | One management group (Corp) |
 | Full Azure Policy initiative set (hundreds of built-ins) | A small, fixed set: Audit for location, Deny for public network access/public IPs, DeployIfNotExists for private DNS and diagnostics (Audit only reports, Deny blocks the request, DeployIfNotExists adds the missing setting) |
 | Defender for Cloud with paid plans | Foundational CSPM only, free |
 | Hub with ExpressRoute/VPN gateways | Hub with Azure Firewall and no gateways: no ExpressRoute or VPN. The simulated datacenter peers with the hub instead, which stands in for the on-premises link |

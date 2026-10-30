@@ -7,6 +7,8 @@ sidebar:
 
 Figures are approximate list-price estimates in USD for `swedencentral`, checked on **2026-10-08**, with Azure Hybrid Benefit applied where it is on by default. Actual cost depends on usage and regional pricing; recheck before each event.
 
+**Validated on:** 2026-10-30 (documentation consistency only; price estimates retain their 2026-10-08 date and were not repriced).
+
 ## Per member
 
 | Component | Running | Stopped (deallocated) |

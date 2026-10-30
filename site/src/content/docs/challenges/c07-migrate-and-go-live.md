@@ -95,6 +95,8 @@ $mi
 
 ## Requirements
 
+**Portal documentation checked on:** 2026-10-30. These steps retain the kit's tested migration flow; the portal UI was not rerun for this review. The event owner must validate the current portal labels before each event and record that run's date, rather than treating this source-check date as a live test.
+
 1. **Prepare the source.** Run the kit's `Prepare-MiLinkSource.ps1` on `vm-app01`. It must run inside a Bastion session, because VM run commands stop working once the VM is Arc-enabled. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
 
    1. Connect to `vm-app01` through Bastion and open an Administrator Windows PowerShell (Where to run).

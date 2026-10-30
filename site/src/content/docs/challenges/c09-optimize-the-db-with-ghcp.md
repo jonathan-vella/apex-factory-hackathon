@@ -37,6 +37,8 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 Use [Diagnose a slow plan](../../prompts/vscode/08-diagnose-a-slow-plan/) for a neutral, evidence-led Copilot prompt. It does not contain the fixes.
 
+In VS Code, connect the **MSSQL extension** to **ContosoUniversity** on your managed instance using your Microsoft Entra identity. Start database-aware Copilot prompts with **`@mssql`** so they use that connection; verify the selected database before running any proposed SQL.
+
 <details>
 <summary>Set up once per PowerShell window</summary>
 
