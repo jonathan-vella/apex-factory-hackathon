@@ -12,6 +12,8 @@ Each member also checks their `rg-datacenter` policy exemptions and runs `Test-C
 
 ## Expected evidence
 
+**Timing cues:** finish Layer 1 by 10:00 and Layer 2 by 10:15, before the curveball. Reserve the final minutes for exemptions, connectivity and the evidence commit.
+
 In each member's own repo (`factory/evidence/c02/guardrail-test.md`), with no tenant, subscription or object IDs:
 
 - **Layer 1 (5 member pts):**
@@ -82,14 +84,7 @@ And the team lead confirms the Graph grant from Step 2.2 once for the team:
 
 Use this only when a pre-hackathon stage run can't be repaired in time (rerun the stage first: the stages are idempotent). A coach runs the same scripts by hand, in this order. Students don't run them:
 
-```powershell
-./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
-./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId <member-subscription-id> -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <n> -MemberPrincipalId <member-object-id> -BudgetEmail <member-email> -Location $s.location
-az vm restart -g rg-datacenter -n vm-dev01 --subscription <member-subscription-id>
-az vm restart -g rg-datacenter -n vm-app01 --subscription <member-subscription-id>
-./scripts/New-DatacenterExemptions.ps1 -SubscriptionId <member-subscription-id> -Owner '<name>'
-./scripts/Test-Connectivity.ps1 -SubscriptionId <member-subscription-id> -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <n>
-```
+Use the commands on [Repair: deploy with scripts](deploy-with-scripts.md#team-lead), including the configured `MG_PREFIX` and `PARENT_MG`, rather than the scripts' default scope.
 
 - Run `Deploy-Vending.ps1`, the restarts, the exemptions and the connectivity test once per member, after ALZ-lite and after that member's datacenter and Arc onboarding. Take the other members' values from the roster the team lead keeps privately (captured at Step 1).
 - Never rerun Arc, and never redeploy a datacenter after Arc. A datacenter redeployed after vending requires vending again.
@@ -97,6 +92,10 @@ az vm restart -g rg-datacenter -n vm-app01 --subscription <member-subscription-i
 ## Business outcome check
 
 The outcome is secure by default. Check that the member's two-sentence takeaway in `guardrail-test.md` clearly distinguishes repository guardrails (which catch mistakes in code before deployment, but can be bypassed) from Azure Landing Zone `Deny` policies (which enforce rules at the Azure control plane regardless of how a human or AI agent calls Azure).
+
+## Day 1 curveball
+
+At **10:15**, after Layer 2 and before C3 at 10:30, use **Curveballs** in the Coach sidebar. The team lead assigns `curveball-allowed-locations` at the event's Corp management group under your direction, captures the denial and decision, then removes only that exercise assignment after sign-off and before C5 at 13:45. The sidebar page contains the create and delete commands. Never weaken a baseline or tenant policy. This exercise adds no points and does not replace each member's normal C2 evidence.
 
 ## Common mistakes
 
@@ -112,7 +111,7 @@ The outcome is secure by default. Check that the member's two-sentence takeaway 
 
 ## Bonus
 
-Up to 5 member bonus points (under the shared 30-point team bonus cap) for testing a `DeployIfNotExists` policy from `infra/foundation/validation.md`: creating a temporary private endpoint in `rg-spoke` / `snet-pe` without a DNS zone group, waiting for Azure Policy remediation (~12 minutes) to register its `A` record in the hub's central private DNS zone, recording the result in `guardrail-test.md`, and deleting the test resources afterward.
+Up to 5 bonus points (member, under the shared 30-point cap) for testing a `DeployIfNotExists` policy from `infra/foundation/validation.md`: creating a temporary private endpoint in `rg-spoke` / `snet-pe` without a DNS zone group, waiting for Azure Policy remediation (~12 minutes) to register its `A` record in the hub's central private DNS zone, recording the result in `guardrail-test.md`, and deleting the test resources afterward.
 
 ## Reset
 

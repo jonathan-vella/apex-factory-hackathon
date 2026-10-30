@@ -1,4 +1,4 @@
-# Curveballs
+# Curveballs (coach)
 
 The coach controls both exercises. Announce the trigger, give teams only the information below, and record the evidence in the normal challenge rubric. Curveballs do not change the base points on the challenge pages; eligible bonus evidence still uses the shared 30-point ceiling.
 

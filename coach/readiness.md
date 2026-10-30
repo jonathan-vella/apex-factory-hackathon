@@ -1,9 +1,8 @@
-# Readiness verification (coach)
+# Readiness check (coach)
 
-> [!WARNING]
-> Coach and team-lead reference. No coach is on duty during the pre-hackathon window; support before day one is best-effort and attendees contact their designated team lead first. Attendees follow the numbered steps in [Step 3: Datacenter and workstation](https://factory.apexops.pro/deploy/member-steps/#readiness-checklist) and [Step 4: Vending](https://factory.apexops.pro/deploy/vending/).
+Coach and team-lead reference. No coach is on duty during the pre-hackathon window; support before day one is best-effort and attendees contact their designated team lead first. Attendees follow the numbered steps in [Step 3: Datacenter and workstation](../site/src/content/docs/deploy/member-steps.mdx#readiness-checklist) and [Step 4: Vending](../site/src/content/docs/deploy/vending.mdx).
 
-The readiness setup has no points. Before day one, each member runs [Step 1](https://factory.apexops.pro/deploy/set-up-your-repo/) (T-14) and [Step 3](https://factory.apexops.pro/deploy/member-steps/) (T-3) in their own repository against their own workload subscription. At T-1 ([Step 4](https://factory.apexops.pro/deploy/vending/)), the team lead runs the `vending` stage once for the whole team: `Invoke-PipelineVending.ps1` automatically checks that each member's `vnet-datacenter` exists and `vm-app01` is `Connected` in Azure Arc before vending their spoke.
+The readiness setup has no points. Before day one, each member runs [Step 1](../site/src/content/docs/deploy/set-up-your-repo.mdx) (T-14) and [Step 3](../site/src/content/docs/deploy/member-steps.mdx) (T-3) in their own repository against their own workload subscription. At T-1 ([Step 4](../site/src/content/docs/deploy/vending.mdx)), the team lead runs the `vending` stage once for the whole team: `Invoke-PipelineVending.ps1` automatically checks that each member's `vnet-datacenter` exists and `vm-app01` is `Connected` in Azure Arc before vending their spoke.
 
 If a coach is reviewing readiness evidence at kickoff on day one (or helping a team lead troubleshoot a member before T-1), use the checklist below.
 
@@ -29,7 +28,9 @@ Use this list when spot-checking `factory/evidence/readiness/` in a member's rep
 
 ## How members get there
 
-Members run the readiness check from GitHub Actions in their own repo. Each stage approves once and runs the kit's scripts with the member's `.local/settings.json` values. The steps are on the [member steps](https://factory.apexops.pro/deploy/member-steps/) page. The team lead does the same in the lead's repo, with `-f members=<lead's index>`.
+Members run the readiness check from GitHub Actions in their own repo, using the settings registered with the pipeline. The steps are on the [member steps](../site/src/content/docs/deploy/member-steps.mdx) page. The team lead does the same in the lead's repo, with `-f members=<lead's index>`.
+
+With required reviewers enabled, approvals apply to jobs, not once per stage. `whatif` has preflight, plus ALZ-lite what-if in the lead profile. `member` has preflight, then the member matrix. `foundation` and `vending` each have one job. `all` has preflight, ALZ-lite what-if, foundation, the member matrix and vending in sequence. `teardown` has the member matrix, then team cleanup only for an explicitly confirmed full lead teardown. Matrix jobs can appear together in one approval prompt; approve only the named, intended jobs.
 
 1. `gh workflow run platform.yml -f stage=whatif`: the preflight, with `-Fix` (the lead's run also does the ALZ-lite what-if). The member reviews the manual-check list it prints and confirms each one.
 2. `gh workflow run platform.yml -f stage=member -f members=<index>`: deploys the datacenter, runs `Test-Datacenter.ps1` with both VMs running, and only if that passes onboards `vm-app01` to Azure Arc. The test comes before Arc because after Arc, run commands on `vm-app01` stop working and the in-VM checks fail. There is no portal fallback for Arc, by design.

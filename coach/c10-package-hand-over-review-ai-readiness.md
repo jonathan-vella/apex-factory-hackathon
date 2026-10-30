@@ -7,9 +7,11 @@ C10 is a synthesis challenge — there's no single technical answer, so grade fo
 
 ## Expected evidence
 
+**Timing cues:** by 30 minutes, the asset and handover should be usable; reserve the final 15 minutes for the gap register, checklist and showcase. Prompt for missing evidence rather than filling it in for the team.
+
 - One packaged reusable asset (the archetype adaptation, the modernization playbook run, or the perf kit fixes), committed in `factory/evidence/c10/reusable-asset/` of each member's own repo (scored once, from the team lead's copy) and referenced from the handover document, usable by someone who wasn't in the room.
 - A completed acceptance-and-handover document covering every member's C8 results, not just one member's.
-- An AI-readiness gap register with at least one entry per lifeline actually used by the team, and — even if none were used — entries for the human-in-the-loop points the kit deliberately keeps (C3's finding triage, C4's ADRs, C7's go/no-go).
+- An AI-readiness gap register with an entry each time a coach unblocked the team, including every lifeline or supplied checkpoint. Ordinary hints and discussion need no separate entry. Even if none were used, expect entries for the human-in-the-loop points the kit deliberately keeps (C3's finding triage, C4's ADRs, C7's go/no-go).
 - The factory-kit checklist, every item addressed (ticked or explicitly marked not applicable with a reason).
 - A short showcase covering what was modernized, what's deferred, and the single most useful thing Copilot did, with its outline in `factory/evidence/c10/showcase.md`.
 

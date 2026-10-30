@@ -3,15 +3,19 @@
 > [!WARNING]
 > Coach material. This is the manual path for repairs. Students deploy from GitHub Actions only and never run these commands by hand.
 
-This page is the coach's repair path. The kit's scripts are the engine the pipeline stages run. Use them when a stage failed twice and can't be repaired in time, when a coach needs to see each step, or when GitHub Actions isn't available. Both paths give the same result, so you can switch between them for different stages. The pipeline itself is described in the [platform pipeline](../facilitator/platform-pipeline.md) page.
+This page is the coach's repair path, only when an Actions run can't be repaired in time. Rerun or repair the stage first. The kit's scripts are the engine the pipeline stages run, not an alternative attendee deployment path. The pipeline itself is described in the [platform pipeline](../facilitator/platform-pipeline.md) page.
 
-There are two roles. **Member** is each member's datacenter. **Team lead** (called the platform lead in the workflow and scripts) also deploys the foundation and vends every member, and is also a member, so the lead's repair covers both. The [readiness gate](readiness.md) and [C2](c02-secure-ai-ready-foundation.md) hold the checks and the hints. This page is the short sequence.
+There are two roles. **Member** is each member's datacenter. **Team lead** (called the platform lead in the workflow and scripts) also deploys the foundation and vends every member, and is also a member, so the lead's repair covers both. The [Readiness check](readiness.md) and [C2](c02-secure-ai-ready-foundation.md) hold the checks and the hints. This page is the short sequence.
 
 Run every command from `factory/` in the member's dev container, signed in with `az login`. In each new terminal, load the member's settings first:
 
 ```powershell
 $s = Get-Content .local/settings.json | ConvertFrom-Json
+$mgPrefix = '<MG_PREFIX from the repo gh-lab variables>'
+$parentMg = '<PARENT_MG from the repo gh-lab variables>'
 ```
+
+Read `MG_PREFIX` and `PARENT_MG` in the repository's `gh-lab` environment variables. Set `$parentMg = ''` only when `PARENT_MG` is empty (Tenant Root). Never substitute a guessed scope.
 
 ## The order matters
 
@@ -41,6 +45,8 @@ The deploy takes up to 60 minutes, unattended. Keep the terminal open and the co
    ./scripts/Deploy-Datacenter.ps1 -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Location $s.location
    ```
 
+   For an event copy, also pass `-Repository '<event-owner/event-repo>' -ScriptsRef '<reviewed-commit-or-tag>'` so the guest scripts come from the same reviewed copy. Outside a disposable lab, collect secure strings with `Read-Host -AsSecureString` and pass `-AdminPassword $adminPassword -SqlAppPassword $sqlAppPassword`; never put passwords in a command, log or repo. Preserve the deployment's original credentials on a repair.
+
 3. Confirm it is healthy. Every row must be PASS. Save the output as the evidence (add `-NoHybridBenefit` for a member without eligible licenses, or the license row fails):
 
    ```powershell
@@ -57,14 +63,14 @@ The deploy takes up to 60 minutes, unattended. Keep the terminal open and the co
 
 ## Team lead
 
-The team lead needs Owner at Tenant Root, the shared services subscription in `.local/settings.json`, and the roster values captured for every member.
+The team lead needs Owner at the configured parent management group (Tenant Root when no parent is set), access to the shared services subscription in `.local/settings.json`, and the roster values captured for every member.
 
 1. At T-7, deploy the foundation. It takes about 15 to 25 minutes, mostly Azure Firewall, and bills about $1.30 an hour until the event is cleaned up:
 
    ```powershell
    az account set --subscription $s.sharedSubscriptionId
-   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -WhatIf
-   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
+   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg -WhatIf
+   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg
    ```
 
 2. Right after it, a Privileged Role Administrator grants the SQL MI identity its Graph read, once per team, from their own computer and signed in as themselves:
@@ -78,7 +84,7 @@ The team lead needs Owner at Tenant Root, the shared services subscription in `.
 4. At T-1, vend each member one after another, after confirming their Step 3 datacenter and Arc connection are complete. Each run updates the same firewall policy, and takes 4 to 5 minutes:
 
    ```powershell
-   ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location
+   ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg
    ```
 
 5. For every member, restart both VMs, record the exemptions, then run the probes. Tell the member first: a restart ends their Bastion session.
@@ -100,4 +106,4 @@ The scripts are idempotent. Run the same command again to converge a failed or p
 
 ## Taking it down
 
-Use the `teardown` stage. By hand, run `Remove-FactoryEnvironment.ps1` for every member scope first, then for the team scope (see [cleanup](../facilitator/cleanup.md)). To stop only the firewall's cost, delete `rg-hub` in the shared services subscription. That leaves the peering to each spoke, the policy assignments, the management groups and the budgets behind.
+Use the `teardown` stage. By hand, run `Remove-FactoryEnvironment.ps1` for every member scope first, then for the team scope (see [cleanup](../facilitator/cleanup.md)). Deleting `rg-hub` stops the firewall's cost but also breaks central DNS and connectivity for every vended spoke; it is not a pause switch. Recovery requires redeploying the foundation and rerunning vending for every member. Peerings, policy assignments, management groups and budgets can remain behind.

@@ -7,6 +7,8 @@ This is the longest member challenge (180 minutes) and the one most likely to ru
 
 ## Expected evidence
 
+**Timing cues:** by the Day 1 break, expect the framework migration and database task to build and run. At the Day 2 midpoint, identify any remaining service gaps; reserve the last 30 minutes for packaging and checks. Offer an appropriate lifeline only after the member has tried the documented fixes.
+
 - Seven commits, one per task, each named `app: task 0N <name>`, each preceded by a passing build and a local run against the source database on `vm-app01`.
 - The app running on `vm-dev01`: uploads landing in the archetype's Blob container, a notification toast within 5 seconds of a student edit, telemetry visible in Application Insights.
 - `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` clean, or a documented remediation for anything it flags.
@@ -47,6 +49,12 @@ The outcome is a current platform. Ask the member to show their search of the co
 ## Bonus
 
 Re-running the task 07 CVE audit after the gap fixes and packaging (tasks 3 and 4 of the challenge) and recording that it's still clean, or what it found and how it was fixed, is worth up to 5 bonus points.
+
+## Lifelines
+
+Offer a lifeline only after the member has tried the playbook's fixes and the time box is at risk. Use the earliest checkpoint that unblocks them: L1 for task 01, L2 for tasks 02–03, L3 for task 04, or L4 for tasks 05–07. Follow the [Lifelines handout](lifelines.md) with the member; preserve their work first.
+
+Explain that any L1–L4 checkpoint caps C6 at **15 of 30 member points**, not later challenges. Record the checkpoint, evidence and cap in the member's C6 scoreboard cell (`15/30 — L3-servicebus`, for example). Use **Scoreboard and badges** in the Coach sidebar for the scoring rules. Ordinary hints and discussion do not trigger the cap.
 
 ## Reset
 

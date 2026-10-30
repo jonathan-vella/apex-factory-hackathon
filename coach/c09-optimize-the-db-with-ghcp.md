@@ -5,7 +5,7 @@
 
 The DB perf kit ([`db/perf-kit`](../db/perf-kit/README.md)) plants five issues in `ContosoUniversity`. They live in database objects and settings, so they're there on the source SQL Server and, after cutover, on SQL MI. Attendees run the workload, find the issues in Query Store, fix them with GitHub Copilot's help (Copilot Chat in VS Code with the MSSQL extension, or Copilot in SSMS if it's installed), and show Query Store before and after.
 
-The numbers on this page were measured in the workload subscription on 2026-09-25: `vm-app01` on `Standard_D8as_v6` with SQL Server 2022 Developer, and one default workload run (15 minutes, 8 connections) from `vm-dev01` before the fixes and one after. Attendees run 5 minutes, at 8 connections, against a 4-vCore General Purpose SQL MI, so their absolute numbers differ a lot. The kit's smoke run on a General Purpose MI (5 minutes, 8 connections, before any fix) made 146 calls, with the view at about 114 seconds a call and every other query 4 to 6 times slower than the source figures below (B07 spike report, finding 16). Compare ratios and the ranking of the queries, not the figures. A run can finish later than its set duration, because the slow view finishes the call it's in: the student's window ends at the `Finished at` time, not the `until` time.
+The numbers on this page were measured in the workload subscription on 2026-09-25: `vm-app01` on `Standard_D8as_v6` with SQL Server 2022 Developer, and one default workload run (15 minutes, 8 connections) from `vm-dev01` before the fixes and one after. Attendees run 5 minutes, at 8 connections, against a 4-vCore General Purpose SQL MI, so their absolute numbers differ a lot. The kit's smoke run on a General Purpose MI (5 minutes, 8 connections, before any fix) made 146 calls, with the view at about 114 seconds a call and every other query 4 to 6 times slower than the source figures below. Compare ratios and the ranking of the queries, not the figures. A run can finish later than its set duration, because the slow view finishes the call it's in: the student's window ends at the `Finished at` time, not the `until` time.
 
 Attendees measure three times, not six: a baseline, a checkpoint after P5, P1, P2 and P3, and a checkpoint after P4. The [challenge page](../site/src/content/docs/challenges/c09-optimize-the-db-with-ghcp.md) has the pacing.
 
@@ -184,12 +184,25 @@ The page's order, P4 after P5, is on purpose: it isolates P5's effect on the vie
 
 The outcome is reliability at enrollment peaks. Ask for one line that names a fixed query and its before and after average duration, taken from the saved Query Store output. This supports the scoring row on the summary of each change and its measured impact. It earns no points of its own.
 
+## Expected evidence
+
+- Baseline and both checkpoint Query Store captures, including the saved plans and measured duration/reads.
+- Reviewed fix scripts, with the before-and-after query each script addresses.
+- One summary line per fix explaining its measured effect and any change to search behavior.
+
+## Common mistakes
+
+- Clearing Query Store between the baseline and checkpoints, losing the comparison.
+- Comparing totals when the faster run makes more calls; compare per-call measurements.
+- Treating an index suggestion or an AI answer as proof without reviewing the plan and rerunning the workload.
+
 ## Partial credit
 
 - Score what's proven in Query Store, not what's claimed: every fix needs a before and after for the query it targets, from the baseline and the checkpoint that contains it. Don't ask for one run per fix: the page groups them on purpose to fit 60 minutes.
-- A fix that changes results without saying so, such as P2's "starts with", gets partial credit. Full credit needs the trade-off stated.
-- P4 fixed only by raising the compatibility level gets partial credit for P4 and full credit for P5. Full P4 credit needs the view rewritten, or a clear explanation of why inlining is enough. With the checkpoint order, a rewrite that shows little change at checkpoint 2 is expected: credit it when the view no longer calls `ufn_GradePoint` and the summary says why.
-- P3 "fixed" by the P1 index alone isn't fixed: the plan still converts the column.
+- Apply partial credit to the rubric's evidence rows, not invented per-fix points. Incomplete baseline/checkpoint proof earns **2 of 4** for before-and-after evidence; incomplete or ineffective fix scripts earn **2 of 4** for scripts; an incomplete impact or behavior explanation earns **1 of 2** for the summary. Missing, unverified or materially incorrect evidence earns zero for its row.
+- A fix that changes results without saying so, such as P2's "starts with", leaves the summary row incomplete: **1 of 2**, unless the trade-off is stated.
+- P4 fixed only by raising the compatibility level leaves the scripts row incomplete: **2 of 4**. Full scripts credit needs the view rewritten, or a clear explanation of why inlining is enough. With the checkpoint order, a rewrite that shows little change at checkpoint 2 is expected: credit it when the view no longer calls `ufn_GradePoint` and the summary says why.
+- P3 "fixed" by the P1 index alone leaves the scripts row incomplete (**2 of 4**): the plan still converts the column. Apply the row cap once, not once per missing fix.
 - Every AI change is reviewed and tested before it's applied, for the "trust but verify" badge. A fix pasted from Copilot without looking at the plan doesn't count.
 - C9 has no bonus task (the rubric lists none). Running the reset and the workload again to prove the fixes is good practice, not extra points.
 

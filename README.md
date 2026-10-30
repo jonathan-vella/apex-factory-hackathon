@@ -26,7 +26,7 @@ Contoso University is a fictional public university. Its student enrollment app 
 | Folder | What it holds |
 | --- | --- |
 | `site/` | The student and coach site (Astro and Starlight), published at factory.apexops.pro |
-| `coach/`, `facilitator/` | Answer keys, the readiness gate, the agenda, scoring and the run of show |
+| `coach/`, `facilitator/` | Answer keys, the Readiness check, the agenda, scoring and the run of show. Edit these sources, not the generated coach pages |
 | `scripts/` | The scripts the pipeline runs, and the content and link checks |
 | `infra/` | Bicep for the datacenter, the ALZ-lite foundation and vending |
 | `archetype/` | The CoE archetype: the Bicep template and the APEX outputs |

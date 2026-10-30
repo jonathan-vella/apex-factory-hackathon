@@ -31,7 +31,7 @@ What the kit automates, what people still do, and where attendees tend to stall.
 
 ## The platform pipeline (the only student path)
 
-The platform pipeline runs the kit's scripts from GitHub Actions instead of a terminal. It is the only way students deploy the datacenter, the foundation and vending, and remove them. The scripts are its engine, and a coach can run them by hand to repair a run that can't be fixed in time. Students have the [deploy guide](https://factory.apexops.pro/deploy/), with a team lead page and a member page.
+The platform pipeline runs the kit's scripts from GitHub Actions instead of a terminal. It is the only way students deploy the datacenter, the foundation and vending, and remove them. The scripts are its engine, and a coach can run them by hand to repair a run that can't be fixed in time. Students have the [deploy guide](../site/src/content/docs/deploy/index.mdx), with a team lead page and a member page.
 
 | Piece | What it is |
 |---|---|

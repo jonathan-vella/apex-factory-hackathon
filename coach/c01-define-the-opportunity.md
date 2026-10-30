@@ -7,6 +7,8 @@ C1 is directional, not a deployment challenge. Attendees work as Solution Archit
 
 ## Expected evidence
 
+**Timing cues:** by 20 minutes, the six outcomes are ranked; reserve the final 10 minutes for the target statement and evidence commit. Offer a question, not an answer, if the team is still debating scope.
+
 - `opportunity-canvas.md`, committed to `factory/evidence/c01/` in each member's own repo (score it once, from the team lead's copy; the other copies must match). It has the six outcomes ranked, each mapped to a problem/trigger, a CAF outcome category, a stakeholder voice, a solution, a KPI and a target, and all six dimensions (application, data, platform, security, operations, cost) filled in with specific content and no template placeholder comments left in place.
 - A one-sentence target outcome statement linking the customer trigger, the modernized solution and the measurable business outcome that every member can repeat without reading from the canvas.
 

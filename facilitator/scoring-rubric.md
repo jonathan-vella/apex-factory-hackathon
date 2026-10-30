@@ -1,18 +1,6 @@
 # Scoring rubric
 
-This is the scoring single source of truth. The base contract is 45 team points and 125 member points: 170 total before bonuses. Challenge minutes and base points match the challenge pages. The pre-hackathon setup has no points: it is checked automatically by `vending` and described on the [readiness gate page](../coach/readiness.md).
-
-## Scoring rules
-
-- Lock the roster at kickoff. The member average includes every person on that roster; a missing or unverified item scores zero. Do not remove an absent member from the denominator after kickoff.
-- Award team evidence once per team. Award member evidence separately for each member.
-- Base team score = team base points + the arithmetic mean of member base points. The maximum base score is 170.
-- Score each evidence row independently. Full points require the listed evidence. Award half the row value, rounded down, when evidence is present but one verifiable subcomponent is incomplete; award zero when evidence is absent, unverified or materially incorrect. Record the reason for partial credit. Never exceed a row's maximum or move unused points between rows.
-- Lifelines cap the affected challenge only; later challenges remain eligible. Record the branch or image in the scoreboard. C6 use of L1, L2, L3, L4 caps C6 at **15 of 30 member points**. C7 use of L5, or of the known-good image at go-live, caps C7 at **10 of 20 member points**. Ordinary hints and coach discussion do not trigger a cap.
-- Challenge bonus tasks and badges draw from one bonus allowance per team, capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. Award the bonuses in the order they appear in this rubric until the team reaches the cap. Once a team has reached it, further eligible bonus evidence is recorded but adds no points.
-- Rank teams by team score. Teams with the same score share the rank.
-- Team score = team base points + average member base points + awarded team bonus + average awarded member bonus, with combined bonus capped at 30. The scoreboard shows the components separately.
-- Coaches sign off evidence and the event owner resolves scoring disagreements against this rubric. Coaches read each member's own repo (evidence is in `factory/evidence/cNN/`). Score team items once per team, from the team lead's copy; the other members' copies must match it. Redact secrets and tenant, subscription and object IDs before sharing evidence publicly.
+This is the single source of truth for base points and evidence. Scoring rules, lifeline caps, badges and challenge bonus tasks live in [Scoreboard and badges](../coach/scoreboard.md). The base contract is 45 team points and 125 member points: 170 total before bonuses. Challenge minutes and base points match the challenge pages. The pre-hackathon setup has no points: it is checked automatically by `vending` and described on the [Readiness check page](../coach/readiness.md).
 
 ## Base points by challenge
 
@@ -127,26 +115,7 @@ Each member runs C2 in their own dev container and vended `rg-spoke` to test an 
 |---|---:|---:|
 | Reusable asset is committed and referenced by the handover | 6 | 0 |
 | Acceptance and handover covers every team member | 5 | 0 |
-| AI-readiness register has a credible entry for lifeline use or non-use | 5 | 0 |
+| AI-readiness register records each time a coach unblocked the team, including a supplied checkpoint, or credible non-use with the human reviews still needed | 5 | 0 |
 | Factory-kit checklist is complete | 2 | 0 |
 | Team showcase is delivered | 2 | 0 |
 | **Total** | **20** | **0** |
-
-## Badges
-
-Each badge adds 5 team bonus points when its evidence is signed off. Badges share the team's 30-point bonus cap with challenge bonus tasks.
-
-| Badge | Criteria | Evidence |
-|---|---|---|
-| Zero public backend endpoints | SQL MI, Blob, Service Bus, Key Vault and ACR are private-only; only the documented web front end and telemetry ingestion are public exceptions | C8 security check with the commands or portal views used |
-| Policy clean | Kit Deny policies have no unapproved violations on the archetype resources; the documented datacenter exemptions are not counted as unapproved violations | Policy compliance evidence and the reviewed exemption register |
-| Rollback ready | The team can explain the pre-cutover abort, the writable MI copy trap and the safe reseed plan | Committed cutover/rollback runbook, with C7 abort evidence if the curveball was triggered |
-| Trust but verify | AI-produced changes are reviewed by a person and the relevant build, test or runtime checks are recorded | Task commits and check output linked from the evidence |
-| Cost guardian | Team records the event cost, stops idle datacenter VMs outside the event days (never `vm-dev01` during the event) and accounts for the MI schedule and budget | Cost worksheet and shutdown/schedule evidence |
-| Reusable-asset contributor | Another team could use the packaged asset without undocumented tribal knowledge | C10 asset, README and handover reference |
-
-## Challenge bonus tasks
-
-Use the bonus opportunities on the challenge pages: C2, C3, C5, C6, C7 and C8 offer up to 5 points each; C10 offers up to 10. C1, C4 and C9 have no bonus task. Award only documented evidence and apply the shared 30-point ceiling.
-
-The C7 bonus (clean reseed after an abort) applies only to a real, unplanned abort. The coach-staged Day 2 abort is part of the event and earns no bonus.

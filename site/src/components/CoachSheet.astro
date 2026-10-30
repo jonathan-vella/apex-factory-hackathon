@@ -43,8 +43,8 @@ const frontmatter = {
 <StarlightPage frontmatter={frontmatter} headings={headings}>
   <div class="coach-sheet">
     <aside class="coach-banner" role="note">
-      <strong>Coach material: it contains the answers.</strong> If you're attending as a
-      participant, please don't read ahead. We run on trust.
+      <strong>Coach material: it contains the answers.</strong> If you're attending as a member,
+      please don't read ahead. We run on trust.
     </aside>
 
     {isChallenge && (
@@ -85,7 +85,10 @@ const frontmatter = {
     {data.scoringHtml && (
       <section class="coach-card coach-card--scoring" id="scoring">
         <h2>Scoring</h2>
-        <p class="coach-card__note">From the scoring rubric.</p>
+        <p class="coach-card__note">
+          From the scoring rubric. Use Scoreboard and badges in the Coach sidebar for scoring rules,
+          lifeline caps and bonus awards.
+        </p>
         <div set:html={data.scoringHtml} />
       </section>
     )}

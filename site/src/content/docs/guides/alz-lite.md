@@ -66,7 +66,7 @@ ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every mem
 
 ## How it compares with a full ALZ
 
-The coach's live demo in C2 shows a complete portal-deployed Azure Landing Zone. ALZ-lite deliberately narrows that scope for a two-day event:
+A full Azure Landing Zone, as the [portal accelerator deploys it](https://learn.microsoft.com/azure/architecture/landing-zones/landing-zone-deploy#standard-deployment-options), adds the following. The 08:30 kickoff uses slides or a short recording to contrast it with ALZ-lite, which deliberately narrows the scope for a two-day event:
 
 | Full ALZ | ALZ-lite |
 |---|---|

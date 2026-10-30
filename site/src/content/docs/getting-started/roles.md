@@ -79,7 +79,7 @@ The event owner confirms each team's roster and member indexes, handles escalati
 No coach is on duty during the pre-hackathon window. On day one and day two:
 
 - **Tech lead kickoff (08:30 on Day 1):** the event owner designates a technical presenter from the event delivery team, which may be Microsoft, a partner or another third party. Before C1 begins, they give a 30-minute presentation introducing the hackathon, the Contoso University scenario, the architecture, and how the 10 challenges fit together.
-- **Coaches:** support teams during the two event days, give the live APEX archetype demo before C5, review and score challenge evidence, run the curveballs, and decide when to use a lifeline if a member is blocked.
+- **Coaches:** support teams during the two event days, give the live APEX archetype demo before C5, review and score challenge evidence, and help you when you're blocked.
 
 A coach does not do the hands-on work for the team. Ask your team lead first before day one; they can escalate to the event owner. On event days, bring in your coach when your team is stuck after trying the documented recovery steps.
 

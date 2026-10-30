@@ -35,6 +35,8 @@ A migrated database can still be slow. The perf kit planted five performance iss
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
+Use [Diagnose a slow plan](../../prompts/vscode/08-diagnose-a-slow-plan/) for a neutral, evidence-led Copilot prompt. It does not contain the fixes.
+
 <details>
 <summary>Set up once per PowerShell window</summary>
 
