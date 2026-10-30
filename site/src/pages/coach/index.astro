@@ -8,11 +8,14 @@ const challenges = entries
   .filter((entry) => entry.data.kind === "challenge")
   .sort((a, b) => a.id.localeCompare(b.id));
 const others = [
-  entries.find((entry) => entry.id === "readiness"),
-  entries.find((entry) => entry.id === "deploy-with-scripts"),
   entries.find((entry) => entry.id === "run-of-show"),
-  entries.find((entry) => entry.id === "automation-map"),
+  entries.find((entry) => entry.id === "readiness"),
   entries.find((entry) => entry.id === "lifelines"),
+  entries.find((entry) => entry.id === "scoreboard"),
+  entries.find((entry) => entry.id === "curveballs"),
+  entries.find((entry) => entry.id === "apex-demo"),
+  entries.find((entry) => entry.id === "automation-map"),
+  entries.find((entry) => entry.id === "deploy-with-scripts"),
 ].filter((entry) => entry !== undefined);
 
 const points = (data: (typeof challenges)[number]["data"]) =>
