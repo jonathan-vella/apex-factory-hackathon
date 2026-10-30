@@ -2,6 +2,8 @@
 
 This manifest records the versions and source commit used by the kit. Tooling versions are pinned in the repository; marketplace images and vendor installers use the latest available version at deployment time.
 
+The B24 documentation review on **2026-10-30** did not rerun the upgrade workflow or replace its recorded runtime baseline. **Before the dry run, the owner retests the current Upgrade extension and VS Code, then updates the versions and validation dates below with the actual results.**
+
 | Component | Version | Used in | Validated |
 |---|---|---|---|
 | Node.js | 24.x | Root and site tooling (`.node-version`, `.nvmrc`) | 2026-09-24 (checks run with Node 26.7.0 by owner-approved deviation) |

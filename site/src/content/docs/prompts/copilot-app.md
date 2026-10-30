@@ -11,13 +11,14 @@ there and the app has to run where your Azure sign-in and the source database ar
 to the [VS Code prompts](../vscode/00-prerequisites/) and keep going. That's the documented fallback, not a sign
 you did something wrong.
 
-Everything else is the same: the same [`plan-prompt.txt`](../vscode/01-assess-and-plan/), the same task prompts
+Everything else is the same: [the assess and plan steps](../vscode/01-assess-and-plan/), the same task prompts
 and checks, the same branch rules. Use the VS Code pages for the prompts and checks, and run them in the app.
 
 ## Check these before you select the Upgrade agent
 
 | Check | Why | How |
 | --- | --- | --- |
+| The app and Upgrade plugin are installed | The app doesn't include the Upgrade agent automatically. | Follow [Install GitHub Copilot upgrade](https://learn.microsoft.com/dotnet/core/porting/github-copilot-upgrade/install): install the app, add the `microsoft/upgrade-agent-plugins` marketplace in **Settings > Plugins**, then install **upgrade-agent**. Confirm **Upgrade** in the picker or `upgrade-agent:upgrade` in `/agent`. |
 | The .NET 10 SDK is installed, and you restarted the app since | The Upgrade agent's tool server starts through `dnx`, which needs the .NET 10 SDK. Without it the tools never attach, and no error shows. The app doesn't pick up a PATH change while it's running. | `dotnet --list-sdks` lists a `10.x` entry. `vm-dev01` has it already. If you install it, fully quit and reopen the app. |
 | The project folder is trusted | In a folder you haven't trusted, selecting the Upgrade agent shows as selected for a few seconds, then the session falls back to the default agent with none of the Upgrade tools, and nothing tells you. | In the project's settings, trust the repository before you select the agent. If the agent already dropped, trust the folder and start a new session. |
 | The sandbox is off for the project | With the sandbox on, the read-only tools (`get_state`, `get_scenarios`) work, but `initialize_scenario` can't write `.github/upgrades/scenarios/dotnet-version-upgrade/` and fails with access denied, even though the sandbox panel shows the workspace as read/write. | In the project's sandbox settings, turn off **Sandbox new sessions**. |
@@ -42,5 +43,7 @@ available, don't keep retrying in the same chat:
 
 - There's no harness to choose and no Local or Copilot split. Run it on `vm-dev01` (install the app there first, as
   above), against the source database.
-- The Upgrade dashboard opens as a canvas if the agent's plugin registered it. Otherwise ask the agent to open it,
+- The Upgrade dashboard opens in a side panel if the agent's plugin registered it. Otherwise ask the agent to open it,
   or read `plan.md` and `tasks.md` in `.github/upgrades/scenarios/dotnet-version-upgrade/`.
+
+**Validated on:** 2026-10-30 (installation documentation checked against Learn; the app remains best effort, not the kit's runtime baseline).

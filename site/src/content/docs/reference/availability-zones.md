@@ -11,11 +11,14 @@ The kit never pins an availability zone and never explicitly turns on zone redun
 
 Some services the kit deploys are zone-redundant by default, with no configuration from the kit:
 
-- Azure Container Registry (Premium SKU) replicates automatically within a region's availability zones.
-- Azure Service Bus (Premium SKU) is zone-redundant by default in regions that support it.
+- Azure Container Registry is zone-redundant automatically across all tiers in supported regions.
+- Azure Service Bus is zone-redundant automatically across all tiers in supported regions.
+- New Azure Firewall deployments are zone-redundant automatically in supported regions. Existing firewalls without zone redundancy are being migrated during 2026.
 - Public IP addresses created as Standard SKU are zone-redundant by default unless a specific zone is requested (the kit never requests one).
 
 This is the platform's own default behavior, not a setting the kit turns on. The kit leaves zones alone on purpose, so you don't need to configure anything for them in this event.
+
+**Checked against Microsoft Learn on 2026-10-30:** [Container Registry](https://learn.microsoft.com/azure/container-registry/zone-redundancy), [Service Bus](https://learn.microsoft.com/azure/reliability/reliability-service-bus), [Azure Firewall](https://learn.microsoft.com/azure/reliability/reliability-firewall), and [Public IP addresses](https://learn.microsoft.com/azure/virtual-network/ip-services/public-ip-addresses#sku).
 
 ## Where to go next
 

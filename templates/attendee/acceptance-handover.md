@@ -67,7 +67,7 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 
 ## Telemetry
 
-<!-- C8 requirement 6: Application Insights (appi-university-<suffix>) > Investigate > Transaction search, last hour or a custom range from the start of C8, with requests and dependencies from your checks. -->
+<!-- C8 requirement 6: Application Insights (appi-university-<suffix>) > Investigate > Search (formerly Transaction search), last hour or a custom range from the start of C8, with requests and dependencies from your checks. -->
 
 | Check | Result | Evidence |
 |---|---|---|

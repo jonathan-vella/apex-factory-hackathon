@@ -25,11 +25,13 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 **Terms.** The **harness** is where the Upgrade agent runs (**Local** means on `vm-dev01`). A **scenario** is the agent's workflow (`dotnet-version-upgrade`). A **gate** is a point where the agent stops so you can review before it continues (the playbook's Step 1 shows each one). The **dashboard** is the Upgrade view in VS Code, with an **Assessment** tab.
 
+**Validated baseline:** GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, as recorded in `versions.md`. Documentation reviewed **2026-10-30**, not a new runtime test. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`; review `assessment.md` and `assessment.json` for the assessment. The owner retests current versions before the dry run.
+
 **Where to work.**
 
 - **Upgrade agent assessment and plan (requirement 1):** on `vm-dev01`, in VS Code opened on `C:\src\factory`, on your `vm-dev01-work` branch. If you're not connected, follow steps 1 and 2 of [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01), open PowerShell 7 and run `code C:\src\factory`. Don't use the dev container: the Local harness has to run next to the app. The prompt and the gates are in Step 1 of the playbook, `C:\src\factory\.github\modernization\playbook.md` on the VM.
 - **Arc assessment (requirement 2):** the Azure portal, on your own computer (not in the VM).
-- **Triage record (requirements 3 to 6):** on the VM, in the plain clone of your own repo: `C:\src\<your-repo>\factory\evidence\c03\`. On `vm-dev01`, evidence goes in `C:\src\<your-repo>\factory\evidence\...` on `main`; run `git pull --rebase` first. Copy `assessment.md` and `plan.md` there as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo), write `triage.md` in the same folder, then commit and push. In your dev container, run `git pull` before the next evidence commit.
+- **Triage record (requirements 3 to 6):** on the VM, in the plain clone of your own repo: `C:\src\<your-repo>\factory\evidence\c03\`. On `vm-dev01`, evidence goes in `C:\src\<your-repo>\factory\evidence\...` on `main`; run `git pull --rebase` first. Copy `assessment.md`, `assessment.json` and `plan.md` there as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo), write `triage.md` in the same folder, then commit and push. In your dev container, run `git pull` before the next evidence commit.
 - **Paste-ready prompts (optional help):** [Assess and plan](../../prompts/vscode/01-assess-and-plan/) for requirement 1 and [Triage assessment findings](../../prompts/vscode/07-triage-assessment-findings/) for requirements 3 to 6.
 
 ## Requirements
@@ -38,7 +40,7 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 The kit clone at `C:\src\factory` on `vm-dev01-work` has no commit hook. Use the playbook's `app:` messages there; use conventional commit types for commits in your own repo.
 
-2. **Review the Arc assessment.** Review the Arc SQL migration assessment from the readiness check against the source SQL Server: in the Azure portal, search for **Azure Arc**, choose **SQL Server instances**, open the instance on `vm-app01`, then **Migration** > **Database migration** > **Assess source instance** > **View report**. Run the assessment again if there's no result. Done when you have both reports open side by side and a list of every finding in them.
+2. **Review the Arc assessment.** In **Azure Arc** > **SQL Server instances**, open the instance on `vm-app01`, then **Migration** > **Assessments**. Select **Run assessment** if needed, open its readiness details and select **Azure SQL Managed Instance** as the target to review. This is the [current documented path](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment); older portal versions use **Database migration** > **Assess source instance** > **View report**. Done when both reports are open side by side and you have listed every finding.
 
 3. **Triage every finding** from both assessments: blocker, accepted risk, or fix, and what it means for the target state. Done when every finding on your list has a triage and a one-line impact (you write them into the table in requirement 6).
 
@@ -52,7 +54,7 @@ The kit clone at `C:\src\factory` on `vm-dev01-work` has no commit hook. Use the
 
 To complete this challenge, show your coach in your own repo:
 
-- [ ] The Upgrade agent's `assessment.md` and the dashboard's Assessment tab, reviewed, and the `plan.md` it produced. No task has started.
+- [ ] The Upgrade agent's `assessment.md` and `assessment.json`, reviewed in the dashboard if available or directly as files, and its `plan.md`. No task has started.
 - [ ] A triage table (`triage.md`): finding, source, triage (blocker / accepted risk / fix), and target-state impact.
 - [ ] The trace-flag finding specifically called out with its reason, impact and decision.
 - [ ] Nothing in `app/` changed yet.
@@ -84,6 +86,9 @@ Re-run either assessment: they only read the source, so there is no state to res
 **Bonus.** Up to 5 pts for taking another Arc assessment finding beyond the base triage classification: explain its cause, cite the source you checked, give your reasoning and target-state impact with the same rigor as the trace-flag row. Merely listing another finding already required by the base work is not bonus evidence.
 
 ## References
+
+- [GitHub Copilot upgrade](https://learn.microsoft.com/dotnet/core/porting/github-copilot-upgrade/)
+- [Assess migration readiness with SQL Server enabled by Azure Arc](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment)
 
 - [Azure Arc and the MI link guide](../../guides/arc-mi-link/#assessment)
 

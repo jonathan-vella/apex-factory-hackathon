@@ -17,9 +17,13 @@ This is the core modernization. GitHub Copilot's Upgrade agent does the work in 
 
 ## Challenge
 
+**Validated baseline:** GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, recorded in `versions.md`. Documentation reviewed **2026-10-30**, not a new runtime test. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`. The owner retests current versions before the dry run.
+
 **Starting point.** C3's reviewed assessment and approved plan (`plan.md`, committed as `app: assess and plan`; no task has started). C5's deployed archetype (for the registry and the App Service identity you'll check against, not deploy to).
 
 **Fixed by the kit.** The target: .NET 10 and ASP.NET Core MVC, with uploads on Blob, notifications on Service Bus, secrets in Key Vault and telemetry in Application Insights. The app runs on `vm-dev01` against the source database, and is packaged for App Service. The seven agent tasks and their checks are in the playbook.
+
+The kit keeps the **Azure Monitor OpenTelemetry Distro**, which its runtime validation used. [Current Learn guidance](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable) recommends the **Microsoft OpenTelemetry Distro** for new apps; adopting it here needs a separate runtime revalidation, not a package change during this exercise.
 
 **You decide.** Nothing about the target. You decide whether each agent task's output passes its check before you commit it.
 
@@ -39,7 +43,7 @@ C6 changes Azure only by pushing the image (requirement 4): the archetype gives 
 
 ## Requirements
 
-1. **Switch to `vm-dev01`** as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (it's already set up, see [set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), then follow the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone. In VS Code, open Copilot Chat and set **Session Target** to **Local** (not Copilot) and the agent to **Upgrade**. Use one chat per agent task, build and run the app after every agent task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once. Done when the playbook's Step 0 **Check** line passes and the agent picker lists **Upgrade**.
+1. **Switch to `vm-dev01`** as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (it's already set up, see [set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), then follow the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone. In VS Code, open Copilot Chat and set **Session Target** to **Local** (not Copilot) and the agent to **Upgrade**. Use one chat per agent task, build and run the app after every agent task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once. Done when the playbook's Step 0 **Check** line passes and either the picker lists **Upgrade** or `@upgrade` responds.
 
 2. **Run all seven agent tasks in order:** 01 .NET 10 and ASP.NET Core MVC; 02 SQL Managed Instance; 03 Blob; 04 Service Bus; 05 Key Vault; 06 OpenTelemetry; 07 CVE audit. Each agent task's check is in the playbook's Step 2 task checks table: don't skip a check to save time. Done when you have seven commits `app: task 0N <name>` on `vm-dev01-work`, each after a passing build and a local run.
 
@@ -113,5 +117,5 @@ To restart the seven agent tasks from a clean .NET Framework 4.8 tree, reset `vm
 ## References
 
 - [.NET SDK container publishing](https://learn.microsoft.com/dotnet/core/containers/overview)
-- [Azure Monitor OpenTelemetry Distro for ASP.NET Core](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable)
+- [Enable OpenTelemetry in Application Insights](https://learn.microsoft.com/azure/azure-monitor/app/opentelemetry-enable)
 - [DefaultAzureCredential overview](https://learn.microsoft.com/dotnet/api/overview/azure/identity-readme)

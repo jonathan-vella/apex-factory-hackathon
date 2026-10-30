@@ -8,6 +8,8 @@ sidebar:
 
 Used in [C3, requirement 1](../../../challenges/c03-assess-the-source/#requirements).
 
+**Validated on:** 2026-10-30 (documentation). Runtime baseline: GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, recorded in `versions.md`. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`; review `assessment.md` and `assessment.json` for the assessment. Current-version runtime retesting remains the owner's pre-dry-run task.
+
 ## Before you send
 
 1. Check your VM is ready, as in [VS Code: prerequisites](../00-prerequisites/).

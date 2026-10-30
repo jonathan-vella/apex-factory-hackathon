@@ -12,7 +12,7 @@ Problem / Trigger -> Business Outcome (CAF category) -> Solution -> KPI
 Rank the six business outcomes from the customer story, with 1 first.
 For each row, fill in:
 - Problem / Trigger: the pain point from the customer story that forces action now.
-- Outcome (CAF category): the outcome name and its CAF Strategy category (risk reduction, agility, operational efficiency, reliability, performance or innovation).
+- Outcome (CAF category): the kit's outcome name mapped to Reduce business risk, Accelerate innovation, or Enhance agility and efficiency (CAF motivation categories).
 - Voice: who at the university cares most (Dana, Marcus, Priya or Tomás).
 - Solution: the modernization change in this factory that addresses the problem.
 - KPI: what you will measure in C8, C9 or C10 to prove the outcome was met.

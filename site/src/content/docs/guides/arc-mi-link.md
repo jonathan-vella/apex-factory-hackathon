@@ -19,7 +19,7 @@ The MI link is a database mirror from `vm-app01` to your SQL Managed Instance. I
 
 ## Assessment
 
-Once onboarded, the Arc resource can run a migration assessment against the SQL Server instance. It reports readiness findings, including a trace-flag warning for `1800` and `9567`. Trace flags are SQL Server startup options, and the kit sets these two on purpose so the link works, so the warning is expected. [C3](../../challenges/c03-assess-the-source/) explains how to triage it.
+Once onboarded, the Arc resource can run a migration assessment against the SQL Server instance. It reports readiness findings, including a trace-flag warning for `1800` and `9567`. Trace flags are SQL Server startup options; the kit sets these on purpose, as Learn recommends, to speed up seeding and replication. The warning is expected. [C3](../../challenges/c03-assess-the-source/) explains how to triage it.
 
 ## Preparing the source
 
@@ -57,4 +57,6 @@ After cutover, follow [Step 5 of the modernization playbook](https://github.com/
 
 It also needs the Microsoft Graph read grant for `id-sqlmi-directory` that a Privileged Role Administrator made for your team at T-7 (checked in [C2](../../challenges/c02-secure-ai-ready-foundation/)). Without it, the statement fails with "Server identity does not have Azure Active Directory Readers permission": ask your coach to confirm the grant. The playbook's Step 5 has the full sequence, including the Key Vault secret.
 
-Remove the `1800` and `9567` trace flags from the source now that the link no longer needs them ([C7 requirement 7](../../challenges/c07-migrate-and-go-live/#requirements)). This closes out the deferred item from C3's trace-flag finding.
+Remove the `1800` and `9567` trace flags from the source after cutover, when their seeding and replication optimizations are no longer relevant ([C7 requirement 7](../../challenges/c07-migrate-and-go-live/#requirements)). This closes the deferred item from C3's trace-flag finding.
+
+**Validated on:** 2026-10-30 (documentation checked against Learn). Portal labels and the runtime flow still need the owner's pre-event revalidation; no new live migration was run for this review.

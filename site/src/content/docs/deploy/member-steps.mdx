@@ -55,6 +55,8 @@ The `member` stage creates `rg-datacenter` with `vm-app01` (legacy Contoso Unive
 
 3. **Confirm Azure Arc.** In the Azure portal, open **Azure Arc** > **Machines**. Done when `vm-app01` shows as **Connected** and **SQL Server instances** lists its SQL Server instance. The `vending` stage in Step 4 checks `vm-app01`'s Arc connection automatically before vending your spoke.
 
+   Onboarding this Azure VM to Arc is a **lab-only simulation**. In a customer environment, onboard the on-premises servers instead.
+
 </Steps>
 
 If a run fails, read the run log. The `member` stage is safe to run again until Arc onboarding starts. After Arc starts, see [If you need to start over](#if-you-need-to-start-over).
@@ -68,7 +70,7 @@ If a run fails, read the run log. The `member` stage is safe to run again until 
 
 <Steps>
 
-1. **Run the first Arc SQL migration assessment** (about 15 minutes). In **Azure Arc** > **SQL Server instances**, select the instance on `vm-app01`. Choose **Migration** > **Database migration**, then **Assess source instance** > **View report**. If there is no result yet, choose **Run assessment** with Azure SQL Managed Instance as the target and wait. Export the report or take a screenshot of its findings for `ContosoUniversity`. You triage these findings on day one in C3.
+1. **Run the first Arc SQL migration assessment** (about 15 minutes). In **Azure Arc** > **SQL Server instances**, select the instance on `vm-app01`, then **Migration** > **Assessments**. Choose **Run assessment** if needed, open the readiness details and select **Azure SQL Managed Instance** as the target to review. Export the report or screenshot its findings for `ContosoUniversity`; you triage them in C3. This follows [Learn's assessment instructions](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment), checked **2026-10-30**, not a new portal test. Older portal versions use **Database migration** > **Assess source instance** > **View report**. The event owner revalidates the UI before the event.
 
 2. **Confirm Azure Hybrid Benefit and VM power state** (about 5 minutes):
 

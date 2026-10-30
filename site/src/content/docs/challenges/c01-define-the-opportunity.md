@@ -31,16 +31,16 @@ The one-time evidence setup takes about 5 minutes and requirements 2 to 5 add up
 
 **Fixed by the kit.** The six outcomes, the six modernization dimensions (application, data, platform, security, operations and cost), and the target architecture: .NET 10 on Azure App Service for Linux, Azure SQL Managed Instance, private endpoints, central logging, and cost tracked against the member subscription budget.
 
-**How problems, outcomes, solutions and KPIs connect.** Use this CAF Strategy mapping as your reference when filling out the canvas:
+**How problems, outcomes, solutions and KPIs connect.** The outcome names are the kit's; map each to one of CAF's three motivation categories: **Reduce business risk**, **Accelerate innovation**, or **Enhance agility and efficiency**.
 
 | Problem and trigger | Stakeholder | Business outcome (CAF category) | Solution in this factory | Verification KPI |
 |---|---|---|---|---|
-| Audit findings: SQL password in `Web.config`, unrestricted network paths, no central logging | Tomás (Security) | **Secure by default** (Risk reduction and compliance) | Private endpoints, Entra managed identity, Key Vault, Azure Landing Zone `Deny` policies | 0 public data endpoints from `Test-Acceptance.ps1` (C8); 0 stored passwords or keys from the C6/C7 app, App Service and Key Vault configuration checks |
-| `.NET Framework 4.8` on a single hand-patched Windows VM (`vm-app01`) with no container pipeline | Dana (CIO) | **Current platform** (Agility and technical debt reduction) | `.NET 10` and ASP.NET Core MVC container on Azure App Service for Linux | App running on `.NET 10` container image in Azure Container Registry (C6 and C7) |
-| Manual server builds and configuration drift across environments | Priya (IT operations) | **Repeatable provisioning** (Operational efficiency) | Bicep CoE archetype deployed via `azd provision` with an As-Built record | Clean `azd provision` from the repo and committed deployment record (C5) |
-| Fragile manual releases and fear of registrar downtime during database cutover | Priya (IT operations) and Marcus (Registrar) | **Safe, repeatable change** (Reliability and risk reduction) | Online SQL MI link replication and planned cutover with a written rollback | Cutover completed within the planned window with matching row counts (C7) |
-| Course catalog and enrollment pages stall during start-of-term registration peaks | Marcus (Registrar) | **Reliable at enrollment peaks** (Customer experience and performance) | SQL Managed Instance with Query Store baseline and post-fix tuning for the top 5 queries | Measured query duration and CPU reduction across all 5 workloads in Query Store (C9) |
-| Board wants an AI roadmap, but academic data is siloed on `vm-app01` and ungoverned | Dana (CIO) | **Documented path to AI** (Innovation and growth) | Governed SQL MI and Blob data estate plus an AI readiness gap register | Completed AI readiness review with every gap assigned an owner and next action (C10) |
+| Audit findings: SQL password in `Web.config`, unrestricted network paths, no central logging | Tomás (Security) | **Secure by default** (Reduce business risk) | Private endpoints, managed identity, Key Vault, ALZ `Deny` policies | 0 public data endpoints from the C8 checker; separately 0 stored passwords/keys from C6/C7 configuration checks |
+| `.NET Framework 4.8` on a hand-patched VM with no container pipeline | Dana (CIO) | **Current platform** (Enhance agility and efficiency) | .NET 10 / ASP.NET Core MVC container on App Service for Linux | Verified container running on App Service (C6/C7) |
+| Manual builds and configuration drift | Priya (IT operations) | **Repeatable provisioning** (Enhance agility and efficiency) | Bicep archetype through `azd`, with As-Built documentation | Clean provision and committed deployment record (C5) |
+| Fragile releases and registrar downtime during cutover | Priya and Marcus | **Safe, repeatable change** (Reduce business risk) | Online SQL MI link and planned cutover with written recovery | Cutover within the planned window and matching row counts (C7) |
+| Enrollment pages stall at registration peaks | Marcus (Registrar) | **Reliable at enrollment peaks** (Reduce business risk) | SQL MI and Query Store tuning for the five workloads | Measured duration/CPU reduction across all five workloads (C9) |
+| Board needs an AI roadmap; data is siloed and ungoverned | Dana (CIO) | **Documented path to AI** (Accelerate innovation) | Governed SQL MI/Blob data and an AI-readiness gap register | Every gap has an owner and next action (C10) |
 
 **You decide.** The priority rank (1 to 6) of the outcomes, why your top two come first and your sixth comes last, the specific target value for each KPI, the `Today:` and `Target:` summary across all six dimensions, and the one-sentence target outcome statement that defines "done" for Dana.
 
@@ -89,7 +89,7 @@ The `-n` keeps anything you already created in Step 3 (such as `factory/evidence
 
 2. **Map problems and triggers to ranked business outcomes (15 min).** Rank the six outcomes from the customer story from 1 to 6. For each row in the table, fill in:
    - **Problem / Trigger:** the business or technical pain point that forces action now.
-   - **Outcome (CAF category):** the outcome name and its Cloud Adoption Framework category (for example risk reduction, agility, operational efficiency, reliability, performance or innovation).
+   - **Outcome (CAF category):** the kit's outcome name and its CAF motivation category: Reduce business risk, Accelerate innovation, or Enhance agility and efficiency.
    - **Voice:** who at the university cares most (Dana, Marcus, Priya or Tomás).
    - **Solution:** the modernization change in this factory that addresses the problem.
    - **KPI and Target:** what you will measure in C8, C9 or C10 and the target value that counts as success. Label any number you invent "illustrative target".
@@ -156,6 +156,4 @@ Application: code and framework. Data: storage and schema. Platform: compute and
 ## References
 
 - [Cloud Adoption Framework: Strategy methodology](https://learn.microsoft.com/azure/cloud-adoption-framework/strategy/)
-- [Cloud Adoption Framework: Define business outcomes](https://learn.microsoft.com/azure/cloud-adoption-framework/strategy/business-outcomes)
-- [Cloud Adoption Framework: Cloud adoption motivations](https://learn.microsoft.com/azure/cloud-adoption-framework/strategy/motivations)
-- [Assess .NET apps for migration to Azure App Service](https://learn.microsoft.com/azure/app-service/app-service-migration-assess-net)
+- [CAF: Determine your motivations, mission, and objectives](https://learn.microsoft.com/azure/cloud-adoption-framework/strategy/motivations)

@@ -7,6 +7,8 @@ sidebar:
 
 **For:** every member modernizing Contoso University on `vm-dev01`.
 
+**Validated on:** 2026-10-30 (documentation review). Runtime baseline: GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, recorded in `versions.md`; no new runtime test is claimed. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`. The owner retests the current extension before the dry run.
+
 **When:** [C3](../../challenges/c03-assess-the-source/), [C6](../../challenges/c06-modernize-with-ghcp/), [C7](../../challenges/c07-migrate-and-go-live/), [C8](../../challenges/c08-validate-the-pattern/) and [C9](../../challenges/c09-optimize-the-db-with-ghcp/).
 
 **Before you start:** finish [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01). This guide explains the agent workflow and branch rules; the challenges set the acceptance bar.
@@ -59,7 +61,7 @@ Your own repo now has the `vm-dev01-work` branch next to `main`. The two branche
 
 ### Copy your evidence to your repo
 
-Your assessors read your evidence on `main` in your own repo, not your work branch. Each team member keeps evidence in their own repo; there's no shared team repo. One rule applies everywhere:
+Your assessors read written evidence on `main` in your own repo; C6 also uses the app work branch for task commits. Each member keeps evidence in their own repo; there's no shared team repo. One rule applies everywhere:
 
 - **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
 - **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
@@ -74,7 +76,7 @@ git pull --rebase
 $dest = "factory\evidence\c03"
 New-Item -ItemType Directory -Force $dest | Out-Null
 $plan = "C:\src\factory\.github\upgrades\scenarios\dotnet-version-upgrade"
-Copy-Item "$plan\assessment.md", "$plan\plan.md" $dest
+Copy-Item "$plan\assessment.md", "$plan\assessment.json", "$plan\plan.md" $dest
 git add $dest
 git commit -m "docs: C3 assessment and plan"
 git push

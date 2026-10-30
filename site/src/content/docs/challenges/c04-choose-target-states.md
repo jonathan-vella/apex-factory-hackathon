@@ -85,7 +85,7 @@ An ADR commits to a choice. The register tracks something you're explicitly not 
 <details>
 <summary>If you need to start over</summary>
 
-ADRs and the register are append-only documents, and there's nothing in Azure to reset. Correct a file in place and commit the change, for example `docs: correct C4 ADR`. To change a decision you already committed, set its Status to Superseded and write a new ADR instead of deleting the old one.
+There's nothing in Azure to reset. Correct typos in place while an ADR is **Proposed**, then commit, for example `docs: correct C4 ADR`. Once an ADR is **Accepted**, supersede it with a new ADR instead of rewriting the accepted decision or deleting it. Keep the deferred-work register current as work is completed.
 
 </details>
 
@@ -94,6 +94,6 @@ ADRs and the register are append-only documents, and there's nothing in Azure to
 ## References
 
 - [Architecture decision records overview](https://learn.microsoft.com/azure/well-architected/architect-role/architecture-decision-record)
-- [Migration overview: SQL Server to Azure SQL Managed Instance](https://learn.microsoft.com/azure/azure-sql/migration-guides/managed-instance/sql-server-to-managed-instance-overview)
+- [Migration overview: SQL Server to Azure SQL Managed Instance](https://learn.microsoft.com/data-migration/sql-server/managed-instance/overview)
 
 Next: [C5: Deploy the CoE archetype with APEX](../c05-deploy-the-coe-archetype/).
