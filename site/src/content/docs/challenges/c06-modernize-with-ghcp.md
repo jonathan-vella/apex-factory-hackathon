@@ -39,7 +39,7 @@ C6 changes Azure only by pushing the image (requirement 4): the archetype gives 
 
 ## Requirements
 
-1. **Switch to `vm-dev01`** as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (it's already set up, see [set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), then follow the [GHCP upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone. In VS Code, open Copilot Chat and set **Session Target** to **Local** (not Copilot) and the agent to **Upgrade**. Use one chat per agent task, build and run the app after every agent task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once. Done when the playbook's Step 0 **Check** line passes and the agent picker lists **Upgrade**.
+1. **Switch to `vm-dev01`** as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (it's already set up, see [set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), then follow the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone. In VS Code, open Copilot Chat and set **Session Target** to **Local** (not Copilot) and the agent to **Upgrade**. Use one chat per agent task, build and run the app after every agent task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once. Done when the playbook's Step 0 **Check** line passes and the agent picker lists **Upgrade**.
 
 2. **Run all seven agent tasks in order:** 01 .NET 10 and ASP.NET Core MVC; 02 SQL Managed Instance; 03 Blob; 04 Service Bus; 05 Key Vault; 06 OpenTelemetry; 07 CVE audit. Each agent task's check is in the playbook's Step 2 task checks table: don't skip a check to save time. Done when you have seven commits `app: task 0N <name>` on `vm-dev01-work`, each after a passing build and a local run.
 
@@ -74,6 +74,8 @@ To complete this challenge, show your coach:
 - [ ] Outcome check (unscored guidance): search the committed app and its configuration files for a database password or key, and record that none is left.
 
 Save your screenshots and notes as files in `factory/evidence/c06/` of your own repo, on `main`. On `vm-dev01`, that's `C:\src\<your-repo>\factory\evidence\c06\` (the plain clone of your own repo): run `git pull --rebase` first, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo). In the dev container, run `git pull` first. Commit with a conventional message (for example `docs: C6 evidence`) and run `git push`.
+
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
 <details>
 <summary>The app falls back to LocalDB after agent task 01</summary>

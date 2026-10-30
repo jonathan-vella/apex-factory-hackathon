@@ -1,4 +1,4 @@
-# C1 answer key: Define the opportunity
+# C1 answer key: Define the opportunity (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C1. Attendees work it out as a team from the opportunity canvas template.

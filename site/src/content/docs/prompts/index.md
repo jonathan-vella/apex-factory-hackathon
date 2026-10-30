@@ -1,7 +1,8 @@
 ---
 title: Prompt library
-description: Copy-paste prompts for the Upgrade agent workflow in C3, C6 and C8.
+description: Prompts for assessment, task execution, triage and diagnosing acceptance failures.
 sidebar:
+  label: Prompts overview
   order: 1
 ---
 
@@ -9,7 +10,7 @@ Short prompts for the parts of the modernization work that aren't already one pa
 [`plan-prompt.txt`](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/plan-prompt.txt).
 Each page is one prompt: what it's for, the exact text, and what to check afterward. They don't replace the
 [playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md),
-the [GHCP upgrade guide](../guides/ghcp-upgrade/) or the challenge pages: those explain the why and the
+the [GitHub Copilot upgrade guide](../guides/ghcp-upgrade/) or the challenge pages: those explain the why and the
 acceptance bar. The playbook is the source of truth for the checks, so these pages link to it instead of copying it.
 
 ## Where to run
@@ -22,10 +23,10 @@ check and the acceptance pack say where their commands can run.
 
 | When | Page |
 | --- | --- |
-| Before C3 | [Prerequisites](vscode/00-prerequisites/) |
-| C3 | [Assess and plan](vscode/01-assess-and-plan/), [Triage assessment findings](vscode/07-triage-assessment-findings/) |
-| C6 | [Run a task](vscode/02-run-a-task/), [CVE scan](vscode/03-cve-scan/), [Troubleshoot](vscode/04-troubleshoot/), [App Service check](vscode/05-app-service-check/) |
-| C8 | [Acceptance pack](vscode/06-acceptance-pack/) |
+| [Step 3, before C3](../deploy/member-steps/#33-set-up-vm-dev01) | [Prerequisites](vscode/00-prerequisites/) |
+| [C3](../challenges/c03-assess-the-source/) | [Assess and plan](vscode/01-assess-and-plan/), [Triage assessment findings](vscode/07-triage-assessment-findings/) |
+| [C6](../challenges/c06-modernize-with-ghcp/) | [Run a task](vscode/02-run-a-task/), [Troubleshoot](vscode/04-troubleshoot/), [CVE scan](vscode/03-cve-scan/), [App Service check](vscode/05-app-service-check/) |
+| [C8](../challenges/c08-validate-the-pattern/) | [Acceptance pack](vscode/06-acceptance-pack/) |
 
 ## Copilot app
 

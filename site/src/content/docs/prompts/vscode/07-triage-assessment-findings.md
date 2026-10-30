@@ -1,9 +1,12 @@
 ---
 title: "VS Code: triage assessment findings"
-description: C3's triage of the Upgrade agent's and Arc's assessment findings.
+description: Review both assessment reports with plain Agent mode, not the Upgrade agent.
 sidebar:
-  order: 8
+  label: Triage findings (C3)
+  order: 3
 ---
+
+Used in [C3, requirements 3 to 6](../../../challenges/c03-assess-the-source/#requirements).
 
 Turn C3's two raw assessments (the Upgrade agent's `assessment.md` and the Arc SQL migration assessment) into a
 reviewed, human-authorized triage table.

@@ -1,4 +1,4 @@
-# Readiness verification
+# Readiness verification (coach)
 
 > [!WARNING]
 > Coach and team-lead reference. No coach is on duty during the pre-hackathon window; support before day one is best-effort and attendees contact their designated team lead first. Attendees follow the numbered steps in [Step 3: Datacenter and workstation](https://factory.apexops.pro/deploy/member-steps/#readiness-checklist) and [Step 4: Vending](https://factory.apexops.pro/deploy/vending/).

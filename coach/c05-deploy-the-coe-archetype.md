@@ -1,4 +1,4 @@
-# C5 answer key: Deploy the CoE archetype with APEX
+# C5 answer key: Deploy the CoE archetype with APEX (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C5. Attendees run APEX's `/apex-adapt-archetype` flow themselves, in the local dev container.

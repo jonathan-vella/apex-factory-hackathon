@@ -2,10 +2,14 @@
 title: ALZ-lite
 description: The two-subscription model, what the deploy creates, what's fixed, and how it compares with a full ALZ.
 sidebar:
-  order: 4
+  order: 1
 ---
 
-This guide covers the mechanics of the kit's landing zone. [C2](../../challenges/c02-secure-ai-ready-foundation/) tests an AI coding agent against the landing zone's `Deny` policies and the APEX repository baseline. The deployment commands are in [Step 2: Foundation and Graph grant](../../deploy/team-lead-steps/) and [Step 4: Vending](../../deploy/vending/).
+**For:** team leads deploying the foundation and members testing its guardrails.
+
+**When:** [Step 2 (T-7)](../../deploy/team-lead-steps/), [Step 4 (T-1)](../../deploy/vending/) and [C2](../../challenges/c02-secure-ai-ready-foundation/).
+
+**Before you start:** complete [Step 1](../../deploy/set-up-your-repo/) and the [access requirements](../../getting-started/requirements/#accounts-and-access). This guide explains the landing zone; the deployment steps hold the commands.
 
 ## The two-subscription model
 

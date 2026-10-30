@@ -7,6 +7,8 @@ import ArchitectureDiagram from "../../../components/ArchitectureDiagram.astro";
 
 ## Background
 
+The [ALZ-lite guide](../../guides/alz-lite/) explains the foundation you test; the [naming and IP plan](../../reference/naming-and-ip-plan/) lists its resource names and address ranges.
+
 AI coding agents write Bicep and run Azure CLI commands in seconds. When an engineer asks an agent for a "quick test shortcut," such as turning on public network access on a database or attaching a public IP to a subnet, an unguarded agent will happily write and deploy that change. Prompt instructions reduce mistakes, but an instruction file in a repo is not a security boundary: a developer or an agent can edit the instruction file, skip a pre-commit check, or call Azure directly from the terminal.
 
 That is why Azure Landing Zones are mandatory in the era of agentic AI. In this factory, two layers protect Contoso University's platform:
@@ -148,6 +150,8 @@ To complete this challenge, show your coach in your own repo:
 - [ ] Outcome check (unscored guidance): explain to Tomás in two sentences why prompt instructions alone cannot secure an Azure environment when developers use autonomous AI agents.
 
 Next, continue with [C3: Assess the source](../c03-assess-the-source/).
+
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
 <details>
 <summary>The baseline scanner flags web-app.bicep even before I edit registry.bicep</summary>

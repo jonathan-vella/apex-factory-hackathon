@@ -1,4 +1,4 @@
-# Two-day agenda
+# Two-day agenda (coach)
 
 The challenge minutes are effort targets, not a serial schedule. The platform foundation is built before the event: ALZ-lite at Step 2 (T-7) and vending at Step 4 (T-1), so Day 1 opens with a 30-minute PowerPoint introduction by the tech lead, starts C1 at 09:00, and runs C2 as a 45-minute member challenge testing AI coding agents against repository and landing-zone guardrails. SQL Managed Instance provisioning overlaps the start of C6, and the MI link starts on Day 2 at 08:30 while C6 finishes. The challenge totals are 10 challenges and 750 minutes. The pre-hackathon setup has no points and no minutes in that total.
 

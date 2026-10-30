@@ -2,7 +2,7 @@
 title: Reference
 description: Naming, IP plan, hybrid benefit, zones, cost, glossary and troubleshooting.
 sidebar:
-  label: Overview
+  label: Reference overview
   order: 0
 ---
 

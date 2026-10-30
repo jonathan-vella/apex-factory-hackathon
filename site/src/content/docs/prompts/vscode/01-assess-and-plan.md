@@ -1,9 +1,12 @@
 ---
 title: "VS Code: assess and plan"
-description: Run C3 — the kit's validated path.
+description: Assess and plan in C3 requirement 1, using the Upgrade agent.
 sidebar:
+  label: Assess and plan (C3)
   order: 2
 ---
+
+Used in [C3, requirement 1](../../../challenges/c03-assess-the-source/#requirements).
 
 ## Before you send
 

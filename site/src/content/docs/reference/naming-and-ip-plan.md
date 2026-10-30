@@ -2,7 +2,7 @@
 title: Naming and IP plan
 description: Resource naming conventions and the kit's IP address ranges.
 sidebar:
-  order: 1
+  order: 4
 ---
 
 ## Naming convention

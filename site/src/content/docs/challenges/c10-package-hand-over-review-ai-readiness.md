@@ -1,6 +1,9 @@
 ---
 title: "C10: Package, hand over, review AI readiness"
 description: Close out the engagement as a team with a reusable asset, a handover and an honest AI-readiness review.
+next:
+  link: /deploy/tear-down/
+  label: Tear down (T+2)
 ---
 
 ## Background
@@ -17,7 +20,7 @@ Modernizing one app is only worth it if the next team can repeat it and the cust
 
 ## Challenge
 
-**Starting point.** The source material lives in each member's own repo: the `factory/evidence/cNN/` folders for C1 to C9, including every member's C8 acceptance pack. Ask every teammate to share their C8 pack (`factory/evidence/c08/acceptance-handover.md` and its `acceptance.json`) on one screen or in your team chat. Save each as `factory/evidence/c10/member-packs/member-<n>.md` and `member-<n>-acceptance.json`, where `<n>` is that member's index.
+**Starting point.** The source material lives in each member's own repo: the `factory/evidence/cNN/` folders for C1 to C9, including every member's [C8 acceptance pack](../c08-validate-the-pattern/). Use [C1's outcomes](../c01-define-the-opportunity/) and [C9's fix scripts](../c09-optimize-the-db-with-ghcp/) in the final package. Ask every teammate to share their C8 pack (`factory/evidence/c08/acceptance-handover.md` and its `acceptance.json`) on one screen or in your team chat. Save each as `factory/evidence/c10/member-packs/member-<n>.md` and `member-<n>-acceptance.json`, where `<n>` is that member's index.
 
 **Fixed by the kit.** The three attendee templates and the scoring rule: the team lead's copy is the one coaches score.
 
@@ -30,6 +33,17 @@ One person, ideally the team lead, owns the package in their repo at `factory/ev
 When the files are final, every teammate saves the same files under the same names in their own `factory/evidence/c10/`, commits with a conventional message (for example `docs: C10 package`) and pushes `main`.
 
 ## Requirements
+
+Copy the imported templates in your own repo's dev container:
+
+```bash
+mkdir -p factory/evidence/c10
+cp factory/templates/attendee/acceptance-handover.md factory/evidence/c10/
+cp factory/templates/attendee/ai-readiness-gap-register.md factory/evidence/c10/
+cp factory/templates/attendee/factory-kit-checklist.md factory/evidence/c10/
+```
+
+The [gap register](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/ai-readiness-gap-register.md) and [factory-kit checklist](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/factory-kit-checklist.md) are also readable on GitHub.
 
 1. **Reusable asset (about 15 min).** Package one reusable asset from the engagement: the archetype adaptation, the modernization playbook run, or the perf kit fixes. Another team must be able to pick it up without you in the room. Copy the files into `factory/evidence/c10/reusable-asset/`, for example the adapted archetype folder from a member's own repo, or the five fix scripts from `factory/evidence/c09/`. Add a short README that says what a new team must supply and how to run it.
 
@@ -52,6 +66,8 @@ To complete this challenge, show your coach in `factory/evidence/c10/` on `main`
 - [ ] The showcase outline (`showcase.md`), delivered to your coach.
 - [ ] Every teammate's copies match the team lead's.
 - [ ] Outcome check (unscored guidance): every gap in your register has an owner and a next step, so Dana can say what comes after the handover.
+
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
 <details>
 <summary>What makes an asset "reusable"?</summary>
@@ -78,4 +94,7 @@ C10 produces documents only, so there is no deployed state to reset. To redo a d
 
 ## References
 
-- [Cloud Adoption Framework: govern and manage](https://learn.microsoft.com/azure/cloud-adoption-framework/govern/)
+- [Cloud Adoption Framework: AI adoption](https://learn.microsoft.com/azure/cloud-adoption-framework/ai/strategy)
+- [Cloud Adoption Framework: Manage](https://learn.microsoft.com/azure/cloud-adoption-framework/manage/ready-cloud-operations)
+
+After the showcase, save your work and follow [Tear down (T+2)](../../deploy/tear-down/).

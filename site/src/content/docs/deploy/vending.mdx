@@ -3,6 +3,9 @@ title: "Step 4: Vending (T-1)"
 description: Connect every member's workload subscription and datacenter to the team's hub, restart the VMs, record policy exemptions and verify connectivity.
 sidebar:
   order: 5
+next:
+  link: /challenges/
+  label: Challenges overview
 ---
 
 import Diagram from "../../../components/Diagram.astro";
@@ -71,5 +74,9 @@ Once the team lead confirms that Step 4 is green and shares the shared services 
 Re-running `Initialize-Settings.ps1` with `-SharedSubscriptionId` keeps your existing `tenantId`, `subscriptionId`, `memberIndex`, `location`, and `suffix` unchanged.
 
 Done when `vending` is green for every member on the roster and `.local/settings.json` holds `sharedSubscriptionId`.
+
+## If something breaks
+
+Check the [vending and DNS entries in Troubleshooting](../../reference/troubleshooting/) and share the failing phase with your team lead.
 
 Next: on Day 1 at 08:30, join the tech lead's 30-minute hackathon introduction, then start [C1: Define the opportunity](../../challenges/c01-define-the-opportunity/) at 09:00.

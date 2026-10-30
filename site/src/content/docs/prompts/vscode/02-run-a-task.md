@@ -2,8 +2,11 @@
 title: "VS Code: run a task"
 description: One task per new chat, build and run after every one.
 sidebar:
-  order: 3
+  label: Run a task (C6)
+  order: 4
 ---
+
+Used in [C6, requirement 2](../../../challenges/c06-modernize-with-ghcp/#requirements).
 
 ## Before you send
 

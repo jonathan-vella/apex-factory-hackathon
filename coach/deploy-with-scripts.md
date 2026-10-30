@@ -1,4 +1,4 @@
-# Deploy with scripts
+# Deploy with scripts (coach)
 
 > [!WARNING]
 > Coach material. This is the manual path for repairs. Students deploy from GitHub Actions only and never run these commands by hand.

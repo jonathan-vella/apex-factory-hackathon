@@ -1,4 +1,4 @@
-# Automation map
+# Automation map (coach)
 
 What the kit automates, what people still do, and where attendees tend to stall. Read it with the [run of show](../facilitator/agenda.md). "Automated" means the infrastructure and the checks. Students deploy the datacenter, the foundation and vending only through the `platform.yml` GitHub Actions stages, and start each one themselves: nothing deploys on its own, and agents never change Azure. The scripts named below are what those stages run. A coach runs one by hand only as a repair (see [deploy with scripts](../coach/deploy-with-scripts.md) and [C2](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only)).
 

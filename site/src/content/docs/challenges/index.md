@@ -2,8 +2,11 @@
 title: Challenges
 description: The ten challenges in order, with scope, time, points and the business outcome each one serves.
 sidebar:
-  label: Overview
+  label: Challenges overview
   order: 0
+prev:
+  link: /deploy/vending/
+  label: "Step 4: Vending (T-1)"
 ---
 
 Ten challenges take Contoso University from a Windows VM in its own datacenter to a modernized app on Azure. You work through them in order, and in each one you show a coach the evidence that you did it.
@@ -51,7 +54,7 @@ Day one opens at 08:30 with a 30-minute PowerPoint presentation by the tech lead
 
 **Totals: 750 min across 10 challenges, 170 base points (45 team + 125 member).** Bonus points (noted per challenge, and from badges) are separate from this base contract. They share one cap of 30 points per team: the per-challenge maxima add up to more than that, and points beyond the cap aren't awarded. The maximum score is 200.
 
-Time boxes are pacing, not hard stops. Coaches flex on the day. The event's real gates are T-14 (14 days before day one) and T-3 (3 days before day one), both before the event, and the end of each day. The [event overview](../getting-started/event-overview/#before-the-event) has both gates.
+Time boxes are pacing, not hard stops. Coaches flex on the day. Members' gates are T-14 and T-3; the team lead's foundation (T-7) and vending (T-1) must also be done before day one. The [event overview](../getting-started/event-overview/#before-the-event) has all four steps. During the event, review progress at the end of each day.
 
 ## Before you start
 

@@ -2,7 +2,7 @@
 title: Cost
 description: Running and stopped cost per member and per team.
 sidebar:
-  order: 4
+  order: 3
 ---
 
 Figures are approximate list-price estimates in USD for `swedencentral`, checked on **2026-10-08**, with Azure Hybrid Benefit applied where it is on by default. Actual cost depends on usage and regional pricing; recheck before each event.

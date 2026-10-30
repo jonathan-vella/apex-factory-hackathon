@@ -33,6 +33,8 @@ A migrated database can still be slow. The perf kit planted five performance iss
 
 **Query Store** is SQL Server's built-in record of every query's duration, reads and plans. You'll read it in SSMS, which shows it in reports.
 
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
+
 <details>
 <summary>Set up once per PowerShell window</summary>
 

@@ -25,6 +25,8 @@ C3 told you what the source looks like. C4 turns that into decisions the team st
 
 **Where to work.** Your own repo's dev container, in a terminal at the repo root. No Azure access is needed. The team writes the team documents together: one person types on a shared screen, then every teammate saves the final file under the same name in their own `factory/evidence/c04/`.
 
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
+
 <details>
 <summary>Set up the files</summary>
 
@@ -96,3 +98,5 @@ ADRs and the register are append-only documents, and there's nothing in Azure to
 
 - [Architecture decision records overview](https://learn.microsoft.com/azure/well-architected/architect-role/architecture-decision-record)
 - [Migration overview: SQL Server to Azure SQL Managed Instance](https://learn.microsoft.com/azure/azure-sql/migration-guides/managed-instance/sql-server-to-managed-instance-overview)
+
+Next: [C5: Deploy the CoE archetype with APEX](../c05-deploy-the-coe-archetype/).

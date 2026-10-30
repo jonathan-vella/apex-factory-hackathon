@@ -2,8 +2,11 @@
 title: "VS Code: troubleshoot"
 description: What to paste when a task's build or checks don't pass.
 sidebar:
+  label: Troubleshoot (C6)
   order: 5
 ---
+
+Used in [C6, requirements 2 and 3](../../../challenges/c06-modernize-with-ghcp/#requirements).
 
 Try these in order. Steps 1 and 3 diagnose first and change nothing; step 2 asks the agent to apply a fix.
 

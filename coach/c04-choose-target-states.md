@@ -1,4 +1,4 @@
-# C4 answer key: Choose target states
+# C4 answer key: Choose target states (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C4. Attendees write their own ADRs and deferred-work register from C3's findings.

@@ -1,4 +1,4 @@
-# C2 answer key: Secure, AI-ready foundation
+# C2 answer key: Secure, AI-ready foundation (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C2. Each member runs C2 in their own dev container and vended `rg-spoke`. The team lead ran the landing zone and vending from GitHub Actions before the event; the kit scripts below are only for a coach's repair.
