@@ -67,7 +67,7 @@ Each badge adds 5 team bonus points when its evidence is signed off. Badges shar
 | Badge | Criteria | Evidence |
 |---|---|---|
 | Zero public backend endpoints | SQL MI, Blob, Service Bus, Key Vault and ACR are private-only; only the documented web front end and telemetry ingestion are public exceptions | C8 security check with the commands or portal views used |
-| Policy clean | Kit Deny policies have no unapproved violations on the archetype resources; the documented datacenter exemptions are not counted as unapproved violations | Policy compliance evidence and the reviewed exemption register |
+| Policy clean | Kit Deny policies have no unapproved violations on the archetype resources; documented datacenter exemptions, if any, are not unapproved violations | Policy compliance evidence, "none needed" or reviewed exemptions, and the datacenter deferred-work entry |
 | Rollback ready | The team can explain the pre-cutover abort, the writable MI copy trap and the safe reseed plan | Committed cutover/rollback runbook, with C7 abort evidence if the curveball was triggered |
 | Trust but verify | AI-produced changes are reviewed by a person and the relevant build, test or runtime checks are recorded | Task commits and check output linked from the evidence |
 | Cost guardian | Team records the event cost, stops idle datacenter VMs outside the event days (never `vm-dev01` during the event) and accounts for the MI schedule and budget | Cost worksheet and shutdown/schedule evidence |

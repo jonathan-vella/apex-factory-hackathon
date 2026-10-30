@@ -35,7 +35,16 @@ Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode: open Cop
 
 ## Provision
 
-Review the preview output, then run `azd provision` yourself, in `infra/bicep/university/` (where `azure.yaml` is), in the same terminal where the skill ran `./scripts/preflight.ps1`. If you closed that terminal, open a new one in the dev container, go to the repo root, run `cd infra/bicep/university` and `./scripts/preflight.ps1` (it only reads Azure), and then `azd provision`. The deployment waits for the SQL Managed Instance and takes about 20 minutes (measured: 22 min 59 s on 2026-10-08, 20 min 2 s on 2026-10-20), so you can start C6 meanwhile. Its hooks run a preflight check, post-deploy tests and a deployment summary automatically, so you don't need to run them separately.
+Review the preview output and [C5's SQL MI licence check](../../challenges/c05-deploy-the-coe-archetype/#requirements), then run `azd provision` yourself in `infra/bicep/university/` (where `azure.yaml` is), in the same terminal as preflight. If you closed it, open PowerShell in the dev container at the repo root and load the settings explicitly:
+
+```powershell
+cd infra/bicep/university
+$s = Get-Content ../../../factory/.local/settings.json | ConvertFrom-Json
+./scripts/preflight.ps1 -TenantId $s.tenantId -SubscriptionId $s.subscriptionId -Suffix $s.suffix
+azd provision --preview
+```
+
+Review the preview before running `azd provision`. Deployment waits for the SQL Managed Instance and takes about 20 minutes (measured: 22 min 59 s on 2026-10-08, 20 min 2 s on 2026-10-20), so you can start C6 meanwhile. Hooks run preflight, post-deploy tests and a deployment summary automatically.
 
 :::danger[Don't run azd down to start over]
 
@@ -45,11 +54,17 @@ Review the preview output, then run `azd provision` yourself, in `infra/bicep/un
 
 ## Document
 
-In Copilot Chat, pick the `08-As-Built` agent and ask it to document the deployed state. It produces `agent-output/university/07-as-built.md`, recording what was actually deployed, and takes about 30 minutes. If `azd`'s output printed an `apex-recall ...` command, run that line first, in the terminal where `azd` ran.
+In Copilot Chat, pick the `08-As-Built` agent and ask it to document the deployed state. It produces the `agent-output/university/07-*.md` documentation suite (for example `07-documentation-index.md`), recording what was actually deployed, and takes about 30 minutes. If `azd` prints an `apex-recall ...` command, run that first in its terminal.
 
 ## If you'd rather skip the agents
 
 The fallback runs a plain `az deployment sub create` against the same Bicep, with no agent and no `azd`. It's an optional path, not the primary one: the primary path's agent-plus-`azd` split keeps a human approving every live change. From your repo's root folder, preview, then deploy:
+
+:::danger[The fallback replaces azd; never layer it over azd]
+
+Do not run the fallback for real after `azd` in the same subscription: it targets the same resource group and SQL MI subnet and can reset the app to the placeholder image. Never run it after C7. For C5's comparison bonus, use `-WhatIf` only.
+
+:::
 
 ```powershell
 cd factory

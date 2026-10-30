@@ -10,7 +10,7 @@ Used in [C6, requirement 2](../../../challenges/c06-modernize-with-ghcp/#require
 
 ## Before you send
 
-A new chat, harness **Local**, agent **Upgrade**, and a balanced model for execution; use the playbook's
+A new chat on `vm-dev01`, VS Code opened on `C:\src\factory`, for **C6 requirement 2**; harness **Local**, agent **Upgrade**, and a balanced model for execution. Use the playbook's
 [Models](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#models)
 table as the single source for the picker names. You're on `vm-dev01-work` with a clean tree (see
 [prerequisites](../00-prerequisites/)).

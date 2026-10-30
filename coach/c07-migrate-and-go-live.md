@@ -34,7 +34,7 @@ The exercise in **Curveballs** in the Coach sidebar fails the replica go/no-go f
 - The live app at `https://app-university-<suffix>.azurewebsites.net/` showing the migrated data on all five pages.
 - The contained database user created with a plain `CREATE USER [<identity-name>] FROM EXTERNAL PROVIDER;` (no `WITH SID`, no `TYPE = E` — both are SQL MI-unsupported syntax from on-premises habits) and granted `db_datareader`, `db_datawriter`, `db_ddladmin`.
 - The source's trace flags (`-T1800`, `-T9567`) removed after cutover (empty `DBCC TRACESTATUS` output).
-- The cutover and rollback runbook, filled in from what actually happened.
+- The cutover and rollback runbook, filled in from what actually happened. Post-cutover rollback is not exercised: record pre-cutover abort/reseed and name the customer backup-restore or planned-failback procedure with data reconciliation. Never send new MI writes back to the stale source by simply restarting IIS.
 
 ## Model answer
 

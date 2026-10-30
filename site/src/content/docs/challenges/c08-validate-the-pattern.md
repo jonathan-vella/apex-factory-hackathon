@@ -13,11 +13,13 @@ A demo click-through proves little. C8 proves the modernized app is healthy in p
 
 **Objective.** Be able to validate a migrated workload with a repeatable pack and record each result with evidence.
 
-**Time and points.** Member, **45 min**, **10 pts** (member).
+**Time and points.** Day 2, **13:15**, **45 min**, **Member**, **10 pts** (member).
 
 ## Challenge
 
 **Starting point.** C7's app, live on App Service against SQL MI.
+
+If cutover is unfinished, finish C7 before the browser/data checks. Meanwhile you can inspect ARM security settings and draft the pack. The checker's page checks still fail until go-live; this is preparation, not grounds for `ACCEPT`.
 
 **Fixed by the kit.** The checks on this page, and `Test-Acceptance.ps1`, which is read-only and never changes anything.
 
@@ -122,9 +124,9 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
    ./scripts/Test-Acceptance.ps1 -SubscriptionId $s.subscriptionId -ResourceGroup $rg -OutFile .local/acceptance.json
    ```
 
-   It reports PASS, FAIL or UNKNOWN for: the five pages and the HTTP-to-HTTPS redirect; the web app's HTTPS-only and minimum TLS 1.2; public network access off and an approved private endpoint for Storage, Service Bus, Key Vault and Container Registry; and SQL Managed Instance's public data endpoint off. The script ends with `ACCEPT` only when there is no FAIL and no UNKNOWN; any FAIL or UNKNOWN keeps the verdict at `NOT ACCEPTED` and the exit code at 1. A FAIL is a setting that is wrong: ask your coach before you change a resource by hand, and don't leave it unrecorded. An UNKNOWN is a check the script couldn't decide: settle each one in the portal (see the hints for the view) and screenshot it, so every UNKNOWN has a portal screenshot that explains it, and record the row and its screenshot in the pack beside the verdict. The result should end with `ACCEPT` once every UNKNOWN is resolved or explained. It doesn't replace requirements 1 to 3, and it doesn't prove the data is right. If you have time, check **Azure Policy > Compliance** (filter on your resource group) and **Microsoft Defender for Cloud > Recommendations** for findings on the same resources as a second view; they can lag the live settings by many minutes, so treat them as corroboration only, and skip them if you're short of time.
+   It reports PASS, FAIL or UNKNOWN for the pages, HTTPS redirect, HTTPS-only/minimum TLS 1.2, backend public-access and approved private-endpoint settings, and SQL MI's public data endpoint. `ACCEPT` requires **no FAIL and no UNKNOWN**; otherwise the verdict is `NOT ACCEPTED` and the exit code is 1. Ask your coach before changing a resource. For UNKNOWN, collect the portal evidence described below, resolve the script's read/scope problem with your coach, then rerun it. An explanation or screenshot **does not change the script's verdict**; keep `NOT ACCEPTED` until a new run actually passes. The checker does not replace requirements 1 to 3 or prove data correctness. Policy Compliance and Defender Recommendations are optional corroboration and may lag.
 
-6. **Record every result.** First capture the telemetry: in the portal open `appi-university-<suffix>` > **Investigate** > **Transaction search**, set the time range to the last 30 minutes, and screenshot the requests and dependencies from your checks. Then record every result against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`).
+6. **Record every result.** First capture the telemetry: in the portal open `appi-university-<suffix>` > **Investigate** > **Transaction search**, set the time range to the **last hour** or a custom range from the start of C8, and screenshot the requests and dependencies from your checks. Then record every result against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`).
 
    1. On `vm-dev01`, save the SSMS count screenshots and the blob listing in `C:\src\<your-repo>\factory\evidence\c08\`. Run `git pull --rebase` there, commit (a conventional message, for example `docs: C8 vm evidence`) and `git push`, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
    2. In the dev container, in your own repo, run `git pull`, then copy `factory/templates/attendee/acceptance-handover.md` to `factory/evidence/c08/` and fill it in. Copy `factory/.local/acceptance.json` and your browser screenshots there too.
@@ -136,7 +138,7 @@ To complete this challenge, show your coach in `factory/evidence/c08/` of your o
 
 - [ ] A filled-in acceptance and handover document, copied from `factory/templates/attendee/acceptance-handover.md` (the [template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md)): every check, its result and its evidence.
 - [ ] Telemetry (requests, dependencies) from this session's checks visible in Application Insights: the screenshot from requirement 6.
-- [ ] `Test-Acceptance.ps1`'s output (`acceptance.json`), which should end in `ACCEPT` and shows public network access off for every backend. If a check stayed UNKNOWN, the portal screenshot that explains it, noted in the pack.
+- [ ] `Test-Acceptance.ps1`'s `acceptance.json` shows **`Verdict: ACCEPT`**, with no FAIL or UNKNOWN, and public network access off for every backend. Keep unresolved checks and portal evidence in the pack as `NOT ACCEPTED`; never relabel them.
 - [ ] Outcome check (unscored guidance): show Tomás the one result that proves no data service accepts public traffic.
 
 <details>
@@ -156,7 +158,7 @@ Run `Test-Acceptance.ps1` (requirement 5). To check one resource by hand, `az re
 <details>
 <summary>The pages return errors, or the app is slow to answer</summary>
 
-The managed instance may be stopped. Check on `vm-dev01`: `az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query state --output tsv` prints `Ready` when it runs. If it prints `Stopped`, open the managed instance in the portal and select **Start** on **Overview** (it takes several minutes), or ask your coach. The facilitator can set a schedule for it (by default it runs weekdays 07:30 to 18:30, W. Europe time, once the MI link is removed).
+The managed instance may be stopped. Check on `vm-dev01`: `az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query state --output tsv` prints `Ready` when it runs. If stopped, select **Start** on its portal **Overview** immediately and allow **about 20 minutes**. Prepare evidence and read-only ARM checks meanwhile; do not pretend database/page checks passed. Ask your coach about the schedule (normally weekdays 07:30–18:30 W. Europe time after link removal).
 
 </details>
 

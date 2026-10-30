@@ -13,7 +13,7 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 **Objective.** Be able to triage migration assessment findings and tell an expected, self-inflicted finding from a real blocker.
 
-**Time and points.** Member, **60 min** (pacing), **15 pts** (member). C3 starts at 10:30 on Day 1. If the Upgrade agent runs are slow, do the Arc review (requirement 2) while they run. Your VM is already set up ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), so none of the 60 minutes goes on setup.
+**Time and points.** Day 1, **10:30**, **60 min** (pacing), **Member**, **15 pts** (member). If the Upgrade agent runs are slow, do the Arc review (requirement 2) while they run. Your VM is already set up ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), so none of the 60 minutes goes on setup.
 
 ## Challenge
 
@@ -81,7 +81,7 @@ Re-run either assessment: they only read the source, so there is no state to res
 
 </details>
 
-**Bonus.** Up to 5 pts for identifying any other finding in the Arc assessment report and writing its own triage, beyond the trace-flag one this challenge requires.
+**Bonus.** Up to 5 pts for taking another Arc assessment finding beyond the base triage classification: explain its cause, cite the source you checked, give your reasoning and target-state impact with the same rigor as the trace-flag row. Merely listing another finding already required by the base work is not bonus evidence.
 
 ## References
 

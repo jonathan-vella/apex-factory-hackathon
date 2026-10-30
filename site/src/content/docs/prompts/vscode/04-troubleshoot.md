@@ -10,6 +10,10 @@ Used in [C6, requirements 2 and 3](../../../challenges/c06-modernize-with-ghcp/#
 
 Try these in order. Steps 1 and 3 diagnose first and change nothing; step 2 asks the agent to apply a fix.
 
+## Before you send
+
+For **C6 requirements 2 and 3**, open `C:\src\factory` on `vm-dev01`, on your app work branch. Use plain **Agent** for diagnosis and gap fixes, harness **Local**, and a balanced execution model from the playbook's Models table. Return to **Upgrade** only to resume an actual agent task.
+
 ## 1. Name the exact symptom, don't just say "it failed"
 
 ```text

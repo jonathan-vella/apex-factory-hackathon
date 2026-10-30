@@ -35,8 +35,8 @@ Each member runs C2 in their own dev container and vended `rg-spoke` to test an 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
 | Layer 1 (`guardrail-test.md`): AI agent prompt/response against `iac-security-baseline.md`, failing `validate:iac-security-baseline` output on `registry.bicep`, and clean `git restore` | 0 | 5 |
-| Layer 2 (`guardrail-test.md`): `RequestDisallowedByPolicy` errors in `rg-spoke` for `alzl-deny-public-acr` and `alzl-deny-nic-pip`, with `pip-guardrail-test` cleaned up | 0 | 5 |
-| Exemptions, connectivity and takeaway (`guardrail-test.md`): `rg-datacenter` exemptions table, `Test-Connectivity.ps1` `PASS` output, and two-sentence explanation of why ALZ guardrails are mandatory for agentic AI | 0 | 5 |
+| Layer 2 (`guardrail-test.md`): `RequestDisallowedByPolicy` errors in `rg-spoke` for `alzl-deny-pna-acr` and `alzl-deny-nic-pip`, with exercise resources cleaned up | 0 | 5 |
+| Compliance, exemptions, connectivity and takeaway (`guardrail-test.md`): datacenter compliance result, "none needed" or documented exemptions, one deferred-work entry with owner, target and timeline, `Test-Connectivity.ps1` `PASS` output, and two-sentence explanation of why ALZ guardrails are mandatory for agentic AI | 0 | 5 |
 | **Total** | **0** | **15** |
 
 ### C3 — Assess the source
@@ -64,7 +64,7 @@ Each member runs C2 in their own dev container and vended `rg-spoke` to test an 
 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
-| Adaptation output and successful `azd provision` deployment record | 0 | 5 |
+| Redacted governance/preview output in `factory/evidence/c05/preview.md` and successful `azd provision` deployment record | 0 | 5 |
 | As-Built deployed-state document is present | 0 | 4 |
 | Resource listing shows the expected archetype resources | 0 | 3 |
 | Governance findings and their resolution are recorded | 0 | 3 |
@@ -74,7 +74,7 @@ Each member runs C2 in their own dev container and vended `rg-spoke` to test an 
 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
-| Seven task commits each have a passing build and local run | 0 | 8 |
+| Seven task commits each have a passing build and local run, evidenced by the per-task log and work-branch commit log | 0 | 8 |
 | App runs on the dev VM against the source database; Blob upload, notification and telemetry checks pass | 0 | 8 |
 | Vulnerability audit is clean or has documented remediation | 0 | 4 |
 | Container image is present in the private registry | 0 | 5 |
@@ -88,7 +88,7 @@ Each member runs C2 in their own dev container and vended `rg-spoke` to test an 
 | Arc portal evidence shows the link seeded, replica validated, cutover completed and link removed | 0 | 5 |
 | Live App Service pages show the migrated data | 0 | 5 |
 | Contained user and supported `CREATE USER` statement are recorded | 0 | 5 |
-| Source trace flags are removed and cutover/rollback runbook is committed | 0 | 5 |
+| Source trace flags are removed, the team lead updates the canonical C4 register after all members finish, and the cutover/rollback runbook is committed | 0 | 5 |
 | **Total** | **0** | **20** |
 
 ### C8 — Validate the pattern

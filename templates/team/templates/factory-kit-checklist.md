@@ -6,10 +6,10 @@ A final sanity pass across the team's deliverables in C10. Check each item; don'
 
 - [ ] Your readiness evidence and your C1–C9 evidence are committed to your own repo under `factory/evidence/`.
 - [ ] The opportunity canvas (C1) ranks the six business outcomes and has all six dimensions filled in.
-- [ ] ALZ-lite and vending (C2) evidence is recorded (the `foundation` and `vending` run summaries), including the exemptions table.
+- [ ] C2 `guardrail-test.md` records repository and Azure denials, compliance ("none needed" is valid for exemptions), the datacenter deferred-work entry, connectivity and the takeaway. Foundation/vending summaries belong to readiness evidence.
 - [ ] Every assessment finding from C3 is triaged, including the trace-flag finding.
 - [ ] At least four ADRs exist from C4 (platform, migration method, app, data).
-- [ ] The archetype's As-Built document (C5) is present.
+- [ ] The archetype's `07-*.md` As-Built suite (C5) is present.
 - [ ] Every member completed all seven modernization tasks (C6), with commits for each.
 - [ ] Every member's app is live on App Service against SQL MI (C7), with the cutover/rollback runbook filled in.
 - [ ] Every member's acceptance pack (C8) is complete.

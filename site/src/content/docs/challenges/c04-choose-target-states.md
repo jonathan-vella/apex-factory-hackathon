@@ -13,22 +13,21 @@ C3 told you what the source looks like. C4 turns that into decisions the team st
 
 **Objective.** Be able to record a decision as an architecture decision record (ADR) with its alternative and consequence, and to track the work you are consciously not doing yet.
 
-**Time and points.** Team and member, **45 min**, **25 pts** (15 team + 10 member).
+**Time and points.** Day 1, **11:30**, **45 min**, **Team and member**, **25 pts** (15 team + 10 member).
 
 ## Challenge
 
-**Starting point.** Everyone's triaged C3 findings (`factory/evidence/c03/triage.md`), including the trace-flag decision, and C2's exemptions tables. Each teammate shares theirs on the shared screen.
+**Starting point.** Everyone's triaged C3 findings (`factory/evidence/c03/triage.md`), including the trace-flag decision, and C2's datacenter compliance/deferred-work entry ("none needed" is valid for exemptions). Each teammate shares theirs on the shared screen.
 
 **Fixed by the kit.** The platform is the CoE archetype (App Service, container registry, SQL Managed Instance, Blob, Service Bus, Key Vault, Application Insights). The migration method is the Arc SQL migration assessment plus the MI link, online, with a planned cutover. The app target is .NET 10 and ASP.NET Core MVC. The data target is SQL Managed Instance with Microsoft Entra authentication only.
 
-**You decide.** The alternative you considered for each decision, why you rejected it, and the consequence. Also which C3 findings you defer, who owns them and when they get done.
+**You decide.** The platform ADR's alternative is yours. The other ADRs give alternatives as a starting point: explain why you reject them and the consequence you accept. Also decide which C3 findings you defer, who owns them and when they get done.
 
 **Where to work.** Your own repo's dev container, in a terminal at the repo root. No Azure access is needed. The team writes the team documents together: one person types on a shared screen, then every teammate saves the final file under the same name in their own `factory/evidence/c04/`.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
-<details>
-<summary>Set up the files</summary>
+### Set up the files
 
 Run `git pull`, then copy the templates ([ADR](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/adr.md), [deferred-work register](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/deferred-work-register.md)) from `factory/templates/attendee/`. This gives you four ADR files and the register, each with prompts to fill in:
 
@@ -38,8 +37,6 @@ mkdir -p factory/evidence/c04
 for name in adr-platform adr-migration adr-app adr-data; do cp factory/templates/attendee/adr.md "factory/evidence/c04/$name.md"; done
 cp factory/templates/attendee/deferred-work-register.md factory/evidence/c04/
 ```
-
-</details>
 
 ## Requirements
 
@@ -53,7 +50,7 @@ cp factory/templates/attendee/deferred-work-register.md factory/evidence/c04/
 
 5. **Deferred-work register (team, about 10 min).** Assemble `deferred-work-register.md`. One teammate types it from everyone's `triage.md`. It holds:
    - every C3 finding you are deferring, including the trace-flag removal after cutover, with one row per member because each member has their own `vm-app01`;
-   - the exemptions from C2. Each member reads out their exemptions table and you map its columns to the register's: policy assignment to finding, owner to owner, target date to timeline. The source is C2, and the target is "retire the exemption once the resource meets the policy".
+   - one datacenter entry per member from C2, even when no exemption is needed. Record the production target, a named teammate as owner and a timeline. If an exemption exists, read its reason, owner and target date from the description and replace "GitHub Actions pipeline" with the accountable teammate. Map the policy assignment to finding and its target date to timeline; the target is to meet the policy and retire the exemption.
 
    Every row has an owner, a target and a timeline.
 

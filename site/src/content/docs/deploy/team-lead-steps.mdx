@@ -10,7 +10,7 @@ import Diagram from "../../../components/Diagram.astro";
 **Who:** **Team lead** (books the role holder) + **Privileged Role Administrator**. (Members have nothing to run in Step 2; skip to [Step 3: Datacenter and workstation (T-3)](../member-steps/).)
 **When:** By **T-7** (7 days before day one). See the [stage timing table](../how-it-works/#stages).
 
-In Step 2, the team lead deploys the team's shared foundation (`ALZ-lite`) once for the whole team, then books a Privileged Role Administrator (or Global Administrator) to grant the shared SQL Managed Instance identity its Microsoft Graph read permissions. If the team lead cannot find a role holder, they escalate to the event owner. Run every command from `factory/` in the team lead's repository.
+In Step 2, the team lead deploys the team's shared foundation (`ALZ-lite`) once for the whole team, then books a Privileged Role Administrator (or Global Administrator) to grant its SQL Managed Instance identity Microsoft Graph read permissions. If no role holder is available, escalate to the event owner. The `factory/` working-directory instruction applies to **2.1**; the administrator can run **2.2** independently.
 
 :::caution[Use a dedicated non-production tenant]
 
@@ -28,7 +28,7 @@ Use only a dedicated, non-production tenant and dedicated, empty subscriptions. 
 
 Before running this stage, confirm that [Step 1](../set-up-your-repo/) is complete: `.local/roster.json` is registered with `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, and your account holds **Owner** at Tenant Root plus **Owner** on the shared services subscription.
 
-The `whatif` stage checks every member in the roster and previews the foundation changes. The `foundation` stage deploys ALZ-lite (management groups `mg-factory`, `mg-factory-platform`, `mg-factory-corp`, `rg-management` with `log-management` and `id-sqlmi-directory`, `rg-hub` with `vnet-hub`, Azure Firewall, private DNS zones, and the core policies). See the [stage timing table](../how-it-works/#stages) for estimates.
+The `whatif` stage checks the roster and runs the ALZ-lite what-if job. On an empty foundation, that job reports **First deployment** and previews nothing; this is expected. Its success, not every member preflight row, gates `foundation`. Resolve member failures before their member stages. Foundation creates the management groups, `rg-management` with `log-management`/`id-sqlmi-directory`, and `rg-hub` with firewall, DNS and policies. See the [stage timing table](../how-it-works/#stages).
 
 ```bash
 gh workflow run platform.yml -f stage=whatif
@@ -50,7 +50,16 @@ The team lead books someone holding the **Privileged Role Administrator** (or Gl
 <details>
 <summary>What to send the Privileged Role Administrator</summary>
 
-They do not need your repository. They can download the standalone script [`Grant-SqlMiDirectoryRead.ps1`](https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Grant-SqlMiDirectoryRead.ps1), which has no other kit dependencies. They need PowerShell 7, the Azure CLI, and Reader on the shared services subscription, and they run it on their own computer signed in as themselves.
+They do not need your repository. On their own computer, they need **PowerShell 7.4 or later**, Azure CLI and Reader on the shared services subscription. First activate Privileged Role Administrator through PIM if eligible, then sign in as themselves to the event tenant. The team lead supplies the two IDs privately. Run the standalone script (no kit dependencies):
+
+```powershell
+az login --tenant '<tenant-id>'
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Grant-SqlMiDirectoryRead.ps1' -OutFile Grant-SqlMiDirectoryRead.ps1
+./Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
+./Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>' -WhatIf
+```
+
+For an event copy, use the script URL the event owner supplies. The final read-only check must report all three permissions already granted.
 
 If it stops with `InteractionRequired` or `TokenCreatedWithOutdatedPolicies`, their sign-in is stale: they run `az logout` and `az login` again, then repeat. To verify that the three permissions (`User.Read.All`, `GroupMember.Read.All`, `Application.Read.All`) are in place without changing anything, run the script with `-WhatIf`. See the [ALZ-lite guide](../../guides/alz-lite/) for details.
 

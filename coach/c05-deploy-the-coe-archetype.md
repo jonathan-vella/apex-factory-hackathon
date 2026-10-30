@@ -13,7 +13,8 @@ The one thing to watch for here is members trying this natively on Windows — i
 - `/apex-adapt-archetype`'s outputs: the governance check's result, and the stop at `azd provision --preview`.
 - `azd provision`'s deployment record (resource group populated).
 - `agent-output/university/06-deployment-summary.md`, the deployment summary `azd provision` writes. Check it for IDs before it is committed.
-- `agent-output/university/07-as-built.md` from the As-Built agent, describing the deployed state.
+- The `agent-output/university/07-*.md` As-Built suite, including `07-documentation-index.md`, describing the deployed state.
+- `factory/evidence/c05/preview.md` with redacted governance and preview output, reviewed for the member's suffix before deployment.
 - `az resource list -g rg-university-<suffix> -o table` showing App Service, ACR, SQL MI, Storage (Blob), Service Bus, Key Vault and Application Insights.
 - `factory/evidence/c05/governance-note.md`: any policy-compliance finding the governance check surfaced and how it was resolved, or "none".
 

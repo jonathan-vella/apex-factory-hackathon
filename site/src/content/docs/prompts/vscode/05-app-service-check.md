@@ -14,6 +14,10 @@ tag check, which needs the registry (private, reachable only from `vm-dev01`).
 
 ## The prompt
 
+### Before you send
+
+For **C6 requirement 5**, use plain **Agent**, harness **Local**, and a balanced execution model from the playbook's Models table. Open `C:\src\factory` on `vm-dev01` for the image check; ARM-only checks can run from your own repo's dev container. Keep every command read-only.
+
 ```text
 Check (don't change) the web app's configuration: its app settings, its managed identity, and that identity's role assignments, especially Key Vault Secrets User on the Key Vault. Use az CLI read-only commands. Report what you find; don't point the web app at the new image yet — that's C7.
 ```

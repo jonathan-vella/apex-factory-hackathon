@@ -13,7 +13,7 @@ A migrated database can still be slow. The perf kit planted five performance iss
 
 **Objective.** Be able to find the worst queries in Query Store, fix the cause with Copilot's help, and show the before and after.
 
-**Time and points.** Member, **60 min**, **10 pts** (member).
+**Time and points.** Day 2, **14:00**, **60 min**, **Member**, **10 pts** (member).
 
 ## Challenge
 
@@ -48,7 +48,8 @@ az login --use-device-code
 az account show --query name --output tsv   # your workload subscription; if it's wrong: az account set --subscription <name>
 $n = <n>
 $rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
-$mi = az sql mi list --resource-group $rg --query "[0].fullyQualifiedDomainName" --output tsv
+$suffix = $rg -replace '^rg-university-', ''
+$mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query fullyQualifiedDomainName --output tsv
 $mi
 $ev = 'C:\src\<your-repo>\factory\evidence\c09'
 New-Item -ItemType Directory -Force $ev | Out-Null
@@ -91,7 +92,7 @@ Start each run at least five minutes after the previous one finished, so two run
 
    Click a bar to see its plans in the lower pane and its query text. Make a short list of the worst offenders: query ID, what it does, and why you think it's slow. (**Query Store > Tracked Queries** shows one query over time.) Don't use **Force Plan**: it pins the slow plan, which hides the problem rather than fixing it.
 
-3. **Diagnose and fix all five planted issues** (P1 to P5 above). Use GitHub Copilot to diagnose each plan, not just to write the fix: in VS Code, which has the SQL Server extension, paste the query text and the plan's warnings or its XML into Copilot Chat (SSMS's own Copilot works too, if your SSMS has it). In SSMS, right-click the plan > **Show Execution Plan XML** for the XML; warnings show as a yellow triangle on an operator. Apply the fixes in two checkpoints:
+3. **Diagnose and fix all five planted issues** (P1 to P5 above). Use GitHub Copilot in **VS Code** to diagnose each plan, not just write the fix: paste the query text and plan warnings or XML into Copilot Chat. The kit's SSMS install has no **AI Assistance** workload; do not spend the time box looking for its Copilot button. In SSMS, right-click the plan > **Show Execution Plan XML**; warnings show as a yellow triangle. Apply the fixes in two checkpoints:
    - **Checkpoint 1:** P5, P1, P2 and P3.
    - **Checkpoint 2:** P4, last: raising the compatibility level can change how P4's view runs, so measuring P4 afterward shows whether the rewrite still matters.
 
@@ -117,16 +118,17 @@ To complete this challenge, show your coach in `factory/evidence/c09/` of your o
 <details>
 <summary>My cutover isn't complete, or the managed instance is stopped</summary>
 
-If C7 isn't finished, run C9 against the source SQL Server, which has the same planted issues. The source's `contosoapp` password isn't on the VM. Print it in the dev container, from `factory/`: `$s = Get-Content .local/settings.json | ConvertFrom-Json; (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).sqlAppPassword`, then type it on the VM, where you run the workload with it.
+If C7 is unfinished, the source has the same planted issues. The workload already knows the documented default lab password, so for a standard deployment run:
 
 ```powershell
-$pw = Read-Host -AsSecureString 'contosoapp password'
-./db/perf-kit/Start-Workload.ps1 -MemberIndex $n -SqlPassword $pw -DurationMinutes 5 -Concurrency 8
+./db/perf-kit/Start-Workload.ps1 -MemberIndex $n -DurationMinutes 5 -Concurrency 8
 ```
+
+Only a deployment with a custom `-SqlAppPassword` needs `-SqlPassword`: retrieve it privately from the dev container's `.local/<subscription-id>/datacenter.json`, then on the VM set `$pw = Read-Host -AsSecureString 'Custom contosoapp password'` and add `-SqlPassword $pw`. Never put it in evidence.
 
 In SSMS, connect to `10.10.<n>.4` with **SQL Server Authentication** as `contosoapp`, and tick **Trust server certificate** in the Connect dialog: the source has a self-signed certificate. The managed instance doesn't need that.
 
-To check whether the managed instance is stopped, run `az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query state --output tsv` (set `$suffix` with `$suffix = $rg -replace '^rg-university-', ''`): `Ready` means it runs. If it prints `Stopped`, select **Start** on the managed instance's **Overview** in the portal (it takes several minutes), or ask your coach. The facilitator can set a schedule for it (by default it runs weekdays 07:30 to 18:30, W. Europe time, once the MI link is removed).
+Check MI state with `az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query state -o tsv`. If `Stopped`, select **Start** immediately and allow **about 20 minutes**; use the wait for plan review and non-database preparation. `Ready` means it runs. Ask your coach about the schedule (normally weekdays 07:30–18:30 W. Europe time after link removal).
 
 </details>
 
@@ -154,7 +156,7 @@ Check the compatibility level first: `SELECT name, compatibility_level FROM sys.
 <details>
 <summary>If you need to start over</summary>
 
-Only start over if an object or the data is broken (for example you dropped the view), because it deletes your baseline. Save your evidence in `$ev` first. Then, on `vm-dev01` in `C:\src\factory`, run the reset against the managed instance (against the source instead: `-MemberIndex $n`, plus `-SqlPassword $pw` as in the first hint):
+Only start over if an object or the data is broken (for example you dropped the view), because it deletes your baseline. Save your evidence in `$ev` first. Then, on `vm-dev01` in `C:\src\factory`, run the reset against the managed instance (for the standard source deployment use `-MemberIndex $n` instead; only a custom password needs the first hint's secure prompt and `-SqlPassword`):
 
 ```powershell
 ./db/perf-kit/Reset-PerfKit.ps1 -Server $mi -Authentication ActiveDirectoryInteractive

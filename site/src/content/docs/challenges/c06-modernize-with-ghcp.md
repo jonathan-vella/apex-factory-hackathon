@@ -13,7 +13,7 @@ This is the core modernization. GitHub Copilot's Upgrade agent does the work in 
 
 **Objective.** Be able to drive the Upgrade agent task by task, check its output, and package the result as a container image.
 
-**Time and points.** Member, **180 min**, **30 pts** (member). The time box is split across two days.
+**Time and points.** Day 1, **14:45**, resuming Day 2 at **09:00**, **180 min**, **Member**, **30 pts** (member). The time box is split across both days.
 
 ## Challenge
 
@@ -43,7 +43,9 @@ C6 changes Azure only by pushing the image (requirement 4): the archetype gives 
 
 2. **Run all seven agent tasks in order:** 01 .NET 10 and ASP.NET Core MVC; 02 SQL Managed Instance; 03 Blob; 04 Service Bus; 05 Key Vault; 06 OpenTelemetry; 07 CVE audit. Each agent task's check is in the playbook's Step 2 task checks table: don't skip a check to save time. Done when you have seven commits `app: task 0N <name>` on `vm-dev01-work`, each after a passing build and a local run.
 
-3. **Close the gaps the agent tasks don't fully cover,** with playbook Step 3. If one of its two searches finds something, use the matching skill in `.github/skills/` (`aspnet-startup-migration`, `notification-service-di` or `trace-to-opentelemetry`) by asking in a new chat: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Done when both `git grep` searches in playbook Step 3 print nothing.
+   Record each task in `C:\src\<your-repo>\factory\evidence\c06\task-checks.md` on `main`: task, commit hash, build result, pages checked and playbook-check result, with redacted output or screenshots. Add `git -C C:\src\factory log --oneline` output. Commits alone cannot prove a past build and local run.
+
+3. **Close the gaps the agent tasks don't fully cover,** with playbook Step 3. If one of its two searches finds something, use the matching skill in `.github/skills/` (`aspnet-startup-migration`, `notification-service-di` or `trace-to-opentelemetry`) by asking in a new chat: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Done when both `git grep` searches in playbook Step 3 print nothing; run the app again, then commit and push `app: gaps` as the playbook directs.
 
 4. **Package the app** with .NET SDK container publishing (no `Dockerfile`) and push it to your archetype's private registry, with playbook Step 4 (the `sdk-container-publish` skill explains it). Done when `az acr repository show-tags` lists `c6`.
 
@@ -66,6 +68,7 @@ C6 changes Azure only by pushing the image (requirement 4): the archetype gives 
 To complete this challenge, show your coach:
 
 - [ ] Seven agent task commits (`app: task 0N <name>`), each preceded by a passing build and a local run, pushed to `vm-dev01-work` in your own repo.
+- [ ] `task-checks.md` on `main`, with the per-task results, evidence and work-branch commit log. Coaches read `vm-dev01-work` only for C6's app/task commits; all C6 and C9 written evidence is read from `main`.
 - [ ] Coaches read those seven `app:` task commits on `vm-dev01-work` only for C6; they read your challenge evidence from `main` in your own repo.
 - [ ] The app running on `vm-dev01` against the source database, with uploads landing in Blob, a notification toast (a small pop-up at the top right) appearing within 5 seconds of an edit, and telemetry reaching Application Insights.
 - [ ] `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` reporting nothing, or a documented remediation.
