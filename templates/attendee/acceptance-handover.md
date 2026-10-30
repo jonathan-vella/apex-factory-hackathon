@@ -51,11 +51,11 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 
 ## Security check
 
-<!-- C8 requirement 5: attach Test-Acceptance.ps1's output (acceptance.json). Policy and Defender views are corroboration only. An UNKNOWN keeps the verdict at NOT ACCEPTED: settle it in the portal, add the screenshot as evidence, and note it in the row. -->
+<!-- C8 requirement 5: attach acceptance.json. ACCEPT requires no FAIL and no UNKNOWN. Portal screenshots explain an UNKNOWN but never change NOT ACCEPTED; resolve the cause and rerun the checker. Policy and Defender views are corroboration only. -->
 
 | Check | Result | Evidence |
 |---|---|---|
-| `Test-Acceptance.ps1` verdict is ACCEPT (or each UNKNOWN is settled in the portal) | | |
+| `acceptance.json` shows Verdict ACCEPT, with no FAIL or UNKNOWN | | |
 | HTTP redirects to HTTPS | | |
 | Web app HTTPS-only | | |
 | Web app minimum TLS 1.2 | | |
@@ -67,7 +67,7 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 
 ## Telemetry
 
-<!-- C8 requirement 6: Application Insights (appi-university-<suffix>) > Investigate > Transaction search, time range the last 30 minutes, with the requests and dependencies from your checks. -->
+<!-- C8 requirement 6: Application Insights (appi-university-<suffix>) > Investigate > Transaction search, last hour or a custom range from the start of C8, with requests and dependencies from your checks. -->
 
 | Check | Result | Evidence |
 |---|---|---|
@@ -82,5 +82,7 @@ Member index: <!-- your member number, 1 to 20; in C10, leave it blank and use t
 | | | | |
 
 Handed over to:
+
+Reusable asset: <!-- link to reusable-asset/ and its README -->
 
 How to operate it:

@@ -3,15 +3,13 @@
 <!--
 Filled in during C10. Be honest: where did GitHub Copilot's agents need a human to unblock them, and what does that mean for running this unattended at a customer? If your team used coach support anywhere during the event, record it here as a gap, not as a failure.
 
-Two examples of the shape of an entry (don't copy them):
-
-- C2: Deciding whether to exempt or fix a policy finding. Why: the policy result doesn't say whether the exception is safe. Implication: governance findings still need an expert decision, not blind automation.
-- C8: Reading a failed acceptance check. Why: a failing check says what failed, not whether it matters for this workload. Implication: acceptance results still need a human sign-off before handover.
+Replace the example rows with your actual entries. Each gap needs a named owner and a concrete next step.
 -->
 
-| Where | What needed a human | Why | Implication for AI readiness |
-|---|---|---|---|
-| | | | |
+| Where | What needed a human | Why | Implication for AI readiness | Owner | Next step |
+|---|---|---|---|---|---|
+| Example: C2 | Review the datacenter's production target | Compliance alone does not choose a migration plan | Governance needs accountable review | <named teammate> | Agree target and timeline |
+| Example: C8 | Review a NOT ACCEPTED result | A screenshot does not change the checker verdict | Human sign-off still needs a passing rerun | <named teammate> | Resolve the failed/unknown check and rerun |
 
 ## Known platform gaps (carried over, not yours to fix)
 

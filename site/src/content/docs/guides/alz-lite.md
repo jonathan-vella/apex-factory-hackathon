@@ -16,7 +16,7 @@ sidebar:
 Each team uses two kinds of subscription:
 
 - **One shared services subscription**, held by the team lead. It hosts the hub, the management group hierarchy, central policies and the central Log Analytics workspace.
-- **One workload subscription per member**, vended into the hierarchy as a spoke with its own subnets, peering back to the hub, and member-scoped budgets and RBAC. (Vending is connecting a subscription to the hub: spoke network, peering, DNS, firewall rules, budget. The hub is the shared virtual network; a spoke is a member's network that peers with it.)
+- **One workload subscription per member**, vended into the hierarchy with subnets, hub peering, UDRs (routes), DNS, firewall rules, RBAC and a subscription budget. Vending also sets Foundational CSPM only, with paid Defender plans off. The hub is shared; each spoke is a member's network peered with it.
 
 This mirrors the real distinction between platform-team-owned shared infrastructure and workload-team-owned application resources, at a scale that fits a two-day event.
 
@@ -24,7 +24,7 @@ This mirrors the real distinction between platform-team-owned shared infrastruct
 
 The built-in **Owner** role at Tenant Root scope (the pipeline's preflight checks for the role named `Owner`, so an equivalent custom role doesn't pass). Tenant Root is the top management group of your Microsoft Entra tenant: every other management group and subscription sits under it, and a management group is a container that policy and access flow down from. Without this role, the `foundation` stage can't create management groups, move subscriptions into them or assign policies, and the run fails early with a clear permissions error.
 
-In most tenants nobody has that role by default. A Global Administrator first elevates access (**Microsoft Entra ID** > **Properties** > **Access management for Azure resources**: set it to **Yes**), then gives the team lead Owner at Tenant Root (in the portal: **Management groups** > **Tenant Root Group** > **Access control (IAM)** > **Add role assignment**). The preflight prints the exact `az role assignment create` command. Sign out and in again (`az logout`, then `az login`) before you run the stage again.
+In most tenants nobody has that role by default. A Global Administrator elevates access (**Microsoft Entra ID** > **Properties** > **Access management for Azure resources**: **Yes**) and grants the team lead Owner at Tenant Root (**Management groups** > **Tenant Root Group** > **Access control (IAM)**). After refreshing sign-in (`az logout`, then `az login`), the lead reruns `./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json` from `factory/` as in Step 1.5, so the **pipeline identity** gets Tenant Root Owner too. Then rerun the stage; a fresh user login alone cannot repair the pipeline identity's role.
 
 ## What the deploy creates
 
@@ -39,7 +39,7 @@ See the [stage timing table](../../deploy/how-it-works/#stages) for the deployme
 
 :::note[Defender for Cloud changes the whole subscription]
 
-By default the deploy turns every paid Defender for Cloud plan off on the shared services subscription, including for resources the kit didn't create. Event subscriptions are dedicated, so that's what you want there. Never run the foundation in a subscription that hosts other workloads.
+Foundation turns every paid Defender for Cloud plan off on the **shared services subscription**; vending does the same on **each workload subscription**, including resources outside kit groups. Use only dedicated event subscriptions, never ones hosting other workloads.
 
 :::
 
@@ -61,7 +61,7 @@ ALZ-lite creates the identity `id-sqlmi-directory` in `rg-management`. Every mem
 - Region: `swedencentral`, with `germanywestcentral` as the fallback if capacity is constrained.
 - Hub address space: `10.100.0.0/16`.
 - Azure Firewall: Standard SKU, DNS proxy enabled. No Premium features (TLS inspection, IDPS) — out of scope for a two-day event.
-- Defender for Cloud: Foundational CSPM only (free). Paid Defender plans are off, on the whole shared services subscription. This is a deliberate AI-readiness gap, called out again in [C10](../../challenges/c10-package-hand-over-review-ai-readiness/)'s gap register, not an oversight to silently work around.
+- Defender for Cloud: Foundational CSPM only (free). Paid plans are off across the whole shared services subscription **and every vended workload subscription**. This deliberate AI-readiness gap is carried into [C10](../../challenges/c10-package-hand-over-review-ai-readiness/), not silently worked around.
 - No availability zones pinned, and no zone redundancy explicitly turned on anywhere in the kit. Where a service is zone-redundant automatically with no extra configuration (for example, Azure Container Registry or Azure Service Bus Premium), that's the platform's default behavior, not a kit setting — see the [availability zones reference](../../reference/availability-zones/).
 
 ## How it compares with a full ALZ

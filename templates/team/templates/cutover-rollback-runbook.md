@@ -22,7 +22,9 @@ Fill this in from what you actually did in C7, not from a plan written in advanc
 
 ## Rollback path (if needed)
 
-<!-- If you had to abort or roll back: what you did, and what state you had to clean up before retrying (e.g. deleting a partially seeded database on the MI). -->
+Rollback after cutover is **not exercised at this event**. Record any pre-cutover abort/reseed you actually performed, including cleanup of the MI copy and restarting source writers only while the source is authoritative.
+
+For a customer, name the post-cutover recovery procedure: restore from backup or planned failback, with data reconciliation, an agreed recovery window and an accountable owner. Do not restart the stale source after MI has accepted writes.
 
 ## Follow-up actions
 

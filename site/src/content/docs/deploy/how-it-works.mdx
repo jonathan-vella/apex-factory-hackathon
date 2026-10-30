@@ -19,7 +19,7 @@ One workflow, `platform.yml`, runs in your own repo. You pick a stage and walk a
 | `whatif` | Lead | T-14 ([Step 1](../set-up-your-repo/)) and T-7 ([Step 2](../team-lead-steps/)) | Runs the member preflight at T-14; at T-7, previews ALZ-lite and runs a preflight for each roster member. | About 15 min at T-14; at T-7, about 3 min plus a few minutes per member; allow up to 15 more for provider registrations |
 | `member` | Member; Lead (own index) | T-3 ([Step 3](../member-steps/)) | Deploys the datacenter, runs the datacenter test, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 60 min |
 | `foundation` | Lead | T-7 ([Step 2](../team-lead-steps/)) | Deploys ALZ-lite for the team: management groups, hub, policies. | 15 to 25 min |
-| `vending` | Lead | T-1 ([Step 4](../vending/)) | Verifies each member's `vnet-datacenter` and `vm-app01` Arc `Connected` status, connects each member's subscription to the hub, restarts every VM, records policy exemptions and runs the connectivity probes. | About 60 min for 3 members; 75 min for 5 |
+| `vending` | Lead | T-1 ([Step 4](../vending/)) | Checks datacenter/Arc readiness, connects subscriptions to the hub, restarts VMs, records exemptions if needed and tests connectivity. | Measured: about 62 min for 3 members; estimate: 75 min for 5 (not measured) |
 | `teardown` | Both | T+2 | Removes what the other stages built. | about 20 min, then about 25 for the team |
 
 The order is fixed by the event: Step 1 (repo and preflight), Step 2 (foundation and the Graph grant), Step 3 (each member's datacenter and `vm-dev01` setup), and Step 4 (vending, which verifies each member's datacenter and Arc connection automatically). The [deployment guide](../) has the timeline.
@@ -31,9 +31,10 @@ The order is fixed by the event: Step 1 (repo and preflight), Step 2 (foundation
 A team has one shared services subscription and one workload subscription per member, all in one Microsoft Entra tenant. Each stage builds one layer.
 
 - **Management groups** (foundation, T-7): `mg-factory` under Tenant Root, with `mg-factory-platform` for the shared services subscription and `mg-factory-corp` for the workload subscriptions. The core policies are assigned at `mg-factory-corp`.
-- **Shared services subscription** (foundation, T-7): `rg-hub` holds the hub network `vnet-hub`, the Azure Firewall `afw-hub` with its policy `afwp-hub`, and the private DNS zones. `rg-management` holds `log-management` and `id-sqlmi-directory`. `rg-cicd` holds the lead's pipeline identity.
+- **Pipeline setup (T-14):** `rg-cicd` holds each repo's pipeline identity: in the shared services subscription for the lead, and the workload subscription for a member.
+- **Shared services subscription** (foundation, T-7): `rg-hub` holds `vnet-hub`, Azure Firewall `afw-hub`/`afwp-hub` and private DNS. `rg-management` holds `log-management` and `id-sqlmi-directory`.
 - **Each workload subscription, datacenter** (member stage, T-3): `rg-datacenter` holds `vm-app01` (Arc-connected), `vm-dev01` and Bastion.
-- **Each workload subscription, spoke** (vending, T-1): `rg-spoke` holds `vnet-spoke`, its peering to the hub, routes and a budget. `rg-cicd` holds the member's pipeline identity.
+- **Each workload subscription, spoke** (vending, T-1): `rg-spoke` holds `vnet-spoke`, its hub peering and routes. Vending also adds a **subscription budget**, not a resource in `rg-spoke`.
 
 The CoE archetype (C5) and the modernized app (C6 and C7) deploy into each member's spoke later, with `azd` and a container image. They are not part of the pipeline. The [end state](../../getting-started/kit-at-a-glance/#the-end-state) shows all of it.
 
@@ -64,7 +65,7 @@ The risk is real: anyone who can run a workflow in the environment can use that 
 
 ## Secrets
 
-Subscription IDs and the roster are stored as environment secrets, never in the repo or its logs. Run logs show GUIDs as `<id:abcd>`. Never put an identifier in a repo variable, an issue or a pull request.
+Subscription IDs and the roster are stored as environment secrets, never in the repo or its logs. Run logs show identifiers as `<id:abcd>`. Never put an identifier in a repo variable, an issue or a pull request.
 
 ## One profile per repo
 

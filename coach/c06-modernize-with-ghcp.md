@@ -9,7 +9,7 @@ This is the longest member challenge (180 minutes) and the one most likely to ru
 
 **Timing cues:** by the Day 1 break, expect the framework migration and database task to build and run. At the Day 2 midpoint, identify any remaining service gaps; reserve the last 30 minutes for packaging and checks. Offer an appropriate lifeline only after the member has tried the documented fixes.
 
-- Seven commits, one per task, each named `app: task 0N <name>`, each preceded by a passing build and a local run against the source database on `vm-app01`.
+- Seven `app: task 0N <name>` commits on `vm-dev01-work`, plus `factory/evidence/c06/task-checks.md` on `main`: task, commit hash, build result, pages checked, playbook-check result and redacted supporting output, with the work-branch commit log. Read the work branch only for these C6 app commits; written C6 and C9 evidence stays on `main`.
 - The app running on `vm-dev01`: uploads landing in the archetype's Blob container, a notification toast within 5 seconds of a student edit, telemetry visible in Application Insights.
 - `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` clean, or a documented remediation for anything it flags.
 - The image pushed to the archetype's ACR (`az acr repository show-tags`), with App Service's identity, app settings and Key Vault access (the identity's **Key Vault Secrets User** role assignment) checked but **not changed** to point at the new image.

@@ -13,8 +13,8 @@ C8 is a fixed checklist, so grading is mostly about completeness and evidence qu
 - Upload round-trip: an image uploaded on **Courses > Edit** shows on the course and lands in `teaching-materials` (checked with `az storage blob list` on `vm-dev01`: the storage account is private-only); replacing the image on **Courses > Edit** changes the blob, and deleting the throwaway course (**Courses > Delete**) removes its blob (the app has no separate delete-image control, and a seeded course is never deleted); a non-image and a file over 5 MB are both rejected with a clear error, not a 500.
 - Notification round-trip: a toast within 5 seconds of a student edit, and `/Notifications/GetNotifications` returning success.
 - A light load check (10–20 concurrent page loads) with no errors.
-- Security check: `scripts/Test-Acceptance.ps1` output (or `acceptance.json`) ending in `ACCEPT`: the five pages and the HTTP-to-HTTPS redirect, web app HTTPS-only with TLS 1.2 minimum, and public network access off with an approved private endpoint on Storage, Service Bus, Key Vault and ACR, plus SQL MI's public data endpoint off.
-- Application Insights **Transaction search** (last 30 minutes) showing requests and dependencies from this session's checks.
+- Security check: `acceptance.json` showing **Verdict ACCEPT**, with no FAIL or UNKNOWN: the five pages and HTTPS redirect, HTTPS-only/TLS 1.2 minimum, backend public access off and approved private endpoints, plus SQL MI's public data endpoint off.
+- Application Insights **Transaction search** (last hour or a custom range from C8's start) showing requests and dependencies from this session's checks.
 - A filled-in acceptance and handover document with the member index.
 
 ## Model answer
@@ -25,7 +25,7 @@ The member runs the read-only checker from the dev container, in `factory/`:
 ./scripts/Test-Acceptance.ps1 -SubscriptionId $s.subscriptionId -ResourceGroup $rg -OutFile .local/acceptance.json
 ```
 
-A clean run has no FAIL and no UNKNOWN, and ends with `ACCEPT`. A FAIL names the setting to change. An UNKNOWN means the check couldn't decide, for example a resource in another resource group or an account that can't read it: the member explains it with the portal view that settles it (the resource's **Networking** > **Private endpoint connections**, with an **Approved** connection). The checker doesn't replace the browser flows or the row-count comparison.
+A clean run has no FAIL and no UNKNOWN. Portal evidence can explain an UNKNOWN but **does not change NOT ACCEPTED**: resolve the scope/read problem and rerun the checker. No passing rerun means no ACCEPT. If C7 is unfinished, the member finishes cutover before browser/data checks; ARM security checks can be prepared meanwhile. The checker does not replace browser flows or row-count comparisons.
 
 To check one setting by hand:
 

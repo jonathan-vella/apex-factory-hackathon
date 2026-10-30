@@ -21,7 +21,7 @@ Problem / Trigger  -->  Business Outcome (CAF category)  -->  Solution  -->  KPI
 
 **Objective.** Connect customer problems and triggers to prioritized business outcomes, map each outcome to a CAF category and a concrete solution, and define KPIs you can measure later in the hackathon.
 
-**Time and points.** Team, **45 min**, **10 pts** (team). Everyone starts here at 09:00, right after the tech lead's 30-minute kickoff presentation. The team lead deployed the foundation before the event, so C1 needs no Azure access.
+**Time and points.** Day 1, **09:00**, **45 min**, **Team**, **10 pts** (team). Everyone starts after the tech lead's kickoff. The team lead deployed the foundation before the event, so C1 needs no Azure access.
 
 The one-time evidence setup takes about 5 minutes and requirements 2 to 5 add up to 40, so keep to the times given. Do the folder setup while teammates read the canvas template.
 
@@ -35,7 +35,7 @@ The one-time evidence setup takes about 5 minutes and requirements 2 to 5 add up
 
 | Problem and trigger | Stakeholder | Business outcome (CAF category) | Solution in this factory | Verification KPI |
 |---|---|---|---|---|
-| Audit findings: SQL password in `Web.config`, unrestricted network paths, no central logging | Tomás (Security) | **Secure by default** (Risk reduction and compliance) | Private endpoints, Entra managed identity, Key Vault, Azure Landing Zone `Deny` policies | `Test-Acceptance.ps1` passes with 0 secrets in configuration and 0 public data endpoints (C8) |
+| Audit findings: SQL password in `Web.config`, unrestricted network paths, no central logging | Tomás (Security) | **Secure by default** (Risk reduction and compliance) | Private endpoints, Entra managed identity, Key Vault, Azure Landing Zone `Deny` policies | 0 public data endpoints from `Test-Acceptance.ps1` (C8); 0 stored passwords or keys from the C6/C7 app, App Service and Key Vault configuration checks |
 | `.NET Framework 4.8` on a single hand-patched Windows VM (`vm-app01`) with no container pipeline | Dana (CIO) | **Current platform** (Agility and technical debt reduction) | `.NET 10` and ASP.NET Core MVC container on Azure App Service for Linux | App running on `.NET 10` container image in Azure Container Registry (C6 and C7) |
 | Manual server builds and configuration drift across environments | Priya (IT operations) | **Repeatable provisioning** (Operational efficiency) | Bicep CoE archetype deployed via `azd provision` with an As-Built record | Clean `azd provision` from the repo and committed deployment record (C5) |
 | Fragile manual releases and fear of registrar downtime during database cutover | Priya (IT operations) and Marcus (Registrar) | **Safe, repeatable change** (Reliability and risk reduction) | Online SQL MI link replication and planned cutover with a written rollback | Cutover completed within the planned window with matching row counts (C7) |
@@ -63,8 +63,7 @@ The kit clone at `C:\src\factory` on `vm-dev01-work` has no commit hook. Use the
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
-<details>
-<summary>Set up the evidence folders once (about 5 minutes)</summary>
+### Set up the evidence folders once (about 5 minutes)
 
 In the dev container terminal, at the repo root:
 
@@ -79,13 +78,12 @@ git push
 
 The `-n` keeps anything you already created in Step 3 (such as `factory/evidence/readiness/`), and the command works whether or not `factory/evidence/` exists yet.
 
-</details>
-
 ## Requirements
 
 1. **Copy the template.** In your own repo, copy `factory/templates/attendee/opportunity-canvas.md` to `factory/evidence/c01/opportunity-canvas.md`:
 
    ```bash
+   mkdir -p factory/evidence/c01
    cp factory/templates/attendee/opportunity-canvas.md factory/evidence/c01/opportunity-canvas.md
    ```
 
@@ -134,7 +132,7 @@ Time-box the disagreement: record both views under **Open questions** and move o
 <details>
 <summary>What is the difference between a business outcome and a KPI?</summary>
 
-A business outcome states the change the organization needs, such as "Secure by default (risk reduction and compliance)." A KPI is the concrete measurement that proves the outcome was achieved, such as "`Test-Acceptance.ps1` reports 0 secrets in configuration and 0 public data endpoints in C8."
+A business outcome states the change the organization needs, such as "Secure by default (risk reduction and compliance)." A KPI is the measurement that proves it: 0 public data endpoints from the C8 checker, and separately 0 stored passwords or keys from the C6/C7 configuration checks. The checker does not scan for secrets.
 
 </details>
 

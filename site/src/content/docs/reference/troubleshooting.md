@@ -25,21 +25,21 @@ sidebar:
 ## Datacenter and Arc
 
 - **The `member` stage stops or fails on quota or a VM size:** read the run log, then run the stage again; it converges. If a quota or size error comes back, check **Usage + quotas** for your event's region (`swedencentral` unless told otherwise) in the Azure portal and tell your team lead; they can escalate to the event owner.
-- **The datacenter test fails on in-VM checks:** the VMs must be running, and the test runs before Arc onboarding. After Arc onboarding the run commands no longer work, so don't run the `member` stage again. The stage stops before Arc when the test fails: read the run log, then run it again. Keep the PASS output from the run that passed as your evidence (`Get-PipelineEvidence.ps1` downloads it).
+- **The datacenter test fails on in-VM checks:** both VMs must run, and the test precedes Arc. If onboarding never started, fix the failure and rerun. If onboarding already disabled the guest agent, do not rerun `member`: the test cannot use run commands anymore. Preserve the earlier PASS evidence and use the Arc recovery path.
 - **Bastion won't connect:** connect from the Azure portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. Check the VM is running. The native client (`Connect-DatacenterVm.ps1`) is an optional shortcut that works only from Windows with the Azure CLI Bastion extension.
 - **Copilot isn't signed in on `vm-dev01`:** the VS Code extensions install at first logon, so give the first sign-in up to five minutes, then sign in to GitHub in VS Code.
-- **Arc onboarding times out:** don't run the `member` stage again. Once onboarding has started, it turns off the VM's guest agent and the stage refuses a second run, and a redeploy can't recover it. Read the run log, then connect to `vm-app01` through Bastion and read `C:\LabTools\logs\Connect-AppArc.log` (open it in Notepad). Check outbound access to Arc's endpoints through the NAT gateway first if the log shows a network error. Before C5, use the recovery below; if it still fails, ask your team lead to escalate to the event owner. After C5, ask the event owner for a coach repair.
+- **Arc onboarding times out:** do not rerun `member`. It refuses an existing Arc machine; if onboarding stopped earlier but disabled the guest agent, a rerun instead fails at the test. Read `C:\LabTools\logs\Connect-AppArc.log` through Bastion and check outbound Arc access through NAT. If `Get-PipelineEvidence.ps1` has no successful run to download, use the [standard lab credentials reference](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/datacenter/README.md#credentials) or get custom credentials privately from the team lead. Before C5, use the approved rebuild below; after C5, ask for a coach repair.
 
 ## ALZ-lite and vending
 
 - **Vending can't find the hub:** confirm the `foundation` stage finished and the expected hub resource names exist (`vnet-hub`, `afw-hub`, `afwp-hub`, `rg-hub`) before you run the `vending` stage.
-- **DNS stops resolving after vending changes a VNet's DNS servers:** running VMs cache their old DNS settings. The `vending` stage restarts both VMs at T-1; if yours were stopped or redeployed since, restart the VM, or run `ipconfig /renew` inside it.
+- **DNS stops resolving after vending:** stopped VMs may need restarting or `ipconfig /renew`. A rebuilt datacenter needs the team lead to rerun vending for that member before restarting. Never redeploy an Arc-connected datacenter.
 - **`Grant-SqlMiDirectoryRead.ps1` stops with `InteractionRequired` or `TokenCreatedWithOutdatedPolicies`:** the role holder's Microsoft Graph sign-in is stale. They run `az logout`, then `az login` again as themselves, and repeat.
-- **The datacenter shows as policy non-compliant:** expected until it has exemptions. The `vending` stage at T-1 records them, and you check them in C2. It was deployed before the subscription moved under the management group hierarchy. Ignore it in the readiness check.
+- **No datacenter exemptions appear:** normally correct: `rg-datacenter` complies with ALZ-lite and needs none. Bastion's standalone public IP is outside the NIC policy's scope. Record compliance and "none needed", plus the C2 deferred-work entry; do not rerun vending just to get exemptions. Investigate actual non-compliance with the team lead rather than ignoring it or bypassing tenant policy.
 
 ### If Arc onboarding needs recovery
 
-**After Arc, before C5:** the `member` stage refuses once `vm-app01` is an Arc machine or its guest agent is off. To recover, run `teardown`, then `member`. In the member's own repo (member profile), run:
+**After Arc onboarding starts, before C5:** the stage refuses an Arc machine; a partially disabled guest agent can instead break the test. With the event owner's approval, rebuild with `teardown`, then `member`. In the member's own repo (member profile), run:
 
 ```bash
 gh workflow run platform.yml -f stage=teardown
@@ -83,12 +83,20 @@ Member `teardown` removes `rg-datacenter`, `rg-spoke` and the archetype, includi
 - **A native Windows checkout changes the archetype's tree hash:** APEX's `.gitattributes` forces LF for `*.bicep` but not `*.bicepparam`. Always run `/apex-adapt-archetype` in the dev container, never natively on Windows.
 - **Preflight stops with `snet-sqlmi already hosts another managed instance`:** the suffix you ran it with isn't the suffix of the managed instance already in your subnet. Preflight accepts only `sqlmi-university-<suffix>` there, so a different suffix looks like someone else's instance. This happens when `SUFFIX` or `factory/.local/settings.json` holds a different value than your first deployment, for example after a new dev container, a second clone or a re-imported kit. Find the suffix you deployed with, from any resource name such as `rg-university-<suffix>`, set it again (`./scripts/Initialize-Settings.ps1 -Suffix '<old suffix>'` from `factory/`, and `azd env set SUFFIX <old suffix>` in `infra/bicep/university/`), and re-run. Never delete the managed instance to get past it. If the suffix is right and the message stays, a different instance really is on your subnet: stop and ask your team lead, who can escalate to the event owner.
 - **`azd provision --preview` looks incomplete:** the preview only lists resource types `azd` has display names for. SQL MI, the managed identity, role assignments and diagnostic settings are still being created even though the preview doesn't name them.
+- **Preflight says a SQL virtual cluster still holds `snet-sqlmi`:** a deleted MI's cluster can retain the subnet for hours. Wait for Azure to release it, then retry with the same suffix; do not delete the VNet, change suffix or remove the service association to force it.
+- **Preflight cannot read or assign `id-sqlmi-directory`:** the member lacks Reader on the shared subscription or Managed Identity Operator on the identity. The team lead checks the roster's member principal and reruns vending for that index; a user sign-in alone cannot grant the missing role.
 
 ## Migration
 
 - **`CREATE USER ... FROM EXTERNAL PROVIDER` fails before cutover:** the replica is read-only until cutover completes. This is expected, not a bug, and the command only succeeds afterward.
+- **`CREATE USER` fails after cutover with a directory-read error:** have the team lead run Step 2.2's `Grant-SqlMiDirectoryRead.ps1 -WhatIf`. All three Graph permissions must already be granted to the MI's primary identity; missing grants need the Privileged Role Administrator, not an app password or SQL-authentication workaround.
 - **An aborted MI link leaves a writable copy of the database behind:** delete it before reseeding, or the next seed attempt fails.
 - **A planned failover run from the managed instance side fails:** cut over from the Arc portal's pane, not with a CLI command issued from the MI. See the [Azure Arc and the MI link guide](../../guides/arc-mi-link/).
+
+## Acceptance and cleanup
+
+- **The acceptance checker reports UNKNOWN:** it could not decide a read/scope check. Keep its actual `NOT ACCEPTED` verdict, collect the portal evidence described in C8, resolve the cause with a coach and rerun. A screenshot cannot turn UNKNOWN into a passing script run.
+- **`teardown` times out waiting for an MI subnet association:** Azure has not released the deleted MI's subnet yet. Wait and rerun the same member `teardown`. Do not force-delete the VNet or remove the service association; team cleanup must wait for successful member cleanup.
 
 ## Where to go next
 

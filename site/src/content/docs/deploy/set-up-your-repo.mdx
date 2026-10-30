@@ -42,7 +42,7 @@ Complete this step first. It gives you a private repository with the kit on `mai
 <details>
 <summary>Ignore the template's own README</summary>
 
-Your new repo opens on the template's README and its Quick Start. Follow this page instead. From that README you need only the dev container. Don't run `npm run setup`, don't change the Actions pull request permission, and don't run the Weekly Maintenance or Governance Policy Baseline workflows: the kit doesn't use them. The template's scheduled workflows may show failed runs on Mondays: ignore them. If you work for Microsoft and the container build fails on package feeds, start VS Code with the template's `.devcontainer/open-microsoft.ps1` launcher.
+Your new repo opens on the template's README and its Quick Start. Follow this page instead. From that README you need only the dev container. Don't run `npm run setup`, change the Actions pull request permission, or run Weekly Maintenance/Governance Policy Baseline: the kit doesn't use them. Ignore the template's failed Monday scheduled runs. If Microsoft package feeds block the container build, run the launcher **outside the container**, at the repo root: `.devcontainer/open-microsoft.ps1` in Windows host PowerShell, or `bash .devcontainer/open-microsoft.sh` in WSL, macOS or Linux. A Windows checkout inside WSL uses the `.sh` launcher.
 
 </details>
 
@@ -261,5 +261,7 @@ The `whatif` stage checks your subscription and registers missing Azure resource
 | 10 | Azure licensing | Confirm Windows Server AHB eligibility for `vm-app01` or follow the [AHB rule](../../reference/azure-hybrid-benefit/). Separately, confirm your per-user Windows 11 license grants rights to run Windows 11 on Azure for `vm-dev01`; the preflight input does not cover it. | Azure Hybrid Benefit |
 
 Done when the `whatif` run is green and every manual check is confirmed.
+
+The automated preflight's **GO** is in the job log, not the run summary. WARN rows do not prevent GO; they do not waive your manual checks.
 
 Next: the team lead continues to [Step 2: Foundation and Graph grant (T-7)](../team-lead-steps/). Members continue to [Step 3: Datacenter and workstation (T-3)](../member-steps/).

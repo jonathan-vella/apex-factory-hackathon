@@ -13,7 +13,7 @@ import Diagram from "../../../components/Diagram.astro";
 **Who:** **Everyone** starts their VMs; the **Team lead** runs the `vending` stage; **Members** save the shared services subscription ID.
 **When:** By **T-1** (1 day before day one), after [Step 2: Foundation](../team-lead-steps/) and every member's [Step 3: Datacenter and workstation](../member-steps/) are complete. See the [stage timing table](../how-it-works/#stages).
 
-Vending places each member's workload subscription under the `mg-factory-corp` management group, deploys `rg-spoke` (`vnet-spoke`, subnets for App Service, private endpoints and SQL Managed Instance, plus route tables and NSGs), peers the spoke and the datacenter with `vnet-hub`, points datacenter DNS to the hub firewall, restarts both datacenter VMs, creates the datacenter policy exemptions, and runs `Test-Connectivity.ps1`.
+Vending places each workload subscription under `mg-factory-corp`, builds `rg-spoke` with subnets, route tables and NSGs, peers the spoke/datacenter to the hub, sets hub DNS, restarts both VMs, records exemptions **if needed**, and tests connectivity. It also creates the firewall rule collection group `rcg-member-<n>`, grants workload Owner and shared-services Reader/Managed Identity Operator as required, adds a **subscription-scoped $500 budget** with an **80% alert to the roster email**, and sets Foundational CSPM only (paid Defender plans off). Verify these shared changes, not just `rg-spoke`.
 
 :::caution[Use only dedicated, empty subscriptions]
 
@@ -40,6 +40,8 @@ az vm start -g rg-datacenter -n vm-dev01 --subscription $s.subscriptionId
 ```
 
 If you have an open Bastion session to `vm-dev01`, save your work: the VM restart during vending will disconnect your session.
+
+After starting the VMs, allow **about 10 minutes** and check **Azure Arc > Machines > vm-app01 > Connected** before telling the team lead you are ready. VM Running alone is not the vending readiness check.
 
 ## 4.2 Run the vending stage (Team lead)
 

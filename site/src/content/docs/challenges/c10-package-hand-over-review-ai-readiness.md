@@ -16,7 +16,7 @@ Modernizing one app is only worth it if the next team can repeat it and the cust
 
 **Objective.** Be able to package a reusable asset, complete a handover, and assess how ready a customer is to run GitHub Copilot's agents unattended.
 
-**Time and points.** Team, **60 min**, **20 pts** (team).
+**Time and points.** Day 2, **15:15**, **60 min**, **Team**, **20 pts** (team).
 
 ## Challenge
 
@@ -47,13 +47,15 @@ The [gap register](https://github.com/jonathan-vella/apex-factory-hackathon/blob
 
 1. **Reusable asset (about 15 min).** Package one reusable asset from the engagement: the archetype adaptation, the modernization playbook run, or the perf kit fixes. Another team must be able to pick it up without you in the room. Copy the files into `factory/evidence/c10/reusable-asset/`, for example the adapted archetype folder from a member's own repo, or the five fix scripts from `factory/evidence/c09/`. Add a short README that says what a new team must supply and how to run it.
 
+   For a playbook run, copy the exact relevant files from the app branch without merging it into `main`. In your dev container's bash terminal, run `git fetch origin vm-dev01-work`, then `git ls-tree -r --name-only origin/vm-dev01-work -- .github/upgrades` to find the files. Create `factory/evidence/c10/reusable-asset/` and extract each selected file with `git show origin/vm-dev01-work:<exact-file-path> > factory/evidence/c10/reusable-asset/<file-name>`. Include the playbook and explain which checks were performed; inspect/redact every exported file before committing it.
+
 2. **Acceptance and handover (about 15 min).** Copy `factory/templates/attendee/acceptance-handover.md` ([template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md)) to `factory/evidence/c10/acceptance-handover.md` and complete it for the whole engagement. In its handover summary, name every member and link their pack in `factory/evidence/c10/member-packs/`. Say who the engagement is handed to and how they operate it.
 
 3. **AI-readiness gap register (about 10 min).** Copy `factory/templates/attendee/ai-readiness-gap-register.md` to `factory/evidence/c10/` and fill it in honestly: where GitHub Copilot's agents needed a human, each time a coach unblocked you (including any checkpoint a coach gave you), and what that implies for running this unattended at a customer. Ordinary hints and discussion need no separate entry. Delete the template's example rows.
 
 4. **Factory-kit checklist (about 5 min).** Copy `factory/templates/attendee/factory-kit-checklist.md` to `factory/evidence/c10/` and run through it as a final sanity pass across the team's deliverables.
 
-5. **Showcase (about 15 min).** Prepare a short showcase: what was modernized, what's deferred, how the work serves your top-ranked outcome from C1, and the single most useful thing Copilot did for the team. Write the outline in `factory/evidence/c10/showcase.md`, then deliver it to your coach. If you're short of time, a two-minute verbal showcase with one screen shown still counts.
+5. **Showcase preparation (about 15 min).** Write `factory/evidence/c10/showcase.md`: what was modernized, what's deferred, how it serves C1's top outcome, and the most useful thing Copilot did. **Deliver it in the 16:15 showcase slot**, after this preparation time box. A two-minute verbal showcase with one screen still counts.
 
 ## Success criteria
 

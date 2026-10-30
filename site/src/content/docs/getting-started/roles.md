@@ -45,10 +45,12 @@ Each member has a dedicated workload subscription, a unique member index assigne
 
 Your team lead needs four values from you in Step 1 (T-14) to connect your subscription in Step 4 (T-1):
 
+After Step 1 creates settings, load `$s = Get-Content .local/settings.json | ConvertFrom-Json` from `factory/` before using the values below.
+
 1. Your workload subscription ID (`$s.subscriptionId`)
 2. Your member index (`$s.memberIndex`, assigned by your team lead)
 3. Your Microsoft Entra object ID (`az ad signed-in-user show --query id -o tsv`)
-4. Your work email address
+4. Your work email address (the vending subscription budget sends its 80% alert here)
 
 Share them privately with your team lead. Never put them in a repo, an issue, or a public channel.
 

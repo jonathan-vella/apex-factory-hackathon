@@ -20,9 +20,9 @@ az policy assignment create `
 
 The parameters and scope are examples for the default `mg-factory` prefix. If the event owner chose another prefix, substitute that prefix; do not use a tenant-specific ID in the assignment. The team lead runs the command under the coach's direction, because they hold the rights to assign policy at the management group.
 
-**Team task:** the coach asks the team lead to try creating any small resource, for example a storage account, in a region outside the approved list (such as westeurope) in a vended subscription. Capture the denial message and its location, explain why the golden path is compliant, and keep the selected approved region instead of weakening or bypassing the policy. Capture the policy assignment and the resulting decision in the C2 evidence.
+**Team task:** the coach asks the team lead to try creating any small resource, for example a storage account, in a region outside the approved list (such as westeurope) in a vended subscription. Capture the denial message and its location, explain why the golden path is compliant, and keep the selected approved region instead of weakening or bypassing the policy. Capture the policy assignment and resulting decision in **the team lead's C2 evidence only**.
 
-**Evidence and points:** the denial belongs with the C2 Layer 2 policy evidence (5 member points). It earns no bonus on its own. The C2 bonus is the `DeployIfNotExists` central DNS test on the C2 page, under the shared bonus cap.
+**Evidence and points:** this team-lead exercise changes nobody's points. Other members are not marked down for not having it; each still supplies their normal C2 Layer 2 evidence. It earns no bonus. The C2 bonus is the `DeployIfNotExists` central DNS test on the C2 page, under the shared bonus cap.
 
 **Reverse after sign-off:** remove only `curveball-allowed-locations` from the same `mg-factory-corp` scope as soon as the evidence is signed off, and in any case before C5 starts at 13:45 (confirm at the 16:30 check-out that it's gone):
 

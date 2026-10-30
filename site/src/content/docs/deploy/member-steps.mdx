@@ -89,6 +89,8 @@ From C3 onward you do the application and database modernization work on `vm-dev
 ./scripts/Get-PipelineEvidence.ps1
 ```
 
+If Arc failed, the successful-run evidence download may not yet exist. Use the documented lab-password reference in [Datacenter credentials](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/datacenter/README.md#credentials) for the standard disposable lab, or ask your team lead privately for a custom deployment's password. Do not publish it or rerun `member` merely to recreate the credentials file.
+
 Use two browser windows on your own computer: one for Bastion, the other for the portal and this site. Allow portal pop-ups and Bastion clipboard access. Enter sign-in codes on your own computer, where your passkeys and password manager work.
 
 Steps 1 and 2 below run on your own computer; steps 3 to 9 run on `vm-dev01`, in **PowerShell 7** (`pwsh`), not Windows PowerShell 5.1. `<your-org>` and `<your-repo>` are the owner and name of your own private repo.
@@ -212,7 +214,7 @@ Redact subscription, tenant, and object IDs from anything you commit.
 
 Confirm that `factory/evidence/readiness/` in your repository on `main` holds these six items before Step 4 (T-1):
 
-1. **Preflight green.** The `whatif` run summary or a screenshot with every automated check green.
+1. **Preflight GO.** The `whatif` **run log**, in the member's **Preflight** step, showing `GO`. WARN rows do not prevent GO; confirm the separate manual checks too.
 2. **Datacenter test PASS before Arc.** `evidence/readiness/test-datacenter.txt` with every check PASS.
 3. **Arc connected, with the SQL extension.** `vm-app01` showing as **Connected** under **Azure Arc** > **Machines**, and its instance listed under **SQL Server instances** (checked automatically by Step 4 Vending).
 4. **Arc migration assessment output.** A screenshot or exported report for `ContosoUniversity`.
@@ -228,7 +230,7 @@ For deployment, Arc or DNS errors, check [Troubleshooting](../../reference/troub
 <details>
 <summary>Arc onboarding doesn't finish</summary>
 
-Arc onboarding needs outbound internet from `vm-app01` to Arc's endpoints through the datacenter's NAT gateway. Don't run the `member` stage again if it timed out after Arc onboarding started: it refuses once `vm-app01` is an Arc machine or its guest agent is off. To see what happened, read the run log, then connect to `vm-app01` through Bastion as in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (steps 1 and 2, `vm-app01` instead of `vm-dev01`, same password) and open `C:\LabTools\logs\Connect-AppArc.log` in Notepad.
+Arc onboarding needs outbound internet through the NAT gateway. Don't rerun `member` after onboarding starts: the stage refuses once `vm-app01` exists as an Arc machine. If onboarding stopped earlier but disabled its guest agent, a rerun instead fails at the datacenter test; that is not a safe repair path. Read the run log, connect through Bastion as in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (use `vm-app01`, same password), and open `C:\LabTools\logs\Connect-AppArc.log` in Notepad.
 
 Check with your team lead first, or follow [If you need to start over](#if-you-need-to-start-over).
 
@@ -248,7 +250,7 @@ Start both again before your team lead runs Step 4 at T-1 (`az vm start -g rg-da
 Before T+2, never run a full, unfiltered `teardown` in the team lead's repo. To recover one member there, pass `-f members=<your index>` to both `teardown` and `member`, or ask your team lead to escalate to the event owner for a coach repair.
 
 - **Before Arc:** in your own repo (member profile), run the `member` stage again to repair the datacenter. In the team lead's repo, add `-f members=<your index>` to the `member` command.
-- **After Arc, before C5:** the `member` stage refuses once `vm-app01` is an Arc machine or its guest agent is off. To recover, run `teardown`, then `member`. In your own repo (member profile), run:
+- **After Arc onboarding starts, before C5:** `member` refuses an existing Arc machine; a partially disabled guest agent can instead make the test fail. Do not blindly rerun it. To rebuild with the event owner's approval, run `teardown`, then `member`. In your own repo (member profile), run:
 
   ```bash
   gh workflow run platform.yml -f stage=teardown

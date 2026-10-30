@@ -13,7 +13,7 @@ This is the go-live. You move the database to SQL Managed Instance with no data 
 
 **Objective.** Be able to migrate a database online with the MI link, validate the replica, cut over safely, and bring the app up on the new platform.
 
-**Time and points.** Member, **120 min**, **20 pts** (member). Pacing: requirements 1 to 3 about 25, requirement 4 about 25, requirements 5 and 6 about 40, requirement 7 about 10 and requirement 8 about 15. The rest is slack.
+**Time and points.** Day 2, **08:30** link setup and **10:30** go-live window, **120 min**, **Member**, **20 pts** (member). Pacing: requirements 1 to 3 about 25, requirement 4 about 25, requirements 5 and 6 about 40, requirement 7 about 10 and requirement 8 about 15. The rest is slack.
 
 ## Challenge
 
@@ -42,8 +42,8 @@ Requirements 5 and 6 depend on which identity does what. The web app's own ident
 
 **Starting point.**
 
-- [C5's deployed SQL Managed Instance](../c05-deploy-the-coe-archetype/), with its directory read access granted: the Microsoft Graph read grant a Privileged Role Administrator made at [Step 2.2 (T-7)](../../deploy/team-lead-steps/#22-grant-microsoft-graph-read-permissions-privileged-role-administrator). Ask your coach to confirm it before you start, or `CREATE USER` fails in requirement 5.
-- [C6's modernized, packaged app](../c06-modernize-with-ghcp/) (image tag `c6`), not yet pointed at App Service.
+- [C5's deployed SQL Managed Instance](../c05-deploy-the-coe-archetype/), with its directory read access granted at [Step 2.2 (T-7)](../../deploy/team-lead-steps/#22-grant-microsoft-graph-read-permissions-privileged-role-administrator). At **Day 2 08:30**, the team lead loads `$s` from `.local/settings.json` in `factory/` and runs `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf` with the coach. Expected: all three permissions already granted. This read-only check needs Reader on the shared subscription; missing grants go back to the Privileged Role Administrator before members proceed.
+- [C6's modernized, packaged app](../c06-modernize-with-ghcp/), using your latest verified image tag (initially `c6`), not yet pointed at App Service.
 - `vm-app01` running, with its Azure Arc entry **Connected**. C3 had you start it; run `az vm start` for it if it's stopped. The portal shows the instance only while the machine is connected.
 
 Start the link at 08:30 on Day 2, as in the [event agenda](../../getting-started/event-overview/#day-two), before you finish C6, so it's already seeded when you reach requirement 3: requirements 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. After the lag check in requirement 4.4, make the go/no-go decision with your coach. A no-go means restart the source site and pool, keep the link running, and postpone the cutover to a later window. If you must cancel the link and reseed, plan another 20 to 30 minutes to validate again and agree a second window.
@@ -60,7 +60,7 @@ The datacenter deployment turned on availability groups on `vm-app01`'s SQL Serv
 | --- | --- |
 | 1 (prepare the source) | `vm-app01` (the legacy IIS and SQL Server VM), through Bastion, in Windows PowerShell as an administrator. |
 | 2, 3 (link, replica check) | The Azure portal (Azure Arc > SQL Server instances), in your browser. Run the replica spot-check queries in SSMS on `vm-dev01`. |
-| 4 (stop the writers, cut over) | `vm-app01` through Bastion, plus a check on `vm-dev01`. |
+| 4 (stop the writers, cut over) | `vm-app01` through Bastion, a check on `vm-dev01`, and the Azure portal's Monitor and cutover pane. |
 | 5, 6 (secret, user, App Service) | `vm-dev01`, in PowerShell and SSMS. It's inside the private network, so it reaches the managed instance and Key Vault. |
 | 7 (trace flags) | `vm-app01`, through Bastion. |
 | 8 (runbook) | Your own repo: on `vm-dev01` in `C:\src\<your-repo>` (the plain clone of your own repo), or in the dev container. See Evidence for where the file goes. |
@@ -186,7 +186,7 @@ $mi
 
    Done when the migration shows completed and the managed instance's database returns `READ_WRITE`. The managed instance is now the live database. Leave the legacy site on `vm-app01` stopped: restarting it would write to a source that's no longer authoritative.
 5. **Write the secret and create the database user.** After cutover, follow the first two go-live actions in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7). It is the single source for the Key Vault secret, the database user and its roles, and the checks. Run those actions on `vm-dev01`, in order, as the archetype's deployer.
-6. **Point the web app at your image** and restart it. Follow the remaining go-live action and checks in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7). The web app pulls from your private registry with its managed identity.
+6. **Point the web app at your latest verified C6 image** and restart it. Follow the remaining go-live action and checks in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7). Set `$tag` to the tag you actually published and checked, including any later gap-fix build; do not deploy an older `c6` image over it. The web app pulls from your private registry with its managed identity.
 
    Done when the playbook's checks pass and `https://app-university-<suffix>.azurewebsites.net/` loads the five pages with migrated data, an upload lands in Blob, a notification round-trips, and telemetry reaches Application Insights.
 7. **Follow up on C3's trace-flag decision:** remove `-T1800` and `-T9567` from the source now that the link is gone. On `vm-app01`, through Bastion:
@@ -208,10 +208,12 @@ $mi
       "Flags: $($table.Rows.Count)"
       ```
 
-   5. Mark your trace-flag row in `deferred-work-register.md` (the register you built in C4) as done.
+   5. Save your result in your own C7 evidence and tell the team lead. After all members report their results, the team lead updates the canonical `factory/evidence/c04/deferred-work-register.md` on `main` and shares that unchanged copy with the team. Do not each edit a divergent team register.
 
    Done when the `DBCC TRACESTATUS` list has no `1800` or `9567`.
 8. **Write the cutover and rollback runbook** from what you actually did. In your own repo's dev container, run `mkdir -p factory/evidence/c07` and `cp factory/templates/attendee/cutover-rollback-runbook.md factory/evidence/c07/` to use your imported copy ([cutover and rollback runbook template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md)). On `vm-dev01`, use the plain clone at `C:\src\<your-repo>`. Write the six short sections from what you did, not from a plan. Done when all six sections hold your own notes and output.
+
+   **Rollback scope:** the event exercises a pre-cutover abort/reseed, not rollback after cutover. Document the pre-cutover abort path and name the customer procedure needed afterward: backup restore or planned `failback`, with data reconciliation and an agreed recovery window. Never restart the stale source as a shortcut after the managed instance has accepted writes.
 
 ## Success criteria
 
@@ -258,7 +260,7 @@ Then start the link again from requirement 2.
 <details>
 <summary>CREATE USER fails</summary>
 
-Before cutover, the replica is read-only, so the user creation step only works after cutover completes (requirement 4, step 6). If it still fails afterward with a permissions error on the server's Entra identity, ask your coach: the MI's primary identity needs Microsoft Graph read access, set up once per team at T-7 (C2 requirement 4 checks it).
+Before cutover, the replica is read-only, so the user creation step only works after cutover completes (requirement 4, step 6). If it still fails afterward with a permissions error on the server's Entra identity, ask your coach: the MI's primary identity needs Microsoft Graph read access, set up at Step 2.2 and checked at Day 2 08:30 above. C2 requirement 3 checks connectivity, not the Graph grant.
 </details>
 
 <details>

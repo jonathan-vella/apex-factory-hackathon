@@ -260,8 +260,12 @@ After the MI link cutover, the database on the Managed Instance is writable:
 
 3. Point the web app at your image and restart it. The archetype already set the pull identity, so the image comes from the private registry with the managed identity:
 
+   List the tags and choose the latest image you built and verified in C6, including gap fixes. Set `$tag` to that exact tag; `c6` is only the initial build's name.
+
    ```powershell
-   az webapp config container set -g rg-university-<suffix> -n app-university-<suffix> --container-image-name cruniversity<suffix>.azurecr.io/contoso-university:c6 --container-registry-url https://cruniversity<suffix>.azurecr.io --output none
+   az acr repository show-tags --name cruniversity<suffix> --repository contoso-university --orderby time_desc -o table
+   $tag = '<latest-verified-C6-tag>'
+   az webapp config container set -g rg-university-<suffix> -n app-university-<suffix> --container-image-name "cruniversity<suffix>.azurecr.io/contoso-university:$tag" --container-registry-url https://cruniversity<suffix>.azurecr.io --output none
    az webapp config show -g rg-university-<suffix> -n app-university-<suffix> --query acrUseManagedIdentityCreds   # true: the archetype set the pull identity
    az webapp restart -g rg-university-<suffix> -n app-university-<suffix>
    ```
