@@ -6,7 +6,7 @@ There are five checkpoint branches, `lifeline/L1-net10` to `lifeline/L5-cutover`
 
 ## What each lifeline contains
 
-The branches hold only what GitHub Copilot produced on the kit's golden path (the B06 v3 run, `spike/b06-upgrade-compare-v3` at `54b5b45`), replayed onto the kit with no hand fixes. Each one also carries the Upgrade agent's scenario state in `.github/upgrades/scenarios/dotnet-version-upgrade/`, with the finished tasks marked complete. So after a switch the member can start the next task with `start_task`.
+The branches hold only what GitHub Copilot produced on the kit's validated upgrade path, replayed onto the kit with no hand fixes. Each one also carries the Upgrade agent's scenario state in `.github/upgrades/scenarios/dotnet-version-upgrade/`, with the finished tasks marked complete. So after a switch the member can start the next task with `start_task`.
 
 | Branch | Commit | Checkpoint | Golden-path commits | Next for the member |
 |---|---|---|---|---|
@@ -33,11 +33,11 @@ A lifeline is for a member who is blocked, not slow: they've tried the playbook'
 | C7 configuration on App Service | `lifeline/L5-cutover` |
 | The image won't build or push, and the clock is out | The known-good image |
 
-**Cost in points:** a lifeline caps that challenge's points, but later challenges stay eligible (PRD §5). The scoring rubric in `facilitator/` is the source of truth for the caps (today: C6 and C7), and you record every lifeline there. L1 to L4 cap C6 at 15 of 30 member points. L5 and the known-good image used at C7 go-live cap C7 at 10 of 20 member points. Student pages don't mention lifelines or caps: you decide, you apply, and you tell the member what it costs. Ordinary hints and coach discussion never trigger a cap.
+**Cost in points:** a lifeline caps that challenge's points, but later challenges stay eligible. The [scoring rubric](../facilitator/scoring-rubric.md) controls evidence; **Scoreboard and badges** in the Coach sidebar owns the caps and recording. L1 to L4 cap C6 at 15 of 30 member points. L5 and the known-good image used at C7 go-live cap C7 at 10 of 20 member points. Student pages don't mention lifelines or caps: you decide, you apply, and you tell the member what it costs. Ordinary hints and coach discussion never trigger a cap.
 
 ## How to apply one
 
-The member's work lives in a clone of the public kit, so lifeline branches are already available from its `origin`. The clone on `vm-dev01` doesn't check out `coach/`, `facilitator/`, `docs/` or `site/` (new deployments), but fetching and switching to a lifeline work unchanged in that sparse clone: the branches come from `origin` and exist as git branches whatever the sparse checkout holds. On `vm-dev01`, in `C:\src\factory`, with the member. First check which branch they're on: `git branch -vv` shows `* vm-dev01-work` tracking `member/vm-dev01-work` (see the [upgrade guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight)). If the `member` remote is missing, add it first (guide, section "Switching to vm-dev01", step 6).
+The member's work lives in a clone of the public kit, so lifeline branches are already available from its `origin`. The sparse clone excludes the folders and root tooling listed in the [datacenter README](../infra/datacenter/README.md), but fetching and switching to a lifeline work unchanged: the branches come from `origin` regardless of the sparse checkout. On `vm-dev01`, in `C:\src\factory`, with the member, first check `git branch -vv`: `* vm-dev01-work` should track `member/vm-dev01-work` (see the [upgrade guide](../site/src/content/docs/guides/ghcp-upgrade.md#save-your-work-and-keep-the-branches-straight)). If `member` is missing, use [Step 3.3](../site/src/content/docs/deploy/member-steps.mdx#33-set-up-vm-dev01) to add it.
 
 1. Save the member's work, so nothing is lost. It stays on `vm-dev01-work` as a backup:
 

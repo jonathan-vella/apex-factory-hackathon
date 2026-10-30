@@ -6,7 +6,7 @@ Run cleanup after the showcase, normally on T+2 (the day after the two-day event
 
 Member cleanup deletes `rg-datacenter`, which removes `vm-dev01` and its `C:\src\factory` clone. Team cleanup deletes `rg-hub` and the shared policy artifacts. Neither can be undone. Don't start until every item below is true for every member:
 
-- Scores are signed off in the [scoreboard](scoreboard.md) and no evidence question is open.
+- Scores are signed off in the [scoreboard](../coach/scoreboard.md) and no evidence question is open.
 - The member's work branch on `vm-dev01` (`vm-dev01-work`, or the branch a coach applied) is pushed to the member's own repo with `git push`. Check `git branch -vv` on `vm-dev01` and that the commits are on GitHub.
 - The evidence that the challenge pages ask for is in the member's own repo under `factory/evidence/cNN/`, copied, committed and pushed to `main` as in [Copy your evidence to your repo](../site/src/content/docs/guides/ghcp-upgrade.md#copy-your-evidence-to-your-repo). That covers the C6 task commits, the C9 fix scripts and results, and any screenshots from the Azure portal or Application Insights.
 - Each member has noted their `.local/settings.json` values (workload subscription, member index, suffix, location), or the person running cleanup has them. The stage reads the roster and the member index from the repo's settings, but a coach repair needs them by hand, and they're lost if the dev container is rebuilt without the file.

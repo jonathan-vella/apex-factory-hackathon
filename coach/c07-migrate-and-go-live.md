@@ -23,9 +23,11 @@ Only then do they select **Cutover** (some portal builds label the button **Comp
 
 ## Day 2 curveball
 
-The [curveball](../facilitator/curveballs.md) fails the replica go/no-go for **one member per team**, picked by the coach, so the rest of the team keeps its pace. Don't corrupt the source database. That member records the failed check, marks no-go, cancels the migration, deletes the MI copy, writes the reseed plan (cap 15 minutes) and restarts the link. They use the new seeding wait for the runbook and finish C7, C8 and C9 after their cutover; rows that need a completed cutover (live pages, contained user) score only once they finish it.
+The exercise in **Curveballs** in the Coach sidebar fails the replica go/no-go for **one member per team**, picked by the coach, so the rest of the team keeps its pace. Don't corrupt the source database. That member records the failed check, marks no-go, cancels the migration, deletes the MI copy, writes the reseed plan (cap 15 minutes) and restarts the link. They use the new seeding wait for the runbook and finish C7, C8 and C9 after their cutover; rows that need a completed cutover (live pages, contained user) score only once they finish it.
 
 ## Expected evidence
+
+**Timing cues:** early link setup counts toward the 120-minute effort; about 100 minutes remain at 10:30. At the midpoint, expect read-only replica checks or an explicit no-go. Reserve the final 20 minutes for go-live checks and the runbook; never cut over to meet the clock.
 
 - Arc portal migration status: link created, seeded (status **Ready for cutover**), replica validated, cutover complete. The portal removes the link on cutover.
 - The maintenance-window output from `vm-app01`: site and pool `Stopped`, `Sessions: 0`, and the lag at no lag (two dashes) just before the cutover.
@@ -36,7 +38,7 @@ The [curveball](../facilitator/curveballs.md) fails the replica go/no-go for **o
 
 ## Model answer
 
-The steps use the student page's task numbers.
+The steps use the student page's requirement numbers.
 
 1. Requirement 1: on `vm-app01`, through Bastion, run `Prepare-MiLinkSource.ps1` until it prints `The source is ready for MI link.`
 2. Requirement 2: Arc portal > SQL Server on `vm-app01` > **Migration** > **Database migration** > **Migrate data** > **Migrate using real-time replication (online)**; wait for seeding to finish and the status to show **Ready for cutover**.

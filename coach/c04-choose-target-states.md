@@ -7,6 +7,8 @@ Four ADRs are the minimum bar: platform and migration method (team-level, `facto
 
 ## Expected evidence
 
+**Timing cues:** by 20 minutes, agree the target choices; reserve the last 10 minutes for the deferred-work register and matching team copies. Ask for the missing rationale before suggesting a decision.
+
 - **Platform ADR (team):** decision = the CoE archetype's shape as-is (App Service, SQL MI, Blob, Service Bus, Key Vault, Application Insights); alternative considered = a bespoke platform design; consequence = the team inherits the archetype's existing sizing and policies rather than choosing their own.
 - **Migration method ADR (team):** decision = Arc SQL migration assessment + MI link, online, planned cutover; alternative considered = offline backup/restore; consequence = near-zero downtime at the cost of needing a healthy, validated replica before cutover (C7).
 - **App ADR (member):** decision = .NET 10 / ASP.NET Core MVC via the Upgrade agent; alternative considered = a rewrite from scratch; consequence = faster, lower-risk modernization, but inherits the app's existing design.

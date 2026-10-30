@@ -50,7 +50,7 @@ ALZ-lite creates this hierarchy under Tenant Root. The prefix is the `MgPrefix` 
 
 ## ALZ-lite compared with a full ALZ
 
-| Control | Full ALZ (coach demo) | ALZ-lite |
+| Control | Full ALZ (kickoff slides or recording) | ALZ-lite |
 |---|---|---|
 | Management groups | Intermediate root, Platform (Management, Connectivity, Identity), Landing zones (Corp, Online), Sandbox, Decommissioned | `mg-factory` with `-platform` and `-corp` |
 | Hub networking | Hub VNet or Virtual WAN, Azure Firewall, VPN or ExpressRoute gateways, DDoS Network Protection, Bastion | `vnet-hub` with Azure Firewall Standard and DNS proxy. No gateways (the datacenter is peered: simulated ExpressRoute), DDoS off |

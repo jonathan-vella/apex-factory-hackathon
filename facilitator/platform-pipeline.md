@@ -1,6 +1,6 @@
 # Platform pipeline (coach page)
 
-GitHub Actions is the only way students deploy the datacenter, the foundation and vending, and remove them again. The kit's scripts are the engine the stages run, and students still run some of them for challenge tasks. They don't run the deploy scripts by hand: a coach does that only as a repair, using the commands on [deploy with scripts](../coach/deploy-with-scripts.md) and in the [C2 answer key](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only). Students read the [deploy guide](https://factory.apexops.pro/deploy/). This page is for coaches and the event owner. The team lead is called the platform lead in the workflow and scripts (the `Lead` profile).
+GitHub Actions is the only way students deploy the datacenter, the foundation and vending, and remove them again. The kit's scripts are the engine the stages run, and students still run some of them for challenge tasks. They don't run the deploy scripts by hand: a coach does that only as a repair, using the commands on [deploy with scripts](../coach/deploy-with-scripts.md) and in the [C2 answer key](../coach/c02-secure-ai-ready-foundation.md#repair-coaches-only). Students read the [deploy guide](../site/src/content/docs/deploy/index.mdx). This page is for coaches and the event owner. The team lead is called the platform lead in the workflow and scripts (the `Lead` profile).
 
 ## What it is
 

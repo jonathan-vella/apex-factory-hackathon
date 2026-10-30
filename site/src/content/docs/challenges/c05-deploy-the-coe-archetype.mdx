@@ -88,7 +88,7 @@ The highlighted parts are what C5 adds to the spoke that vending created at T-1:
    az role assignment list --assignee $id --all -o table
    ```
 
-   Done when there are no public endpoints other than the web app's front end and Application Insights ingestion (the four `publicNetworkAccess` values are `Disabled`), every resource name follows the convention in the [naming and IP plan](../../reference/naming-and-ip-plan/), and the web app's managed identity (`id-university-<suffix>`) holds six roles: AcrPull, Storage Blob Data Contributor, Azure Service Bus Data Sender and Receiver, Key Vault Secrets User and Monitoring Metrics Publisher.
+   Done when there are no public endpoints other than the web app's front end and Application Insights ingestion (the four `publicNetworkAccess` values are `Disabled`), every resource name follows the convention in the [naming and IP plan](../../reference/naming-and-ip-plan/), and the web app's managed identity (`id-university-<suffix>`) holds six roles: AcrPull, Storage Blob Data Contributor, Azure Service Bus Data Sender, Azure Service Bus Data Receiver, Key Vault Secrets User and Monitoring Metrics Publisher.
 
 ## Success criteria
 

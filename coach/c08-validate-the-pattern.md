@@ -7,6 +7,8 @@ C8 is a fixed checklist, so grading is mostly about completeness and evidence qu
 
 ## Expected evidence
 
+**Timing cues:** by 20 minutes, the smoke and acceptance checks should have results. Use the rest of the 45-minute box for failed checks and the recorded decision, not an unsupported acceptance.
+
 - Smoke checks: all five pages (home, Students, Courses, Instructors, Departments) load with migrated data, and the row counts on the source and on the managed instance match.
 - Upload round-trip: an image uploaded on **Courses > Edit** shows on the course and lands in `teaching-materials` (checked with `az storage blob list` on `vm-dev01`: the storage account is private-only); replacing the image on **Courses > Edit** changes the blob, and deleting the throwaway course (**Courses > Delete**) removes its blob (the app has no separate delete-image control, and a seeded course is never deleted); a non-image and a file over 5 MB are both rejected with a clear error, not a 500.
 - Notification round-trip: a toast within 5 seconds of a student edit, and `/Notifications/GetNotifications` returning success.

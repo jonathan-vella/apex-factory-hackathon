@@ -49,7 +49,7 @@ The [gap register](https://github.com/jonathan-vella/apex-factory-hackathon/blob
 
 2. **Acceptance and handover (about 15 min).** Copy `factory/templates/attendee/acceptance-handover.md` ([template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md)) to `factory/evidence/c10/acceptance-handover.md` and complete it for the whole engagement. In its handover summary, name every member and link their pack in `factory/evidence/c10/member-packs/`. Say who the engagement is handed to and how they operate it.
 
-3. **AI-readiness gap register (about 10 min).** Copy `factory/templates/attendee/ai-readiness-gap-register.md` to `factory/evidence/c10/` and fill it in honestly: where GitHub Copilot's agents needed a human to unblock them, where coach support was used, and what that implies for running this unattended at a customer. Delete the template's example rows.
+3. **AI-readiness gap register (about 10 min).** Copy `factory/templates/attendee/ai-readiness-gap-register.md` to `factory/evidence/c10/` and fill it in honestly: where GitHub Copilot's agents needed a human, each time a coach unblocked you (including any checkpoint a coach gave you), and what that implies for running this unattended at a customer. Ordinary hints and discussion need no separate entry. Delete the template's example rows.
 
 4. **Factory-kit checklist (about 5 min).** Copy `factory/templates/attendee/factory-kit-checklist.md` to `factory/evidence/c10/` and run through it as a final sanity pass across the team's deliverables.
 
@@ -61,7 +61,7 @@ To complete this challenge, show your coach in `factory/evidence/c10/` on `main`
 
 - [ ] The packaged reusable asset in `reusable-asset/`, referenced from the handover document.
 - [ ] The completed `acceptance-handover.md`, covering every team member.
-- [ ] The AI-readiness gap register, with at least one entry for each time the team used coach support, or a credible one if none was used.
+- [ ] The AI-readiness gap register, with an entry each time a coach unblocked the team (including a supplied checkpoint), or a credible non-use entry explaining the human reviews that were still needed.
 - [ ] The factory-kit checklist, with all items addressed.
 - [ ] The showcase outline (`showcase.md`), delivered to your coach.
 - [ ] Every teammate's copies match the team lead's.

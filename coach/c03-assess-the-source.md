@@ -7,6 +7,8 @@ The challenge page requires the trace-flag finding specifically — this is the 
 
 ## Expected evidence
 
+**Timing cues:** by 30 minutes, the app assessment and SQL findings are available; use the remaining time for triage, the trace-flag decision and the reviewed plan. Unblock tool access early rather than doing the triage for the member.
+
 - The Upgrade agent's `assessment.md` reviewed, and the `plan.md` it produced at the plan gate (planning is approved in C3, as the playbook's Step 1 says; task execution starts in C6).
 - The Arc migration assessment reviewed, with a triage table: finding, source, triage (blocker / accepted risk / fix), target-state impact.
 - The trace-flag finding (`1800`, `9567`, "Trace flags not supported in Azure SQL Managed Instance") specifically called out, with the correct reasoning: these are set deliberately on the source to prepare for the MI link (`1800` aligns log I/O across differing sector sizes; `9567` compresses automatic seeding), apply only to the source side of the link, aren't needed on the managed instance, and don't block migration. Decision: accept for the link; remove from the source after cutover (this becomes a C7 task and a deferred-work register entry).
