@@ -25,7 +25,7 @@ check and the acceptance pack say where their commands can run.
 
 | When | Page |
 | --- | --- |
-| [Step 3, before C3](../deploy/member-steps/#33-set-up-vm-dev01) | [Prerequisites](vscode/00-prerequisites/) |
+| [Step 3 (T-3), checked again before C3](../deploy/member-steps/#33-set-up-vm-dev01) | [Prerequisites](vscode/00-prerequisites/) |
 | [C3](../challenges/c03-assess-the-source/) | [Assess and plan](vscode/01-assess-and-plan/), [Triage assessment findings](vscode/07-triage-assessment-findings/) |
 | [C6](../challenges/c06-modernize-with-ghcp/) | [Run a task](vscode/02-run-a-task/), [Troubleshoot](vscode/04-troubleshoot/), [CVE scan](vscode/03-cve-scan/), [App Service check](vscode/05-app-service-check/) |
 | [C8](../challenges/c08-validate-the-pattern/) | [Acceptance pack](vscode/06-acceptance-pack/) |

@@ -28,7 +28,7 @@ Staff at least one coach per six attendees. Before kickoff, read the guide's [ki
 | 12:15–13:15 | Lunch break | — | — |
 | 13:15–13:45 | APEX archetype demo | C5 / coach | Use the 30-minute script; show APEX's artifact/review flow and the `azd` deployment path |
 | 13:45–14:45 | Deploy the CoE archetype | C5 / members | Adapt, preview, provision and document the deployed state |
-| 14:45–16:15 | Modernize with GHCP, part 1 | C6 / members | MI provisioning starts in the background; do not deploy the app to App Service yet |
+| 14:45–16:15 | Modernize with GitHub Copilot, part 1 | C6 / members | MI provisioning starts in the background; do not deploy the app to App Service yet |
 | 16:15–16:30 | Break | — | — |
 | 16:30–16:45 | Day 1 check-out and evidence capture | Event owner, coaches | If the Day 1 deny-policy curveball ran during C2, confirm `curveball-allowed-locations` was removed before C5 started. Leave both VMs running |
 
@@ -37,11 +37,11 @@ Staff at least one coach per six attendees. Before kickoff, read the guide's [ki
 | Time | Activity | Challenge / owner | Notes |
 |---|---|---|---|
 | 08:30–09:00 | Reconnect, check both VMs are running and the Graph grant is done, then start the MI link | Team lead, members | The link is C7 requirements 1 and 2 (prepare the source, then start the link), started early so seeding overlaps the end of C6. Requirements 1 and 2 count toward C7's 120 minutes, but the wait of up to 10 minutes while the link is created overlaps C6 and doesn't count |
-| 09:00–10:30 | Modernize with GHCP, part 2 | C6 / members | Complete the 180-minute total across both days |
+| 09:00–10:30 | Modernize with GitHub Copilot, part 2 | C6 / members | Complete the 180-minute total across both days |
 | 10:30–12:30 | Migrate and go live | C7 / members | About 100 minutes of C7's 120-minute effort remain after the early link setup. This window includes seeding slack; do not extend the scored effort or skip go/no-go. Trigger the abort curveball at go/no-go |
 | 12:30–13:15 | Lunch break | — | — |
 | 13:15–14:00 | Validate the pattern | C8 / members | Smoke, load, security, upload, notification and telemetry checks |
-| 14:00–15:00 | Optimize the database with GHCP | C9 / members | Query Store before and after |
+| 14:00–15:00 | Optimize the database with GitHub Copilot | C9 / members | Query Store before and after |
 | 15:00–15:15 | Break | — | — |
 | 15:15–16:15 | Package, hand over and review AI readiness | C10 / teams | Complete the handover and gap register |
 | 16:15–17:00 | Showcase, scoring and close | Event owner, coaches, teams | Sign off evidence, apply the 30-point bonus ceiling and list owner follow-ups |

@@ -78,7 +78,7 @@ Done when each verify command prints a version or lists the extensions.
 
 <Steps>
 
-1. Install [WSL](https://learn.microsoft.com/windows/wsl/install) with Ubuntu (`wsl --install`), then restart. Open **Ubuntu** from the Start menu once: the first launch asks you to create a Linux user name and password.
+1. In **PowerShell as administrator**, run `wsl --install` to install [WSL](https://learn.microsoft.com/windows/wsl/install) with Ubuntu, then restart. Open **Ubuntu** from the Start menu once; its first launch asks you to create a Linux user name and password.
 2. Install Docker Desktop and turn on **Use the WSL 2 based engine**. Then open Docker Desktop **Settings** > **Resources** > **WSL integration** and switch on **Ubuntu**. Without this, the dev container can't find Docker from Ubuntu.
 3. Install VS Code, the two extensions above, and the **WSL** extension (`ms-vscode-remote.remote-wsl`).
 4. You clone your repo from inside Ubuntu, not into a Windows folder. The dev container is much faster that way, and line endings stay correct.

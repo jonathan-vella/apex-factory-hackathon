@@ -5,6 +5,8 @@ sidebar:
   order: 1
 ---
 
+import Diagram from "../../../components/Diagram.astro";
+
 **For:** team leads deploying the foundation and members testing its guardrails.
 
 **When:** [Step 2 (T-7)](../../deploy/team-lead-steps/), [Step 4 (T-1)](../../deploy/vending/) and [C2](../../challenges/c02-secure-ai-ready-foundation/).
@@ -45,12 +47,11 @@ Foundation turns every paid Defender for Cloud plan off on the **shared services
 
 Vending then connects each member's workload subscription and datacenter to the hub. The team lead runs it at T-1, after each member's Step 3 datacenter and `vm-dev01` setup (the pipeline verifies `vnet-datacenter` and `vm-app01`'s Azure Arc `Connected` status automatically), because it changes the datacenter's DNS to the hub firewall. See [Step 4: Vending](../../deploy/vending/#42-run-the-vending-stage-team-lead) for the steps and the [naming and IP plan](../../reference/naming-and-ip-plan/) for the addresses.
 
-<figure class="doc-figure">
-  <a class="doc-figure__link" href="/diagrams/diagram-04-hub-and-spoke-routing.svg" target="_blank" rel="noopener">
-    <img src="/diagrams/diagram-04-hub-and-spoke-routing.svg" alt="Traffic between a member's datacenter and spoke crosses the hub firewall. The shared hub holds Azure Firewall. Each member has a datacenter network with vm-app01 and vm-dev01 and a spoke network with subnets for the app, private endpoints and SQL Managed Instance. Route tables send datacenter-to-spoke traffic and the spoke's outbound traffic to the firewall, and the datacenter's internet traffic leaves through a NAT Gateway." width="3840" height="2160" loading="lazy" decoding="async" />
-  </a>
-  <figcaption>What vending connects: routes through the hub firewall. <a href="/diagrams/diagram-04-hub-and-spoke-routing.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
-</figure>
+<Diagram
+  name="diagram-04-hub-and-spoke-routing"
+  alt="Traffic between a member's datacenter and spoke crosses the hub firewall. The shared hub holds Azure Firewall. Each member has a datacenter network with vm-app01 and vm-dev01 and a spoke network with subnets for the app, private endpoints and SQL Managed Instance. Route tables send datacenter-to-spoke traffic and the spoke's outbound traffic to the firewall, and the datacenter's internet traffic leaves through a NAT Gateway."
+  caption="What vending connects: routes through the hub firewall."
+/>
 
 ## One step that needs a directory role
 

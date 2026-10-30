@@ -5,6 +5,8 @@ sidebar:
   order: 4
 ---
 
+import Diagram from "../../../components/Diagram.astro";
+
 ## Naming convention
 
 | Resource | Pattern | Example |
@@ -28,6 +30,14 @@ sidebar:
 | Key Vault | `kv-university-<suffix>` | C5 archetype |
 | Application Insights | `appi-university-<suffix>` | C5 archetype |
 | Web app identity | `id-university-<suffix>` | C5 archetype |
+| Management groups | `mg-factory`, `mg-factory-platform`, `mg-factory-corp` | Team hierarchy |
+| Policy assignments | `alzl-*` | `alzl-deny-pna-acr`, `alzl-dns-blob`, `alzl-diag-appservice` |
+| Public IPs | `pip-nat-datacenter`, `pip-bas-datacenter`, `pip-afw-hub` | Approved NAT, Bastion and firewall endpoints |
+| Datacenter network security group | `nsg-servers` | Server subnet |
+| Route tables | `rt-app`, `rt-pe`, `rt-servers`, `rt-sqlmi` | Spoke and datacenter routes |
+| Workload budget | `budget-factory-workload` | Subscription-scoped |
+| Pipeline resource group and identity | `rg-cicd`, `id-factory-pipeline` | Pipeline setup, T-14 |
+| Virtual machines | `vm-app01`, `vm-dev01` | Legacy source and private workstation |
 
 ## Member index and suffix
 
@@ -42,6 +52,7 @@ Two different values name member-scoped things. Both are saved in `factory/.loca
 |---|---|
 | `10.100.0.0/16` | Hub VNet (shared services subscription) |
 | `10.100.0.0/26` | `AzureFirewallSubnet` inside the hub |
+| `10.100.0.4` | Default hub firewall private IP; confirm the assigned address in its Overview |
 | `10.10.n.0/24` | Member `n`'s datacenter VNet `vnet-datacenter` (workload subscription) |
 | `10.10.n.0/25` | `snet-servers` inside the datacenter: `vm-app01` at `.4`, `vm-dev01` at `.5` |
 | `10.10.n.192/26` | `AzureBastionSubnet` inside the datacenter |
@@ -57,12 +68,11 @@ Two different values name member-scoped things. Both are saved in `factory/.loca
 
 Bastion is the only way in to the datacenter VMs, and the NAT gateway only carries their outbound traffic. Traffic from the datacenter to the spoke doesn't use the NAT gateway: it goes through the hub firewall.
 
-<figure class="doc-figure">
-  <a class="doc-figure__link" href="/diagrams/diagram-06-bastion-vs-nat.svg" target="_blank" rel="noopener">
-    <img src="/diagrams/diagram-06-bastion-vs-nat.svg" alt="Two separate paths in the datacenter network. Azure Bastion Standard gives administrators remote desktop access to vm-app01 and vm-dev01 over public HTTPS from the portal, with no direct public RDP. A NAT Gateway attached to the server subnet carries the VMs' outbound internet traffic only. Datacenter-to-spoke traffic uses a route to the hub firewall, not the NAT Gateway." width="3840" height="2160" loading="lazy" decoding="async" />
-  </a>
-  <figcaption>Bastion brings you in, the NAT gateway takes VM traffic out. <a href="/diagrams/diagram-06-bastion-vs-nat.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
-</figure>
+<Diagram
+  name="diagram-06-bastion-vs-nat"
+  alt="Two separate paths in the datacenter network. Azure Bastion Standard gives administrators remote desktop access to vm-app01 and vm-dev01 over public HTTPS from the portal, with no direct public RDP. A NAT Gateway attached to the server subnet carries the VMs' outbound internet traffic only. Datacenter-to-spoke traffic uses a route to the hub firewall, not the NAT Gateway."
+  caption="Bastion brings you in, the NAT gateway takes VM traffic out."
+/>
 
 </details>
 
@@ -71,12 +81,11 @@ Bastion is the only way in to the datacenter VMs, and the NAT gateway only carri
 
 Your apps and VMs use the standard service host names. The hub firewall acts as the DNS server, and central private DNS zones answer with the private endpoint address. Never use `privatelink` names or IP addresses.
 
-<figure class="doc-figure">
-  <a class="doc-figure__link" href="/diagrams/diagram-07-private-dns.svg" target="_blank" rel="noopener">
-    <img src="/diagrams/diagram-07-private-dns.svg" alt="How a standard service name resolves to a private address. A caller on the datacenter network or the spoke asks the hub firewall's DNS proxy, which forwards the query to Azure-provided DNS in the hub network. The central private DNS zones for Blob, Service Bus, the container registry and Key Vault supply the private endpoint record, and the caller then connects to a private address in the private endpoint subnet. SQL Managed Instance has no private endpoint and is reached by its standard host name." width="3840" height="2160" loading="lazy" decoding="async" />
-  </a>
-  <figcaption>Standard service names resolve through central private DNS. <a href="/diagrams/diagram-07-private-dns.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
-</figure>
+<Diagram
+  name="diagram-07-private-dns"
+  alt="How a standard service name resolves to a private address. A caller on the datacenter network or the spoke asks the hub firewall's DNS proxy, which forwards the query to Azure-provided DNS in the hub network. The central private DNS zones for Blob, Service Bus, the container registry and Key Vault supply the private endpoint record, and the caller then connects to a private address in the private endpoint subnet. SQL Managed Instance has no private endpoint and is reached by its standard host name."
+  caption="Standard service names resolve through central private DNS."
+/>
 
 </details>
 

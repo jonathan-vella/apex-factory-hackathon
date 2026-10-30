@@ -84,7 +84,7 @@ Assert-True ($text -notmatch 'Invoke-AzRestMethod|Connect-AzAccount|\baz\s+(logi
 $registrations = Get-ChildItem (Join-Path $repoRoot 'infra/datacenter') -Recurse -Include '*.bicep', '*.bicepparam' | Select-String -SimpleMatch 'Prepare-MiLinkSource'
 Assert-True ($null -eq $registrations) 'The datacenter run-command registrations must not mention Prepare-MiLinkSource.ps1.'
 
-$page = Get-Content -Raw (Join-Path $repoRoot 'site/src/content/docs/challenges/c07-migrate-and-go-live.md')
+$page = Get-Content -Raw (Join-Path $repoRoot 'site/src/content/docs/challenges/c07-migrate-and-go-live.mdx')
 Assert-True ($page.Contains('raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/infra/datacenter/scripts/Prepare-MiLinkSource.ps1')) 'C7 must download the script from its raw URL on main.'
 Assert-True ($page -match '-MiSubnetPrefix 10\.20\.') 'C7 must show the -MiSubnetPrefix command.'
 

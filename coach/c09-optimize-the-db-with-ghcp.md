@@ -1,17 +1,17 @@
-# C9 answer key: Optimize the DB with GHCP (coach)
+# C9 answer key: Optimize the DB with GitHub Copilot (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C9. Attendees work it out with GitHub Copilot, Query Store and the execution plans.
 
 The DB perf kit ([`db/perf-kit`](../db/perf-kit/README.md)) plants five issues in `ContosoUniversity`. They live in database objects and settings, so they're there on the source SQL Server and, after cutover, on SQL MI. Attendees run the workload, find the issues in Query Store, fix them with GitHub Copilot's help (Copilot Chat in VS Code with the MSSQL extension, or Copilot in SSMS if it's installed), and show Query Store before and after.
 
-The numbers on this page were measured in the workload subscription on 2026-09-25: `vm-app01` on `Standard_D8as_v6` with SQL Server 2022 Developer, and one default workload run (15 minutes, 8 connections) from `vm-dev01` before the fixes and one after. Attendees run 5 minutes, at 8 connections, against a 4-vCore General Purpose SQL MI, so their absolute numbers differ a lot. The kit's smoke run on a General Purpose MI (5 minutes, 8 connections, before any fix) made 146 calls, with the view at about 114 seconds a call and every other query 4 to 6 times slower than the source figures below. Compare ratios and the ranking of the queries, not the figures. A run can finish later than its set duration, because the slow view finishes the call it's in: the student's window ends at the `Finished at` time, not the `until` time.
+The numbers on this page were measured in the workload subscription on 2026-09-25: `vm-app01` on `Standard_D8as_v6` with SQL Server 2022 Developer, and one default workload run (15 minutes, 8 connections) from `vm-dev01` before the fixes and one after. Attendees run 5 minutes, at 8 connections, against a 4-vCore General Purpose SQL MI, so their absolute numbers differ a lot. The kit's smoke run on a General Purpose MI (5 minutes, 8 connections, before any fix) made 146 calls, with the view at about 114 seconds a call and every other query 4 to 6 times slower than the source figures below. Compare ratios and the ranking of the queries, not the figures. A run can finish later than its set duration, because the slow view finishes the call it's in: the member's window ends at the `Finished at` time, not the `until` time.
 
 Attendees measure three times, not six: a baseline, a checkpoint after P5, P1, P2 and P3, and a checkpoint after P4. The [challenge page](../site/src/content/docs/challenges/c09-optimize-the-db-with-ghcp.md) has the pacing.
 
 ## Set up
 
-1. Demo-only: put the issues back and clear Query Store with `./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>`. Run it for your own rehearsal or demo, not as a member's first step: the student page says not to run it in C9 unless they start over, because it clears Query Store and wipes their baseline. See the [perf kit README](../db/perf-kit/README.md#reset).
+1. Demo-only: put the issues back and clear Query Store with `./db/perf-kit/Reset-PerfKit.ps1 -MemberIndex <n>`. Run it for your own rehearsal or demo, not as a member's first step: the attendee page says not to run it in C9 unless they start over, because it clears Query Store and wipes their baseline. See the [perf kit README](../db/perf-kit/README.md#reset).
 2. Run the workload: `./db/perf-kit/Start-Workload.ps1 -MemberIndex <n>`. On MI after cutover, add `-Server '<sql-mi-host-name>' -Authentication ActiveDirectoryInteractive` (on `vm-dev01`, `ActiveDirectoryInteractive` signs in as you with a browser prompt).
 3. In SSMS, open **ContosoUniversity > Query Store > Top Resource Consuming Queries**. Look at **Duration** and then **CPU Time**, with the **Total** statistic, over the last hour.
 

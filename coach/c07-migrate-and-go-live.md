@@ -38,7 +38,7 @@ The exercise in **Curveballs** in the Coach sidebar fails the replica go/no-go f
 
 ## Model answer
 
-The steps use the student page's requirement numbers.
+The steps use the attendee page's requirement numbers.
 
 1. Requirement 1: on `vm-app01`, through Bastion, run `Prepare-MiLinkSource.ps1` until it prints `The source is ready for MI link.`
 2. Requirement 2: Arc portal > SQL Server on `vm-app01` > **Migration** > **Database migration** > **Migrate data** > **Migrate using real-time replication (online)**; wait for seeding to finish and the status to show **Ready for cutover**.

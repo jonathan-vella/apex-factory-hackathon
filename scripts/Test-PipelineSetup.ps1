@@ -23,7 +23,7 @@ for Owner on that subscription only.
 .EXAMPLE
 ./scripts/Test-PipelineSetup.ps1
 .EXAMPLE
-./scripts/Test-PipelineSetup.ps1 -PipelineProfile Member
+./scripts/Test-PipelineSetup.ps1 -Profile Member
 #>
 
 [CmdletBinding()]

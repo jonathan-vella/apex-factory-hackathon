@@ -54,6 +54,6 @@ In the new order, the team lead's repo runs the `foundation` stage at T-7 (run 1
 
 ## What is not validated
 
-- **The GitHub Copilot app.** Local VS Code is the validated path. The app is a best-effort option, and VS Code is the fallback. See the student page [Copilot app (best effort)](../site/src/content/docs/prompts/copilot-app.md).
+- **The GitHub Copilot app.** Local VS Code is the validated path. The app is best effort, with VS Code as fallback. See the attendee page [Copilot app (best effort)](../site/src/content/docs/prompts/copilot-app.md).
 - **A live run of the re-packaged archetype scripts.** The previous package deployed and ran. The new one passed provider validation but has not had a live `azd provision`, so ask members to tell you if `preflight.ps1`, the post-deploy tests or the deployment summary misbehave.
 - **The full flow in one rehearsal.** The pieces were checked one at a time. The dry run in B13 is the first time the whole path runs, and the new event order (ALZ-lite at T-7, vending at T-1) has not been rehearsed as an event.

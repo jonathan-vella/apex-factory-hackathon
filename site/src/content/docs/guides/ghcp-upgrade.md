@@ -100,7 +100,7 @@ Use a balanced model for assessment, the most capable model for planning, and a 
 
 ## Local configuration after task 01
 
-Task 01 (the .NET 10 / ASP.NET Core MVC conversion) resets the project's `UserSecretsId`. Run the `dotnet user-secrets set` block in the playbook's **Local configuration** section again after task 01 completes, or the app falls back to a default that won't match your environment.
+Task 01 (the .NET 10 / ASP.NET Core MVC conversion) resets the project's `UserSecretsId`. Run the playbook's **Local configuration** `dotnet user-secrets set` block after task 01 completes, and again whenever `UserSecretsId` changes, or the app falls back to a default that won't match your environment.
 
 ## Where this hands off
 

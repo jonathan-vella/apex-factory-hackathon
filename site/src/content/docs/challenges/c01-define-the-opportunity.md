@@ -10,7 +10,7 @@ You are Solution Architects at the Microsoft Solutions Partner that Contoso Univ
 This challenge follows the [Cloud Adoption Framework for Microsoft Azure (CAF) Strategy methodology](https://learn.microsoft.com/azure/cloud-adoption-framework/strategy/). Every decision in the factory traces along one chain:
 
 ```text
-Problem / Trigger  -->  Business Outcome (CAF category)  -->  Solution  -->  KPI (verified in C8, C9 or C10)
+Problem / Trigger  -->  Business Outcome (CAF category)  -->  Solution  -->  KPI (verified in C5 to C10)
 ```
 
 [The customer story](../../getting-started/customer-story/) introduces Contoso University, its four leaders (Dana, Priya, Marcus and Tomás), the problems that triggered this project, and the six business outcomes they want. In C1, your team connects those triggers to outcomes, solutions and KPIs, and ranks them in priority order.
@@ -92,7 +92,7 @@ The `-n` keeps anything you already created in Step 3 (such as `factory/evidence
    - **Outcome (CAF category):** the kit's outcome name and its CAF motivation category: Reduce business risk, Accelerate innovation, or Enhance agility and efficiency.
    - **Voice:** who at the university cares most (Dana, Marcus, Priya or Tomás).
    - **Solution:** the modernization change in this factory that addresses the problem.
-   - **KPI and Target:** what you will measure in C8, C9 or C10 and the target value that counts as success. Label any number you invent "illustrative target".
+   - **KPI and Target:** what you will measure later in the hackathon (C5 to C10) and the target value that counts as success. Label any number you invent "illustrative target".
 
    Below the table, write one sentence on why your top two outcomes come first and one sentence on why your sixth outcome comes last.
 
