@@ -15,7 +15,7 @@ For each row, fill in:
 - Outcome (CAF category): the kit's outcome name mapped to Reduce business risk, Accelerate innovation, or Enhance agility and efficiency (CAF motivation categories).
 - Voice: who at the university cares most (Dana, Marcus, Priya or Tomás).
 - Solution: the modernization change in this factory that addresses the problem.
-- KPI: what you will measure in C8, C9 or C10 to prove the outcome was met.
+- KPI: what you will measure later in the hackathon (C5 to C10) to prove the outcome was met.
 - Target: the target value for that KPI. Label any number you invent "illustrative target".
 Write one sentence on why your top two are on top and one on why the last is last.
 -->

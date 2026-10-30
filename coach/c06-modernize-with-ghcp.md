@@ -1,4 +1,4 @@
-# C6 answer key: Modernize with GHCP (coach)
+# C6 answer key: Modernize with GitHub Copilot (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C6. Attendees run all seven of the Upgrade agent's tasks themselves, following the modernization playbook.
@@ -48,7 +48,7 @@ The outcome is a current platform. Ask the member to show their search of the co
 
 ## Bonus
 
-Re-running the task 07 CVE audit after the gap fixes and packaging (tasks 3 and 4 of the challenge) and recording that it's still clean, or what it found and how it was fixed, is worth up to 5 bonus points.
+Re-running the agent task 07 CVE audit after gap fixes and packaging (challenge requirements 3 and 4), and recording that it's still clean or what was fixed, is worth up to 5 bonus points.
 
 ## Lifelines
 
@@ -58,4 +58,4 @@ Explain that any L1–L4 checkpoint caps C6 at **15 of 30 member points**, not l
 
 ## Reset
 
-Not applicable at the infrastructure level. If the app's local git history needs a clean restart, the student page's way is: on `vm-dev01`, find the playbook's `app: assess and plan` commit with `git log --oneline` in `C:\src\factory`, then `git reset --hard <commit-id>` on `vm-dev01-work`. This discards uncommitted work, and the next push needs `git push --force-with-lease`. Check the tree is clean again with the last command in playbook Step 0. Ask first if the member has already pushed. It's a significant redo, so confirm it's really needed before suggesting it.
+Not applicable at the infrastructure level. If the app's local git history needs a clean restart, follow the attendee page: on `vm-dev01`, find the playbook's `app: assess and plan` commit with `git log --oneline` in `C:\src\factory`, then `git reset --hard <commit-id>` on `vm-dev01-work`. This discards uncommitted work, and the next push needs `git push --force-with-lease`. Check the tree is clean with playbook Step 0's final command. Ask first if the member has already pushed, and confirm the redo is really needed.

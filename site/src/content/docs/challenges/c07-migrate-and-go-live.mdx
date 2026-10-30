@@ -3,6 +3,8 @@ title: "C7: Migrate and go live"
 description: Prepare the source, seed the link, validate the replica, cut over, and bring the app up on App Service.
 ---
 
+import Diagram from "../../../components/Diagram.astro";
+
 ## Background
 
 This is the go-live. You move the database to SQL Managed Instance with no data loss, then put the modernized app live on App Service against it.
@@ -19,24 +21,22 @@ This is the go-live. You move the database to SQL Managed Instance with no data 
 
 The MI link is a database mirror from `vm-app01` to your managed instance. It keeps a read-only copy in sync until you cut over, and then the managed instance takes over as the live database.
 
-<figure class="doc-figure">
-  <a class="doc-figure__link" href="/diagrams/diagram-10-migration-cutover.svg" target="_blank" rel="noopener">
-    <img src="/diagrams/diagram-10-migration-cutover.svg" alt="The migration in three stages. Before migration, the source SQL Server on vm-app01 is read and write and SQL Managed Instance waits in its subnet. During replication the MI link copies the database through the hub firewall to a read-only replica, and validation of row counts, checksums, objects and lag leads to a go or no-go decision. After a planned cutover the legacy app and workload generator are stopped and the managed instance is the live read and write database for the modernized app on App Service." width="3840" height="2160" loading="lazy" decoding="async" />
-  </a>
-  <figcaption>The migration from seed to cutover. <a href="/diagrams/diagram-10-migration-cutover.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
-</figure>
+<Diagram
+  name="diagram-10-migration-cutover"
+  alt="The migration in three stages. Before migration, the source SQL Server on vm-app01 is read and write and SQL Managed Instance waits in its subnet. During replication the MI link copies the database through the hub firewall to a read-only replica, and validation of row counts, checksums, objects and lag leads to a go or no-go decision. After a planned cutover the legacy app and workload generator are stopped and the managed instance is the live read and write database for the modernized app on App Service."
+  caption="The migration from seed to cutover."
+/>
 
 <details>
 <summary>How the app's identities and secrets fit together</summary>
 
 Requirements 5 and 6 depend on which identity does what. The web app's own identity reads the Key Vault secret and signs in to the database. A separate shared identity lets SQL Managed Instance look up Microsoft Entra users.
 
-<figure class="doc-figure">
-  <a class="doc-figure__link" href="/diagrams/diagram-09-identities-secrets-telemetry.svg" target="_blank" rel="noopener">
-    <img src="/diagrams/diagram-09-identities-secrets-telemetry.svg" alt="The web app's user-assigned identity gets data roles on the container registry, Blob Storage, Service Bus, Key Vault and Application Insights, and signs in to the database as a contained user with no password using the Key Vault connection string. SQL Managed Instance uses the separate shared identity id-sqlmi-directory with Microsoft Graph read permissions for directory searches. For local work on vm-dev01 the app uses the member's Azure CLI sign-in." width="3840" height="2160" loading="lazy" decoding="async" />
-  </a>
-  <figcaption>Identities, secrets and telemetry. <a href="/diagrams/diagram-09-identities-secrets-telemetry.svg" target="_blank" rel="noopener">Open full size</a></figcaption>
-</figure>
+<Diagram
+  name="diagram-09-identities-secrets-telemetry"
+  alt="The web app's user-assigned identity gets data roles on the container registry, Blob Storage, Service Bus, Key Vault and Application Insights, and signs in to the database as a contained user with no password using the Key Vault connection string. SQL Managed Instance uses the separate shared identity id-sqlmi-directory with Microsoft Graph read permissions for directory searches. For local work on vm-dev01 the app uses the member's Azure CLI sign-in."
+  caption="Identities, secrets and telemetry."
+/>
 
 </details>
 

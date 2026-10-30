@@ -8,7 +8,7 @@ sidebar:
 
 Used in [C6, requirement 5](../../../challenges/c06-modernize-with-ghcp/#requirements).
 
-C6's step 5: **check, don't change**, the archetype's App Service configuration. These commands only read Azure
+C6's requirement 5: **check, don't change**, the archetype's App Service configuration. These commands only read Azure
 Resource Manager, so they work from any computer with `az` signed in, not only `vm-dev01` — except the image
 tag check, which needs the registry (private, reachable only from `vm-dev01`).
 
@@ -33,7 +33,7 @@ Use the `app-service-configuration` skill if you want the agent to drive this di
 ## Check
 
 - App settings list `KeyVault__VaultUri` (App Service writes the `:` in `KeyVault:VaultUri` as `__`) and non-secret
-  endpoints — no connection strings or secrets in plain app settings.
+  endpoints — no secret-bearing connection strings or credentials in plain app settings. `APPLICATIONINSIGHTS_CONNECTION_STRING` is expected: endpoint metadata, not a secret, because local authentication is disabled.
 - The identity's role assignments include **Key Vault Secrets User** on `kv-university-<suffix>`.
 - Your `c6`-tagged image is in the registry.
 - The web app is **not** yet pointed at that image — it would exit on every start, because the database isn't

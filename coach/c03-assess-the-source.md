@@ -3,7 +3,7 @@
 > [!WARNING]
 > Coach material. This page has the answers to C3. Attendees triage the Upgrade agent's and Arc's assessments themselves.
 
-The challenge page requires the trace-flag finding specifically — this is the one piece of evidence to check closely, since it's easy to just tick it without understanding it. The student page deliberately doesn't spell out the decision or the reasons; the member has to derive them from the MI link preparation article.
+The challenge requires the trace-flag finding specifically. Check this evidence closely: it is easy to tick without understanding it. The attendee page deliberately leaves the decision and reasons for the member to derive from the MI link preparation article.
 
 ## Expected evidence
 
@@ -43,7 +43,7 @@ The outcome is safe, repeatable change. Open the member's triage table and check
 
 ## Bonus
 
-Up to 5 points for triaging any other finding in the Arc assessment report, beyond the trace-flag one the challenge requires, with the same rigor: source, reasoning and target-state impact, not just a label. A second finding from the Upgrade agent's assessment doesn't count: the student page asks for one from the Arc report.
+Up to 5 points for triaging another Arc assessment finding beyond the required trace-flag finding, with source, reasoning and target-state impact, not just a label. A second Upgrade assessment finding doesn't count: the attendee page requires one from the Arc report.
 
 ## Reset
 

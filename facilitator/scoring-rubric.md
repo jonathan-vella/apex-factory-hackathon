@@ -11,10 +11,10 @@ This is the single source of truth for base points and evidence. Scoring rules, 
 | C3 Assess the source | Member | 60 | 0 | 15 |
 | C4 Choose target states | Team + member | 45 | 15 | 10 |
 | C5 Deploy the CoE archetype with APEX | Member | 90 | 0 | 15 |
-| C6 Modernize with GHCP | Member | 180 | 0 | 30 |
+| C6 Modernize with GitHub Copilot | Member | 180 | 0 | 30 |
 | C7 Migrate and go live | Member | 120 | 0 | 20 |
 | C8 Validate the pattern | Member | 45 | 0 | 10 |
-| C9 Optimize the DB with GHCP | Member | 60 | 0 | 10 |
+| C9 Optimize the DB with GitHub Copilot | Member | 60 | 0 | 10 |
 | C10 Package, hand over, review AI readiness | Team | 60 | 20 | 0 |
 | **Total** |  | **750** | **45** | **125** |
 
@@ -70,7 +70,7 @@ Each member runs C2 in their own dev container and vended `rg-spoke` to test an 
 | Governance findings and their resolution are recorded | 0 | 3 |
 | **Total** | **0** | **15** |
 
-### C6 — Modernize with GHCP
+### C6 — Modernize with GitHub Copilot
 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|
@@ -100,7 +100,7 @@ Each member runs C2 in their own dev container and vended `rg-spoke` to test an 
 | Every backend's public network access is confirmed off | 0 | 3 |
 | **Total** | **0** | **10** |
 
-### C9 — Optimize the DB with GHCP
+### C9 — Optimize the DB with GitHub Copilot
 
 | Evidence item | Team pts | Member pts |
 |---|---:|---:|

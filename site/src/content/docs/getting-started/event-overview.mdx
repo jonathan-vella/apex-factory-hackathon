@@ -22,7 +22,9 @@ The dates count back from day one, and the steps in [Deploy](../../deploy/) foll
 
 T-14 and T-3 are the readiness milestones for members. At T-1, vending stops at the first member whose datacenter or Arc connection is not ready: earlier members are vended but not restarted, exempted or probed, and later members are not vended. Fix the cause and re-run vending for all members; it is safe to repeat. If phase 2 fails while restarting VMs, fix the cause and re-run for all members. If phase 3 names members whose exemptions or connectivity probes failed, re-run for those named indexes only. Raise blockers with your team lead early. The readiness check is a prerequisite, not a scored challenge.
 
-## Day one
+<span id="day-one"></span>
+
+## Day 1
 
 The times are the event plan; coaches may adjust them. Challenge time boxes are pacing guides, not hard stops.
 
@@ -36,7 +38,7 @@ The times are the event plan; coaches may adjust them. Challenge time boxes are 
 | 12:15–13:15 | Lunch break |
 | 13:15–13:45 | APEX archetype demo |
 | 13:45–14:45 | C5: Deploy the CoE archetype |
-| 14:45–16:15 | C6: Modernize with GHCP, part 1 |
+| 14:45–16:15 | C6: Modernize with GitHub Copilot, part 1 |
 | 16:15–16:30 | Break |
 | 16:30–16:45 | Day 1 check-out and evidence capture |
 
@@ -44,27 +46,29 @@ Day one opens at 08:30 with a **30-minute presentation by the tech lead** introd
 
 At 09:00, everyone starts [C1: Define the opportunity](../../challenges/c01-define-the-opportunity/), the team lead included. C1 needs no Azure access. Next, in [C2: Secure, AI-ready foundation](../../challenges/c02-secure-ai-ready-foundation/), each member tests an AI coding agent against two layers of guardrails: APEX's repository security baseline and the Azure Landing Zone `Deny` policies in `rg-spoke`.
 
-Members then assess the legacy application and database in [C3: Assess the source](../../challenges/c03-assess-the-source/), shape the target architecture as a team in [C4: Choose target states](../../challenges/c04-choose-target-states/), watch a coach's live APEX demo, and deploy the application platform in [C5: Deploy the CoE archetype with APEX](../../challenges/c05-deploy-the-coe-archetype/). [C6: Modernize with GHCP](../../challenges/c06-modernize-with-ghcp/) starts on day one and finishes on day two.
+Members then assess the source in [C3](../../challenges/c03-assess-the-source/), choose target states in [C4](../../challenges/c04-choose-target-states/), watch the coach's APEX demo and deploy the archetype in [C5](../../challenges/c05-deploy-the-coe-archetype/). [C6: Modernize with GitHub Copilot](../../challenges/c06-modernize-with-ghcp/) starts on day one and finishes on day two.
 
-## Day two
+<span id="day-two"></span>
+
+## Day 2
 
 | Time | Activity |
 |---|---|
 | 08:30–09:00 | Reconnect, check both VMs and the Graph grant, then start the MI link |
-| 09:00–10:30 | C6: Modernize with GHCP, part 2 |
+| 09:00–10:30 | C6: Modernize with GitHub Copilot, part 2 |
 | 10:30–12:30 | C7: Migrate and go live |
 | 12:30–13:15 | Lunch break |
 | 13:15–14:00 | C8: Validate the pattern |
-| 14:00–15:00 | C9: Optimize the database with GHCP |
+| 14:00–15:00 | C9: Optimize the database with GitHub Copilot |
 | 15:00–15:15 | Break |
 | 15:15–16:15 | C10: Package, hand over and review AI readiness |
 | 16:15–17:00 | Showcase, scoring and close |
 
-The MI link (the replication link from the source SQL Server to Azure SQL Managed Instance) starts at 08:30, in tasks 1 and 2 of [C7: Migrate and go live](../../challenges/c07-migrate-and-go-live/). That way seeding overlaps the end of C6. C6 finishes, then C7, [C8: Validate the pattern](../../challenges/c08-validate-the-pattern/), [C9: Optimize the DB with GHCP](../../challenges/c09-optimize-the-db-with-ghcp/) and [C10: Package, hand over, review AI readiness](../../challenges/c10-package-hand-over-review-ai-readiness/) close out the event with a team showcase.
+The MI link starts at 08:30 through **requirements 1 and 2** of [C7](../../challenges/c07-migrate-and-go-live/), so seeding overlaps the end of C6. C6 finishes, then C7, [C8](../../challenges/c08-validate-the-pattern/), [C9: Optimize the DB with GitHub Copilot](../../challenges/c09-optimize-the-db-with-ghcp/) and [C10](../../challenges/c10-package-hand-over-review-ai-readiness/) finish the event before the team showcase.
 
 <Diagram
   name="diagram-12-working-locations-go-live"
-  alt="Where you work during the event. Your laptop's VS Code dev container holds your private repo with the imported kit, runs the kit's Bicep and pipeline and deploys the archetype with azd provision. The private workstation vm-dev01, reached through Bastion, holds the app work on the vm-dev01-work branch and the Upgrade agent, and runs the modernized app against the source SQL Server. The Azure application platform runs the container image built with .NET SDK container publishing. Evidence is committed to main in your private GitHub repo."
+  alt="Where you work during the event. Your laptop's VS Code dev container holds your private repo with the imported kit, starts the platform pipeline in GitHub Actions and deploys the archetype with azd provision. The private workstation vm-dev01, reached through Bastion, holds the app work on the vm-dev01-work branch and the Upgrade agent, and runs the modernized app against the source SQL Server. The Azure application platform runs the container image built with .NET SDK container publishing. Evidence is committed to main in your private GitHub repo."
   caption="Where you work: the dev container, the private dev VM and App Service."
 />
 

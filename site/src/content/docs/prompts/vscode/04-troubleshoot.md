@@ -8,7 +8,7 @@ sidebar:
 
 Used in [C6, requirements 2 and 3](../../../challenges/c06-modernize-with-ghcp/#requirements).
 
-Try these in order. Steps 1 and 3 diagnose first and change nothing; step 2 asks the agent to apply a fix.
+Try these in order. Step 1 diagnoses before changing anything; steps 2 and 3 can change files; step 4 fixes the tooling.
 
 ## Before you send
 
@@ -33,7 +33,7 @@ git grep -n -i -E "System\.Web|System\.Messaging|MessageQueue|Trace\.|Debug\.Wri
 | Symptom | Skill |
 | --- | --- |
 | `System.Web`, `Global.asax`, or `App_Start` code still present; CSS/JS doesn't load | `aspnet-startup-migration` |
-| A controller still creates its own `NotificationService` or Service Bus client; toasts don't appear | `notification-service-di` |
+| `System.Messaging` or `MessageQueue` remains; a controller creates `NotificationService` or a Service Bus client; toasts don't appear | `notification-service-di` |
 | `Trace`/`Debug` calls left; telemetry doesn't reach Application Insights | `trace-to-opentelemetry` |
 
 ```text

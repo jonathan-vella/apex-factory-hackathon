@@ -16,9 +16,9 @@ This page is the big picture. When you're ready to work, start with [Requirement
 | Where | What you do there |
 |---|---|
 | Dev container | VS Code on your laptop, in your own repo. You trigger deployments with GitHub Actions and run the readiness setup, C1, C2, C4, C5 with APEX and `azd`, and C10 here. C8 uses both the dev container and `vm-dev01`. [Set up your repo](../../deploy/set-up-your-repo/) creates it. |
-| [`vm-dev01`](../../guides/ghcp-upgrade/#switching-to-vm-dev01) | Your workstation, through Bastion. From C3 the app work happens here, next to the private network. During the event, never stop it. |
-| Browser and Azure portal | The Azure Arc assessment (first run in the readiness check, triaged in C3), the MI link (C7), Bastion connections and the C8 smoke checks. |
-| [Your own repo](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) | Evidence goes in `factory/evidence/` on `main`; run `git pull` first. On `vm-dev01`, use your plain clone `C:\src\<your-repo>` and run `git pull --rebase` first. Your coach reads it. |
+| `vm-dev01` | Your workstation through Bastion, next to the private network. From C3 the app work happens here; never stop it during the event. [Switch to the workstation](../../guides/ghcp-upgrade/#switching-to-vm-dev01). |
+| Browser and Azure portal | The Arc assessment, MI link, Bastion and C8 smoke checks. Follow [the readiness assessment](../../deploy/member-steps/#32-run-the-first-arc-sql-assessment-and-check-hybrid-benefit) and [C7 migration](../../challenges/c07-migrate-and-go-live/). |
+| Your own repo | [Written evidence](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) goes in `factory/evidence/` on `main`; run `git pull` first. On the VM, use the plain clone and `git pull --rebase`. |
 
 Each challenge page has a **Where to run** block that says which one to use.
 
@@ -32,6 +32,9 @@ Your team lead assigns a distinct member index to each person. Teams use `1` to 
 | Hosting | IIS on `vm-app01` | A container image on App Service for Linux |
 | Database | SQL Server | Azure SQL Managed Instance |
 | Messaging | MSMQ | Azure Service Bus |
+| Uploads | Local filesystem | Azure Blob Storage |
+| Secrets | Configuration files | Azure Key Vault and managed identity |
+| Telemetry | Local trace output | Application Insights through OpenTelemetry |
 
 ## The journey
 

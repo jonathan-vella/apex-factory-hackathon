@@ -8,9 +8,9 @@ sidebar:
 
 Used in [C8, requirements 1 to 5](../../../challenges/c08-validate-the-pattern/#requirements).
 
-C8's acceptance pack is the checklist. This page only adds the prompt for interpreting a failure. The tasks, the
+C8's acceptance pack is the checklist. This page only adds the prompt for interpreting a failure. The requirements, the
 commands and where each one runs are in [C8](../../../challenges/c08-validate-the-pattern/), and the read-only
-`Test-Acceptance.ps1` check is its task 5.
+`Test-Acceptance.ps1` check is its requirement 5.
 
 ## Where to run
 

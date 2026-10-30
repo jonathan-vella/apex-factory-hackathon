@@ -75,6 +75,6 @@ $s = Get-Content .local/settings.json | ConvertFrom-Json
 
 The kit supports `azd` and this fallback. APEX Deploy (`07b-Bicep Deploy`) also works, but it is unsupported during the event and coaches do not support it; use the `azd` path above.
 
-## Known gaps
+## Older deployments
 
 - The archetype now gives its deployer the Monitoring Metrics Publisher role on Application Insights, which C6's OpenTelemetry check (task 06) and C8's telemetry checks need. A deployment that lacks it needs the grant run once by you: the playbook has the one-time command for your own sign-in.

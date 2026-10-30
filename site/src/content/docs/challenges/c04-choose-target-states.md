@@ -23,7 +23,7 @@ C3 told you what the source looks like. C4 turns that into decisions the team st
 
 **You decide.** The platform ADR's alternative is yours. The other ADRs give alternatives as a starting point: explain why you reject them and the consequence you accept. Also decide which C3 findings you defer, who owns them and when they get done.
 
-**Where to work.** Your own repo's dev container, in a terminal at the repo root. No Azure access is needed. The team writes the team documents together: one person types on a shared screen, then every teammate saves the final file under the same name in their own `factory/evidence/c04/`.
+**Where to work.** Your own repo's dev container, in a bash terminal at the repo root (type `exit` if the prompt starts with `PS`). No Azure access is needed. The team writes together on a shared screen, then every teammate saves the final file under the same name in their own `factory/evidence/c04/`.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
@@ -46,7 +46,7 @@ cp factory/templates/attendee/deferred-work-register.md factory/evidence/c04/
 
 3. **App ADR (each member, about 5 min).** In your own repo, write `adr-app.md` for the app target state: .NET 10, ASP.NET Core MVC, GitHub Copilot's Upgrade agent. The alternative can be keeping .NET Framework 4.8 on a VM, or a manual rewrite.
 
-4. **Data ADR (each member, about 5 min).** In your own repo, write `adr-data.md` for the data target state: SQL Managed Instance, Microsoft Entra authentication only. The alternative is SQL Server on an Azure VM. Choose SQL MI unless C3's triage found a real blocker, which means a feature the app uses that SQL MI doesn't support at all. If you found none, the VM is the alternative you rejected. If you found one, name it in the ADR and decide for the VM.
+4. **Data ADR (each member, about 5 min).** In your own repo, write `adr-data.md`: SQL Managed Instance with Microsoft Entra authentication only; SQL Server on an Azure VM is the alternative. If you think C3 found a real blocker, show your coach and record it in the ADR and register. A customer might need the VM alternative, but the event path stays on SQL MI.
 
 5. **Deferred-work register (team, about 10 min).** Assemble `deferred-work-register.md`. One teammate types it from everyone's `triage.md`. It holds:
    - every C3 finding you are deferring, including the trace-flag removal after cutover, with one row per member because each member has their own `vm-app01`;

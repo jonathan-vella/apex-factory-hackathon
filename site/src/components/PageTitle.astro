@@ -28,7 +28,9 @@ if (match && Number(match[1]) >= 1) {
     </span>
   </p>
 )}
-<Default {...Astro.props}>
-  <slot />
-</Default>
+{Astro.url.pathname !== "/" && (
+  <Default {...Astro.props}>
+    <slot />
+  </Default>
+)}
 <ProgressTracker />

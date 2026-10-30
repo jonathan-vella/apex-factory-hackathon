@@ -77,7 +77,7 @@ function createControl(kind, number) {
     const text = document.createElement("span");
     text.className = "task-check__text";
     text.textContent = "Done";
-    label.append(text, srOnly(` task ${number}`));
+    label.append(text, srOnly(` requirement ${number}`));
   } else {
     label.append(srOnly(`Evidence item ${number} collected`));
   }
@@ -107,7 +107,7 @@ function createBar(total) {
   const bar = document.createElement("div");
   bar.className = "task-bar not-content";
   bar.setAttribute("role", "region");
-  bar.setAttribute("aria-label", "Task progress");
+  bar.setAttribute("aria-label", "Requirement progress");
 
   const count = document.createElement("p");
   count.className = "task-bar__count";
@@ -125,7 +125,7 @@ function createBar(total) {
   toggle.className = "task-bar__toggle";
   toggle.setAttribute("aria-expanded", "false");
   toggle.setAttribute("aria-controls", "task-bar-panel");
-  toggle.textContent = "Jump to task";
+  toggle.textContent = "Jump to requirement";
 
   const panel = document.createElement("div");
   panel.className = "task-bar__panel";
@@ -133,7 +133,7 @@ function createBar(total) {
 
   const nav = document.createElement("nav");
   nav.className = "task-bar__jump";
-  nav.setAttribute("aria-label", "Jump to task");
+  nav.setAttribute("aria-label", "Jump to requirement");
 
   const reset = document.createElement("button");
   reset.type = "button";
@@ -164,7 +164,7 @@ function setupChallengePage(path) {
     chip.href = `#${task.li.id}`;
     chip.title = task.title.length > 70 ? `${task.title.slice(0, 67)}...` : task.title;
     const state = srOnly("");
-    chip.append(srOnly("Task "), document.createTextNode(String(i + 1)), state);
+    chip.append(srOnly("Requirement "), document.createTextNode(String(i + 1)), state);
     task.chip = chip;
     task.chipState = state;
     ui.nav.append(chip);
@@ -185,8 +185,8 @@ function setupChallengePage(path) {
     for (const item of evidence) item.li.classList.toggle("is-done", item.input.checked);
     ui.count.textContent =
       done === tasks.length
-        ? `All ${tasks.length} tasks done`
-        : `Tasks ${done} of ${tasks.length} done`;
+        ? `All ${tasks.length} requirements done`
+        : `Requirements ${done} of ${tasks.length} done`;
     ui.meter.value = done;
     ui.bar.classList.toggle("is-complete", done === tasks.length);
   }

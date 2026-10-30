@@ -1,8 +1,8 @@
 ---
-title: About
-description: Audience, learning path and feedback.
+title: About the event
+description: Who the hackathon is for, its certification path and how to give feedback.
 sidebar:
-  label: About
+  label: About the event
   order: 0
 next: false
 ---

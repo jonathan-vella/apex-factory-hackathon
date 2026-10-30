@@ -1,5 +1,5 @@
 ---
-title: "C9: Optimize the DB with GHCP"
+title: "C9: Optimize the DB with GitHub Copilot"
 description: Find and fix five planted performance issues with Query Store evidence.
 ---
 
@@ -92,7 +92,7 @@ Start each run at least five minutes after the previous one finished, so two run
    - Metric **Execution Count**: the queries that run most often.
    - Time range: **Custom**, covering your run, with the time zone set to **UTC**: the run prints UTC times, and the VM's clock may not be UTC.
 
-   Click a bar to see its plans in the lower pane and its query text. Make a short list of the worst offenders: query ID, what it does, and why you think it's slow. (**Query Store > Tracked Queries** shows one query over time.) Don't use **Force Plan**: it pins the slow plan, which hides the problem rather than fixing it.
+   Select a bar to see its plans in the lower pane and its query text. Make a short list of the worst offenders: query ID, what it does, and why you think it's slow. (**Query Store > Tracked Queries** shows one query over time.) Don't use **Force Plan**: it pins the slow plan, which hides the problem rather than fixing it.
 
 3. **Diagnose and fix all five planted issues** (P1 to P5 above). Use GitHub Copilot in **VS Code** to diagnose each plan, not just write the fix: paste the query text and plan warnings or XML into Copilot Chat. The kit's SSMS install has no **AI Assistance** workload; do not spend the time box looking for its Copilot button. In SSMS, right-click the plan > **Show Execution Plan XML**; warnings show as a yellow triangle. Apply the fixes in two checkpoints:
    - **Checkpoint 1:** P5, P1, P2 and P3.
@@ -130,7 +130,7 @@ Only a deployment with a custom `-SqlAppPassword` needs `-SqlPassword`: retrieve
 
 In SSMS, connect to `10.10.<n>.4` with **SQL Server Authentication** as `contosoapp`, and tick **Trust server certificate** in the Connect dialog: the source has a self-signed certificate. The managed instance doesn't need that.
 
-Check MI state with `az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query state -o tsv`. If `Stopped`, select **Start** immediately and allow **about 20 minutes**; use the wait for plan review and non-database preparation. `Ready` means it runs. Ask your coach about the schedule (normally weekdays 07:30–18:30 W. Europe time after link removal).
+Check MI state with `az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query state -o tsv`. If `Stopped`, select **Start** immediately and allow **about 20 minutes**; use the wait for plan review and non-database preparation. `Ready` means it runs. Your event owner set the schedule before C5: by default weekdays 07:30–18:30 W. Europe time, applying once the link is removed.
 
 </details>
 

@@ -1,5 +1,5 @@
 ---
-title: "C6: Modernize with GHCP"
+title: "C6: Modernize with GitHub Copilot"
 description: Run the Upgrade agent's seven tasks to .NET 10, with the app running on the dev VM.
 ---
 
@@ -39,7 +39,7 @@ Paste-ready prompts are in the [prompt library](../../prompts/): [Run a task](..
 
 Locally, the app uses the `contosoapp` SQL login against the source database on `vm-app01`. It's the lab-only login the datacenter creates, with a documented lab password (the playbook's user-secrets command already has it). It's reachable only from inside the private network, and the app accepts it only in `Development`: outside `Development` the app refuses a user name or password. User secrets are per-user settings that `dotnet user-secrets` stores outside the repo, so nothing is committed.
 
-C6 changes Azure only by pushing the image (requirement 4): the archetype gives your sign-in Monitoring Metrics Publisher on Application Insights when you deploy it. If the role is missing on your deployment, grant it once yourself (the playbook's Step 2 check for agent task 06 has the command).
+The only Azure resource change in C6 is the image push (requirement 4). Your sign-in already has Monitoring Metrics Publisher from the archetype; if that assignment is missing, grant it once using playbook Step 2, agent task 06.
 
 ## Requirements
 
