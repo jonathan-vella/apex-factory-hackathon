@@ -51,6 +51,20 @@ No pipeline does these. Put an owner and a date on each.
 - **Creating the subscriptions** and placing them under the tenant's management group.
 - **Removing the identity and its roles** (`Remove-PlatformPipeline.ps1`) and the access listed in [Cleanup](cleanup.md).
 
+## Approved cleanup at T+2
+
+Follow [Cleanup](cleanup.md)'s preservation checklist first. Members run `gh workflow run platform.yml -f stage=teardown` in their own repos. The lead's **full** command is:
+
+```bash
+gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true -f include-management=true
+```
+
+Omit `include-management` only for owner-approved tenant reuse; deleting the directory identity removes its Graph grants and a later event needs the grant again. A lead's one-member repair uses `-f members=<index>` without team confirmation. Full cleanup waits for all member scopes to succeed before Team scope. Allow about 20 minutes without an archetype, up to about 2 hours with SQL MI; do not cancel while Azure releases the subnet.
+
+Team teardown is **tested**, not a future promise: B24's [full CI-lab teardown](https://github.com/jonathan-vella/apex-factory-hackathon/actions/runs/40912814521) removed the two-member lab, and the [later push-path test](https://github.com/jonathan-vella/apex-factory-hackathon/actions/runs/41013408710) passed idempotently against that already-removed lab. The latter is not another fresh lifecycle test. Pipeline finalization then verified removal of temporary identities, roles, groups and GitHub configuration.
+
+The named admin finalizes each repo with `Remove-PlatformPipeline.ps1` after the stage: member profile in each member repo, default lead profile in the lead repo. Keep repo-admin and Azure role-removal permissions until its verification succeeds, then remove temporary human access.
+
 ## Cost
 
 An idle pipeline costs nothing. Runs use hosted runners: a 45-minute member run and a foundation run (measured at about 11 minutes on the pipeline; plan 15 to 25) are well inside free minutes on a public repo. A private repo on a free plan has 2,000 minutes a month, so a team of 5 running the member stage once each (about 45 minutes each) uses about 225. Each datacenter bills about $1.55 an hour while it runs and the firewall about $1.30 an hour, as in the [cost estimate](cost-estimate.md).

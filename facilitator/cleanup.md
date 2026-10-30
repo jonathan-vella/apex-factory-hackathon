@@ -8,7 +8,7 @@ Member cleanup deletes `rg-datacenter`, which removes `vm-dev01` and its `C:\src
 
 - Scores are signed off in the [scoreboard](../coach/scoreboard.md) and no evidence question is open.
 - The member's work branch on `vm-dev01` (`vm-dev01-work`, or the branch a coach applied) is pushed to the member's own repo with `git push`. Check `git branch -vv` on `vm-dev01` and that the commits are on GitHub.
-- The evidence that the challenge pages ask for is in the member's own repo under `factory/evidence/cNN/`, copied, committed and pushed to `main` as in [Copy your evidence to your repo](../site/src/content/docs/guides/ghcp-upgrade.md#copy-your-evidence-to-your-repo). That covers the C6 task commits, the C9 fix scripts and results, and any screenshots from the Azure portal or Application Insights.
+- Written evidence is pushed to `main` under `factory/evidence/cNN/`, including the C6 task-check log, C9 fix scripts/results and screenshots, as in [Copy your evidence to your repo](../site/src/content/docs/guides/ghcp-upgrade.md#copy-your-evidence-to-your-repo). The actual C6 task commits stay on the pushed `vm-dev01-work` branch; do not merge it into `main`.
 - Each member has noted their `.local/settings.json` values (workload subscription, member index, suffix, location), or the person running cleanup has them. The stage reads the roster and the member index from the repo's settings, but a coach repair needs them by hand, and they're lost if the dev container is rebuilt without the file.
 - The event report has the costs and the owner follow-ups.
 - The event owner has decided what happens to `id-sqlmi-directory` and its tenant-wide Graph grant (see Post-event access), and a named person has a date to run `Remove-PlatformPipeline.ps1`.
@@ -16,19 +16,25 @@ The members' GitHub repos aren't touched by cleanup. Decide with the partner how
 
 ## Cleanup from the pipeline
 
-The [platform pipeline](platform-pipeline.md)'s `teardown` stage runs both scopes below, with the same script:
+After the event owner's approval, each member runs this in their own repo:
 
 ```bash
 gh workflow run platform.yml -f stage=teardown
 ```
 
-In the team lead's repo it removes every member in the roster first (members run in parallel, because each touches only its own subscription), then runs the Team scope once and returns the subscriptions to the pipeline's parent group (Tenant Root, or the sandbox group in a test lab). It skips the Team scope if any member's removal failed, and refuses if a subscription under the Corp group isn't in the roster. Each of the two steps needs its own approval. In a member's repo it removes that member's datacenter, spoke and archetype only. Without a suffix, the script removes every `rg-university-<suffix>` group in the member's subscription.
+The team lead then runs the full cleanup in the lead repo:
 
-Without `include-management`, the stage keeps `rg-management`, `id-sqlmi-directory` and its Graph grant, like the script. Unless the tenant is reused for another event, tick `include-management` (or push a branch named `ci-test/teardown-with-management-*` in a test lab) so the identity and its grant go too. See Post-event access below.
+```bash
+gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true -f include-management=true
+```
+
+Omit only `include-management` if the event owner explicitly reuses the tenant. A one-member repair in the lead repo instead uses `-f members=<index>` and no team confirmation.
+
+The full run removes every roster member first, in parallel, then Team scope once, returning subscriptions to the configured parent. It skips Team scope if a member fails and refuses an unknown subscription under Corp. Each job needs approval where environment reviewers are configured. Without a suffix, Member scope removes all exact `rg-university-<suffix>` groups in that member's subscription. Allow about 20 minutes without an archetype, up to about 2 hours with SQL MI; do not cancel while Azure releases the subnet.
 
 The stage removes only the Owner assignments that vending created: they carry a description that says so. A member's own direct Owner assignment on their workload subscription is left alone.
 
-The workflow never removes the pipeline's identity. Right after the `teardown` stage, a named admin runs `./scripts/Remove-PlatformPipeline.ps1` on the agreed date: the lead profile (the default) in the team lead's repo, and `-Profile Member` in each member's own repo. It removes the identity's roles, the identity, `rg-cicd`, the `gh-lab` environment (with its secrets, such as `ROSTER_JSON`) and the repository variables, and verifies each is gone. Then continue with the verification below.
+The workflow never removes its own identity. Each member finalizes their repo (`-Profile Member`); the team lead finalizes the lead repo (default), or the event owner names replacement admins. Each needs repo admin, `gh auth login`, Azure sign-in to the event tenant, and Owner where that pipeline's roles were granted (Tenant Root/configured parent for the lead). Run `Remove-PlatformPipeline.ps1` and verify removal before revoking those human permissions. It removes the pipeline roles, identity, `rg-cicd`, `gh-lab` and its secrets, and repository variables.
 
 ## Repair (coaches only): member cleanup by hand
 
@@ -47,7 +53,7 @@ Review the exact resources listed. Run it again without `-WhatIf` to receive the
 
 The member scope removes the exact archetype resource group `rg-university-<suffix>`, waits for the SQL MI to release `snet-sqlmi` before removing `rg-spoke`, removes the Arc machine and SQL Server instance for `vm-app01`, deletes the named datacenter and spoke groups, deletes the exact vending budget, and purges only the matching soft-deleted Key Vault.
 
-**A member who is absent or hasn't cleaned up:** the event owner sets a deadline before the team scope. After it, the team lead (Owner at Tenant Root, so Owner on every member's subscription) runs the `teardown` stage in the lead's repo, which removes every member in the roster. `-Suffix` is optional: without it, the script removes every `rg-university-<suffix>` group in that subscription. The Team scope starts only when every member scope is done.
+**An absent member:** after the owner's deadline, the lead's approved full command above includes that roster member. For a single member repair use `-f members=<index>`. Team scope starts only when every member scope succeeds.
 
 ## Repair (coaches only): team cleanup by hand
 
@@ -55,13 +61,14 @@ Use this only when the team's `teardown` run can't be repaired in time. After ev
 Sign in to the event tenant first; the script stops if the active Azure CLI tenant does not match the shared-services subscription.
 
 ```powershell
-./scripts/Remove-FactoryEnvironment.ps1 -Scope Team -SharedSubscriptionId $s.sharedSubscriptionId -MgPrefix mg-factory -WhatIf
+$s = Get-Content (Join-Path '.local' 'settings.json') | ConvertFrom-Json
+./scripts/Remove-FactoryEnvironment.ps1 -Scope Team -SharedSubscriptionId $s.sharedSubscriptionId -MgPrefix mg-factory -IncludeManagementResources -WhatIf
 ```
 
-If the event owner wants the subscriptions returned to a management group other than Tenant Root, pass its management-group name with `-ReturnManagementGroupId`. Review the exact subscription list and resources, then run without `-WhatIf` and confirm:
+Use the configured prefix instead of `mg-factory` for an event copy. If the owner reuses the tenant, omit `-IncludeManagementResources` in both repair commands. For a return group other than Tenant Root, pass `-ReturnManagementGroupId`. Review the exact subscription/resource list, then run without `-WhatIf` and confirm:
 
 ```powershell
-./scripts/Remove-FactoryEnvironment.ps1 -Scope Team -SharedSubscriptionId $s.sharedSubscriptionId -MgPrefix mg-factory
+./scripts/Remove-FactoryEnvironment.ps1 -Scope Team -SharedSubscriptionId $s.sharedSubscriptionId -MgPrefix mg-factory -IncludeManagementResources
 ```
 
 Team cleanup removes the named kit policy assignments and datacenter exemptions, vending budgets, kit firewall rule groups and peerings, and policy-created diagnostic role assignments. It also removes the access vending gave each member: Managed Identity Operator on `id-sqlmi-directory`, Reader on the shared services subscription and Owner on the member's workload subscription. It removes only the Owner assignment that vending created, which carries a description saying so; a member's own direct Owner assignment is left alone (vending keeps it as it is, too). It deletes `rg-hub` and the `log-management` workspace. By default it preserves `rg-management`, `id-sqlmi-directory` and that identity's Microsoft Graph grant; `-IncludeManagementResources` deletes them. It then moves the kit subscriptions back and deletes only `<prefix>-corp`, `<prefix>-platform` and `<prefix>`.

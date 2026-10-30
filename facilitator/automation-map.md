@@ -27,7 +27,7 @@ What the kit automates, what people still do, and where attendees tend to stall.
 | C8 | `Test-Acceptance.ps1` (security checker) | none | Smoke, upload and notification checks in the browser. Light load run. Record the results | Partly: the front-end checks passed in B10 |
 | C9 | `Start-Workload.ps1`, `Reset-PerfKit.ps1` | Fix suggestions | Read Query Store, fix the five planted issues, record before and after | Data and workload: yes. The fixes on a real MI: not yet (B13) |
 | C10 | none | none | Package one asset, complete the acceptance and AI-readiness documents, prepare the showcase | n/a |
-| Cleanup | The `teardown` stage (`Remove-FactoryEnvironment.ps1`, member and team scope), then `Remove-PlatformPipeline.ps1` | none | After the event, run `teardown` for each member, then the team. The team scope keeps `id-sqlmi-directory` and its Graph grant by default (`include-management` deletes them): the event owner decides, and the checklist deletes them unless the tenant is reused. An admin then runs `Remove-PlatformPipeline.ps1`. Then verify nothing billable is left | Member scope: yes (B10). Team scope: not yet (B13) |
+| Cleanup | `teardown` (Member, then Team), then `Remove-PlatformPipeline.ps1` | none | T+2, after evidence/score sign-off and the owner's go. Members remove their scopes; lead uses `members=all`, `confirm-team-teardown=true`, and `include-management=true` unless reuse is agreed. Named repo admins finalize identities before temporary human access is removed. Verify groups and subscription artifacts are gone | Member and Team scopes: tested, including B24's two-member CI lab; see [Platform pipeline](platform-pipeline.md#approved-cleanup-at-t2) |
 
 ## The platform pipeline (the only student path)
 
@@ -35,7 +35,7 @@ The platform pipeline runs the kit's scripts from GitHub Actions instead of a te
 
 | Piece | What it is |
 |---|---|
-| `.github/workflows/platform.yml` | The one workflow, with a `stage` input: `whatif`, `member`, `foundation`, `vending`, `teardown` or `all`, plus `members`, `include-management` (teardown only) and `no-hybrid-benefit` (member stage only). Each stage runs in the `gh-lab` environment and needs an approval (`teardown` needs two: members, then the team) |
+| `.github/workflows/platform.yml` | One workflow with `stage`, `members`, `confirm-team-teardown`, `include-management` and `no-hybrid-benefit` inputs. Jobs run in `gh-lab` and need approval where required reviewers are configured; full teardown gates members before Team scope |
 | `scripts/Initialize-PlatformPipeline.ps1` | Sets the pipeline up once per repo: the managed identity, its federated credential, its roles and the `gh-lab` environment. `-Profile Member` is for a member's own repo (preflight, datacenter, test and Arc); the default lead profile is for the team lead's repo (ALZ-lite and vending for the roster) |
 | `scripts/Invoke-PipelineVending.ps1` | Vends each member in order, restarts both VMs, records the exemptions and runs the connectivity probes |
 | `scripts/Write-RedactedOutput.ps1` | Replaces every GUID in a step's output with `<id:abcd>`, so the run logs name no identifier |
