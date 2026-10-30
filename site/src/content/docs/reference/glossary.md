@@ -2,7 +2,7 @@
 title: Glossary
 description: Terms used throughout the kit.
 sidebar:
-  order: 5
+  order: 2
 ---
 
 | Term | Meaning |

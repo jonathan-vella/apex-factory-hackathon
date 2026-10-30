@@ -1,4 +1,4 @@
-# C8 answer key: Validate the pattern
+# C8 answer key: Validate the pattern (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C8. Attendees run the acceptance pack themselves against the live, migrated app.

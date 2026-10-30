@@ -42,11 +42,11 @@ Requirements 5 and 6 depend on which identity does what. The web app's own ident
 
 **Starting point.**
 
-- C5's deployed SQL Managed Instance, with its directory read access granted: the Microsoft Graph read grant a Privileged Role Administrator made at Step 2 (T-7). Ask your coach to confirm it before you start, or `CREATE USER` fails in requirement 5.
-- C6's modernized, packaged app (image tag `c6`), not yet pointed at App Service.
+- [C5's deployed SQL Managed Instance](../c05-deploy-the-coe-archetype/), with its directory read access granted: the Microsoft Graph read grant a Privileged Role Administrator made at [Step 2.2 (T-7)](../../deploy/team-lead-steps/#22-grant-microsoft-graph-read-permissions-privileged-role-administrator). Ask your coach to confirm it before you start, or `CREATE USER` fails in requirement 5.
+- [C6's modernized, packaged app](../c06-modernize-with-ghcp/) (image tag `c6`), not yet pointed at App Service.
 - `vm-app01` running, with its Azure Arc entry **Connected**. C3 had you start it; run `az vm start` for it if it's stopped. The portal shows the instance only while the machine is connected.
 
-Start the link at 08:30 on Day 2, before you finish C6, so it's already seeded when you reach requirement 3: requirements 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. After the lag check in requirement 4.4, make the go/no-go decision with your coach. A no-go means restart the source site and pool, keep the link running, and postpone the cutover to a later window. If you must cancel the link and reseed, plan another 20 to 30 minutes to validate again and agree a second window.
+Start the link at 08:30 on Day 2, as in the [event agenda](../../getting-started/event-overview/#day-two), before you finish C6, so it's already seeded when you reach requirement 3: requirements 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. After the lag check in requirement 4.4, make the go/no-go decision with your coach. A no-go means restart the source site and pool, keep the link running, and postpone the cutover to a later window. If you must cancel the link and reseed, plan another 20 to 30 minutes to validate again and agree a second window.
 
 **You decide.** Whether the validated replica is good enough to cut over (go or no-go, with your coach), and what you write in your runbook.
 
@@ -211,7 +211,7 @@ $mi
    5. Mark your trace-flag row in `deferred-work-register.md` (the register you built in C4) as done.
 
    Done when the `DBCC TRACESTATUS` list has no `1800` or `9567`.
-8. **Write the cutover and rollback runbook** from what you actually did, using the [template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md), and save it as `cutover-rollback-runbook.md` in `factory/evidence/c07/` of your own repo. Write the six short sections from what you did, not from a plan. Done when all six sections hold your own notes and output.
+8. **Write the cutover and rollback runbook** from what you actually did. In your own repo's dev container, run `mkdir -p factory/evidence/c07` and `cp factory/templates/attendee/cutover-rollback-runbook.md factory/evidence/c07/` to use your imported copy ([cutover and rollback runbook template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md)). On `vm-dev01`, use the plain clone at `C:\src\<your-repo>`. Write the six short sections from what you did, not from a plan. Done when all six sections hold your own notes and output.
 
 ## Success criteria
 
@@ -226,6 +226,10 @@ To complete this challenge, show your coach. Save screenshots and output as file
 - [ ] The source's trace flags removed (the empty `DBCC TRACESTATUS` output from requirement 7), your trace-flag row marked done in the register, and the cutover and rollback runbook committed to your own repo.
 - [ ] Outcome check (unscored guidance): Marcus could read your runbook and know when the office stops, for how long and how to go back. Record the stop you actually saw.
 
+## Hints
+
+For deployment or connectivity errors, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
+
 <details>
 <summary>If link creation fails</summary>
 
@@ -239,7 +243,7 @@ Work through these in order:
 
 </details>
 
-<details>
+<details id="abort-leftover">
 <summary>The abort leaves something behind</summary>
 
 In the Azure portal, **Monitor and cutover** > select the database > **Cancel migration** removes the link without a failover. An aborted link leaves a writable copy of the database on the MI, and the source is untouched (restart the legacy site if you stopped it). Delete the copy before starting a new seed, or the reseed fails. This deletes the copy on the managed instance only; the database on `vm-app01` isn't affected. On `vm-dev01`:
@@ -278,4 +282,4 @@ Before the cutover, cancel and reseed: **Cancel migration** in the portal, delet
 - [Prepare environment for a Managed Instance link migration](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-sql-mi-prepare-link)
 - [Migrate with the Managed Instance link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-migrate)
 - [Managed Instance link feature overview](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-feature-overview)
-- [Migration guide for SQL Server to Azure SQL Managed Instance](https://learn.microsoft.com/azure/azure-sql/migration-guides/managed-instance/sql-server-to-managed-instance-guide)
+- [Migration guide for SQL Server to Azure SQL Managed Instance](https://learn.microsoft.com/data-migration/sql-server/managed-instance/guide)

@@ -2,10 +2,14 @@
 title: Azure Arc and the MI link
 description: Onboarding, assessment, source preparation, seeding, go/no-go and cutover.
 sidebar:
-  order: 3
+  order: 4
 ---
 
-This guide covers the mechanics of the Arc-based SQL Managed Instance link migration. [C7](../../challenges/c07-migrate-and-go-live/) is the what, the maintenance-window steps and the acceptance bar; [C3](../../challenges/c03-assess-the-source/) covers assessment triage.
+**For:** every member assessing and migrating their SQL Server database.
+
+**When:** [C3](../../challenges/c03-assess-the-source/) for assessment triage and [C7](../../challenges/c07-migrate-and-go-live/) for migration.
+
+**Before you start:** finish [Step 3's Arc onboarding](../../deploy/member-steps/#31-deploy-your-datacenter-and-onboard-azure-arc); for the link, also finish [C5](../../challenges/c05-deploy-the-coe-archetype/). C7 holds the maintenance-window steps and acceptance bar.
 
 The MI link is a database mirror from `vm-app01` to your SQL Managed Instance. It keeps a read-only copy in sync until you cut over, and then the managed instance becomes the live database.
 
@@ -29,7 +33,11 @@ In the Azure portal, open **Azure Arc** > **SQL Server instances**, select the i
 
 ## Validating the replica
 
-The replica is read-only while the link is active. Compare the row counts, checksums and a few objects against the source before you trust it enough to cut over: [C7 requirement 3](../../challenges/c07-migrate-and-go-live/#requirements) has the queries and what must match. If something looks wrong, abort the link (**Monitor and cutover** > select the database > **Cancel migration**) and reseed rather than cutting over on an unverified replica. [C7's hint](../../challenges/c07-migrate-and-go-live/#success-criteria) shows how to delete the copy the abort leaves behind.
+The replica is read-only while the link is active. Compare the row counts, checksums and a few objects against the source before you trust it enough to cut over: [C7 requirement 3](../../challenges/c07-migrate-and-go-live/#requirements) has the queries and what must match. If something looks wrong, abort the link (**Monitor and cutover** > select the database > **Cancel migration**) and reseed rather than cutting over on an unverified replica. [C7's abort hint](../../challenges/c07-migrate-and-go-live/#abort-leftover) shows how to delete the copy the abort leaves behind.
+
+## If the abort path is needed
+
+Aborting a link leaves a writable copy of the database on the managed instance. Delete it before reseeding, or the next seed attempt fails. The command is in [C7's abort hint](../../challenges/c07-migrate-and-go-live/#abort-leftover); it deletes only the copy on the managed instance, never the database on `vm-app01`.
 
 ## Go/no-go and cutover
 
@@ -50,7 +58,3 @@ After cutover, follow [Step 5 of the modernization playbook](https://github.com/
 It also needs the Microsoft Graph read grant for `id-sqlmi-directory` that a Privileged Role Administrator made for your team at T-7 (checked in [C2](../../challenges/c02-secure-ai-ready-foundation/)). Without it, the statement fails with "Server identity does not have Azure Active Directory Readers permission": ask your coach to confirm the grant. The playbook's Step 5 has the full sequence, including the Key Vault secret.
 
 Remove the `1800` and `9567` trace flags from the source now that the link no longer needs them ([C7 requirement 7](../../challenges/c07-migrate-and-go-live/#requirements)). This closes out the deferred item from C3's trace-flag finding.
-
-## If the abort path is needed
-
-Aborting a link leaves a writable copy of the database on the managed instance. Delete it before reseeding, or the next seed attempt fails. The command is in [C7's hint "The abort leaves something behind"](../../challenges/c07-migrate-and-go-live/#success-criteria); it deletes only the copy on the managed instance, never the database on `vm-app01`.

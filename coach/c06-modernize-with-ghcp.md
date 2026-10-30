@@ -1,4 +1,4 @@
-# C6 answer key: Modernize with GHCP
+# C6 answer key: Modernize with GHCP (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C6. Attendees run all seven of the Upgrade agent's tasks themselves, following the modernization playbook.

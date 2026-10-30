@@ -61,6 +61,8 @@ The kit clone at `C:\src\factory` on `vm-dev01-work` has no commit hook. Use the
 
 **Team deliverables** (the C1 canvas, C4's team ADRs, the C10 package): the team writes one document together on one person's screen. Then the typist posts the final file in the team channel, and every teammate saves it unchanged under the same name in their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the team lead's copy, so the other copies must match it.
 
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
+
 <details>
 <summary>Set up the evidence folders once (about 5 minutes)</summary>
 

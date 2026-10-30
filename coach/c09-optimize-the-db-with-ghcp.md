@@ -1,4 +1,4 @@
-# C9 answer key: Optimize the DB with GHCP
+# C9 answer key: Optimize the DB with GHCP (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C9. Attendees work it out with GitHub Copilot, Query Store and the execution plans.

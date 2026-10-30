@@ -2,7 +2,7 @@
 title: Azure Hybrid Benefit
 description: What's on by default and the rule if you hold no eligible licenses.
 sidebar:
-  order: 2
+  order: 5
 ---
 
 Azure Hybrid Benefit (AHB) can lower the Azure rate for eligible Windows Server and SQL Server licenses. The kit enables it for `vm-app01` by default. The Windows 11 workstation, `vm-dev01`, requires separate per-user Windows 11 on Azure rights and is not covered by the `no-hybrid-benefit` input.

@@ -2,8 +2,9 @@
 title: About
 description: Audience, learning path and feedback.
 sidebar:
-  label: Overview
+  label: About
   order: 0
+next: false
 ---
 
 The Partner Modernization Factory is a two-day hackathon, with deployment work before day one, in which partner teams modernize one legacy app and its database on Azure with GitHub Copilot, Azure Arc and a CoE archetype built with APEX. The archetype is a Center of Excellence's reference design for the target platform, and APEX is the agent-driven tooling that built it. The [glossary](../reference/glossary/) explains the other terms.
@@ -27,4 +28,4 @@ Tell your coach what worked and what didn't during the event. To report a proble
 
 ## Where to go next
 
-Read [Roles](../getting-started/roles/), then start with [Requirements](../getting-started/requirements/).
+Start with [Event overview](../getting-started/event-overview/), then read [Roles](../getting-started/roles/) and [Requirements](../getting-started/requirements/).

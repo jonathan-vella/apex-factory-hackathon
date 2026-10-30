@@ -2,7 +2,7 @@
 title: Roles
 description: What a member, the team lead and a coach each do, and when.
 sidebar:
-  order: 5
+  order: 2
 ---
 
 A team is **3 to 5 people**. Every attendee on the team is a **member**, and one colleague the team nominates is also the **team lead** (called the **platform lead** in the workflow and scripts). The **event owner** coordinates the event, and **coaches** support teams on the two event days.
@@ -26,6 +26,7 @@ The team lead is not a separate non-coding manager. The team lead is a full memb
 | Step 3 (T-3) | Runs the `member` stage (datacenter, `Test-Datacenter.ps1`, Arc onboarding), runs the first Arc SQL assessment, sets up `vm-dev01`, and commits `factory/evidence/readiness/` | Does the same Step 3 tasks for their own workload subscription (`-f members=1`) |
 | Step 4 (T-1) | Starts both datacenter VMs before vending and saves the shared services subscription ID afterward | Runs the `vending` stage once for the team (it automatically checks that each member's datacenter and Arc connection are ready, vends each spoke, restarts the VMs, records exemptions, and runs connectivity probes) |
 | Event days (Day 1 and Day 2) | Completes every member challenge in their own repo and subscription, and contributes to the team challenges (C1, C4, C10) | Same as every other member, plus coordinates shared hub or policy questions with the coach |
+| [After the event (T+2)](../../deploy/tear-down/) | Saves and pushes work, then removes their member scope | Removes the shared foundation after member cleanup and coordinates pipeline-access removal with the named admin |
 | First contact | Before day one, asks the **team lead** first and escalates through them to the **event owner**; on event days, asks a coach for challenge support | Is the first contact before the event and escalates to the event owner; on event days, brings in a coach for challenge support |
 
 ## Member
@@ -84,4 +85,4 @@ A coach does not do the hands-on work for the team. Ask your team lead first bef
 
 ## Next
 
-Go to [Deploy](../../deploy/) for the numbered pre-hackathon steps (Step 1 to Step 4). Terms you don't know are in the [glossary](../../reference/glossary/).
+Read [Requirements](../requirements/), then [The kit at a glance](../kit-at-a-glance/). Terms you don't know are in the [glossary](../../reference/glossary/).

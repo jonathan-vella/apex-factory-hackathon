@@ -1,6 +1,6 @@
 ---
 title: "C3: Assess the source"
-description: Triage the GHCP and Arc migration assessments, finding by finding.
+description: Triage the GitHub Copilot upgrade and Azure Arc migration assessments, finding by finding.
 ---
 
 ## Background
@@ -17,7 +17,7 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 ## Challenge
 
-**Starting point.** The first Arc migration assessment from [Step 3: Datacenter and workstation](../../deploy/member-steps/#readiness-checklist), and a ready `vm-dev01` ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)). Both datacenter VMs must be running: in your dev container (with `$s` loaded from `factory/.local/settings.json`), `az vm list -g rg-datacenter -d -o table` shows their power state, and `az vm start -g rg-datacenter -n vm-app01 --subscription $s.subscriptionId`, then the same with `-n vm-dev01`, starts them if you stopped them.
+**Starting point.** The first Arc migration assessment from [Step 3: Datacenter and workstation](../../deploy/member-steps/#32-run-the-first-arc-sql-assessment-and-check-hybrid-benefit), and a ready `vm-dev01` ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)). Both datacenter VMs must be running: in your dev container (with `$s` loaded from `factory/.local/settings.json`), `az vm list -g rg-datacenter -d -o table` shows their power state, and `az vm start -g rg-datacenter -n vm-app01 --subscription $s.subscriptionId`, then the same with `-n vm-dev01`, starts them if you stopped them.
 
 **Fixed by the kit.** Your subscription was vended at T-1, so `vm-dev01` already uses the hub's DNS. The kit set the trace flags `1800` and `9567` on the source on purpose.
 
@@ -58,6 +58,8 @@ To complete this challenge, show your coach in your own repo:
 - [ ] Nothing in `app/` changed yet.
 - [ ] Outcome check (unscored guidance): your triage table lets Priya see in one place which findings block the move and which can wait.
 
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
+
 <details>
 <summary>How do I tell a self-inflicted finding from a real blocker?</summary>
 
@@ -83,5 +85,9 @@ Re-run either assessment: they only read the source, so there is no state to res
 
 ## References
 
+- [Azure Arc and the MI link guide](../../guides/arc-mi-link/#assessment)
+
 - [Prepare your environment for a link](https://learn.microsoft.com/azure/azure-sql/managed-instance/managed-instance-link-preparation)
 - [Azure SQL Managed Instance feature differences](https://learn.microsoft.com/azure/azure-sql/managed-instance/transact-sql-tsql-differences-sql-server)
+
+Next: [C4: Choose target states](../c04-choose-target-states/).

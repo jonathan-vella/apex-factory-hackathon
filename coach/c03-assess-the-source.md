@@ -1,4 +1,4 @@
-# C3 answer key: Assess the source
+# C3 answer key: Assess the source (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C3. Attendees triage the Upgrade agent's and Arc's assessments themselves.

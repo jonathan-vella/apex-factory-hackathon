@@ -26,7 +26,7 @@ The modernized app needs somewhere to run. The CoE archetype is that place: App 
 
 **You decide.** Nothing about the shape. You review the preview before you deploy, and you record any policy-compliance finding and how you resolved it.
 
-**Where to work.** Open your own repo in its dev container (VS Code, **Reopen in Container**), then in the terminal:
+**Where to work.** The [APEX guide](../../guides/apex/) explains the adaptation and deployment flow. Open your own repo in its dev container (VS Code, **Reopen in Container**), then in the terminal:
 
 ```bash
 pwsh
@@ -100,6 +100,8 @@ To complete this challenge, show your coach. Save screenshots and output as file
 - [ ] A short note in `factory/evidence/c05/governance-note.md` of any policy-compliance finding the governance check surfaced, and how you resolved it (write "none" if it found nothing).
 - [ ] Outcome check (unscored guidance): show Priya that the platform came from the repo: the deployment summary and the As-Built record match what is in the resource group.
 
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
+
 <details>
 <summary>/apex-adapt-archetype won't find a vended spoke</summary>
 
@@ -161,3 +163,5 @@ To redeploy, run `/apex-adapt-archetype` and then `azd provision` again, as in r
 
 - [What is Azure Developer CLI (`azd`)?](https://learn.microsoft.com/azure/developer/azure-developer-cli/overview)
 - [Azure Verified Modules](https://azure.github.io/Azure-Verified-Modules/)
+
+Next: [C6: Modernize with GitHub Copilot](../c06-modernize-with-ghcp/).

@@ -1,9 +1,12 @@
 ---
 title: "VS Code: acceptance pack"
-description: C8's fixed, repeatable validation of the live, migrated app.
+description: Diagnose a failed C8 acceptance check with plain Agent mode.
 sidebar:
-  order: 7
+  label: Acceptance pack (C8)
+  order: 8
 ---
+
+Used in [C8, requirements 1 to 5](../../../challenges/c08-validate-the-pattern/#requirements).
 
 C8's acceptance pack is the checklist. This page only adds the prompt for interpreting a failure. The tasks, the
 commands and where each one runs are in [C8](../../../challenges/c08-validate-the-pattern/), and the read-only

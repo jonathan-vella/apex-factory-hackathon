@@ -1,4 +1,4 @@
-# C7 answer key: Migrate and go live
+# C7 answer key: Migrate and go live (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C7. Attendees run the MI link migration and go-live themselves, following the Arc portal flow.

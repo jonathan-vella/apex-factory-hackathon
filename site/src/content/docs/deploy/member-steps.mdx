@@ -89,14 +89,115 @@ From C3 onward you do the application and database modernization work on `vm-dev
 ./scripts/Get-PipelineEvidence.ps1
 ```
 
-Then follow steps 1 to 9 of [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) in order: the password lookup, Bastion connection, GitHub and Azure sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the kit clone at `C:\src\factory`, the `member` remote and `vm-dev01-work` branch, a plain clone of your own repo at `C:\src\<your-repo>`, VS Code on `C:\src\factory` with Copilot signed in, and the Upgrade agent in the **Local** harness.
+Use two browser windows on your own computer: one for Bastion, the other for the portal and this site. Allow portal pop-ups and Bastion clipboard access. Enter sign-in codes on your own computer, where your passkeys and password manager work.
 
-Done when every line of [Check your setup](../../guides/ghcp-upgrade/#check-your-setup) is true:
+Steps 1 and 2 below run on your own computer; steps 3 to 9 run on `vm-dev01`, in **PowerShell 7** (`pwsh`), not Windows PowerShell 5.1. `<your-org>` and `<your-repo>` are the owner and name of your own private repo.
 
-- GitHub, Azure and git identity are set on the VM, and `AZURE_TOKEN_CREDENTIALS` is `AzureCliCredential`.
-- `C:\src\factory` has `origin` (the public kit) and `member` (your repo), and is on `vm-dev01-work` tracking `member/vm-dev01-work`.
-- `C:\src\<your-repo>` is a plain clone of your own repo on `main`.
-- VS Code is open on `C:\src\factory`, the agent picker lists **Upgrade**, the harness is **Local**, and Copilot Chat answers "hello".
+1. **Get the password and subscription.** In PowerShell in your dev container, from `factory/`:
+
+   ```powershell
+   $s = Get-Content .local/settings.json | ConvertFrom-Json
+   (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
+   $s.subscriptionId
+   git remote get-url origin
+   ```
+
+   The outputs are the password for `labadmin`, your workload subscription ID and your repo URL. Keep them privately for the next steps. The password also opens `vm-app01`. If the file is missing, run `./scripts/Get-PipelineEvidence.ps1` from `factory/` first.
+2. **Connect through Bastion.** In the Azure portal, check your directory and workload subscription filter. Open **Resource groups** > **rg-datacenter** > **vm-dev01** > **Connect** > **Bastion**. Choose **Password**, enter `labadmin` and the password, then **Connect**. After your first sign-in, wait up to five minutes for the VS Code extensions to install. On a Windows computer, `./scripts/Connect-DatacenterVm.ps1` is an optional shortcut; it needs PowerShell 7, Azure CLI with the `bastion` extension and a local copy of `factory/`.
+3. **Sign in to GitHub and set your git identity.** Open PowerShell 7 on the VM:
+
+   ```powershell
+   gh auth login --web
+   gh auth setup-git
+   $u = gh api user | ConvertFrom-Json
+   git config --global user.name ($u.name ?? $u.login)
+   git config --global user.email "$($u.id)+$($u.login)@users.noreply.github.com"
+   ```
+
+   Choose **GitHub.com**, **HTTPS** and **Yes** to authenticate Git. Enter the one-time code at `https://github.com/login/device` on your own computer. `gh auth setup-git` lets pushes use that sign-in.
+4. **Sign in to Azure with your own identity.** Still on the VM:
+
+   ```powershell
+   az login --use-device-code
+   az account set --subscription '<workload-subscription-id>'
+   az account show --query name -o tsv
+   [Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')
+   ```
+
+   Enter the code at `https://microsoft.com/devicelogin`. If your tenant blocks device code sign-in, run `az login` in Bastion instead. The account name must be your workload subscription. The environment variable makes local app calls use your own data roles, not the VM identity. It affects programs started afterward: open VS Code only after this step. Do not set it on App Service.
+5. **Refresh the kit clone, once, before creating your work branch:**
+
+   ```powershell
+   cd C:\src\factory
+   git switch main
+   git pull
+   ```
+
+   If the folder is missing, ask your team lead before the event or your coach on event days. If they ask you to clone it, use this sparse clone so answer keys and documentation tooling stay out:
+
+   ```powershell
+   git clone --no-checkout https://github.com/jonathan-vella/apex-factory-hackathon.git C:\src\factory
+   cd C:\src\factory
+   git sparse-checkout set --no-cone '/*' '!/coach/' '!/facilitator/' '!/docs/' '!/site/' '!/test/' '!/.vale/' '!/.vale.ini' '!/.markdownlint-cli2.mjs' '!/.prettierignore' '!/prettier.config.mjs' '!/lefthook.yml' '!/package.json' '!/package-lock.json' '!/.node-version' '!/.nvmrc'
+   git checkout
+   ```
+
+6. **Connect your own repo and create the work branch, once:**
+
+   ```powershell
+   cd C:\src\factory
+   git remote add member https://github.com/<your-org>/<your-repo>.git
+   git switch -c vm-dev01-work
+   git push -u member vm-dev01-work
+   git remote -v
+   git branch -vv
+   ```
+
+   `origin` must be the public kit and `member` your own repo. The branch must track `member/vm-dev01-work`. Never push to `origin`, pull the public kit after this setup, or merge this branch into your repo's `main`: their folder layouts differ. See the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight).
+7. **Clone your own repo separately for evidence:**
+
+   ```powershell
+   git clone https://github.com/<your-org>/<your-repo>.git C:\src\<your-repo>
+   ```
+
+   This clone stays on `main`. Your imported kit is under `factory/` there; code stays in the separate `C:\src\factory` clone.
+8. **Open VS Code on the kit root and sign in to Copilot:**
+
+   ```powershell
+   code C:\src\factory
+   ```
+
+   Trust the authors when VS Code asks. Choose the **Accounts** icon > **Sign in with GitHub to use GitHub Copilot** and complete browser sign-in. Open the root, not `app/`, so the agent finds `.github/skills/` and `.github/modernization/`.
+9. **Configure the Upgrade agent.** In **Extensions**, enable **GitHub Copilot upgrade**; disable **GitHub Copilot modernization** for the workspace if present. In Chat, choose **Local** for **Session Target**, not the remote Copilot coding agent harness. From `F1`, open **MCP: List Servers** > **Upgrade** > **Configure Model Access** and allow the models you will use. Check the agent picker lists **Upgrade**, then send "hello".
+
+### Check your setup
+
+Run in PowerShell 7 on the VM:
+
+```powershell
+gh auth status
+git config --global user.name
+az account show --query name -o tsv
+[Environment]::GetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'User')
+git -C C:\src\factory remote -v
+git -C C:\src\factory branch -vv
+git -C C:\src\<your-repo> branch --show-current
+git -C C:\src\factory status --short --ignored -- app .github
+```
+
+Done when GitHub is signed in, git has your name, Azure shows your workload subscription, the variable is `AzureCliCredential`, the remotes and work-branch upstream match step 6, and the evidence clone is on `main`. The last command prints nothing. VS Code must be open on `C:\src\factory`, with **Upgrade**, **Local** and a Copilot reply to "hello".
+
+If the last command lists leftovers, inspect them before removing files that git does not track, including ignored files from those two folders:
+
+```powershell
+cd C:\src\factory
+git clean -ndx -- app .github
+git clean -fdx -- app .github
+```
+
+### Coming back later
+
+Repeat steps 1 and 2 above, open PowerShell 7 and run `code C:\src\factory`; do not repeat clone or branch creation. Read this site in the VM's browser or on your own computer. The app and modernization files are in the kit clone; evidence goes in your private clone on `main`. Restart only when no agent run is active: a restart ends Bastion and interrupts the run. Never stop or deallocate `vm-dev01` during the event.
 
 ## 3.4 Save and commit your readiness evidence
 
@@ -121,6 +222,8 @@ Confirm that `factory/evidence/readiness/` in your repository on `main` holds th
 Let your team lead know as soon as your Step 3 checklist is complete so they know you are ready for [Step 4: Vending (T-1)](../vending/).
 
 ## Hints
+
+For deployment, Arc or DNS errors, check [Troubleshooting](../../reference/troubleshooting/).
 
 <details>
 <summary>Arc onboarding doesn't finish</summary>
@@ -159,7 +262,7 @@ Before T+2, never run a full, unfiltered `teardown` in the team lead's repo. To 
   gh workflow run platform.yml -f stage=member -f members=<your index>
   ```
 
-  Member teardown removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If you do not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If you were already vended, the team lead must run `vending` for your index afterward.
+  Member cleanup removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If you do not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If you were already vended, the team lead must run `vending` for your index afterward.
 
 :::caution
 After C5, do not use this recovery; member teardown removes the archetype, including the SQL Managed Instance, which takes hours to provision again. Ask the event owner for a coach repair.

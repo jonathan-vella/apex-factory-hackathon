@@ -2,7 +2,7 @@
 title: Troubleshooting
 description: Known traps from the kit's own validation runs.
 sidebar:
-  order: 6
+  order: 1
 ---
 
 ## Accounts, tools and repo setup

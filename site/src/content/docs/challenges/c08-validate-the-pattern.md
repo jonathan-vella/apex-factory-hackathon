@@ -34,6 +34,8 @@ A demo click-through proves little. C8 proves the modernized app is healthy in p
 
 If a check fails and you want help diagnosing it, there's a prompt for that in the [prompt library](../../prompts/vscode/06-acceptance-pack/). The checks themselves are on this page.
 
+For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
+
 <details>
 <summary>Values from the dev container</summary>
 

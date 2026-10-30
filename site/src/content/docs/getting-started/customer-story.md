@@ -2,7 +2,7 @@
 title: The customer story
 description: Who Contoso University is, why it has to change and what its leaders want from your team.
 sidebar:
-  order: 1
+  order: 5
 ---
 
 Contoso University is fictional. The app, its setup and the Azure services in this kit are real. The size, the history and the people below are the scenario. Nothing here was measured, and every target is illustrative.

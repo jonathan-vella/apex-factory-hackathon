@@ -1,4 +1,4 @@
-# Lifelines
+# Lifelines (coach)
 
 Lifelines are for coaches and facilitators, not students. A coach decides when a stuck member gets one, then applies it with the member or hands it over. Students don't fetch lifelines themselves, and the playbook and challenge pages don't mention them.
 

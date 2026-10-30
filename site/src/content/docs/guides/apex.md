@@ -2,10 +2,14 @@
 title: APEX
 description: Adapting and deploying the CoE archetype with APEX agents and azd.
 sidebar:
-  order: 6
+  order: 3
 ---
 
-This guide covers the mechanics of the archetype deploy flow. [C5](../../challenges/c05-deploy-the-coe-archetype/) is the what and the acceptance bar.
+**For:** every member deploying their own archetype.
+
+**When:** [C5](../../challenges/c05-deploy-the-coe-archetype/).
+
+**Before you start:** complete [Step 4: Vending](../../deploy/vending/) and C4's platform ADR, and open your own repo in its dev container. C5 holds the requirements and acceptance bar.
 
 ## What APEX does here, and what it doesn't
 
@@ -27,7 +31,7 @@ Open the repo in VS Code's dev container. APEX's `.gitattributes` forces LF line
 
 ## Adapt and preview
 
-Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode: open Copilot Chat, choose **Agent** in the mode picker (not the `01-Orchestrator` custom mode, because this flow doesn't need the full orchestrator) and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. The suffix is the random six-character string of lowercase letters and digits that `Initialize-Settings.ps1` gave you; don't change it, because every later `<suffix>` command and resource name uses it. Rebuilding a dev container normally keeps `factory/.local/` because it is in your local repo. If you deleted the local clone or a volume holding it, restore the suffix with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` before you run the skill. The skill then checks a spoke is already vended for you (if it isn't, your team lead runs the `vending` stage for you; members can't), runs a lightweight live governance check against the upstream template, creates an `azd` environment, and stops at `azd provision --preview`.
+Run the `/apex-adapt-archetype` skill in VS Code's built-in agent mode: open Copilot Chat, choose **Agent** in the mode picker (not the `01-Orchestrator` custom mode, because this flow doesn't need the full orchestrator) and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. The suffix is the random six-character string of lowercase letters and digits that `Initialize-Settings.ps1` gave you; don't change it, because every later `<suffix>` command and resource name uses it. Rebuilding a dev container normally keeps `factory/.local/` because it is in your local repo. If you deleted the local clone or a volume holding it, restore the suffix with `./scripts/Initialize-Settings.ps1 -Suffix <old suffix>` from `factory/` before you run the skill. The skill then checks a spoke is already vended for you (if it isn't, your team lead runs the `vending` stage for you; members can't), runs a lightweight check of your tenant's Deny policies against the archetype's packaged governance constraints, creates an `azd` environment, and stops at `azd provision --preview`.
 
 ## Provision
 

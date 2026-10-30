@@ -2,8 +2,11 @@
 title: "VS Code: App Service configuration check"
 description: C6's read-only check of the web app's identity, settings and Key Vault access.
 sidebar:
-  order: 6
+  label: App Service check (C6)
+  order: 7
 ---
+
+Used in [C6, requirement 5](../../../challenges/c06-modernize-with-ghcp/#requirements).
 
 C6's step 5: **check, don't change**, the archetype's App Service configuration. These commands only read Azure
 Resource Manager, so they work from any computer with `az` signed in, not only `vm-dev01` — except the image

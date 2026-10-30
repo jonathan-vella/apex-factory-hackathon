@@ -1,4 +1,4 @@
-# C10 answer key: Package, hand over, review AI readiness
+# C10 answer key: Package, hand over, review AI readiness (coach)
 
 > [!WARNING]
 > Coach material. This page has the answers to C10. Attendees close out the engagement themselves as a team.
