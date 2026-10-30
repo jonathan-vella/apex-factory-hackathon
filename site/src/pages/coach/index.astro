@@ -8,12 +8,15 @@ const challenges = entries
   .filter((entry) => entry.data.kind === "challenge")
   .sort((a, b) => a.id.localeCompare(b.id));
 const others = [
-  entries.find((entry) => entry.id === "readiness"),
-  entries.find((entry) => entry.id === "deploy-with-scripts"),
-  entries.find((entry) => entry.id === "run-of-show"),
-  entries.find((entry) => entry.id === "automation-map"),
-  entries.find((entry) => entry.id === "lifelines"),
-].filter((entry) => entry !== undefined);
+  { id: "run-of-show", title: "Two-day agenda" },
+  { id: "readiness", title: "Readiness check" },
+  { id: "lifelines", title: "Lifelines" },
+  { id: "scoreboard", title: "Scoreboard and badges" },
+  { id: "curveballs", title: "Curveballs" },
+  { id: "apex-demo", title: "APEX demo script" },
+  { id: "automation-map", title: "Automation map" },
+  { id: "deploy-with-scripts", title: "Repair: deploy with scripts" },
+];
 
 const points = (data: (typeof challenges)[number]["data"]) =>
   [
@@ -76,9 +79,9 @@ const frontmatter = {
 
     <h2>Run the event</h2>
     <ul>
-      {others.map(({ id, data }) => (
+      {others.map(({ id, title }) => (
         <li>
-          <a href={`/coach/${id}/`}>{data.title}</a>
+          <a href={`/coach/${id}/`}>{title}</a>
         </li>
       ))}
     </ul>
