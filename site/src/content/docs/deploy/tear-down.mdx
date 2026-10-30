@@ -1,6 +1,6 @@
 ---
-title: Tear down
-description: Remove what the pipeline built after the event, then remove the pipeline identity. About 20 minutes per member, plus about 25 for the team.
+title: Tear down (T+2)
+description: Save and verify the evidence, remove member scopes before the foundation, then remove each pipeline identity and verify cleanup.
 sidebar:
   order: 7
 prev:
@@ -9,9 +9,22 @@ prev:
 next: false
 ---
 
-After the event (T+2), members can remove their own scopes in their repos. The team lead then runs the full `teardown` in the lead repo, and an admin removes the pipeline identity. Run commands from `factory/`.
+**Who:** each **member**, then the **team lead**, then the named **admin for each repo**.
+**When:** **T+2**, after the event owner's approval and evidence sign-off.
+
+Run commands from `factory/` in your own computer's dev container, not from `vm-dev01`: member removal deletes that VM. Members remove their own scopes first; the team lead's full run then verifies/removes every member scope before removing the foundation.
 
 See [Cost](../../reference/cost/) for when the foundation, datacenter and archetype charges stop.
+
+## Before you run teardown
+
+- [ ] Coaches have signed off scores and evidence; no scoring question remains.
+- [ ] On `vm-dev01`, `git branch -vv` shows `vm-dev01-work` tracking your own repo with every commit pushed; verify the commits on GitHub.
+- [ ] Written evidence and C9 fix scripts/results are committed and pushed on your own repo's `main`, not left only on the VM.
+- [ ] You have privately saved your settings values (subscription, member index, suffix, location) and the agreed return management group. Never commit them.
+- [ ] The event owner has approved removal, named each repo's finalizer admin and decided whether the tenant will be reused.
+
+**Allow time:** about **20 minutes without an archetype**, but **up to about 2 hours with SQL MI**, followed by team cleanup. MI deletion and subnet release can keep the run busy for a long time. **Do not cancel it because it looks idle**; read the job log and [Troubleshooting](../../reference/troubleshooting/).
 
 ## Run the `teardown` stage
 
@@ -43,11 +56,13 @@ Before T+2, never run an unfiltered team `teardown` in the lead repo.
 After C5, the member `teardown` stage removes the archetype, including the SQL Managed Instance, which takes hours to provision again. Do not start over after C5; ask the event owner for a coach repair.
 :::
 
-Done when the run is green.
+Done when the run is green and the resource checks below pass. If a member fails, team cleanup does not proceed; fix the cause and rerun the same stage. Never force-remove an MI subnet association.
 
 ## Remove the pipeline identity
 
-The workflow can't remove its own identity, so an admin runs this script when the stage ends. It removes the identity's roles, the identity, `rg-cicd`, the GitHub environment and the pipeline's repository variables, then checks each is gone.
+The workflow cannot remove its own identity. **Each member** is the admin for their own repo, or the event owner names a replacement with repo-admin rights and Owner wherever that pipeline's roles were granted. **The team lead** (or the named event admin) finalizes the lead repo with repo-admin rights, Owner at Tenant Root (or the configured parent) and access to the shared subscription. Keep those permissions until finalization is verified.
+
+In each repo, sign in with `gh auth login` and `az login --tenant '<tenant-id>'` as that admin, then run the appropriate command from `factory/`. The script removes the pipeline roles, identity, `rg-cicd`, GitHub environment and pipeline repository variables, and verifies each is gone.
 
 ```powershell
 ./scripts/Remove-PlatformPipeline.ps1                    # team lead
@@ -58,7 +73,24 @@ Run the lead variant in the lead's repo and the member variant in each member's 
 
 Done when the script reports every item as gone.
 
+## Verify the resources are gone
+
+For each workload subscription, load your own settings and check the exact kit groups:
+
+```powershell
+$s = Get-Content .local/settings.json | ConvertFrom-Json
+az group exists --subscription $s.subscriptionId --name rg-datacenter
+az group exists --subscription $s.subscriptionId --name rg-spoke
+az group exists --subscription $s.subscriptionId --name "rg-university-$($s.suffix)"
+az group exists --subscription $s.subscriptionId --name rg-cicd
+```
+
+Each result must be `false`. The team lead also checks `rg-hub`, the kit management groups, subscription return placement, Arc entries, budgets, policy artifacts and vending-created role assignments. Check `rg-management` is gone unless reuse was explicitly agreed. Group checks alone do not prove every subscription-level artifact is gone.
+
+Keep the finalizer's verification result. Only then remove temporary human access (Tenant Root Owner, elevation, directory-role activation and repo collaborators) with the person who granted it. See [Troubleshooting](../../reference/troubleshooting/) if cleanup stops.
+
 ## What stays
 
-- The Graph grant stays in the tenant unless an admin removes it.
-- The pipeline never removes human access. Whoever granted roles to people (Owner on a subscription, collaborators on a repo) removes them.
+- With the recommended `include-management=true`, deleting `id-sqlmi-directory` removes its Graph grants. If the owner explicitly reuses the tenant and omits that input, the identity/grants remain; a later event needs the grant again after deletion.
+- Repos, evidence and subscriptions remain. Agree retention with the partner.
+- Cleanup removes vending-created roles, not pre-existing human access; the person who granted it removes the latter after pipeline finalization.
