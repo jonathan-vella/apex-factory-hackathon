@@ -1,14 +1,14 @@
 # B24 closure audit
 
-**Audited:** 30 October 2026. **Implementation baseline:** `37041b558dff94b0803b9420781ac8f797632b82`.
+**Audited:** 30 October 2026. **Implementation baseline:** `0708734ce90478057696268031537deccfbb8148`.
 
 | Severity | Closed | Deferred | Open | Total |
 |---|---:|---:|---:|---:|
 | P0 | 2 | 0 | 0 | 2 |
 | P1 | 22 | 1 | 1 | 24 |
 | P2 | 86 | 0 | 0 | 86 |
-| P3 | 162 | 3 | 3 | 168 |
-| **All** | **272** | **4** | **4** | **280** |
+| P3 | 163 | 3 | 2 | 168 |
+| **All** | **273** | **4** | **3** | **280** |
 
 ## Scope and evidence
 
@@ -16,9 +16,9 @@ This audit adds only this document. It makes no fixes, changes no Azure resource
 
 The dated findings register remains the original review record. Each row below points to its current page; the theme heading links the merged implementation and its finding disposition. Closed means the permitted fix or overriding decision is implemented, not that every future event prerequisite has happened. Deferred means a required part is explicitly on the spec's Deferred list. Open means an acceptance check or another requested part remains incomplete.
 
-Partial findings are counted once at the less-complete status. START-01 is Deferred even though its incorrect C2 values are fixed. CRF-37 is Open, not silently added to the explicit Deferred list. CHA-04 is Open because static recovery checks are not the requested fresh-terminal Azure rehearsal.
+Partial findings are counted once at the less-complete status. START-01 is Deferred even though its incorrect C2 values are fixed. CRF-37 is Closed by the bounded coach-overview fix in #213; CHA-04 remains Open because static recovery checks are not the requested fresh-terminal Azure rehearsal.
 
-The owner authorized local theme execution and merging passing PRs. All ten implementation PRs are merged. Issues #195 and #196 are reopened for the incomplete CRF-37 component work and CHA-04 rehearsal; #198 remains open for real portal verification. Issues #190 through #194, #197 and #199 are closed. This audit remains a draft PR for review.
+The owner authorized local theme execution and merging passing PRs. All ten implementation PRs are merged, and #213 merged the bounded CRF-37 fix. Issue #195 is closed; #196 remains open for the CHA-04 rehearsal; #198 remains open for CHB-22 and DEP-26 portal verification. Issues #190 through #194, #197 and #199 are closed. PRs #184 and #185 were also merged after their dependency validations passed. PR #212 carries this closure record for review.
 
 ## Verification
 
@@ -26,7 +26,7 @@ The owner authorized local theme execution and merging passing PRs. All ten impl
 |---|---|
 | `npm run check` | Passed: content invariants, six Node tests, Markdown lint and formatting. Ten challenges, 750 minutes, 170 base points: 45 team and 125 member. |
 | `npm --prefix site run build` | Passed. Existing non-fatal bundle-size and empty i18n-collection warnings remain. |
-| `npm --prefix site run lint:prose` | Passed: zero errors across 51 files. Initial attempt could not locate Vale; rerun used the existing local Vale 3.14.1 on PATH, without dependency or configuration changes. |
+| `npm --prefix site run lint:prose` | Vale was not installed in this worktree. The GitHub Validate Docs check passed on #213 with the merged lockfiles. |
 | `node scripts/check-internal-links.mjs` | Passed: 85 HTML files, including fragment checks. |
 | Search for `alzl-deny-public-acr` in `site/src`, `coach`, `facilitator` | No hits. Historical review records intentionally retain original evidence. |
 | Search for absolute `https://factory.apexops.pro` links in `coach`, `facilitator` | No hits. |
@@ -35,11 +35,11 @@ The owner authorized local theme execution and merging passing PRs. All ten impl
 | Step 4, C10, Tear down and About pagers | Step 4 goes to Challenges; C10 goes to Tear down; Tear down and About have no Next. |
 | JourneyMap | Rendered C2 says Member, 45 min, 15 pts. The ten rendered rows sum to 750 minutes and 170 points; this is a computed check, not a claim the page prints a separate total. |
 | Coach scoring | Coach overview renders C2 bonus as `up to 5 pts`. |
-| Coach sidebar and titles | Coach is last. Lifelines, Scoreboard and badges, Curveballs and APEX demo script link to rendered pages. All 19 child coach-page H1s end in `(coach)`; the landing page is distinctly titled Coach cheat sheets. |
+| Coach sidebar and titles | Coach is last. The overview's Run the event list now matches the sidebar's order and exact labels for all eight non-challenge pages. Local rendered output and the live overview were checked; URLs are unchanged, and all eight linked coach pages returned HTTP 200. All 19 child coach-page H1s end in `(coach)`; the landing page is distinctly titled Coach cheat sheets. |
 | T10 presentation | One homepage H1 with `_top`; five shared figures on the C7, ALZ-lite and naming/IP routes; old `day-one` and `day-two` anchors retained. |
 | T10 CI | Validate Docs, PowerShell, Bicep and workflow checks passed on #211. Initial PowerShell failure was a stale C7 `.md` test path; corrected to `.mdx`, with 35 local MI-source checks passing. Test assertions and runtime logic unchanged. |
 | Public URL preservation | Three source-extension renames retained their routes. Registered finding pages exist in built output, with `/404` represented by `404.html`; existing legacy redirects remain. |
-| Code scope | T01 guard and teardown conditions are the planned behavior change. The owner additionally approved the homepage-only default-title condition in #211. Other code edits are documentation, strings, data/sidebar configuration or the renamed test fixture path. No application or Bicep logic change. |
+| Code scope | T01 guard and teardown conditions are the planned behavior change. The owner additionally approved the homepage-only default-title condition in #211 and the bounded coach-overview data/label change in #213. Other code edits are documentation, strings, data/sidebar configuration or the renamed test fixture path. No application or Bicep logic change. |
 | Mirrored templates | `npm run check` enforces equality; all attendee and team template copies match. |
 
 ### CI-lab acceptance evidence
@@ -53,9 +53,13 @@ These were explicitly owner-approved CI-lab runs, not operations against the own
 
 Issue #190 records that temporary identities, federation, scoped grants, resource groups, pipeline settings and the test branch were removed; the pre-existing CI sandbox and subscription placement were preserved.
 
+No additional Azure work was performed for #196 or #198. The ignored `.local/ci-lab.json` and `.local/settings.json` files were absent from this worktree, so the intended test targets could not be verified against the owner live lab. No Azure call or portal operation was attempted.
+
 ### Publication
 
 [Manual GitHub Pages deployment](https://github.com/jonathan-vella/apex-factory-hackathon/actions/runs/41021626736) succeeded at the audited implementation commit. The live homepage, glossary, C6/C7, ALZ-lite, naming/IP, coach scoreboard, teardown and C8 pages were checked for HTTP 200 and their changed content. Publication is not a new runtime validation of the Azure lab.
+
+[Automatic GitHub Pages deployment after #213](https://github.com/jonathan-vella/apex-factory-hackathon/actions/runs/41027437767) succeeded. The live Coach overview and all eight linked coach pages returned HTTP 200; the overview contains every expected link and label in sidebar order.
 
 ## Finding dispositions
 
@@ -222,7 +226,7 @@ Page links below are the current rendered evidence surface, not the historical q
 | CRF-34 | P3 | Closed | [/coach/lifelines/][page-25] |  |
 | CRF-35 | P3 | Closed | [/coach/c07/][page-21] |  |
 | CRF-36 | P3 | Closed | [/coach/run-of-show/][page-27] |  |
-| CRF-37 | P3 | Open | [/coach/][page-15] | Maintainer text and heading fixed; overview list still differs from sidebar. Not named in Deferred list. |
+| CRF-37 | P3 | Closed | [/coach/][page-15] | #213 aligns the Run the event links and labels with the Coach sidebar, including all eight non-challenge pages; existing URLs are unchanged. Local render and live pages verified. |
 | CRF-38 | P3 | Deferred | [/coach/][page-15] | Shared description and disabled lastUpdated remain; per-page metadata is explicitly deferred. |
 | CRF-44 | P3 | Closed | [/coach/deploy-with-scripts/][page-24] |  |
 | CRF-45 | P3 | Deferred | [/coach/automation-map/][page-16] | Relative links fixed; extending Vale to coach/facilitator remains deferred. |
@@ -411,10 +415,9 @@ The spec also defers code improvements whose immediate findings were resolved th
 
 | Item | Remaining action |
 |---|---|
-| CHA-04, T07 | Rehearse the documented C5/APEX preflight recovery in a fresh terminal in an approved disposable lab. Documentation and explicit configuration parameters are fixed; no new Azure rehearsal was possible after lab removal. |
-| CRF-37, T06 | Authorize a separate bounded component-data change to align/extend the coach overview's Run the event list with the sidebar. Heading and maintainer copy are fixed, but the original list order remains. |
-| CHB-22 and DEP-26, T09, #198 | Owner verifies current C7 migration and Arc assessment portal UI before the event; record actual versions/labels and validation dates. Source-check dates are not live-test dates. |
-| Decision 5 prerequisite | Owner retests current Upgrade extension/VS Code before the dry run and updates `versions.md` with actual results. Recorded baseline and fallback documentation are already delivered. |
+| CHA-04, T07, #196 | Rehearse the documented C5/APEX preflight recovery in a fresh terminal in an approved disposable lab. Blocked this turn because the ignored CI-lab and live settings files were absent from the worktree, so the safe target could not be verified; no Azure call was attempted. |
+| CHB-22 and DEP-26, T09, #198 | Verify the current C7 migration and Arc assessment portal UI before the event; record actual versions/labels and validation dates. Blocked for the same missing local configuration; no Azure or portal operation was attempted. Source-check dates are not live-test dates. |
+| Decision 5 prerequisite | The Upgrade-toolchain retest is intentionally deferred until next week. The owner updates `versions.md` with actual results before the dry run; recorded baseline and fallback documentation are already delivered. |
 | Decision 6 prerequisite | Owner supplies two or three full-ALZ kickoff slides or a short recording. Schedule and coaching documentation are delivered; media was not generated or falsely claimed present. |
 
 No further Azure deployment or deletion is authorized by this audit. Deferred code work needs a separate scope decision, not an unreviewed fix in this document-only PR.
