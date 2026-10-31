@@ -128,6 +128,8 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
 
 6. **Record every result.** First capture the telemetry: in the portal open `appi-university-<suffix>` > **Investigate** > **Search (formerly Transaction search)**, set the time range to the **last hour** or a custom range from the start of C8, and screenshot the requests and dependencies from your checks. Then record every result against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`).
 
+   **Search label validated on:** 2026-10-31 against [Microsoft Learn](https://learn.microsoft.com/azure/azure-monitor/app/failures-performance-transactions); documentation only, not a new portal or telemetry check.
+
    1. On `vm-dev01`, save the SSMS count screenshots and the blob listing in `C:\src\<your-repo>\factory\evidence\c08\`. Run `git pull --rebase` there, commit (a conventional message, for example `docs: C8 vm evidence`) and `git push`, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
    2. In the dev container, in your own repo, run `git pull`, then copy `factory/templates/attendee/acceptance-handover.md` to `factory/evidence/c08/` and fill it in. Copy `factory/.local/acceptance.json` and your browser screenshots there too.
    3. Commit (for example `docs: C8 acceptance pack`) and push `main`.

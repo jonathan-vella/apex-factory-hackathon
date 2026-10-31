@@ -8,6 +8,8 @@ sidebar:
 
 Used in [C8, requirements 1 to 5](../../../challenges/c08-validate-the-pattern/#requirements).
 
+**Validated on:** 2026-10-31 (documentation consistency with C8's locations, evidence and acceptance rules; no new acceptance run).
+
 C8's acceptance pack is the checklist. This page only adds the prompt for interpreting a failure. The requirements, the
 commands and where each one runs are in [C8](../../../challenges/c08-validate-the-pattern/), and the read-only
 `Test-Acceptance.ps1` check is its requirement 5.

@@ -8,6 +8,8 @@ sidebar:
 
 Used in [C3, requirements 3 to 6](../../../challenges/c03-assess-the-source/#requirements).
 
+**Validated on:** 2026-10-31 (documentation consistency with C3 and the linked Microsoft Learn assessment guidance; no new portal or runtime check).
+
 Turn C3's two raw assessments (the Upgrade agent's `assessment.md` and the Arc SQL migration assessment) into a
 reviewed, human-authorized triage table.
 

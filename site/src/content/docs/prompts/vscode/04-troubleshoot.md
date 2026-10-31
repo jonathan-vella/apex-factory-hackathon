@@ -8,6 +8,8 @@ sidebar:
 
 Used in [C6, requirements 2 and 3](../../../challenges/c06-modernize-with-ghcp/#requirements).
 
+**Validated on:** 2026-10-31 (documentation consistency with C6 and the playbook's agent, model and recovery guidance; no new runtime test).
+
 Try these in order. Step 1 diagnoses before changing anything; steps 2 and 3 can change files; step 4 fixes the tooling.
 
 ## Before you send

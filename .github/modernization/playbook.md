@@ -1,8 +1,8 @@
 # Modernization playbook
 
-Last updated 2026-10-20. Built from the golden path the kit validated end to end. The tools and models change often: if this date is more than a few weeks old, check with your coach before you start.
+Last updated 2026-10-31. Built from the golden path the kit validated end to end. The tools and models change often: if this date is more than a few weeks old, check with your coach before you start.
 
-Documentation reviewed on **2026-10-30**. The runtime baseline was **validated with the GitHub Copilot upgrade extension 1.1.612 on VS Code 1.139.0** (recorded in [versions.md](../../versions.md), not a new runtime test). If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`. The owner must retest the current extension before the dry run and update the compatibility manifest with the actual result.
+Documentation reviewed on **2026-10-31**. The runtime baseline was **validated with the GitHub Copilot upgrade extension 1.1.612 on VS Code 1.139.0** (recorded in [versions.md](../../versions.md), not a new runtime test). If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`. The owner must retest the current extension before the dry run and update the compatibility manifest with the actual result.
 
 The playbook takes Contoso University in `app/ContosoUniversity` from ASP.NET MVC 5 on .NET Framework 4.8 to .NET 10 and ASP.NET Core MVC, with uploads on Blob, notifications on Service Bus, secrets in Key Vault and telemetry in Application Insights. Then it packages the app as an image in your private registry and runs it on App Service against SQL Managed Instance. Everything runs on `vm-dev01`.
 
@@ -102,7 +102,7 @@ In VS Code, the agent picker must list **Upgrade**, **GitHub Copilot modernizati
 For each task, in order:
 
 1. ⚠️ **Before you send:** harness **Local**, a **new chat**, agent **Upgrade**, the execution model (see [Models](#models)).
-2. Start the task. Use **Start** on the task in the Upgrade dashboard's **Execution** tab, or send:
+2. Start the task by sending:
 
    ```text
    Start task <task-id> with start_task. Scope: app/ContosoUniversity and .github/upgrades only; never edit files outside them.
