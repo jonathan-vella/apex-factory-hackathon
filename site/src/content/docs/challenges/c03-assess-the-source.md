@@ -23,9 +23,9 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 **You decide.** How you triage each finding, and what the trace-flag finding means for the target state.
 
-**Terms.** The **harness** is where the Upgrade agent runs (**Local** means on `vm-dev01`). A **scenario** is the agent's workflow (`dotnet-version-upgrade`). A **gate** is a point where the agent stops so you can review before it continues (the playbook's Step 1 shows each one). The **dashboard** is the Upgrade view in VS Code, with an **Assessment** tab.
+**Terms.** The **harness** is where the Upgrade agent runs (**Local** means on `vm-dev01`). A **scenario** is the agent's workflow (`dotnet-version-upgrade`). A **gate** is a point where the agent stops so you can review before it continues (the playbook's Step 1 shows each one). The **dashboard** is an optional visual view of the Upgrade session, not a required embedded VS Code tab. [Learn's dashboard reference](https://learn.microsoft.com/dotnet/core/porting/github-copilot-upgrade/dashboard) describes a side panel in the Copilot app and browser access in other clients. If it is unavailable in your VS Code session, review the files named below.
 
-**Validated baseline:** GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, as recorded in `versions.md`. Documentation reviewed **2026-10-30**, not a new runtime test. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`; review `assessment.md` and `assessment.json` for the assessment. The owner retests current versions before the dry run.
+**Validated baseline:** GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, as recorded in `versions.md`. Documentation reviewed **2026-10-31**, not a new runtime test. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`; review `assessment.md` and `assessment.json` for the assessment. The owner retests current versions before the dry run.
 
 **Where to work.**
 

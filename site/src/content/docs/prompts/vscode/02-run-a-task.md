@@ -8,7 +8,7 @@ sidebar:
 
 Used in [C6, requirement 2](../../../challenges/c06-modernize-with-ghcp/#requirements).
 
-**Validated on:** 2026-10-30 (documentation). Runtime baseline: GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, recorded in `versions.md`. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`, then use the `start_task` prompt below. Current-version runtime retesting remains the owner's pre-dry-run task.
+**Validated on:** 2026-10-31 (documentation). Runtime baseline: GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, recorded in `versions.md`. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`, then use the `start_task` prompt below. Current-version runtime retesting remains the owner's pre-dry-run task.
 
 ## Before you send
 
@@ -19,7 +19,7 @@ table as the single source for the picker names. You're on `vm-dev01-work` with 
 
 ## The prompt
 
-Use **Start** on the task in the Upgrade dashboard's **Execution** tab, or send:
+Start the task by sending:
 
 ```text
 Start task <task-id> with start_task. Scope: app/ContosoUniversity and .github/upgrades only; never edit files outside them.

@@ -8,6 +8,8 @@ sidebar:
 
 Used in [C9, requirements 1 to 5](../../../challenges/c09-optimize-the-db-with-ghcp/#requirements), on `vm-dev01` in plain Agent mode with the MSSQL extension, not the Upgrade agent.
 
+**Validated on:** 2026-10-31 (documentation consistency with C9's tool, baseline and evidence guidance; no new database or runtime check).
+
 ## Before you send
 
 Capture the baseline first. Supply the query, its execution plan and Query Store measurements from the challenge's current database. Remove secrets, identifiers and personal data from pasted output. Keep the saved original in your private evidence folder.
