@@ -1,0 +1,209 @@
+---
+import { createEventDrafts } from "../scripts/event-materials.js";
+
+const resourceLink = Astro.site
+  ? new URL("getting-started/event-materials/", Astro.site).href
+  : "[event materials and setup link]";
+const dayOneTime = "08:30-16:45";
+const dayTwoTime = "08:30-17:00";
+const drafts = createEventDrafts({ resources: resourceLink, dayOneTime, dayTwoTime });
+---
+
+<div class="event-materials" data-event-materials>
+  <p>
+    Enter the details you know, then generate the drafts. Missing details stay as placeholders.
+    Generating again replaces edits to the drafts.
+  </p>
+  <p>
+    Details are processed in your browser; the page does not send them. Copy the drafts into your
+    email or calendar app, review them, and send them yourself. Create a calendar event for each
+    hackathon day.
+  </p>
+
+  <fieldset>
+    <legend>Hackathon</legend>
+    <div class="fields">
+      <label>
+        Day 1 date
+        <input name="dayOne" type="text" placeholder="[Day 1 date]" />
+      </label>
+      <label>
+        Day 1 time
+        <input name="dayOneTime" type="text" value={dayOneTime} />
+      </label>
+      <label>
+        Day 2 date
+        <input name="dayTwo" type="text" placeholder="[Day 2 date]" />
+      </label>
+      <label>
+        Day 2 time
+        <input name="dayTwoTime" type="text" value={dayTwoTime} />
+      </label>
+      <label>
+        Time zone
+        <input name="timeZone" type="text" placeholder="[Time zone]" />
+      </label>
+      <label>
+        Event location or meeting link
+        <input name="eventLocation" type="text" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Know Before You Go</legend>
+    <div class="fields">
+      <label>
+        Date and time, including time zone
+        <input name="briefingWhen" type="text" placeholder="[Briefing date, time and time zone]" />
+      </label>
+      <label>
+        Briefing location or meeting link
+        <input name="briefingLocation" type="text" />
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Contacts and resources</legend>
+    <div class="fields">
+      <label>
+        Organizer name
+        <input name="organizer" type="text" />
+      </label>
+      <label>
+        Team lead or organizer contact
+        <input name="contact" type="text" />
+      </label>
+      <label class="wide">
+        Event materials and setup link
+        <input name="resources" type="text" value={resourceLink} />
+      </label>
+    </div>
+  </fieldset>
+
+  <button type="button" class="primary" data-generate hidden>
+    Generate drafts
+  </button>
+  <p class="status" role="status" aria-live="polite" data-status></p>
+  <noscript>
+    JavaScript is needed to fill in details automatically. You can still edit and copy the drafts
+    below.
+  </noscript>
+
+  {drafts.map((draft) => (
+    <section class="draft">
+      <label for={draft.id}>{draft.title}</label>
+      <textarea id={draft.id} rows="12" spellcheck="true">{draft.text}</textarea>
+      <button
+        type="button"
+        data-copy={draft.id}
+        data-title={draft.title}
+        aria-label={`Copy ${draft.title.toLowerCase()}`}
+        hidden
+      >
+        Copy draft
+      </button>
+      <p class="copy-status" role="status" aria-live="polite" data-copy-status={draft.id}></p>
+    </section>
+  ))}
+</div>
+
+<script>
+  import { initEventMaterials } from "../scripts/event-materials.js";
+
+  initEventMaterials();
+</script>
+
+<style>
+  .event-materials fieldset {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+  }
+
+  .event-materials legend,
+  .draft > label {
+    font-weight: 650;
+  }
+
+  .fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: 1rem;
+  }
+
+  .fields label,
+  .draft > label {
+    display: block;
+  }
+
+  .fields > label {
+    margin: 0;
+  }
+
+  .wide {
+    grid-column: 1 / -1;
+  }
+
+  .event-materials input,
+  .event-materials textarea {
+    display: block;
+    width: 100%;
+    margin-top: 0.3rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--sl-color-gray-4);
+    border-radius: 0.375rem;
+    background: var(--sl-color-black);
+    color: var(--sl-color-white);
+    font: inherit;
+  }
+
+  .event-materials textarea {
+    min-height: 12rem;
+    resize: vertical;
+  }
+
+  .event-materials button {
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--sl-color-accent);
+    border-radius: 0.375rem;
+    background: var(--sl-color-black);
+    color: var(--sl-color-accent-high);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
+  .event-materials button.primary {
+    background: var(--sl-color-accent);
+    color: var(--sl-color-black);
+  }
+
+  .event-materials button:hover {
+    background: var(--sl-color-gray-6);
+  }
+
+  .event-materials button.primary:hover {
+    background: var(--sl-color-accent-high);
+  }
+
+  .event-materials :is(input, textarea, button):focus-visible {
+    outline: 2px solid var(--sl-color-accent);
+    outline-offset: 2px;
+  }
+
+  .draft {
+    margin-top: 1.5rem;
+  }
+
+  .draft button {
+    margin-top: 0.5rem;
+  }
+
+  .status:empty,
+  .copy-status:empty {
+    display: none;
+  }
+</style>

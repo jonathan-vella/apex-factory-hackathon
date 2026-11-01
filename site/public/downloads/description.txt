@@ -1,0 +1,13 @@
+Partner-Modernization-Factory-Hackathon-and-What-You-Need.pptx (6 slides) — The attendee orientation handout as slides: the Factory and the Contoso University scenario, the two-day journey and technology changes, roles, and the access, tools and T-14 to T-1 milestones to prepare. This is the supporting attachment for the invitation email.
+
+Partner-Modernization-Factory-Know-Before-You-Go.pptx (24 slides) — The deck for the Know Before You Go briefing and the pre-event runbook: the scenario, platform shape, team and access, scoring overview, roles, the three work locations, the four setup steps task by task (T-14, T-7, T-3, T-1) with done-when checks, readiness evidence, the two-day agenda, gates, cost and cleanup, and appendices on pipeline security, prerequisites and what to do if a setup step fails.
+
+Partner-Modernization-Factory-Day1-Kickoff.pptx (17 slides) — The tech lead's 30-minute opening slot on Day 1 (08:30–09:00): the mission, the customer and its outcomes, the target architecture, the Day 1 and Day 2 plans, how AI assists while people decide, and the start of C1 (slides 1–11), plus six reference slides for anyone who wants the detail afterwards (slides 12–17).
+
+Partner-Modernization-Factory-Closing-the-Event.pptx (5 slides) — The close-out for the Day 2 showcase, scoring and close slot (16:15–17:00): what to showcase, the C10 deliverables to self-check, the scoring recap, and the T+2 teardown sequence.
+
+Partner-Modernization-Factory-Sell-Sheet.pptx (2 slides, A4 portrait) — An editable leadership sell sheet for partners deciding whether to nominate a team: why it matters, what the team builds and keeps, who should join, and a call to action. It was rebuilt from the public guides, not copied from the original PDF. The document owner changed its classification to Public before publication.
+
+Supporting files in this folder: email about hackathon.txt (invitation email), invite - hackathon.txt (two-day calendar invite), invite - know before you go.txt (briefing calendar invite), description.txt (this file) and CHANGELOG.md.
+
+All event dates, time zones, venues, meeting links and contacts are placeholders: [Event dates], [Time zone], [Venue or meeting link] and [Organizer/contact]. Slide and page counts above were verified by reopening the saved files.

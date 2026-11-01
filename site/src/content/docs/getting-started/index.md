@@ -16,6 +16,7 @@ Start with [Event overview](./event-overview/), then read [Roles](./roles/) and 
 - [The kit at a glance](./kit-at-a-glance/): where you run things, what changes, the ten challenges and the end state.
 - [The customer story](./customer-story/): who Contoso University is, why it has to change and what its leaders want.
 - [Learning before the event](../guides/learning-path/#stages): Stage 0 of the partner learning path. Learning only, no exams.
+- [Event materials](./event-materials/): presentation downloads and editable email and invitation templates.
 
 Then follow the deployment steps in order:
 
