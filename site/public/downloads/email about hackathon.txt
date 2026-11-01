@@ -1,0 +1,50 @@
+Subject: Partner Modernization Factory hackathon: overview and preparation
+
+
+Hi everyone,
+
+You’re invited to take part in the Partner Modernization Factory, a two-day, hands-on hackathon for Microsoft partners.
+
+Working in teams, you’ll take on the role of a delivery team engaged by the fictional Contoso University. The university’s enrollment application runs on a legacy .NET and Windows platform. During the hackathon, you’ll assess the application, choose a target state, deploy a reusable CoE archetype, modernize the application, migrate its database, and prepare a handover. The goal is to learn a repeatable approach that you can adapt for customer engagements. This is a non-production learning lab.
+
+Attached: Partner-Modernization-Factory-Hackathon-and-What-You-Need.pptx (6 slides), the attendee orientation deck on the scenario, the two-day journey, roles and what to prepare.
+
+Know Before You Go
+
+Please join the Know Before You Go session on [Briefing date and time] [Time zone] at [Venue or meeting link]. We’ll introduce the scenario, explain how the hackathon works, review the preparation milestones and answer questions.
+
+Before the session, please read:
+- The attached orientation deck
+- Requirements: https://factory.apexops.pro/getting-started/requirements/
+- Roles: https://factory.apexops.pro/getting-started/roles/
+
+High-level requirements
+
+Each team has 3–5 people, including a nominated team lead. The team uses a dedicated, non-production Microsoft Entra tenant and empty, supported paid subscriptions. Every attendee needs:
+
+- Their own paid workload subscription in the team’s tenant, with unconditional Owner assigned (Contributor does not qualify) and MFA registered. Azure Pass, Sponsorship and Microsoft Partner Network benefit offers are not supported.
+- A GitHub account in the partner organization, a private repository, and a paid GitHub Copilot seat. The organization’s policies must allow agent mode, MCP servers and the models used in the event, and GitHub Actions billing must be in place for private repositories.
+- A computer with the latest stable VS Code, Docker Desktop, Git, and the Dev Containers and GitHub Copilot Chat extensions. Windows users should also plan to use the documented WSL 2 and Ubuntu setup. Larger organizations need a paid Docker Desktop subscription.
+- An eligible Windows 11 per-user license for the vm-dev01 workstation. Windows Server Azure Hybrid Benefit is on by default for vm-app01; use the documented opt-out if you hold no eligible licenses.
+- Enough regional vCPU quota in the event region (swedencentral unless told otherwise) for two Standard_D8as_v6 VMs (16 vCPUs) plus the services deployed in C5. Preflight does not check quota or the subscription offer type.
+
+The team also needs one shared-services subscription. The team lead needs Owner on it and Owner at Tenant Root, in addition to their own workload subscription, and books a Privileged Role Administrator for T-7. After the team foundation is deployed, and once the tenant owner approves, that administrator grants the directory permissions the event needs.
+
+What to complete before the hackathon
+
+Follow the four numbered steps in the Deploy guide: https://factory.apexops.pro/deploy/ GitHub Actions runs the platform stages; please do not run deployment scripts by hand. The milestones are: T-14, everyone sets up their repository and pipeline and runs preflight, and the team lead assigns member indexes and gathers roster details privately; T-7, the team lead deploys the shared foundation, then the directory permissions are granted; T-3, each member deploys and tests their datacenter, completes the portal migration assessment and sets up vm-dev01; T-1, everyone starts both VMs and the team lead runs vending. Please start early, as access or quota requests can take time.
+
+There is no coach on duty during pre-event setup. Your designated team lead is your first point of contact and can escalate to the event owner; pre-event support is best-effort. Coaches support teams on the two event days.
+
+Event details
+
+Know Before You Go: [Briefing date and time] [Time zone]
+Hackathon: [Event dates] [Time zone]
+Day 1: 08:30–16:45 (kickoff 08:30, first challenge 09:00)
+Day 2: 08:30–17:00
+Venue or meeting link: [Venue or meeting link]
+Organizer/contact: [Organizer/contact]
+
+Best,
+
+[Name]

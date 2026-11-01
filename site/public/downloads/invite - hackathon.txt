@@ -1,0 +1,37 @@
+Hackathon invitation
+
+Title: Partner Modernization Factory — Two-Day Hackathon
+
+Dates: [Event dates]
+Day 1: 08:30–16:45 [Time zone]
+Day 2: 08:30–17:00 [Time zone]
+Location: [Venue or meeting link]
+
+Organizer: [Organizer/contact]
+
+Description:
+
+Join us for the Partner Modernization Factory, a two-day, hands-on hackathon for Microsoft partners.
+
+You’ll work as a delivery team for fictional Contoso University, modernizing its legacy enrollment application and exploring a repeatable approach for customer engagements. The work moves from customer outcomes and architecture decisions through application modernization, database migration, validation and handover.
+
+Day 1 includes the kickoff, customer-outcome and assessment activities, target-state decisions, CoE archetype deployment and the start of application modernization. Day 2 continues modernization, then focuses on migration and go-live, validation, database optimization and handover.
+
+Please arrive with your pre-event setup complete (Deploy guide, Steps 1–4):
+
+- Your private GitHub repository and Copilot-enabled development environment are ready, and your preflight is complete.
+- Your Azure access is in place, including unconditional Owner on your own workload subscription.
+- Your datacenter is deployed and tested, vm-app01 is connected to Azure Arc, vm-dev01 is set up, and your team lead has completed vending.
+- Both datacenter VMs are running when you arrive. Keep vm-dev01 running throughout the event.
+
+Bring your laptop and any questions about the setup or event. Please read the Hackathon and What You Need orientation deck sent with the invitation email, and the guides:
+
+- Requirements: https://factory.apexops.pro/getting-started/requirements/
+- Roles: https://factory.apexops.pro/getting-started/roles/
+- Deploy: https://factory.apexops.pro/deploy/
+
+Do not share tenant, subscription or personal access details in public channels; share roster information privately with your team lead.
+
+We’ll begin the Day 1 kickoff at 08:30. C1 starts at 09:00.
+
+Contact: [Organizer/contact]

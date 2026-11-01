@@ -1,0 +1,29 @@
+Know Before You Go invitation
+
+Title: Partner Modernization Factory — Know Before You Go
+
+Date: [Briefing date]
+Time: [Start time–end time] [Time zone]
+Location: [Venue or meeting link]
+Organizer: [Organizer/contact]
+
+Description:
+
+Join us for a briefing ahead of the Partner Modernization Factory hackathon. We’ll introduce the Contoso University scenario, explain what the two-day event involves, and review the main requirements and preparation milestones.
+
+We’ll cover:
+
+- The hackathon’s goals and challenge journey
+- Team roles and how the work is organized
+- High-level GitHub, Copilot, Azure and workstation requirements
+- Preparation milestones: T-14, T-7, T-3 and T-1
+- Questions and next steps
+
+Before the briefing, please read the Hackathon and What You Need orientation deck (attached to the invitation email), Requirements and Roles:
+
+- Requirements: https://factory.apexops.pro/getting-started/requirements/
+- Roles: https://factory.apexops.pro/getting-started/roles/
+
+Before the hackathon, you complete the four numbered setup steps in the Deploy guide (T-14, T-7, T-3 and T-1): https://factory.apexops.pro/deploy/
+
+If you have a question about access or setup, bring it to the session. Your designated team lead is the first point of contact for pre-event blockers and can escalate to the event owner. No coach is on duty before the event; pre-event support is best-effort.
