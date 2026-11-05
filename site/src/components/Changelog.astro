@@ -1,0 +1,21 @@
+---
+import { formatChangelogDate, loadChangelog } from "../lib/changelog.mjs";
+
+const groups = loadChangelog();
+---
+
+{groups.map(({ date, changes }) => (
+  <section aria-labelledby={`changes-${date}`}>
+    <h2 id={`changes-${date}`}>
+      <time datetime={date}>{formatChangelogDate(date)}</time>
+    </h2>
+    <ul>
+      {changes.map(({ title, url, breaking }) => (
+        <li>
+          {breaking && <strong>Breaking: </strong>}
+          <a href={url}>{title}</a>
+        </li>
+      ))}
+    </ul>
+  </section>
+))}

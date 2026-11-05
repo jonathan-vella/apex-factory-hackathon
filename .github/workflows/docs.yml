@@ -3,9 +3,6 @@ name: Deploy Astro site to GitHub Pages
 on:
   push:
     branches: ["main"]
-    paths:
-      - "site/**"
-      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 env:
@@ -28,6 +25,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v7
@@ -47,6 +46,8 @@ jobs:
       - name: Build with Astro
         run: npm run build
         working-directory: site
+        env:
+          CHANGELOG_REF: ${{ github.ref == 'refs/heads/main' && github.sha || 'refs/remotes/origin/main' }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v5
