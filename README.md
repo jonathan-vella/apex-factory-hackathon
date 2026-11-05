@@ -42,6 +42,8 @@ The PRD, roadmap, backlog and research from building the kit are kept in [docs/a
 
 Read [AGENTS.md](AGENTS.md) first: it has the fixed event order and the rules for scripts, workflows and PRs. Then run `npm ci` once and `npm run check` before you open a PR. To write or change a challenge page, start from [docs/challenge-template.md](docs/challenge-template.md).
 
+The [changelog](https://factory.apexops.pro/about/changelog/) is built from main-branch commit titles, so write concise titles that participants and coaches can understand. Routine dependency bumps use `chore(deps): bump` or `chore(deps-dev): bump` and are excluded, as are Dependabot's unscoped bump titles. Changes to coach-only recovery material are summarized. Mark a breaking change in the merged commit with `feat!:` (or another conventional type followed by `!`) or a `BREAKING CHANGE:` footer. Site builds need Git history through the changelog baseline, and repository tests check the older historical sources too. If your clone is shallow, run `git fetch --unshallow` before building or testing.
+
 ## License
 
 [MIT](LICENSE). Third-party material is listed in [NOTICE](NOTICE).
