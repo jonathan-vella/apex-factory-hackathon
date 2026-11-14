@@ -20,7 +20,7 @@ sidebar:
 
 - **Preflight reports FAIL on Owner:** you have no unconditional Owner assignment on your workload subscription. Contributor doesn't pass. If Owner is eligible through Privileged Identity Management, activate it first; otherwise ask your team lead to escalate to the event owner.
 - **Preflight fails on a resource provider:** the `whatif` stage registers missing providers for you. Wait up to 15 minutes for the registration to propagate, then run the stage again.
-- **Preflight fails on the public IP feature, or a deployment stops with `SubscriptionNotRegisteredForFeature`:** a new subscription hasn't registered `Microsoft.Network/AllowBringYourOwnPublicIpAddress`, which the firewall, NAT and Bastion public IPs need. The `whatif` stage registers the feature and then `Microsoft.Network` again. Wait a few minutes and run it again.
+- **Preflight warns on the public IP feature, or a deployment stops with `SubscriptionNotRegisteredForFeature`:** `Microsoft.Network/AllowBringYourOwnPublicIpAddress` stays `Pending` on standard partner subscriptions and is safe to ignore there; preflight logs a `WARN` and still returns `GO`. On subscriptions that enforce the feature for public IP creation, the `whatif` stage registers it and then `Microsoft.Network` again. If a deployment later stops with `SubscriptionNotRegisteredForFeature`, wait a few minutes and run the stage again, or ask the subscription administrator.
 
 ## Datacenter and Arc
 
