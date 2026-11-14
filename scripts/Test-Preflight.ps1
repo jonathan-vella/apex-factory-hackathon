@@ -313,14 +313,14 @@ foreach ($subscription in $subscriptions) {
             (Invoke-AzureCli @('feature', 'show', '--namespace', $featureNamespace, '--name', $featureName, '--subscription', $subscription.Id)).properties.state
         }
         $state = Get-FeatureState
-        if ($state -ne 'Registered' -and $registerMissing -and $canRegister) {
-            if ($state -notin @('Registering', 'Pending')) {
+        if ($state -notin @('Registered', 'Pending') -and $registerMissing -and $canRegister) {
+            if ($state -ne 'Registering') {
                 $null = Invoke-AzureCli @('feature', 'register', '--namespace', $featureNamespace, '--name', $featureName, '--subscription', $subscription.Id) -AllowEmpty
             }
-            $deadline = [datetime]::UtcNow.AddMinutes(15)
+            $deadline = [datetime]::UtcNow.AddMinutes(3)
             do {
                 $state = Get-FeatureState
-                if ($state -eq 'Registered' -or [datetime]::UtcNow -ge $deadline) { break }
+                if ($state -in @('Registered', 'Pending') -or [datetime]::UtcNow -ge $deadline) { break }
                 Start-Sleep -Seconds 10
             } while ($true)
             if ($state -eq 'Registered') {
@@ -329,7 +329,10 @@ foreach ($subscription in $subscriptions) {
             }
         }
         if ($state -ne 'Registered') {
-            throw "The $featureNamespace/$featureName feature is $state. Firewall, NAT and Bastion public IPs fail without it (SubscriptionNotRegisteredForFeature)."
+            Add-Result -Check "Public IP feature: $($subscription.Label)" -Status WARN `
+                -Reason "The $featureNamespace/$featureName feature is $state. Standard partner subscriptions do not need it; internal subscriptions can fail public IP creation without it (SubscriptionNotRegisteredForFeature)." `
+                -Remedy 'Safe to ignore on standard partner subscriptions. If a public IP deployment fails with SubscriptionNotRegisteredForFeature, rerun with -Fix or ask the subscription administrator.'
+            return
         }
         Add-Result -Check "Public IP feature: $($subscription.Label)" -Status PASS -Reason "$featureNamespace/$featureName is registered."
     } -Remedy 'Rerun with -Fix and wait; registration usually takes a few minutes. If it stays pending, ask the subscription administrator.'

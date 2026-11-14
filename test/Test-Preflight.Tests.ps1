@@ -86,6 +86,7 @@ function global:az {
         $global:featureReads++
         $state = switch ($scenario) {
             'no-feature' { 'NotRegistered' }
+            'pending-feature' { 'Pending' }
             'fix-feature' { if ($global:featureReads -le 2) { 'NotRegistered' } else { 'Registered' } }
             default { 'Registered' }
         }
@@ -111,7 +112,7 @@ function global:az {
 function global:Start-Sleep { param([int] $Seconds) }
 $parameters = @{ WorkloadSubscriptionId='11111111-1111-1111-1111-111111111111'; OutFile=$report }
 if ($scenario -ne 'member') { $parameters.SharedSubscriptionId='22222222-2222-2222-2222-222222222222' }
-if ($scenario -in @('fix','registration-error','no-owner','fix-feature')) { $parameters.Fix=$true }
+if ($scenario -in @('fix','registration-error','no-owner','fix-feature','pending-feature')) { $parameters.Fix=$true }
 if ($scenario -eq 'duplicate') { $parameters.SharedSubscriptionId=$parameters.WorkloadSubscriptionId }
 if ($scenario -eq 'invalid-id') { $parameters.WorkloadSubscriptionId='not-a-guid' }
 if ($scenario -eq 'output-error') { $parameters.OutFile=Join-Path $report 'missing/report.json' }
@@ -124,9 +125,9 @@ $scenarios = @(
     'missing-subscription', 'invalid-id', 'wrong-tenant', 'no-owner', 'duplicate',
     'missing-region', 'no-mi', 'missing-provider', 'fix', 'registration-error',
     'old-cli', 'old-bicep', 'cli-error', 'invalid-json', 'output-error',
-    'no-feature', 'fix-feature', 'stderr-warning'
+    'no-feature', 'pending-feature', 'fix-feature', 'stderr-warning'
 )
-$passing = @('healthy', 'stderr-warning', 'member', 'zone-only', 'location', 'missing-sku', 'mg-unknown', 'fix', 'fix-feature')
+$passing = @('healthy', 'stderr-warning', 'member', 'zone-only', 'location', 'missing-sku', 'mg-unknown', 'fix', 'no-feature', 'pending-feature', 'fix-feature')
 foreach ($scenario in $scenarios) {
     $report = [System.IO.Path]::GetTempFileName()
     $calls = [System.IO.Path]::GetTempFileName()
@@ -164,7 +165,7 @@ foreach ($scenario in $scenarios) {
         $feature = @($data.Checks | Where-Object { $_.Check -like 'Public IP feature*' })
         if ($scenario -eq 'healthy' -and $feature.Count -ne 2) { throw 'The public IP feature must be checked for both subscriptions.' }
         if ($scenario -eq 'member' -and $feature.Count -ne 1) { throw 'A member checks the public IP feature once.' }
-        if ($scenario -in @('no-feature') -and -not ($feature | Where-Object Status -EQ 'FAIL')) { throw "$scenario should fail the feature check." }
+        if ($scenario -in @('no-feature', 'pending-feature') -and -not ($feature | Where-Object Status -EQ 'WARN')) { throw "$scenario should warn on the feature check." }
         $vm = $data.Checks | Where-Object Check -EQ 'VM size'
         if ($scenario -eq 'zone-only' -and ($vm.Status -ne 'PASS' -or $vm.Reason -notmatch 'non-zonally')) { throw 'Zone-only restriction should pass non-zonally.' }
         if ($scenario -eq 'location' -and $vm.Status -ne 'WARN') { throw 'Location restriction should warn.' }
