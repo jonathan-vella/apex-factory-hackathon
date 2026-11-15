@@ -33,6 +33,7 @@ $logDir = 'C:\LabTools\logs'
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $logFile = Join-Path $logDir 'Install-DevTools.log'
 $downloadDir = 'C:\LabTools\downloads'
+$pwshDir = 'C:\Program Files\PowerShell\7'
 $bicepDir = 'C:\Program Files\Bicep'
 $nugetDir = 'C:\Program Files\NuGet'
 
@@ -108,11 +109,26 @@ try {
         Install-Msi -Name 'GitHub CLI' -Path $file
     }
 
-    if (-not (Test-Path 'C:\Program Files\PowerShell\7\pwsh.exe')) {
-        $url = Get-GitHubAssetUrl -Repository 'PowerShell/PowerShell' -Pattern '^PowerShell-[\d.]+-win-x64\.msi$'
-        $file = Get-Download -Url $url -FileName 'PowerShell-win-x64.msi'
-        Install-Msi -Name 'PowerShell 7' -Path $file -Properties 'ADD_PATH=1'
+    $pwshExe = Join-Path $pwshDir 'pwsh.exe'
+    if (-not (Test-Path $pwshExe)) {
+        # PowerShell 7.7+ ships no MSI, and Add-AppxPackage cannot run as SYSTEM; install the official zip archive.
+        $url = Get-GitHubAssetUrl -Repository 'PowerShell/PowerShell' -Pattern '^PowerShell-[\d.]+-win-x64\.zip$'
+        $file = Get-Download -Url $url -FileName 'PowerShell-win-x64.zip'
+        if (Test-Path $pwshDir) {
+            Remove-Item -LiteralPath $pwshDir -Recurse -Force
+        }
+        New-Item -ItemType Directory -Force -Path $pwshDir | Out-Null
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [System.IO.Compression.ZipFile]::ExtractToDirectory($file, $pwshDir)
+        $shortcutDir = 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\PowerShell'
+        New-Item -ItemType Directory -Force -Path $shortcutDir | Out-Null
+        $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut((Join-Path $shortcutDir 'PowerShell 7 (x64).lnk'))
+        $shortcut.TargetPath = $pwshExe
+        $shortcut.WorkingDirectory = '%HOMEDRIVE%%HOMEPATH%'
+        $shortcut.Save()
+        Write-LabLog 'PowerShell 7 installed.'
     }
+    Add-MachinePath -Directory $pwshDir
 
     if (-not (Test-Path 'C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin\az.cmd')) {
         $file = Get-Download -Url 'https://aka.ms/installazurecliwindowsx64' -FileName 'azure-cli-x64.msi'
