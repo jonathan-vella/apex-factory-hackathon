@@ -382,8 +382,14 @@ foreach ($member in $targetMembers) {
 
     foreach ($rawCoach in $CoachUsername) {
         $coach = "$rawCoach".Trim()
-        if (-not $coach) { continue }
-        if ($PSCmdlet.ShouldProcess("$fullRepo (coach $coach)", 'Grant coach pull access')) {
+        if (-not $coach -or $coach -ieq $Organization) { continue }
+        $existingCoachPerm = Invoke-GitHubCli -Arguments @('api', "repos/$fullRepo/collaborators/$coach/permission") -AllowFailure
+        $alreadyHasReadOrHigher = (
+            $null -ne $existingCoachPerm -and
+            $existingCoachPerm.PSObject.Properties['permission'] -and
+            "$($existingCoachPerm.permission)" -in @('admin', 'maintain', 'write', 'triage', 'read')
+        )
+        if (-not $alreadyHasReadOrHigher -and $PSCmdlet.ShouldProcess("$fullRepo (coach $coach)", 'Grant coach pull access')) {
             $null = Invoke-GitHubCli -Arguments @('api', '-X', 'PUT', "repos/$fullRepo/collaborators/$coach", '-f', 'permission=pull')
         }
     }

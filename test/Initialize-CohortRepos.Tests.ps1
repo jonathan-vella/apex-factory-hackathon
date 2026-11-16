@@ -577,11 +577,11 @@ try {
         }
     ) | Export-Csv -Path $csvRosterPath -NoTypeInformation -Encoding utf8NoBOM
 
-    $cmd5 = "& '$cohortScript' -RosterPath '$csvRosterPath' -TemplateRepository 'contoso/factory-template' -TenantId '$tenantGuid' -SharedSubscriptionId '$sharedGuid' -PushReadinessEvidence -LeadRepository 'contoso/factory-lead' -HandoffDirectory '$(Join-Path $work 's5-handoff')'"
+    $cmd5 = "& '$cohortScript' -RosterPath '$csvRosterPath' -TemplateRepository 'contoso/factory-template' -TenantId '$tenantGuid' -SharedSubscriptionId '$sharedGuid' -CoachUsername 'contoso','lead-admin' -PushReadinessEvidence -LeadRepository 'contoso/factory-lead' -HandoffDirectory '$(Join-Path $work 's5-handoff')'"
     $res5 = Invoke-CohortRun -ScenarioName 'csv-and-recovery-1' -State $stateRecovery -CommandText $cmd5
     Assert-True ($res5.ExitCode -eq 0) "CSV & partial-matrix recovery scenario failed: $($res5.Output)"
-    Assert-True ($res5.State['repos']['contoso/factory-student-01']['collaborators']['lead-admin'] -eq 'admin') 'Existing admin collaborator must not be downgraded to push.'
-    Assert-True (-not $res5.State['repos']['contoso/factory-student-02']['collaborators'].ContainsKey('contoso')) 'Repository owner handle must not receive collaborator PUT.'
+    Assert-True ($res5.State['repos']['contoso/factory-student-01']['collaborators']['lead-admin'] -eq 'admin') 'Existing admin collaborator must not be downgraded to push or pull.'
+    Assert-True (-not $res5.State['repos']['contoso/factory-student-02']['collaborators'].ContainsKey('contoso')) 'Repository owner handle must not receive student or coach collaborator PUT.'
 
     $csvAfter1 = @(Import-Csv -Path $csvRosterPath)
     Assert-True ($csvAfter1[0].suffix -cmatch '^[a-z][a-z0-9]{5}$' -and $csvAfter1[1].suffix -cmatch '^[a-z][a-z0-9]{5}$') 'CSV roster must persist generated suffixes.'
