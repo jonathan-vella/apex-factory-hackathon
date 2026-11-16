@@ -132,6 +132,19 @@ function Initialize-ManagementGroup {
             Write-Information "Created management group $($group.Name)."
         }
     }
+    $corpScope = "/providers/Microsoft.Management/managementGroups/$Prefix-corp"
+    for ($attempt = 1; $attempt -le 8; $attempt++) {
+        try {
+            if (@(Get-CallerRoleName -Scope $corpScope) -contains 'Owner') { break }
+        }
+        catch {
+            Write-Verbose "Waiting for Owner propagation at $corpScope (attempt $attempt)."
+        }
+        if ($attempt -lt 8) {
+            Write-Information "Waiting 15 seconds for Owner role inheritance to propagate to $Prefix-corp (attempt $attempt of 8)."
+            Start-Sleep -Seconds 15
+        }
+    }
 }
 
 function Assert-ParentOwner {
