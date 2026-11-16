@@ -216,12 +216,11 @@ $firewallPolicy = Get-OptionalResource -Arguments @(
 )
 $memberAppSubnet = $networkPlan.AppSubnet
 $memberUpperHalf = $networkPlan.SpokeUpperHalf
-$existingSnat = if ($firewallPolicy -and $firewallPolicy.properties -and $firewallPolicy.properties.snat -and $firewallPolicy.properties.snat.privateRanges) {
-    @($firewallPolicy.properties.snat.privateRanges | ForEach-Object { [string] $_ })
-}
-else {
-    @()
-}
+[string[]] $existingSnat = @(
+    if ($firewallPolicy -and $firewallPolicy.properties -and $firewallPolicy.properties.snat -and $firewallPolicy.properties.snat.privateRanges) {
+        $firewallPolicy.properties.snat.privateRanges | ForEach-Object { [string] $_ }
+    }
+)
 
 $datacenterVnet = Get-OptionalResource -Arguments @('network', 'vnet', 'show', '--subscription', $WorkloadSubscriptionId, '-g', 'rg-datacenter', '-n', 'vnet-datacenter')
 $connectDatacenter = [bool] $datacenterVnet
@@ -308,7 +307,7 @@ try {
     }
     if ($memberAppSubnet -notin $existingSnat -or $memberUpperHalf -notin $existingSnat) {
         $policyLocation = if ($hubVnet.location) { [string] $hubVnet.location } else { $Location }
-        $mergedSnat = @($existingSnat + @($memberAppSubnet, $memberUpperHalf) | Select-Object -Unique)
+        [string[]] $mergedSnat = @(@($existingSnat) + @($memberAppSubnet, $memberUpperHalf) | Where-Object { $_ } | Select-Object -Unique)
         @{
             '$schema' = 'https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#'
             contentVersion = '1.0.0.0'

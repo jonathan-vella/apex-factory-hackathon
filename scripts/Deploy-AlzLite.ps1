@@ -184,12 +184,11 @@ $existingPolicy = Get-OptionalResource -Arguments @(
     '--resource-type', 'Microsoft.Network/firewallPolicies',
     '--api-version', '2025-09-01'
 )
-$extraSnatPrefixes = if ($existingPolicy -and $existingPolicy.properties -and $existingPolicy.properties.snat -and $existingPolicy.properties.snat.privateRanges) {
-    @($existingPolicy.properties.snat.privateRanges | ForEach-Object { [string] $_ })
-}
-else {
-    @()
-}
+[string[]] $extraSnatPrefixes = @(
+    if ($existingPolicy -and $existingPolicy.properties -and $existingPolicy.properties.snat -and $existingPolicy.properties.snat.privateRanges) {
+        $existingPolicy.properties.snat.privateRanges | ForEach-Object { [string] $_ }
+    }
+)
 
 $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "alz-lite-$([guid]::NewGuid()).parameters.json"
 @{

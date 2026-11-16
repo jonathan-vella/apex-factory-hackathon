@@ -207,6 +207,79 @@ function global:az {
         $passed++
     }
 
+    # Deploy-Vending SNAT array handling: 0, 1 (singleton!), 516 (member 21 skips parent afwp-hub update), and 518 (member 256 appends 2 prefixes cleanly).
+    $snatCases = @(
+        @{ Name = 'zero-existing'; MemberIndex = 21; InitialCount = 0; ExpectPolicyDeploy = $true; ExpectedFinalCount = 2 }
+        @{ Name = 'singleton-existing'; MemberIndex = 21; InitialCount = 1; ExpectPolicyDeploy = $true; ExpectedFinalCount = 3 }
+        @{ Name = 'prepopulated-516-member21'; MemberIndex = 21; InitialCount = 516; ExpectPolicyDeploy = $false; ExpectedFinalCount = 0 }
+        @{ Name = 'prepopulated-516-member256'; MemberIndex = 256; InitialCount = 516; ExpectPolicyDeploy = $true; ExpectedFinalCount = 518 }
+    )
+    foreach ($sc in $snatCases) {
+        $snatCapture = Join-Path $work "snat-$($sc.Name).json"
+        $snatLog = Join-Path $work "snat-$($sc.Name).log"
+        Set-Content -Path $snatLog -Value '' -NoNewline
+        $snatRunScript = @'
+$hubSub = '22222222-2222-2222-2222-222222222222'
+$initialRanges = if ([int]$initCount -eq 0) {
+    @()
+} elseif ([int]$initCount -eq 1) {
+    @('10.10.0.0/16')
+} else {
+    @('10.10.0.0/16','10.128.0.0/10','10.100.0.0/16','172.16.0.0/12','192.168.0.0/16','100.64.0.0/10') +
+    @(1..255 | ForEach-Object { "10.20.$_.0/26" }) +
+    @(1..255 | ForEach-Object { "10.20.$_.128/25" })
+}
+$policyJson = @{ properties = @{ snat = @{ privateRanges = @($initialRanges) } } } | ConvertTo-Json -Depth 6 -Compress
+function global:az {
+    $global:LASTEXITCODE = 0
+    $command = $args -join ' '
+    Add-Content -Path $logFile -Value $command
+    if ($command -like 'account show*') { return '{"tenantId":"tenant-1","user":{"type":"user"}}' }
+    if ($command -like 'ad signed-in-user show*') { return '{"id":"user-1"}' }
+    if ($command -like 'role assignment list*') { return '[{"roleDefinitionName":"Owner"}]' }
+    if ($command -like 'network vnet show*vnet-hub*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub`",`"location`":`"swedencentral`"}" }
+    if ($command -like 'resource show*afw-hub*') { return "{`"properties`":{`"ipConfigurations`":[{`"properties`":{`"privateIPAddress`":`"10.100.0.4`"}}],`"firewallPolicy`":{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/firewallPolicies/afwp-hub`"}}}" }
+    if ($command -like 'resource show*afwp-hub*') { return $policyJson }
+    if ($command -like 'resource show*log-management*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-management/providers/Microsoft.OperationalInsights/workspaces/log-management`"}" }
+    if ($command -like 'identity show*') { return '{"id":"identity-1"}' }
+    if ($command -like 'group show*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub`"}" }
+    if ($command -like 'deployment group create*vending-afwp-snat-*') {
+        $pIdx = [Array]::IndexOf($args, '--parameters')
+        $pFile = $args[$pIdx + 1].TrimStart('@')
+        Copy-Item -LiteralPath $pFile -Destination $capFile -Force
+        return '{"properties":{"provisioningState":"Succeeded"}}'
+    }
+    if ($command -like 'deployment mg create*') { return '{"properties":{"provisioningState":"Succeeded"}}' }
+    if ($command -like 'policy state trigger-scan*') { return '{}' }
+    $global:LASTEXITCODE = 1
+    return 'not found'
+}
+& $v -WorkloadSubscriptionId '11111111-1111-1111-1111-111111111111' -SharedSubscriptionId $hubSub -MemberIndex ([int]$mIdx) -BudgetEmail 'lead@example.test' -Confirm:$false *>&1
+'@
+        $run = Invoke-Child -Variables @{
+            v         = $vendingScript
+            initCount = [string]$sc.InitialCount
+            mIdx      = [string]$sc.MemberIndex
+            capFile   = $snatCapture
+            logFile   = $snatLog
+        } -Script $snatRunScript
+        Assert-True ($run.ExitCode -eq 0) "SNAT case '$($sc.Name)' failed: $($run.Output)"
+        $loggedCmds = @(Get-Content -Path $snatLog)
+        $policyDeployIdx = [Array]::FindIndex($loggedCmds, [Predicate[string]]{ param($x) $x -like 'deployment group create*vending-afwp-snat-*' })
+        $mgDeployIdx = [Array]::FindIndex($loggedCmds, [Predicate[string]]{ param($x) $x -like 'deployment mg create*' })
+        Assert-True ($mgDeployIdx -ge 0) "SNAT case '$($sc.Name)' did not run deployment mg create."
+        if ($sc.ExpectPolicyDeploy) {
+            Assert-True ($policyDeployIdx -ge 0 -and $policyDeployIdx -lt $mgDeployIdx) "SNAT case '$($sc.Name)' must update afwp-hub BEFORE mg deployment."
+            $capturedParams = (Get-Content -Raw -Path $snatCapture | ConvertFrom-Json).parameters.extraSnatPrefixes.value
+            Assert-True (@($capturedParams).Count -eq $sc.ExpectedFinalCount) "SNAT case '$($sc.Name)' expected $($sc.ExpectedFinalCount) prefixes, got $(@($capturedParams).Count)."
+            Assert-True (@($capturedParams | Where-Object { $_ -match '\s' -or ($_ -split '/').Count -ne 2 }).Count -eq 0) "SNAT case '$($sc.Name)' produced a corrupted/concatenated CIDR string!"
+        }
+        else {
+            Assert-True ($policyDeployIdx -lt 0) "SNAT case '$($sc.Name)' must skip parent afwp-hub update when prefixes are already pre-populated!"
+        }
+        $passed++
+    }
+
     # PerfKit: the SQL password comes from -SqlPassword, then the kit's .local, then the lab password.
     if (Get-Module -ListAvailable -Name SqlServer) {
         $perfKit = Join-Path $work 'perf'

@@ -5,14 +5,19 @@ param location string
 param name string = 'afwp-hub'
 param extraSnatPrefixes array = []
 
-var baseSnatRanges = [
-  '10.10.0.0/16'
-  '10.128.0.0/10'
-  '10.100.0.0/16'
-  '172.16.0.0/12'
-  '192.168.0.0/16'
-  '100.64.0.0/10'
-]
+var standardSpokeIndexes = range(1, 255)
+var baseSnatRanges = concat(
+  [
+    '10.10.0.0/16'
+    '10.128.0.0/10'
+    '10.100.0.0/16'
+    '172.16.0.0/12'
+    '192.168.0.0/16'
+    '100.64.0.0/10'
+  ],
+  map(standardSpokeIndexes, n => '10.20.${n}.0/26'),
+  map(standardSpokeIndexes, n => '10.20.${n}.128/25')
+)
 
 resource firewallPolicy 'Microsoft.Network/firewallPolicies@2025-09-01' = {
   name: name
