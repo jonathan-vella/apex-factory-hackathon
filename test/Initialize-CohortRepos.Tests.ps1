@@ -437,7 +437,7 @@ try {
 
     $cmd2a = "& '$cohortScript' -RosterPath '$smallRosterPath' -TemplateRepository 'contoso/factory-template' -TenantId '$tenantGuid' -SharedSubscriptionId '$sharedGuid' -HandoffDirectory '$(Join-Path $work 's2a-handoff')'"
     $res2a = Invoke-CohortRun -ScenarioName 'not-template' -State $stateNotTemplate -CommandText $cmd2a
-    Assert-True ($res2a.ExitCode -ne 0 -and $res2a.Output -match '--enable-template') "Expected --enable-template failure: $($res2a.Output)"
+    Assert-True ($res2a.ExitCode -ne 0 -and $res2a.Output -match '--template') "Expected --template failure: $($res2a.Output)"
     Assert-True ($res2a.State['repos'].Count -eq 0) 'No student repo may be created when template check fails.'
     $passed++
 

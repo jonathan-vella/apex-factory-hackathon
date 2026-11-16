@@ -281,7 +281,7 @@ if ($PushReadinessEvidence -and -not $LeadRepository) {
 # Verify the template repository before creating or updating any student repository or persisting generated suffixes.
 $templateInfo = Invoke-GitHubCli -Arguments @('api', "repos/$TemplateRepository")
 if ($null -eq $templateInfo -or $templateInfo.is_template -ne $true) {
-    throw "Repository '$TemplateRepository' is not enabled as a template repository. Run: gh repo edit $TemplateRepository --enable-template"
+    throw "Repository '$TemplateRepository' is not enabled as a template repository. Run: gh repo edit $TemplateRepository --template"
 }
 $defaultBranch = if ($templateInfo.PSObject.Properties['default_branch'] -and "$($templateInfo.default_branch)".Trim()) {
     "$($templateInfo.default_branch)".Trim()
