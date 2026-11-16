@@ -9,6 +9,10 @@ prev:
 next: false
 ---
 
+:::note[Path A: Self-service teams]
+This page covers **Path A (Self-service teams)**. In a **lead-provisioned cohort (Path B)**, follow [Tear down: Lead-provisioned cohort](/deploy/lead-setup/tear-down/).
+:::
+
 **Who:** each **member**, then the **team lead**, then the named **admin for each repo**.
 **When:** **T+2**, after the event owner's approval and evidence sign-off.
 
@@ -40,7 +44,7 @@ gh workflow run platform.yml -f stage=teardown
 gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true -f include-management=true
 ```
 
-If the tenant will be reused, omit `-f include-management=true`.
+If the tenant will be reused, omit `-f include-management=true`. If your roster has more than 256 members (GitHub Actions' matrix job cap), remove members in batches first (for example `-f stage=teardown -f members=1-250`, then `-f stage=teardown -f members=251-300`), and then run `-f stage=teardown -f members=none -f confirm-team-teardown=true -f include-management=true` to remove the team foundation.
 
 **In the team lead's repo, for one member only:** add their index and omit the team confirmation:
 

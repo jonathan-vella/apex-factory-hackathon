@@ -1,12 +1,12 @@
 # Scoreboard and badges (coach)
 
-Copy one scoreboard per team. Lock the roster at kickoff and enter every member, even if they later leave or miss a challenge. The [rubric](../facilitator/scoring-rubric.md) controls evidence and base points; the scoring rules, lifeline caps and bonus awards are below.
+Copy one scoreboard sheet per team—or **one sheet per 3-to-5-person breakout pod** when a single-hub cohort has more than five attendees (`n > 5`). Lock the roster at kickoff and enter every member on that team or pod, even if they later leave or miss a challenge. The [rubric](../facilitator/scoring-rubric.md) controls evidence and base points; the scoring rules, lifeline caps and bonus awards are below.
 
 ## Team summary
 
-| Team | C1 / 10 | C4 / 15 | C10 / 20 | Team base / 45 | Team bonus | Coach sign-off |
+| Team / Pod | C1 / 10 | C4 / 15 | C10 / 20 | Team base / 45 | Team bonus | Coach sign-off |
 |---|---:|---:|---:|---:|---:|---|
-| `<team>` |  |  |  |  |  |  |
+| `<team or pod>` |  |  |  |  |  |  |
 
 ## Member scores
 
@@ -15,10 +15,10 @@ Copy one scoreboard per team. Lock the roster at kickoff and enter every member,
 | `<member 1>` |  |  |  |  |  |  |  |  |  |  |  |  |
 | `<member 2>` |  |  |  |  |  |  |  |  |  |  |  |  |
 | `<member 3>` |  |  |  |  |  |  |  |  |  |  |  |  |
-| `<member 4>` |  |  |  |  |  |  |  |  |  |  |  |  |
-| `<member 5>` |  |  |  |  |  |  |  |  |  |  |  |  |
+| `...` |  |  |  |  |  |  |  |  |  |  |  |  |
+| `<member n>` |  |  |  |  |  |  |  |  |  |  |  |  |
 
-Remove unused member rows only before kickoff, then freeze the roster. Leave a zero for missing evidence; do not remove that member from the average.
+Add or remove member rows to match the team or breakout pod size before kickoff, then freeze the roster. Leave a zero for missing evidence; do not remove that member from the average.
 
 ## Badge and bonus record
 
@@ -46,7 +46,7 @@ Team score = team base + average member base + awarded bonus  (maximum 200)
 
 Rank teams by team score. Teams with the same score share the rank.
 
-Enter C4's team and member portions in their separate columns. Record lifeline caps in the affected member/challenge cell, for example `15/30 — L3-servicebus` for C6, or `10/20 — known-good image` or `10/20 — L5-cutover` for C7. Store evidence in each member's own repo under `factory/evidence/`, and do not paste secrets or tenant, subscription or object IDs into this public scoreboard. Score team items once per team, from the team lead's copy.
+Enter C4's team and member portions in their separate columns. Record lifeline caps in the affected member/challenge cell, for example `15/30 — L3-servicebus` for C6, or `10/20 — known-good image` or `10/20 — L5-cutover` for C7. Store evidence in each member's own repo under `factory/evidence/`, and do not paste secrets or tenant, subscription or object IDs into this public scoreboard. Score team items once per team (or breakout pod), from the team lead's (or pod lead's) copy.
 
 ## Scoring rules
 
@@ -58,7 +58,7 @@ Enter C4's team and member portions in their separate columns. Record lifeline c
 - Challenge bonus tasks and badges draw from one bonus allowance per team, capped at **30 points**. A badge is worth 5 team bonus points, once per team. Challenge bonus tasks are awarded to the scope of their challenge and retain the challenge-page maxima. Award bonuses in the order of the scoring sections below (Badges, then Challenge bonus tasks) until the team reaches the cap. Once a team has reached it, further eligible bonus evidence is recorded but adds no points.
 - Rank teams by team score. Teams with the same score share the rank.
 - Team score = team base points + average member base points + awarded team bonus + average awarded member bonus, with combined bonus capped at 30. The scoreboard shows the components separately.
-- Coaches sign off evidence and the event owner resolves scoring disagreements against these rules and the rubric. Coaches read each member's own repo (evidence is in `factory/evidence/cNN/`). Score team items once per team, from the team lead's copy; the other members' copies must match it. Redact secrets and tenant, subscription and object IDs before sharing evidence publicly.
+- Coaches sign off evidence and the event owner resolves scoring disagreements against these rules and the rubric. Coaches read each member's own repo (evidence is in `factory/evidence/cNN/`). Score team items once per team (or per 3-to-5-person breakout pod when `n > 5`), from the team lead's (or pod lead's) copy; the other members' copies in that team or pod must match it. Redact secrets and tenant, subscription and object IDs before sharing evidence publicly.
 
 ## Badges
 

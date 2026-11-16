@@ -36,7 +36,7 @@ on:
         type: boolean
         default: false
       members:
-        description: Member indexes, comma separated (for example 1,2,3), or all. In the team lead's repo, member, teardown and all need a value.
+        description: Member indexes or ranges, comma separated (for example 1,2,3 or 1-30), all, or none (for team-only teardown after batched member teardown). In the team lead's repo, member, teardown and all need a value.
         type: string
         default: ''
       no-hybrid-benefit:
@@ -106,7 +106,7 @@ jobs:
             case "$stage" in
               member|teardown|all)
                 if [ -z "$requested" ]; then
-                  echo "::error::In the team lead's repo, '$stage' needs -f members=<your index> or -f members=all."
+                  echo "::error::In the team lead's repo, '$stage' needs -f members=<indexes or ranges> or -f members=all."
                   exit 1
                 fi
                 ;;
@@ -116,31 +116,69 @@ jobs:
           include=false
           if [ "$INPUT_INCLUDE_MANAGEMENT" = true ] || [[ "$REF_NAME" == ci-test/teardown-with-management* ]]; then include=true; fi
           echo "include-management=$include" >> "$GITHUB_OUTPUT"
-          if [ "$requested" = "all" ] && [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$profile" = "lead" ]; then
-            list="${VAR_MEMBERS:-}"
-            if [ -z "$list" ]; then
-              echo "::error::The MEMBER_INDEXES variable must be set to use members=all."
+          if [ "$requested" = "none" ]; then
+            if [ "$stage" != "teardown" ] || [ "$profile" != "lead" ] || [ "$INPUT_CONFIRM_TEAM_TEARDOWN" != "true" ]; then
+              echo "::error::members=none is valid only for stage=teardown in the team lead's repo with -f confirm-team-teardown=true."
               exit 1
             fi
+            json="[]"
+            list=""
+            team=true
           else
-            list="${requested:-${VAR_MEMBERS:-1}}"
-          fi
-          list="${list// /}"
-          IFS=',' read -ra parts <<< "$list"
-          json="["; seen=","
-          for part in "${parts[@]}"; do
-            if ! [[ "$part" =~ ^[0-9]+$ ]] || [ "$part" -lt 1 ] || [ "$part" -gt 20 ]; then echo "::error::A member index must be a whole number from 1 to 20."; exit 1; fi
-            [[ "$seen" != *",$part,"* ]] || { echo "::error::A member index is listed twice."; exit 1; }
-            seen="$seen$part,"
-            json="$json\"$part\","
-          done
-          json="${json%,}]"
-          team=false
-          if [ "$stage" = "teardown" ] && [ "$profile" = "lead" ]; then
-            if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
-              team=true
-            elif [ "$requested" = "all" ] && [ "$INPUT_CONFIRM_TEAM_TEARDOWN" = "true" ]; then
-              team=true
+            if [ "$requested" = "all" ] && [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$profile" = "lead" ]; then
+              list="${VAR_MEMBERS:-}"
+              if [ -z "$list" ]; then
+                echo "::error::The MEMBER_INDEXES variable must be set to use members=all."
+                exit 1
+              fi
+            else
+              list="${requested:-${VAR_MEMBERS:-1}}"
+            fi
+            list="${list// /}"
+            IFS=',' read -ra parts <<< "$list"
+            if [ "${#parts[@]}" -eq 0 ]; then
+              echo "::error::At least one member index is required."
+              exit 1
+            fi
+            json="["; seen=","; expanded=""
+            for part in "${parts[@]}"; do
+              if [[ "$part" =~ ^([1-9][0-9]*)-([1-9][0-9]*)$ ]]; then
+                start_idx="${BASH_REMATCH[1]}"
+                end_idx="${BASH_REMATCH[2]}"
+                if [ "$end_idx" -lt "$start_idx" ]; then
+                  echo "::error::Invalid member range '$part': end must be greater than or equal to start."
+                  exit 1
+                fi
+                range_items=()
+                for (( idx=start_idx; idx<=end_idx; ++idx )); do
+                  range_items+=("$idx")
+                done
+              elif [[ "$part" =~ ^[1-9][0-9]*$ ]]; then
+                range_items=("$part")
+              else
+                echo "::error::Invalid member token '$part'. Use positive whole numbers (1 or greater) or ranges like 1-30."
+                exit 1
+              fi
+              for idx in "${range_items[@]}"; do
+                if ! [[ "$idx" =~ ^[1-9][0-9]*$ ]]; then
+                  echo "::error::A member index must be a positive whole number (1 or greater)."
+                  exit 1
+                fi
+                [[ "$seen" != *",$idx,"* ]] || { echo "::error::A member index is listed twice." ; exit 1; }
+                seen="$seen$idx,"
+                json="$json\"$idx\","
+                expanded="${expanded:+$expanded,}$idx"
+              done
+            done
+            json="${json%,}]"
+            list="$expanded"
+            team=false
+            if [ "$stage" = "teardown" ] && [ "$profile" = "lead" ]; then
+              if [ "$GITHUB_EVENT_NAME" != "workflow_dispatch" ]; then
+                team=true
+              elif [ "$requested" = "all" ] && [ "$INPUT_CONFIRM_TEAM_TEARDOWN" = "true" ]; then
+                team=true
+              fi
             fi
           fi
           {
@@ -239,7 +277,7 @@ jobs:
     timeout-minutes: 240
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: ${{ fromJSON(vars.MAX_PARALLEL || '20') }}
       matrix:
         member: ${{ fromJSON(needs.plan.outputs.members) }}
     steps:
@@ -443,13 +481,13 @@ jobs:
 
   teardown-member:
     needs: plan
-    if: needs.plan.outputs.stage == 'teardown'
+    if: needs.plan.outputs.stage == 'teardown' && needs.plan.outputs.members != '[]'
     runs-on: ubuntu-latest
     environment: gh-lab
     timeout-minutes: 240
     strategy:
       fail-fast: false
-      max-parallel: 5
+      max-parallel: ${{ fromJSON(vars.MAX_PARALLEL || '20') }}
       matrix:
         member: ${{ fromJSON(needs.plan.outputs.members) }}
     steps:
@@ -486,7 +524,7 @@ jobs:
 
   teardown-team:
     needs: [plan, teardown-member]
-    if: ${{ needs.plan.outputs.stage == 'teardown' && needs.plan.outputs.profile == 'lead' && needs.plan.outputs.team-teardown == 'true' && needs.teardown-member.result == 'success' }}
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.stage == 'teardown' && needs.plan.outputs.profile == 'lead' && needs.plan.outputs.team-teardown == 'true' && (needs.teardown-member.result == 'success' || (needs.teardown-member.result == 'skipped' && needs.plan.outputs.members == '[]')) }}
     runs-on: ubuntu-latest
     environment: gh-lab
     timeout-minutes: 240

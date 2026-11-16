@@ -1,0 +1,125 @@
+---
+title: "Step 4: Vending and collaborator invites (T-1)"
+description: Start all cohort VMs, run spoke vending from the lead repo, collect attendees' GitHub usernames, send Write collaborator invitations, and distribute private Handoff Cards.
+prev:
+  link: /deploy/lead-setup/step-3-datacenters/
+  label: "Step 3: Datacenters and Arc (T-3)"
+next:
+  link: /deploy/lead-setup/student-onboarding/
+  label: "Student onboarding (before Day 1)"
+---
+
+import { Steps } from "@astrojs/starlight/components";
+import Diagram from "../../../../components/Diagram.astro";
+
+**Who:** **Team lead**. Once Step 4 finishes, students complete [Student onboarding (before Day 1)](../student-onboarding/).
+**When:** By **T-1** (1 day before day one), after [Step 2: Foundation](../step-2-foundation/) and [Step 3: Datacenters and Arc](../step-3-datacenters/) are green.
+
+In Step 4, the team lead starts all cohort VMs, runs `vending` centrally from `<event>-lead` to connect every workload subscription to the shared hub, collects attendees' GitHub usernames, invites each student as a **Write (`push`)** collaborator to their assigned `<event>-student-<nn>` repo, and sends each student their private Handoff Card.
+
+<Diagram
+  name="diagram-04-hub-and-spoke-routing"
+  alt="Traffic between a member's datacenter and spoke crosses the hub firewall. The shared hub holds Azure Firewall. Each member has a datacenter network with vm-app01 and vm-dev01 and a spoke network with subnets for the app, private endpoints and SQL Managed Instance. Route tables send datacenter-to-spoke traffic and the spoke's outbound traffic to the firewall, and the datacenter's internet traffic leaves through a NAT Gateway."
+  caption="Step 4 (vending) connects each student's datacenter and spoke to the shared hub firewall, configures DNS and RBAC, and verifies connectivity."
+/>
+
+## 4.1 Start all datacenter VMs across the cohort
+
+Both `vm-app01` and `vm-dev01` must be running in every workload subscription before `vending` starts so `vm-app01` reports `Connected` in Azure Arc and the pipeline can restart the VMs and run in-VM connectivity probes.
+
+From `factory/` in `<event>-lead`:
+
+```powershell
+$roster = Get-Content .local/roster.json | ConvertFrom-Json
+foreach ($m in $roster) {
+  az vm start -g rg-datacenter -n vm-app01 --subscription $m.subscriptionId --no-wait
+  az vm start -g rg-datacenter -n vm-dev01 --subscription $m.subscriptionId --no-wait
+}
+```
+
+Wait **about 10 minutes** after the VMs boot, then verify that every slot's `vm-app01` reports `Connected` in Azure Arc:
+
+```powershell
+foreach ($m in $roster) {
+  $arc = az connectedmachine show -g rg-datacenter -n vm-app01 --subscription $m.subscriptionId --query status -o tsv 2>$null
+  [pscustomobject]@{ Index = $m.index; ArcStatus = $arc ?? 'MISSING' }
+}
+```
+
+Do not start `vending` until every slot in the batch shows `Connected`.
+
+## 4.2 Confirm Entra principal IDs and run `vending`
+
+<Steps>
+
+1. **Confirm `memberPrincipalId` is populated for every slot in `.local/roster.json`.** Vending grants each slot's `memberPrincipalId`:
+   - `Owner` on that slot's workload subscription,
+   - `Reader` on the shared services subscription, and
+   - `Managed Identity Operator` on `id-sqlmi-directory` in `rg-management`.
+
+   If you updated any `memberPrincipalId`, `budgetEmail`, or slot entry in `.local/roster.json` since Step 1, sync the lead pipeline's environment secrets before dispatching `vending`:
+
+   ```powershell
+   ./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json
+   ```
+
+2. **Dispatch the `vending` stage.**
+   - **Up to 50 members:**
+
+     ```bash
+     gh workflow run platform.yml -f stage=vending
+     ```
+
+   - **More than 50 members:** Phase 1 vends spokes serially so `vnet-hub` peerings and `afwp-hub` rule collection groups never collide, which handles roughly 60 to 70 members inside GitHub Actions' 6-hour (`360`-minute) single-job limit. Dispatch `vending` in batches of up to 50 members (and check the 90-RCG firewall limit in [Scaling to larger cohorts](/deploy/how-it-works/#scaling-to-larger-cohorts)):
+
+     ```bash
+     gh workflow run platform.yml -f stage=vending -f members=1-50
+     gh workflow run platform.yml -f stage=vending -f members=51-100
+     ```
+
+3. **Monitor the three vending phases and retry if needed.**
+   - **Phase 1 (serial readiness check and spoke vending):** verifies `vnet-datacenter` and `vm-app01` Arc `Connected`, moves the subscription under `mg-factory-corp`, builds `rg-spoke`, peers `vnet-spoke` and `vnet-datacenter` to `vnet-hub`, creates `rcg-member-<n>`, applies RBAC and the $500 budget, and sets Foundational CSPM. If Phase 1 stops at an unready slot, fix that slot and re-run the same batch (`vending` is idempotent).
+   - **Phase 2 (concurrent VM restart):** restarts `vm-app01` and `vm-dev01` across all vended slots in the batch so both VMs pick up the hub firewall's DNS proxy. If Phase 2 fails, fix the cause and re-run the batch.
+   - **Phase 3 (concurrent exemptions and connectivity probes):** records datacenter policy exemptions where required and runs `Test-Connectivity.ps1`. If Phase 3 reports failures only for specific indexes, fix the cause and re-run `vending` for just those indexes:
+
+     ```bash
+     gh workflow run platform.yml -f stage=vending -f members=<indexes>
+     ```
+
+</Steps>
+
+:::note[Assigning or swapping an attendee's Entra identity after vending]
+
+If an attendee is assigned or swapped after initial vending, update `memberPrincipalId` for their slot in `.local/roster.json`, re-run `./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, and run `gh workflow run platform.yml -f stage=vending -f members=<index>`. Vending is idempotent and safely grants the new principal's Azure roles.
+
+:::
+
+## 4.3 Collect GitHub usernames, send Write invites, and distribute Handoff Cards
+
+<Steps>
+
+1. **Collect each attendee's GitHub username.** Ask every attendee for their GitHub handle (for example `octocat`) and fill in `githubUsername` on their assigned slot in `factory/.local/roster.json`.
+
+2. **Verify GitHub organization collaborator and branch settings.** Before sending invites, confirm on your `<org>` settings:
+   - **Outside collaborators** are allowed if attendees sign in with personal or external partner GitHub accounts rather than organization-member accounts.
+   - **Direct pushes to `main` and `vm-dev01-work`** are permitted for Write (`push`) collaborators on `<event>-student-*` repositories (no organization rule blocking pushes to `main`).
+
+3. **Send Write collaborator invitations and generate final Handoff Cards.** Run `Initialize-CohortRepos.ps1` from `factory/` in `<event>-lead`:
+
+   ```powershell
+   ./scripts/Initialize-CohortRepos.ps1 `
+     -RosterPath .local/roster.json `
+     -TemplateRepository '<org>/<event>-student-template' `
+     -RepoPrefix '<event>-student' `
+     -CoachTeamSlug 'coaches'
+   ```
+
+   For every slot with `githubUsername` set, the script sends a **Write (`push`)** repository collaborator invitation on `<org>/<event>-student-<nn>` and writes a complete private Handoff Card to `factory/.local/handoff/member-<index>.md` (including the student's repo URL, workload and shared subscription IDs, assigned `index` and `suffix`, and the exact one-line `Initialize-Settings.ps1 ... -WriteLabCredentials` command).
+
+4. **Send each student their Handoff Card privately.** Deliver `factory/.local/handoff/member-<index>.md` to the assigned attendee over a private direct message or encrypted channel—never in a public channel, issue, or commit—and send them the link to [Student onboarding (before Day 1)](../student-onboarding/).
+
+</Steps>
+
+Done when `vending` is green for all `1..n` slots, Write collaborator invitations are sent, and every student has received their private Handoff Card.
+
+Next: students complete [Student onboarding (before Day 1)](../student-onboarding/).

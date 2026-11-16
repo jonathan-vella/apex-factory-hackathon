@@ -1,6 +1,6 @@
 ---
 title: Deployment guide
-description: Follow Step 1 to Step 4 in order before day one. GitHub Actions runs every deployment.
+description: Choose Path A (self-service teams) or Path B (lead-provisioned cohort) and complete Step 1 to Step 4 in order before day one.
 tableOfContents: false
 sidebar:
   label: Deploy overview
@@ -9,23 +9,27 @@ sidebar:
 
 import Diagram from "../../../components/Diagram.astro";
 
-Before day one, your team builds a simulated datacenter for each member and a shared Azure landing zone with GitHub Actions. Follow **Step 1 to Step 4** in order. Every stage runs from your own GitHub repository and leaves an auditable run log.
+Before day one, every attendee gets a simulated datacenter in their own workload subscription and spoke connectivity to a shared Azure landing zone, deployed with GitHub Actions. Pick **one** pre-event operating model for your group and follow its track from start to finish without mixing steps between the two paths:
+
+- **Path A — Self-service teams:** Each attendee creates their own private repository, sets up a `Member` pipeline, deploys their own datacenter in Step 3, and removes their member scope at T+2, while the team lead runs the shared foundation (Step 2) and spoke vending (Step 4). Self-service teams typically have 3 to 5 members, including the team lead.
+- **Path B — Lead-provisioned cohort (1 team, `n` attendees):** One team lead (or platform facilitator) creates all `n` private student repositories, runs preflight, deploys the shared foundation, deploys all `n` datacenters with Azure Arc, and runs spoke vending centrally from a single `Lead` pipeline repository—then asks attendees for their **GitHub username** to invite them as Write (`push`) collaborators to their assigned student repository. Attendees skip Steps 1 to 4 and complete only [Student onboarding (before Day 1)](/deploy/lead-setup/student-onboarding/). A cohort can have any `n` attendees, optionally organized into 3-to-5-person breakout pods for team challenges C1, C4, and C10.
+
+Ground rules across both paths:
 
 - **No coach is available during the pre-hackathon.** Pre-hackathon support is best-effort.
-- **Your first point of contact is your designated team lead.** Check with your team lead first if you hit a permission, quota, or pipeline problem before day one.
-- **Team leads:** your repo runs `member` and `teardown` only for the members you name.
-- **A team is 3 to 5 people**, including the team lead. Every attendee is a **member** with their own repo and workload subscription. The **team lead** is a colleague the team nominates who also runs the shared foundation in Step 2 and vending in Step 4 (see [Roles](/getting-started/roles/)).
+- **Your first point of contact is your designated team lead.** Check with your team lead first if you hit a permission, quota, or access problem before day one (see [Roles](/getting-started/roles/)).
+- **Every deployment and teardown runs through GitHub Actions** (`platform.yml`), leaving an auditable run log.
+
+## Path A: Self-service teams
+
+Use this track when every attendee provisions their own repository and workload subscription pipeline. Follow **Step 1 to Step 4** in chronological order before day one.
 
 <Diagram
   name="diagram-13-pipeline-who-runs-what"
   alt="A timeline from T-14 to T+2 with three lanes. The team lead's lane runs the whatif and foundation stages, then vending after every member's datacenter and Arc connection are ready, then teardown. Each member's lane runs whatif, then the member stage that deploys and tests the datacenter and connects it to Azure Arc, then teardown. A third lane shows what a person does: share values with the team lead, the Graph grant by a Privileged Role Administrator, the readiness check, and removing the pipeline identity."
-  caption="Who runs which stage from Step 1 (T-14) through Step 4 (T-1) and Tear down (T+2)."
+  caption="Path A (self-service teams): who runs which stage from Step 1 (T-14) through Step 4 (T-1) and Tear down (T+2)."
   wide
 />
-
-## Pre-hackathon steps in order
-
-Complete the four steps below in chronological order before day one. Each page numbers its sub-steps (`1.1`, `1.2`, and so on); read the headings and surrounding instructions for who runs each command.
 
 | Step | When | Who | What you do | Page |
 | --- | --- | --- | --- | --- |
@@ -34,19 +38,30 @@ Complete the four steps below in chronological order before day one. Each page n
 | **Step 3** | T-3 (3 days before day one) | **Everyone** (team lead included) | Run the `member` stage (datacenter deploy, `Test-Datacenter.ps1` before Arc, and `vm-app01` Arc onboarding), start the first Arc SQL migration assessment, set up `vm-dev01` with Copilot, and commit `factory/evidence/readiness/` | [Step 3: Datacenter and workstation (T-3)](/deploy/member-steps/) |
 | **Step 4** | T-1 (1 day before day one) | **Team lead** + **Everyone** | Everyone starts both datacenter VMs. The team lead runs the `vending` stage, which automatically checks that each member's datacenter and Arc connection are ready, connects each spoke to the hub, restarts the VMs, records exemptions, and runs connectivity probes | [Step 4: Vending (T-1)](/deploy/vending/) |
 | **Event** | Day 1, 08:30 | **Everyone** | Attend the 30-minute tech lead introduction, then start [C1: Define the opportunity](/challenges/c01-define-the-opportunity/) at 09:00 | [Challenges](/challenges/) |
-| **After** | T+2 | **Everyone**, **Team lead**, **Admin** | Tear down every member scope first, then the team scope, and remove the pipeline identities | [Tear down (T+2)](/deploy/tear-down/) |
+| **After** | T+2 | **Everyone**, **Team lead**, **Admin** | Tear down every member scope first, then the team scope, and remove the pipeline identities | [Tear down: Self-service teams (T+2)](/deploy/tear-down/) |
+
+## Path B: Lead-provisioned cohort (1 team, `n` attendees)
+
+Use this track when one team lead prepares the entire lab centrally for `n` attendees. Only the lead repository has a GitHub Actions pipeline; student repositories have no `gh-lab` environment, OIDC identity, or secrets.
+
+| Step | When | Who | What you do | Page |
+| --- | --- | --- | --- | --- |
+| **Step 1** | T-14 (14 days before day one) | **Team lead** | Create the lead repo and staging student template repo, assemble `.local/roster.json` for `1..n`, stamp out all `n` private student repos with `Initialize-CohortRepos.ps1`, initialize the `Lead` pipeline, and run `whatif` preflight | [Step 1: Cohort repos, roster and preflight (T-14)](/deploy/lead-setup/step-1-cohort-and-preflight/) |
+| **Step 2** | T-7 (7 days before day one) | **Team lead** + **Privileged Role Administrator** | Deploy the shared landing zone (`foundation` stage) from the lead repo and grant `id-sqlmi-directory` its Microsoft Graph read permissions (`Grant-SqlMiDirectoryRead.ps1`) | [Step 2: Foundation and Graph grant (T-7)](/deploy/lead-setup/step-2-foundation/) |
+| **Step 3** | T-3 (3 days before day one) | **Team lead** | Run `member` from the lead repo across all `n` subscriptions (deploying datacenters, passing `Test-Datacenter.ps1`, and onboarding `vm-app01` to Arc), push `test-datacenter.txt` to each student repo, and trigger Arc SQL assessments | [Step 3: Datacenters and Arc (T-3)](/deploy/lead-setup/step-3-datacenters/) |
+| **Step 4** | T-1 (1 day before day one) | **Team lead** | Start all cohort VMs, confirm `memberPrincipalId` entries, run `vending` (batched if `n > 50`), collect attendees' GitHub usernames, send Write collaborator invites, and distribute private Handoff Cards | [Step 4: Vending and collaborator invites (T-1)](/deploy/lead-setup/step-4-vending-and-invites/) |
+| **Onboarding** | Before Day 1 (20–30 min) | **Every student** | Accept your GitHub invite, open your student repo in a Dev Container or GitHub Codespaces, run the one-line `Initialize-Settings.ps1` command from your Handoff Card, sign in on `vm-dev01`, and confirm readiness evidence on `main` | [Student onboarding (before Day 1)](/deploy/lead-setup/student-onboarding/) |
+| **Event** | Day 1, 08:30 | **Everyone** | Attend the 30-minute tech lead introduction, then start [C1: Define the opportunity](/challenges/c01-define-the-opportunity/) at 09:00 | [Challenges](/challenges/) |
+| **After** | T+2 | **Students**, **Team lead**, **Admin** | Students push final branches and evidence; the team lead tears down all member scopes and the foundation from the lead repo and removes the single lead pipeline identity | [Tear down: Lead-provisioned cohort (T+2)](/deploy/lead-setup/tear-down/) |
 
 ## Automatic readiness check before vending
 
-Your datacenter must be deployed, tested, and connected to Azure Arc in Step 3 before the team lead connects your subscription in Step 4. There is no coach sign-off gate before day one: when the team lead runs the `vending` stage in Step 4, the pipeline automatically verifies that each member's `vnet-datacenter` exists and `vm-app01` is Arc-connected (`Connected`) before vending their spoke. You also save `factory/evidence/readiness/` in Step 3 so your team lead (and your coach on day one) can inspect your setup if anything needs troubleshooting.
+Every member's datacenter must be deployed, tested, and connected to Azure Arc in Step 3 before the `vending` stage connects that subscription in Step 4. There is no coach sign-off gate before day one: when the team lead runs `vending`, the pipeline automatically verifies that each member's `vnet-datacenter` exists and `vm-app01` is Arc-connected (`Connected`) before vending their spoke. Readiness files saved under `factory/evidence/readiness/` let the team lead (and coaches on day one) inspect the setup quickly if anything needs troubleshooting.
 
 ## Reference pages in this section
 
-- [Step 1: Repo and preflight (T-14)](/deploy/set-up-your-repo/)
-- [Step 2: Foundation and Graph grant (T-7)](/deploy/team-lead-steps/)
-- [Step 3: Datacenter and workstation (T-3)](/deploy/member-steps/)
-- [Step 4: Vending (T-1)](/deploy/vending/)
-- [How it works](/deploy/how-it-works/): what each stage builds, how the pipeline signs in, and what it is allowed to do.
-- [Tear down (T+2)](/deploy/tear-down/): how to remove everything after the event.
+- [How it works](/deploy/how-it-works/): what each stage builds, how the pipeline signs in, profile models for Path A and Path B, and scaling thresholds for larger cohorts.
+- **Path A (Self-service teams):** [Step 1](/deploy/set-up-your-repo/), [Step 2](/deploy/team-lead-steps/), [Step 3](/deploy/member-steps/), [Step 4](/deploy/vending/), and [Tear down](/deploy/tear-down/).
+- **Path B (Lead-provisioned cohort):** [Step 1](/deploy/lead-setup/step-1-cohort-and-preflight/), [Step 2](/deploy/lead-setup/step-2-foundation/), [Step 3](/deploy/lead-setup/step-3-datacenters/), [Step 4](/deploy/lead-setup/step-4-vending-and-invites/), [Student onboarding](/deploy/lead-setup/student-onboarding/), and [Tear down](/deploy/lead-setup/tear-down/).
 
 New terms (dev container, PIM, Tenant Root, member index) are in the [glossary](/reference/glossary/). Accounts, tools, and network rules are on [Requirements](/getting-started/requirements/).

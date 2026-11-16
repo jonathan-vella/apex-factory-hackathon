@@ -75,10 +75,27 @@ export default defineConfig({
           items: [
             { label: "Deploy overview", link: "/deploy/" },
             { label: "How it works", link: "/deploy/how-it-works/" },
-            { slug: "deploy/set-up-your-repo" },
-            { slug: "deploy/team-lead-steps" },
-            { slug: "deploy/member-steps" },
-            { slug: "deploy/vending" },
+            {
+              label: "Path A: Self-service teams",
+              collapsed: true,
+              items: [
+                { slug: "deploy/set-up-your-repo" },
+                { slug: "deploy/team-lead-steps" },
+                { slug: "deploy/member-steps" },
+                { slug: "deploy/vending" },
+              ],
+            },
+            {
+              label: "Path B: Lead-provisioned cohort",
+              collapsed: true,
+              items: [
+                { slug: "deploy/lead-setup/step-1-cohort-and-preflight" },
+                { slug: "deploy/lead-setup/step-2-foundation" },
+                { slug: "deploy/lead-setup/step-3-datacenters" },
+                { slug: "deploy/lead-setup/step-4-vending-and-invites" },
+                { slug: "deploy/lead-setup/student-onboarding" },
+              ],
+            },
           ],
         },
         {
@@ -89,7 +106,13 @@ export default defineConfig({
         {
           label: "After the event",
           collapsed: true,
-          items: [{ label: "Tear down (T+2)", link: "/deploy/tear-down/" }],
+          items: [
+            { label: "Tear down: Self-service teams (T+2)", link: "/deploy/tear-down/" },
+            {
+              label: "Tear down: Lead-provisioned cohort (T+2)",
+              link: "/deploy/lead-setup/tear-down/",
+            },
+          ],
         },
         {
           label: "Guides",

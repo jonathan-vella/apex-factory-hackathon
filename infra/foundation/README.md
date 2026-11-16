@@ -4,7 +4,7 @@ The foundation is the team's landing zone. **ALZ-lite** is the small landing zon
 
 ## Two subscriptions per member
 
-Each team has one **shared services subscription**, which holds the hub and the workspace. Each member has a **workload subscription**, which holds the member's datacenter, spoke and archetype. `n` is the member index, 1–20.
+Each platform team has one **shared services subscription**, which holds the hub and the workspace. Each member has a **workload subscription**, which holds the member's datacenter, spoke and archetype. `n` is a positive whole-number member index (`n >= 1`): indexes `1..255` use `10.10.n.0/24` (datacenter) and `10.20.n.0/24` (spoke), while indexes `256+` use non-overlapping `/24` blocks in `10.128.0.0/10` (`10.(127 + floor(n/256)).(n%256).0/24`) and `10.192.0.0/10` (`10.(191 + floor(n/256)).(n%256).0/24`). The diagram and tables below show `10.10.n.*` and `10.20.n.*` for `n = 1..255`.
 
 ```mermaid
 flowchart TB
@@ -99,7 +99,7 @@ The DeployIfNotExists assignments have system-assigned identities. The private D
 |---|---|---|
 | `WorkloadSubscriptionId` | — | The member's subscription, moved into `mg-factory-corp` |
 | `SharedSubscriptionId` | — | Where the hub is |
-| `MemberIndex` | `1` | `n`: the spoke is `10.20.n.0/24`, the datacenter `10.10.n.0/24` |
+| `MemberIndex` | `1` | `n >= 1`: for `1..255`, spoke `10.20.n.0/24` and datacenter `10.10.n.0/24`; for `256+`, `10.(191 + floor(n/256)).(n%256).0/24` and `10.(127 + floor(n/256)).(n%256).0/24` |
 | `Location` | `swedencentral` | |
 | `MgPrefix` | `mg-factory` | As passed to ALZ-lite |
 | `MemberPrincipalId` | empty | The member's object ID, who gets Owner on the workload subscription, Reader on the shared services subscription and Managed Identity Operator on `id-sqlmi-directory`. Skipped when empty |
@@ -145,7 +145,7 @@ The platform lead runs vending for every member, one at a time (each run updates
 
 Traffic inside the spoke (the app to its private endpoints and to the MI) stays in `vnet-spoke`: the VNet's own route is more specific than the `0.0.0.0/0` UDR.
 
-**SNAT for private endpoints.** Traffic to private endpoints that the firewall inspects with network rules must be source-NATed to keep the flow symmetric ([Azure Firewall scenarios to inspect traffic destined to a private endpoint](https://learn.microsoft.com/azure/private-link/inspect-traffic-with-azure-firewall)). `afwp-hub` lists every kit range as private (no SNAT) **except** `snet-pe` (`10.20.n.64/26` for n = 1–20), so the firewall SNATs exactly the traffic to private endpoints and keeps the real source for everything else, which MI link and the NSG rules need.
+**SNAT for private endpoints and Azure scale limits.** Traffic to private endpoints that the firewall inspects with network rules must be source-NATed to keep the flow symmetric ([Azure Firewall scenarios to inspect traffic destined to a private endpoint](https://learn.microsoft.com/azure/private-link/inspect-traffic-with-azure-firewall)). `afwp-hub` computes its SNAT private ranges dynamically across the hub, datacenter (`10.10.0.0/16` and `10.128.0.0/10`), and spoke pools so every member's `snet-pe` (`.64/26`) is excluded and source-NATed while MI link and management flows keep the real source IP. Azure Firewall allows up to **90 rule collection groups per firewall policy** (above 90 members, group rules or split across policies), and Azure Virtual Network supports up to **650 peerings per hub VNet** (**325 members** at two peerings—datacenter and spoke—per member).
 
 ## Routes
 

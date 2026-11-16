@@ -15,10 +15,15 @@ subscription. Commit the evidence file yourself to main with a conventional mess
 owner/name of your repo. Defaults to the git remote.
 .PARAMETER RunId
 A specific run to take the evidence from. Defaults to the latest successful run that has it.
+.PARAMETER MemberIndex
+The member index (1 or greater) whose readiness-test-datacenter-member-<index> artifact to download. When 0 (default),
+reads memberIndex from .local/settings.json if present, or falls back to readiness-test-datacenter-member-*.
 .PARAMETER OutDirectory
 Where to save it. Defaults to evidence/readiness next to the scripts folder.
 .EXAMPLE
 ./scripts/Get-PipelineEvidence.ps1
+.EXAMPLE
+./scripts/Get-PipelineEvidence.ps1 -Repository 'contoso/factory-lead' -MemberIndex 25
 #>
 
 [CmdletBinding()]
@@ -26,12 +31,22 @@ param(
     [ValidatePattern('^$|^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$')]
     [string] $Repository = '',
     [long] $RunId = 0,
+    [ValidateRange(0, [int]::MaxValue)]
+    [int] $MemberIndex = 0,
     [string] $OutDirectory = (Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'evidence', 'readiness')
 )
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 $artifactPattern = 'readiness-test-datacenter-member-*'
+$settingsFile = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', 'settings.json'
+$settingsObj = if (Test-Path -Path $settingsFile) { Get-Content -Path $settingsFile -Raw | ConvertFrom-Json } else { $null }
+if ($MemberIndex -eq 0 -and $null -ne $settingsObj -and $settingsObj.PSObject.Properties['memberIndex']) {
+    $parsedIndex = 0
+    if ([int]::TryParse("$($settingsObj.memberIndex)", [ref] $parsedIndex) -and $parsedIndex -ge 1) {
+        $MemberIndex = $parsedIndex
+    }
+}
 
 function Invoke-GitHubCli {
     param([string[]] $Arguments)
@@ -47,36 +62,58 @@ if (-not $Repository) {
     if (-not $Repository) { throw 'Pass -Repository owner/name.' }
 }
 
+$runStatusFilter = if ($MemberIndex -gt 0) { 'completed' } else { 'success' }
 $candidates = if ($RunId -gt 0) { @($RunId) } else {
-    @((Invoke-GitHubCli @('run', 'list', '--repo', $Repository, '--workflow', 'platform.yml', '--status', 'success', '--limit', '20', '--json', 'databaseId') | ConvertFrom-Json) | ForEach-Object { $_.databaseId })
+    @((Invoke-GitHubCli @('run', 'list', '--repo', $Repository, '--workflow', 'platform.yml', '--status', $runStatusFilter, '--limit', '100', '--json', 'databaseId') | ConvertFrom-Json) | ForEach-Object { $_.databaseId })
 }
+$exactArtifact = if ($MemberIndex -gt 0) { "readiness-test-datacenter-member-$MemberIndex" } else { '' }
 $found = $null
+$savedFromLoop = $false
 foreach ($candidate in $candidates) {
-    $names = @((Invoke-GitHubCli @('api', "repos/$Repository/actions/runs/$candidate/artifacts", '--jq', '.artifacts[].name')) -split "`n" | Where-Object { $_ -like $artifactPattern })
-    if ($names.Count -gt 0) { $found = $candidate; break }
-}
-if (-not $found) { throw "No successful platform run in $Repository has the readiness evidence yet. Run: gh workflow run platform.yml --repo $Repository -f stage=member" }
+    if ($MemberIndex -gt 0) {
+        $names = @((Invoke-GitHubCli @('api', "repos/$Repository/actions/runs/$candidate/artifacts?per_page=100&name=$exactArtifact", '--jq', '.artifacts[].name')) -split "`r?`n" | Where-Object { $_ -eq $exactArtifact })
+    }
+    else {
+        $names = @((Invoke-GitHubCli @('api', '--paginate', "repos/$Repository/actions/runs/$candidate/artifacts?per_page=100", '--jq', '.artifacts[].name')) -split "`r?`n" | Where-Object { $_ -like $artifactPattern })
+    }
+    if ($names.Count -eq 0) { continue }
 
-$temp = Join-Path ([System.IO.Path]::GetTempPath()) "readiness-evidence-$([guid]::NewGuid())"
-try {
-    $null = Invoke-GitHubCli @('run', 'download', "$found", '--repo', $Repository, '--pattern', $artifactPattern, '--dir', $temp)
-    $file = Get-ChildItem -Path $temp -Recurse -Filter 'test-datacenter.txt' | Select-Object -First 1
-    if (-not $file) { throw 'The artifact has no test-datacenter.txt.' }
-    New-Item -ItemType Directory -Force -Path $OutDirectory | Out-Null
-    $target = Join-Path $OutDirectory 'test-datacenter.txt'
-    Copy-Item -Path $file.FullName -Destination $target -Force
+    $temp = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', ".tmp-evidence-$([guid]::NewGuid().ToString('N'))"
+    try {
+        if ($MemberIndex -gt 0) {
+            $null = Invoke-GitHubCli @('run', 'download', "$candidate", '--repo', $Repository, '--name', $exactArtifact, '--dir', $temp)
+        }
+        else {
+            $null = Invoke-GitHubCli @('run', 'download', "$candidate", '--repo', $Repository, '--pattern', $artifactPattern, '--dir', $temp)
+        }
+        $file = Get-ChildItem -Path $temp -Recurse -Filter 'test-datacenter.txt' | Select-Object -First 1
+        if (-not $file) {
+            if ($RunId -gt 0) { throw 'The artifact has no test-datacenter.txt.' }
+            continue
+        }
+        $reportText = Get-Content -Path $file.FullName -Raw
+        if ($RunId -eq 0 -and $reportText -match '(?m)^FAIL:\s+\d+\s+of\s+\d+\s+checks\s+failed\.') {
+            continue
+        }
+        New-Item -ItemType Directory -Force -Path $OutDirectory | Out-Null
+        $target = Join-Path $OutDirectory 'test-datacenter.txt'
+        Copy-Item -Path $file.FullName -Destination $target -Force
+        $found = $candidate
+        $savedFromLoop = $true
+        break
+    }
+    finally {
+        Remove-Item -Path $temp -Recurse -Force -ErrorAction SilentlyContinue
+    }
 }
-finally {
-    Remove-Item -Path $temp -Recurse -Force -ErrorAction SilentlyContinue
-}
+if (-not $found -or -not $savedFromLoop) { throw "No successful platform run in $Repository has the readiness evidence yet. Run: gh workflow run platform.yml --repo $Repository -f stage=member" }
 Write-Information "Saved the Test-Datacenter output from run $found to $target."
 
 # The runner deployed the datacenter, so the credentials file Deploy-Datacenter.ps1 writes never reached this folder. The
 # Actions member stage always uses the documented fixed lab credentials (no overrides), so write the same file here: later
 # challenges (the vm-dev01 setup, C7 to C9) read the passwords from it.
-$settingsFile = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', 'settings.json'
-if (Test-Path -Path $settingsFile) {
-    $subscription = (Get-Content -Path $settingsFile -Raw | ConvertFrom-Json).subscriptionId
+if ($null -ne $settingsObj) {
+    $subscription = "$($settingsObj.subscriptionId)"
     if ($subscription -match '^[0-9a-fA-F-]{36}$') {
         $secretsDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '.local', $subscription
         $secretsFile = Join-Path -Path $secretsDir -ChildPath 'datacenter.json'

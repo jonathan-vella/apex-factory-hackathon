@@ -37,6 +37,9 @@ For the planning window, the foundation runs for 216 hours, each datacenter is r
 | 3 members | 3 × $204.15 = $612.45 | $280.80 | **$893.25** |
 | 4 members | 4 × $204.15 = $816.60 | $280.80 | **$1,097.40** |
 | 5 members | 5 × $204.15 = $1,020.75 | $280.80 | **$1,301.55** |
+| `n` members (1 hub) | `$204.15 × n` | $280.80 | **`$280.80 + ($204.15 × n)`** |
+
+In a lead-provisioned cohort (**Path B**), all `n` students share a single `$280.80` foundation rather than deploying a separate hub and firewall for every small group (for example, a 20-attendee single-hub cohort is about `$280.80 + (20 × $204.15) = $4,363.80`, saving `$842.40` compared with four separate five-person hubs).
 
 If all members in a four-person team lack Windows Server AHB, the 39 assumed running hours add about $57.72 ($0.37 × 39 × 4). Add $0.37 for each additional running hour per affected member.
 

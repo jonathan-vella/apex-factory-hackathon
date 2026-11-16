@@ -24,6 +24,9 @@ Before the briefing, please read the Hackathon and What You Need orientation dec
 - Requirements: https://factory.apexops.pro/getting-started/requirements/
 - Roles: https://factory.apexops.pro/getting-started/roles/
 
-Before the hackathon, you complete the four numbered setup steps in the Deploy guide (T-14, T-7, T-3 and T-1): https://factory.apexops.pro/deploy/
+Before the hackathon, complete your event's setup path:
+
+- Path A — Self-service teams (Steps 1–4 at T-14, T-7, T-3 and T-1): https://factory.apexops.pro/deploy/
+- Path B — Lead-provisioned cohort (share your GitHub username privately, accept your repo invite and complete Student onboarding): https://factory.apexops.pro/deploy/lead-setup/student-onboarding/
 
 If you have a question about access or setup, bring it to the session. Your designated team lead is the first point of contact for pre-event blockers and can escalate to the event owner. No coach is on duty before the event; pre-event support is best-effort.

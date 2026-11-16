@@ -23,6 +23,9 @@ param additionalAllowedLocations array = []
 @description('Microsoft Defender for Cloud on Foundational CSPM only: every paid plan off.')
 param setDefenderFoundationalOnly bool = true
 
+@description('Additional SNAT private IP prefixes on afwp-hub, such as already-vended spoke subnets.')
+param extraSnatPrefixes array = []
+
 var platformMgName = '${mgPrefix}-platform'
 var corpMgName = '${mgPrefix}-corp'
 
@@ -76,6 +79,7 @@ module shared 'modules/shared-services.bicep' = {
   params: {
     location: location
     setDefenderFoundationalOnly: setDefenderFoundationalOnly
+    extraSnatPrefixes: extraSnatPrefixes
   }
   dependsOn: [
     sharedPlacement

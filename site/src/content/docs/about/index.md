@@ -12,7 +12,7 @@ The Partner Modernization Factory is a two-day hackathon, with deployment work b
 ## Audience
 
 - Partner infrastructure architects and engineers. The application and database work is GitHub Copilot-assisted, so you don't need to be a .NET or SQL Server specialist.
-- Teams of three to five people. Each team has its own Microsoft Entra tenant and one team lead, a colleague the team nominates, who is also a member. Each member has their own Azure workload subscription in that tenant.
+- Self-service teams (typically three to five people per hub) or lead-provisioned cohorts of `n` attendees sharing one Azure hub (grouped into three-to-five-person breakout pods with pod leads when `n > 5`). Each platform team has its own Microsoft Entra tenant, one shared services subscription, one team lead (who is also a member), and one Azure workload subscription per member.
 - Partners bring supported paid Azure subscriptions and their own GitHub Copilot. Trial, Azure Pass, Sponsorship and Microsoft Partner Network benefit subscriptions are not supported; preflight does not check the offer type. Check Microsoft's [supported SQL Managed Instance subscription types](https://learn.microsoft.com/azure/azure-sql/managed-instance/resource-limits?view=azuresql) before the event.
 - Coaches are partner CoE leads or Microsoft partner solution architects.
 

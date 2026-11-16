@@ -20,7 +20,7 @@ Before the session, please read:
 
 High-level requirements
 
-Each team has 3–5 people, including a nominated team lead. The team uses a dedicated, non-production Microsoft Entra tenant and empty, supported paid subscriptions. Every attendee needs:
+Each platform team shares a dedicated, non-production Microsoft Entra tenant and empty, supported paid subscriptions, with a nominated team lead (larger single-hub cohorts split into breakout pods of three to five people for team challenges). Every attendee needs:
 
 - Their own paid workload subscription in the team’s tenant, with unconditional Owner assigned (Contributor does not qualify) and MFA registered. Azure Pass, Sponsorship and Microsoft Partner Network benefit offers are not supported.
 - A GitHub account in the partner organization, a private repository, and a paid GitHub Copilot seat. The organization’s policies must allow agent mode, MCP servers and the models used in the event, and GitHub Actions billing must be in place for private repositories.
@@ -32,7 +32,12 @@ The team also needs one shared-services subscription. The team lead needs Owner 
 
 What to complete before the hackathon
 
-Follow the four numbered steps in the Deploy guide: https://factory.apexops.pro/deploy/ GitHub Actions runs the platform stages; please do not run deployment scripts by hand. The milestones are: T-14, everyone sets up their repository and pipeline and runs preflight, and the team lead assigns member indexes and gathers roster details privately; T-7, the team lead deploys the shared foundation, then the directory permissions are granted; T-3, each member deploys and tests their datacenter, completes the portal migration assessment and sets up vm-dev01; T-1, everyone starts both VMs and the team lead runs vending. Please start early, as access or quota requests can take time.
+Confirm with your organizer whether your event uses Path A (Self-service teams) or Path B (Lead-provisioned cohort):
+
+- Path A — Self-service teams (https://factory.apexops.pro/deploy/): GitHub Actions runs the platform stages; please do not run deployment scripts by hand. The milestones are: T-14, everyone sets up their repository and pipeline and runs preflight, and the team lead assigns member indexes and gathers roster details privately; T-7, the team lead deploys the shared foundation, then the directory permissions are granted; T-3, each member deploys and tests their datacenter, completes the portal migration assessment and sets up vm-dev01; T-1, everyone starts both VMs and the team lead runs vending.
+- Path B — Lead-provisioned cohort (https://factory.apexops.pro/deploy/lead-setup/student-onboarding/): your team lead pre-creates the private repositories and runs the T-14 to T-1 platform stages for the cohort. Reply privately to your team lead with your GitHub username (plus Entra object ID and work email if requested), accept your repository invitation, and complete Student onboarding before Day 1.
+
+Please start early, as access or quota requests can take time.
 
 There is no coach on duty during pre-event setup. Your designated team lead is your first point of contact and can escalate to the event owner; pre-event support is best-effort. Coaches support teams on the two event days.
 

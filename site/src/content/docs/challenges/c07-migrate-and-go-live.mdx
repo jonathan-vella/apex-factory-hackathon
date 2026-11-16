@@ -72,13 +72,17 @@ Connect to a VM through Bastion in the portal: `rg-datacenter` > the VM > **Conn
 ```powershell
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 $dc = Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json
+$b = [int][Math]::Floor($s.memberIndex / 256)
+$o3 = $s.memberIndex % 256
+$dc2 = if ($b -eq 0) { 10 } else { 127 + $b }
+$sp2 = if ($b -eq 0) { 20 } else { 191 + $b }
 "labadmin password (Bastion):  $($dc.adminPassword)"
 "contosoapp password (source): $($dc.sqlAppPassword)"
-"Source SQL Server address:    10.10.$($s.memberIndex).4"
-"Requirement 1 command:               C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.$($s.memberIndex).128/26"
+"Source SQL Server address:    10.$dc2.$o3.4"
+"Requirement 1 command:               C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.$sp2.$o3.128/26"
 ```
 
-These are lab-only passwords: keep them out of your screenshots and evidence. For member 3, the source is `10.10.3.4` and the subnet is `10.20.3.128/26`.
+These are lab-only passwords: keep them out of your screenshots and evidence. For member indexes `1` to `255` this resolves to `10.10.<n>.4` and `10.20.<n>.128/26` (for example, member 3 uses `10.10.3.4` and `10.20.3.128/26`); for index `256` and higher it uses the overflow pools (for example, member 256 uses `10.128.0.4` and `10.192.0.128/26`).
 
 Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 
@@ -100,7 +104,7 @@ $mi
 1. **Prepare the source.** Run the kit's `Prepare-MiLinkSource.ps1` on `vm-app01`. It must run inside a Bastion session, because VM run commands stop working once the VM is Arc-enabled. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
 
    1. Connect to `vm-app01` through Bastion and open an Administrator Windows PowerShell (Where to run).
-   2. Download the script and run it with the command from the dev container, which has your `<n>` in it. If your event runs from a copy of the kit, your coach gives you that copy's URL instead of the one below.
+   2. Download the script and run it with the command from the dev container, which has your `<n>` in it (when `<n>` is `256` or higher, use the exact `-MiSubnetPrefix` printed by the dev-container command above). If your event runs from a copy of the kit, your coach gives you that copy's URL instead of the one below.
 
       ```powershell
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -124,7 +128,7 @@ $mi
    Done when the status of `ContosoUniversity` is **Ready for cutover**. The **Lag** column shows two dashes, which Microsoft Learn describes as no lag.
 3. **Validate the read-only replica.** The replica must hold the same data as the source before you trust it. In SSMS on `vm-dev01`, open two connections:
 
-   - **Source:** server name `10.10.<n>.4`; **Authentication** SQL Server Authentication; **Login** `contosoapp` with the `contosoapp` password from the dev container. Select **Options** > **Connection Properties** and tick **Trust server certificate**, because the source's certificate is self-signed.
+   - **Source:** server name `10.10.<n>.4` (or the `Source SQL Server address` printed above when `<n>` is `256` or higher); **Authentication** SQL Server Authentication; **Login** `contosoapp` with the `contosoapp` password from the dev container. Select **Options** > **Connection Properties** and tick **Trust server certificate**, because the source's certificate is self-signed.
    - **Replica:** server name the host name that `$mi` printed (paste it); **Authentication** **Microsoft Entra MFA**; **User name** the account that deployed the archetype in C5.
 
    On each connection, open a new query on the `ContosoUniversity` database and run these, with no writers on the source (stop anything you started in C6):
@@ -210,7 +214,7 @@ $mi
       "Flags: $($table.Rows.Count)"
       ```
 
-   5. Save your result in your own C7 evidence and tell the team lead. After all members report their results, the team lead updates the canonical `factory/evidence/c04/deferred-work-register.md` on `main` and shares that unchanged copy with the team. Do not each edit a divergent team register.
+   5. Save your result in your own C7 evidence and tell the team lead (or pod lead, in a multi-pod cohort). After all members report their results, the team lead (or pod lead) updates the canonical `factory/evidence/c04/deferred-work-register.md` on `main` and shares that unchanged copy with the team. Do not each edit a divergent team register.
 
    Done when the `DBCC TRACESTATUS` list has no `1800` or `9567`.
 8. **Write the cutover and rollback runbook** from what you actually did. In your own repo's dev container, run `mkdir -p factory/evidence/c07` and `cp factory/templates/attendee/cutover-rollback-runbook.md factory/evidence/c07/` to use your imported copy ([cutover and rollback runbook template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md)). On `vm-dev01`, use the plain clone at `C:\src\<your-repo>`. Write the six short sections from what you did, not from a plan. Done when all six sections hold your own notes and output.
@@ -240,7 +244,7 @@ For deployment or connectivity errors, check [Troubleshooting](../../reference/t
 Work through these in order:
 
 1. Requirement 1 must have finished with `The source is ready for MI link.` Read `C:\LabTools\logs\Prepare-MiLinkSource.log` on `vm-app01`. An `ERROR:` line that says the instance is not ready means a datacenter setting is missing: tell your coach.
-2. The prefix you passed must be your own `10.20.<n>.128/26`. A wrong prefix opens port 5022 to the wrong subnet and the link can't connect. Run the script again with the right one: it fixes the firewall rule.
+2. The prefix you passed must be your own `10.20.<n>.128/26` (or the exact `-MiSubnetPrefix` printed by the dev-container command when `<n>` is `256` or higher). A wrong prefix opens port 5022 to the wrong subnet and the link can't connect. Run the script again with the right one: it fixes the firewall rule.
 3. `vm-app01` must be running with its Arc entry **Connected**, and the SQL Server service must be running.
 4. **Test connection** can pass while creation still fails, so read the error the portal shows on **Monitor migrations** and send it to your coach. Don't change firewall, network or certificate settings by hand.
 5. To retry, select **Cancel migration**, delete the leftover copy on the managed instance (the next hint), and start again from requirement 2. Requirement 1 doesn't need repeating.

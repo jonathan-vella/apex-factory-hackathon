@@ -3,11 +3,15 @@
 param firewallPolicyName string
 param memberIndex int
 
-var devVmIp = '10.10.${memberIndex}.5'
-var sqlServerIp = '10.10.${memberIndex}.4'
-var appPrefix = '10.20.${memberIndex}.0/26'
-var pePrefix = '10.20.${memberIndex}.64/26'
-var miPrefix = '10.20.${memberIndex}.128/26'
+var block = memberIndex / 256
+var dcOct2 = block == 0 ? 10 : 127 + block
+var spokeOct2 = block == 0 ? 20 : 191 + block
+var oct3 = memberIndex % 256
+var devVmIp = '10.${dcOct2}.${oct3}.5'
+var sqlServerIp = '10.${dcOct2}.${oct3}.4'
+var appPrefix = '10.${spokeOct2}.${oct3}.0/26'
+var pePrefix = '10.${spokeOct2}.${oct3}.64/26'
+var miPrefix = '10.${spokeOct2}.${oct3}.128/26'
 
 // Application Insights ingestion and Live Metrics, from
 // https://learn.microsoft.com/azure/azure-monitor/fundamentals/azure-monitor-network-access (2026-10-02).

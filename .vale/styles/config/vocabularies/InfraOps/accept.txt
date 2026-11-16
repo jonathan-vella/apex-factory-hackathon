@@ -82,6 +82,8 @@ swedencentral
 triaged
 UDR
 UDRs
+vCPU
+vCPUs
 vending's
 VM
 VM's

@@ -8,7 +8,7 @@ Deploys infra/foundation/vending/main.bicep at the Tenant Root management group.
 in the shared services subscription by the ALZ-lite names (vnet-hub, afw-hub, afwp-hub, rg-hub,
 log-management) and prints what it found. Then it:
 - moves the workload subscription into <MgPrefix>-corp;
-- creates rg-spoke with vnet-spoke 10.20.n.0/24: snet-app (delegated to Microsoft.Web/serverFarms),
+- creates rg-spoke with vnet-spoke (10.20.n.0/24 for members 1-255, or 10.192.0.0/10 for 256+): snet-app (delegated to Microsoft.Web/serverFarms),
   snet-pe, snet-sqlmi (delegated to Microsoft.Sql/managedInstances, with nsg-sqlmi and rt-sqlmi);
 - peers vnet-spoke and, if rg-datacenter exists, vnet-datacenter with vnet-hub, both ways;
 - points both VNets' DNS at the firewall, and adds the UDRs: snet-app and snet-pe send everything to the
@@ -28,7 +28,7 @@ The member's workload subscription.
 .PARAMETER SharedSubscriptionId
 The team's shared services subscription, which holds the hub.
 .PARAMETER MemberIndex
-The member index n, 1-20.
+The member index n (1 or greater).
 .PARAMETER Location
 The Azure region. Fallback: germanywestcentral.
 .PARAMETER MgPrefix
@@ -65,7 +65,7 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[0-9a-fA-F-]{36}$')]
     [string] $SharedSubscriptionId,
-    [ValidateRange(1, 20)]
+    [ValidateRange(1, [int]::MaxValue)]
     [int] $MemberIndex = 1,
     [string] $Location = 'swedencentral',
     [ValidatePattern('^[A-Za-z0-9-]{2,40}$')]
@@ -86,7 +86,34 @@ param(
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
 $template = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'foundation', 'vending', 'main.bicep'
+$firewallPolicyTemplate = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'foundation', 'alz-lite', 'modules', 'firewall-policy.bicep'
 $budgetName = 'budget-factory-workload'
+
+function Get-MemberNetworkPlan {
+    param([int] $MemberIndex)
+    $block = [int][Math]::Floor($MemberIndex / 256)
+    if ($block -gt 64) {
+        throw "MemberIndex $MemberIndex exceeds the IPv4 address pool capacity."
+    }
+    $dcOct2 = if ($block -eq 0) { 10 } else { 127 + $block }
+    $spokeOct2 = if ($block -eq 0) { 20 } else { 191 + $block }
+    $oct3 = $MemberIndex % 256
+    return [pscustomobject]@{
+        DcSecondOctet    = $dcOct2
+        SpokeSecondOctet = $spokeOct2
+        ThirdOctet       = $oct3
+        DatacenterPrefix = "10.$dcOct2.$oct3.0/24"
+        SpokePrefix      = "10.$spokeOct2.$oct3.0/24"
+        AppVmIp          = "10.$dcOct2.$oct3.4"
+        DevVmIp          = "10.$dcOct2.$oct3.5"
+        AppSubnet        = "10.$spokeOct2.$oct3.0/26"
+        PeSubnet         = "10.$spokeOct2.$oct3.64/26"
+        MiSubnet         = "10.$spokeOct2.$oct3.128/26"
+        SpokeUpperHalf   = "10.$spokeOct2.$oct3.128/25"
+    }
+}
+
+$networkPlan = Get-MemberNetworkPlan -MemberIndex $MemberIndex
 
 function Invoke-AzureCli {
     param([string[]] $Arguments)
@@ -179,6 +206,22 @@ if (-not ($hubVnet -and $firewall -and $workspace -and $sqlMiIdentity)) {
 $hubRgId = (Invoke-AzureCli -Arguments @('group', 'show', '--subscription', $SharedSubscriptionId, '-n', 'rg-hub')).id
 $firewallIp = $firewall.properties.ipConfigurations[0].properties.privateIPAddress
 $firewallPolicyId = $firewall.properties.firewallPolicy.id
+$firewallPolicy = Get-OptionalResource -Arguments @(
+    'resource', 'show',
+    '--subscription', $SharedSubscriptionId,
+    '-g', 'rg-hub',
+    '-n', 'afwp-hub',
+    '--resource-type', 'Microsoft.Network/firewallPolicies',
+    '--api-version', '2025-09-01'
+)
+$memberAppSubnet = $networkPlan.AppSubnet
+$memberUpperHalf = $networkPlan.SpokeUpperHalf
+$existingSnat = if ($firewallPolicy -and $firewallPolicy.properties -and $firewallPolicy.properties.snat -and $firewallPolicy.properties.snat.privateRanges) {
+    @($firewallPolicy.properties.snat.privateRanges | ForEach-Object { [string] $_ })
+}
+else {
+    @()
+}
 
 $datacenterVnet = Get-OptionalResource -Arguments @('network', 'vnet', 'show', '--subscription', $WorkloadSubscriptionId, '-g', 'rg-datacenter', '-n', 'vnet-datacenter')
 $connectDatacenter = [bool] $datacenterVnet
@@ -212,7 +255,7 @@ Hub found in the shared services subscription:
   Workspace          $(Format-ResourceId $workspace.id)
 Vending member $MemberIndex to ${Location}:
   Placement          workload subscription into $MgPrefix-corp
-  Spoke              rg-spoke, vnet-spoke 10.20.$MemberIndex.0/24: snet-app .0/26, snet-pe .64/26, snet-sqlmi .128/26
+  Spoke              rg-spoke, vnet-spoke $($networkPlan.SpokePrefix): snet-app .0/26, snet-pe .64/26, snet-sqlmi .128/26
   Datacenter         $(if ($connectDatacenter) { 'vnet-datacenter peered with the hub, DNS and rt-servers set' } else { 'not found: not connected. Re-run after deploying it.' })
   Firewall rules     rcg-member-$MemberIndex in afwp-hub
   Owner              $(if (-not $MemberPrincipalId) { 'skipped (no -MemberPrincipalId)' } elseif ($assignMemberOwner) { $MemberPrincipalId } else { 'kept as it is: the member already holds a direct Owner assignment' })
@@ -251,6 +294,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "vending-$([guid]:
 
 $deploymentArgs = @('--management-group-id', $parentId, '--name', "vending-$MgPrefix-$MemberIndex", '--location', $Location,
     '--template-file', $template, '--parameters', "@$parametersFile")
+$policyParametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "vending-fwpolicy-$([guid]::NewGuid()).parameters.json"
 try {
     if (-not $PSCmdlet.ShouldProcess("workload subscription of member $MemberIndex", 'Vend and connect to the hub')) {
         $PSNativeCommandUseErrorActionPreference = $false
@@ -259,10 +303,36 @@ try {
     }
     $started = Get-Date
     Write-Information "Deployment started at $($started.ToString('HH:mm'))."
+    if (-not $firewallPolicy) {
+        throw 'afwp-hub could not be read in rg-hub of the shared services subscription. Run scripts/Deploy-AlzLite.ps1 first.'
+    }
+    if ($memberAppSubnet -notin $existingSnat -or $memberUpperHalf -notin $existingSnat) {
+        $policyLocation = if ($hubVnet.location) { [string] $hubVnet.location } else { $Location }
+        $mergedSnat = @($existingSnat + @($memberAppSubnet, $memberUpperHalf) | Select-Object -Unique)
+        @{
+            '$schema' = 'https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#'
+            contentVersion = '1.0.0.0'
+            parameters = @{
+                location = @{ value = $policyLocation }
+                name = @{ value = 'afwp-hub' }
+                extraSnatPrefixes = @{ value = @($mergedSnat) }
+            }
+        } | ConvertTo-Json -Depth 5 | Set-Content -Path $policyParametersFile -Encoding utf8NoBOM -WhatIf:$false
+        Write-Information "Updating afwp-hub SNAT private ranges for member $MemberIndex before deploying child rule collections."
+        $null = Invoke-AzureCli -Arguments @(
+            'deployment', 'group', 'create',
+            '--subscription', $SharedSubscriptionId,
+            '-g', 'rg-hub',
+            '--name', "vending-afwp-snat-$MemberIndex",
+            '--template-file', $firewallPolicyTemplate,
+            '--parameters', "@$policyParametersFile"
+        )
+    }
     $null = Invoke-AzureCli -Arguments (@('deployment', 'mg', 'create') + $deploymentArgs)
 }
 finally {
     Remove-Item -Path $parametersFile -Force -ErrorAction SilentlyContinue -WhatIf:$false
+    Remove-Item -Path $policyParametersFile -Force -ErrorAction SilentlyContinue -WhatIf:$false
 }
 
 # Policy evaluation lags a subscription move: start a scan now rather than wait for the next cycle.

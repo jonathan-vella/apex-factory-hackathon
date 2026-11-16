@@ -1,0 +1,85 @@
+---
+title: "Step 2: Foundation and Graph grant (T-7)"
+description: Deploy the cohort's shared Azure landing zone (ALZ-lite) from the lead repo and grant Microsoft Graph read permissions to the SQL Managed Instance identity.
+prev:
+  link: /deploy/lead-setup/step-1-cohort-and-preflight/
+  label: "Step 1: Cohort repos, roster and preflight (T-14)"
+next:
+  link: /deploy/lead-setup/step-3-datacenters/
+  label: "Step 3: Datacenters and Arc (T-3)"
+---
+
+import Diagram from "../../../../components/Diagram.astro";
+
+**Who:** **Team lead** + **Privileged Role Administrator** (or Global Administrator). Students have nothing to run in Step 2.
+**When:** By **T-7** (7 days before day one). Allow 15 to 25 minutes for `foundation` plus 5 minutes for the Graph grant; see the [stage timing table](/deploy/how-it-works/#stages).
+
+In Step 2, the team lead deploys the shared landing zone (`ALZ-lite`) once for the entire cohort from `<event>-lead`, then a Privileged Role Administrator grants Microsoft Graph directory-read permissions to `id-sqlmi-directory`. Run `2.1` from `factory/` in `<event>-lead`; the administrator can run `2.2` from any machine without cloning the repository.
+
+:::caution[Use a dedicated non-production tenant]
+
+Use only a dedicated, non-production tenant and dedicated, empty subscriptions. Foundation and Step 4 vending place workload subscriptions under `mg-factory-corp`, enforce Deny policies, and disable paid Defender for Cloud plans subscription-wide. Azure Firewall in `rg-hub` bills roughly $1.30 per hour from Step 2 until teardown at T+2 (see [Cost](/reference/cost/)). Note that one `afwp-hub` policy supports up to 90 member rule collection groups; see [Scaling to larger cohorts](/deploy/how-it-works/#scaling-to-larger-cohorts) if `n > 85`.
+
+:::
+
+<Diagram
+  name="diagram-03-alz-lite-and-vending"
+  alt="Two stages. The foundation stage, once per team, builds the management groups, the shared hub with firewall, private DNS and policies, and the shared SQL Managed Instance directory identity, then waits for a person to grant Graph read permissions. The vending stage, once per member, places the member's subscription under the factory group, builds the spoke network, peers it to the hub, adds routes, DNS and firewall rules, applies RBAC and a budget, and records datacenter policy exemptions."
+  caption="Step 2 deploys the shared foundation once for the cohort. Step 4 (vending) connects all n student subscriptions to it at T-1."
+/>
+
+## 2.1 Deploy the foundation stage
+
+Confirm that [Step 1](../step-1-cohort-and-preflight/) is complete and `.local/roster.json` is registered in `<event>-lead` via `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`.
+
+From `factory/` in `<event>-lead`, run `whatif` followed by `foundation`:
+
+```bash
+gh workflow run platform.yml -f stage=whatif
+gh workflow run platform.yml -f stage=foundation
+```
+
+*(If your cohort exceeds 256 members, pass `-f members=1-200` on `whatif` so the matrix stays within GitHub's 256-job cap.)*
+
+On a clean tenant, the ALZ-lite preview job reports **First deployment** before `foundation` creates:
+
+- Management groups `mg-factory`, `mg-factory-platform`, and `mg-factory-corp` under Tenant Root, with core governance policies assigned at `mg-factory-corp`.
+- `rg-management` in the shared services subscription containing `log-management` and the user-assigned managed identity `id-sqlmi-directory`.
+- `rg-hub` in the shared services subscription containing `vnet-hub`, Azure Firewall (`afw-hub` / `afwp-hub`), and Private DNS zones.
+
+Open the **Actions** tab on `<event>-lead` and approve each run if prompted. Done when both `whatif` and `foundation` are green.
+
+## 2.2 Grant Microsoft Graph read permissions
+
+Every student's SQL Managed Instance uses `id-sqlmi-directory` in C7 so `CREATE USER ... FROM EXTERNAL PROVIDER` can resolve Microsoft Entra principals. This grant runs **once per cohort** after `foundation` completes and must be in place before Day 2 (C7).
+
+Have someone holding **Privileged Role Administrator** (or Global Administrator) in the event tenant run `Grant-SqlMiDirectoryRead.ps1` and verify with `-WhatIf`:
+
+```powershell
+./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
+./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>' -WhatIf
+```
+
+<details>
+<summary>Standalone commands for a Privileged Role Administrator without the repo</summary>
+
+The administrator does not need access to `<event>-lead`. On any computer with **PowerShell 7.4 or later**, Azure CLI, and **Reader** on the shared services subscription, activate Privileged Role Administrator in PIM if needed, sign in to the event tenant, and run:
+
+```powershell
+az login --tenant '<tenant-id>'
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Grant-SqlMiDirectoryRead.ps1' -OutFile Grant-SqlMiDirectoryRead.ps1
+./Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
+./Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId '<shared-services-subscription-id>' -WhatIf
+```
+
+The `-WhatIf` verification must report all three Microsoft Graph application permissions (`User.Read.All`, `GroupMember.Read.All`, and `Application.Read.All`) as already granted. If the command stops with `InteractionRequired` or `TokenCreatedWithOutdatedPolicies`, run `az logout`, sign in again with `az login --tenant '<tenant-id>'`, and repeat. See the [ALZ-lite guide](/guides/alz-lite/) for background.
+
+</details>
+
+Done when `-WhatIf` confirms all three Microsoft Graph permissions are granted on `id-sqlmi-directory`.
+
+## If something breaks
+
+Inspect the failed job in `<event>-lead` under **Actions**, resolve the root cause, and re-run `gh workflow run platform.yml -f stage=foundation`. The `foundation` stage is idempotent and safe to repeat. Check [Troubleshooting](/reference/troubleshooting/) for common policy and permission errors.
+
+Next: [Step 3: Datacenters and Arc (T-3)](../step-3-datacenters/).

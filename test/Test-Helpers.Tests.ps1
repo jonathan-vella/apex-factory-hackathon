@@ -66,6 +66,89 @@ try {
     Assert-True ($run.ExitCode -ne 0 -and $run.Output -match 'different') 'A shared subscription equal to the workload subscription must be refused.'
     $passed++
 
+    # MemberIndex accepts values > 20 (for example 25 and 300) and rejects 0.
+    foreach ($largeIndex in 25, 300) {
+        $run = Invoke-Child -Variables @{ s = $settingsScript; idx = $largeIndex } -Script "$stub`n& `$s -MemberIndex `$idx"
+        Assert-True ($run.ExitCode -eq 0) "MemberIndex $largeIndex should be accepted: $($run.Output)"
+        $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
+        Assert-True ($settings.memberIndex -eq $largeIndex) "settings.json should store memberIndex $largeIndex."
+        $passed++
+    }
+
+    $run = Invoke-Child -Variables @{ s = $settingsScript; a = $guidA; b = $guidB } -Script "$stub`n& `$s -TenantId `$a -SubscriptionId `$b -MemberIndex 0 -Location swedencentral"
+    Assert-True ($run.ExitCode -ne 0) "MemberIndex 0 must be rejected: $($run.Output)"
+    $passed++
+
+    # -WriteLabCredentials writes .local/<subscriptionId>/datacenter.json without printing GUIDs or overwriting an existing file.
+    $labKit = Join-Path $work 'kit-lab'
+    New-Item -ItemType Directory -Path (Join-Path $labKit 'scripts') -Force | Out-Null
+    Copy-Item (Join-Path $repoRoot 'scripts/Initialize-Settings.ps1') (Join-Path $labKit 'scripts')
+    $labSettingsScript = Join-Path $labKit 'scripts/Initialize-Settings.ps1'
+    $datacenterCredsPath = Join-Path $labKit ".local/$guidB/datacenter.json"
+
+    $run = Invoke-Child -Variables @{ s = $labSettingsScript; a = $guidA; b = $guidB; c = $guidC } -Script "$stub`n& `$s -TenantId `$a -SubscriptionId `$b -SharedSubscriptionId `$c -MemberIndex 25 -Location swedencentral -Suffix ab12cd -WriteLabCredentials"
+    Assert-True ($run.ExitCode -eq 0) "-WriteLabCredentials failed: $($run.Output)"
+    Assert-True (Test-Path $datacenterCredsPath) 'datacenter.json should be created when -WriteLabCredentials is passed.'
+    $creds = Get-Content $datacenterCredsPath -Raw | ConvertFrom-Json
+    Assert-True ($creds.adminUsername -eq 'labadmin' -and $creds.adminPassword -eq 'FactoryLab-2026-Pw' -and $creds.sqlAppLogin -eq 'contosoapp' -and $creds.sqlAppPassword -eq 'FactoryLab-2026-Pw') 'datacenter.json should hold the documented lab credentials.'
+    Assert-True ($run.Output -notmatch '[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}') "-WriteLabCredentials console output must not contain any GUID: $($run.Output)"
+    $passed++
+
+    Set-Content -Path $datacenterCredsPath -Value '{"adminUsername":"labadmin","adminPassword":"CustomKeep-Pw1","sqlAppLogin":"contosoapp","sqlAppPassword":"CustomKeep-Pw1"}' -Encoding utf8NoBOM
+    $run = Invoke-Child -Variables @{ s = $labSettingsScript } -Script "$stub`n& `$s -WriteLabCredentials"
+    Assert-True ($run.ExitCode -eq 0) "Re-running -WriteLabCredentials failed: $($run.Output)"
+    $credsAfter = Get-Content $datacenterCredsPath -Raw | ConvertFrom-Json
+    Assert-True ($credsAfter.sqlAppPassword -eq 'CustomKeep-Pw1') 'Existing datacenter.json must not be overwritten.'
+    $passed++
+
+    # Get-PipelineEvidence -MemberIndex 35 filters server-side (?per_page=100&name=...) and downloads exact --name even past 30 artifacts.
+    $evidenceKit = Join-Path $work 'kit-evidence'
+    New-Item -ItemType Directory -Path (Join-Path $evidenceKit 'scripts') -Force | Out-Null
+    Copy-Item (Join-Path $repoRoot 'scripts/Get-PipelineEvidence.ps1') (Join-Path $evidenceKit 'scripts')
+    $evidenceScript = Join-Path $evidenceKit 'scripts/Get-PipelineEvidence.ps1'
+    $ghLog = Join-Path $evidenceKit 'gh-calls.log'
+    $ghEvidenceStub = @'
+function global:gh {
+    $global:LASTEXITCODE = 0
+    $joined = $args -join ' '
+    Add-Content -Path $logFile -Value $joined
+    if ($args[0] -eq 'run' -and $args[1] -eq 'list') {
+        return '[{"databaseId":777}]'
+    }
+    if ($args[0] -eq 'api' -and $joined -like '*runs/777/artifacts*') {
+        # Unfiltered call returns only the first 30 artifacts (simulating GitHub default page size of 30).
+        if ($args[1] -eq 'repos/contoso/factory-lead/actions/runs/777/artifacts?per_page=100&name=readiness-test-datacenter-member-35') {
+            return 'readiness-test-datacenter-member-35'
+        }
+        return ((1..30 | ForEach-Object { "readiness-test-datacenter-member-$_" }) -join "`n")
+    }
+    if ($args[0] -eq 'run' -and $args[1] -eq 'download') {
+        $dirIdx = [Array]::IndexOf($args, '--dir')
+        $targetDir = $args[$dirIdx + 1]
+        $nameIdx = [Array]::IndexOf($args, '--name')
+        if ($nameIdx -lt 0) {
+            $global:LASTEXITCODE = 1
+            return 'Expected --name for targeted member download'
+        }
+        $artName = $args[$nameIdx + 1]
+        $artFolder = Join-Path $targetDir $artName
+        New-Item -ItemType Directory -Force -Path $artFolder | Out-Null
+        Set-Content -Path (Join-Path $artFolder 'test-datacenter.txt') -Value "PASS evidence for $artName"
+        return ''
+    }
+    $global:LASTEXITCODE = 1
+    return "Unexpected gh call: $joined"
+}
+'@
+    $run = Invoke-Child -Variables @{ e = $evidenceScript; logFile = $ghLog } -Script "$ghEvidenceStub`n& `$e -Repository 'contoso/factory-lead' -MemberIndex 35"
+    Assert-True ($run.ExitCode -eq 0) "Get-PipelineEvidence -MemberIndex 35 failed: $($run.Output)"
+    $savedEvidence = Get-Content (Join-Path $evidenceKit 'evidence/readiness/test-datacenter.txt') -Raw
+    Assert-True ($savedEvidence -match 'readiness-test-datacenter-member-35') "Expected member 35 evidence, got: $savedEvidence"
+    $loggedCalls = Get-Content $ghLog -Raw
+    Assert-True ($loggedCalls -match '\?per_page=100&name=readiness-test-datacenter-member-35') "Expected server-side artifact name filter in gh api call: $loggedCalls"
+    Assert-True ($loggedCalls -match 'run download 777 --repo contoso/factory-lead --name readiness-test-datacenter-member-35') "Expected exact --name download in gh run download: $loggedCalls"
+    $passed++
+
     # With a signed-in az account, the script shows the subscription name and tenant before it writes.
     $azStub = @'
 function global:az {

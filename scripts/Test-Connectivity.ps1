@@ -9,7 +9,7 @@ In Azure: the datacenter and the spoke are peered with the hub, both use the fir
 and snet-servers keeps internet egress on the NAT gateway.
 From vm-dev01 (VM run command): the firewall's DNS proxy answers from the central private DNS zones;
 each private endpoint in the spoke resolves to a private IP in snet-pe and connects on its port;
-vm-app01 (10.10.n.4) answers on 80 and 1433; internet egress works through the NAT gateway.
+vm-app01 answers on 80 and 1433; internet egress works through the NAT gateway.
 From vm-app01 (Arc run command once it's Arc-enabled, VM run command before): the same DNS checks
 and, if a SQL MI exists in the spoke, that its host name resolves into snet-sqlmi and TCP 5022 and
 11000 connect.
@@ -20,7 +20,7 @@ The member's workload subscription.
 .PARAMETER SharedSubscriptionId
 The team's shared services subscription, which holds the hub.
 .PARAMETER MemberIndex
-The member index n, 1-20.
+The member index n (1 or greater).
 .EXAMPLE
 ./scripts/Test-Connectivity.ps1 -SubscriptionId '<workload-subscription-id>' -SharedSubscriptionId '<shared-services-subscription-id>' -MemberIndex 1
 .EXAMPLE
@@ -36,7 +36,7 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[0-9a-fA-F-]{36}$')]
     [string] $SharedSubscriptionId,
-    [ValidateRange(1, 20)]
+    [ValidateRange(1, [int]::MaxValue)]
     [int] $MemberIndex = 1
 )
 
@@ -45,9 +45,35 @@ $workloadSubscription = $SubscriptionId
 $datacenterRg = 'rg-datacenter'
 $probeScript = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'foundation', 'scripts', 'Test-HubConnectivity.ps1'
 $zones = 'privatelink.blob.core.windows.net,privatelink.servicebus.windows.net,privatelink.azurecr.io,privatelink.vaultcore.azure.net'
-$peSubnet = "10.20.$MemberIndex.64/26"
-$miSubnet = "10.20.$MemberIndex.128/26"
-$appVmIp = "10.10.$MemberIndex.4"
+
+function Get-MemberNetworkPlan {
+    param([int] $MemberIndex)
+    $block = [int][Math]::Floor($MemberIndex / 256)
+    if ($block -gt 64) {
+        throw "MemberIndex $MemberIndex exceeds the IPv4 address pool capacity."
+    }
+    $dcOct2 = if ($block -eq 0) { 10 } else { 127 + $block }
+    $spokeOct2 = if ($block -eq 0) { 20 } else { 191 + $block }
+    $oct3 = $MemberIndex % 256
+    return [pscustomobject]@{
+        DcSecondOctet    = $dcOct2
+        SpokeSecondOctet = $spokeOct2
+        ThirdOctet       = $oct3
+        DatacenterPrefix = "10.$dcOct2.$oct3.0/24"
+        SpokePrefix      = "10.$spokeOct2.$oct3.0/24"
+        AppVmIp          = "10.$dcOct2.$oct3.4"
+        DevVmIp          = "10.$dcOct2.$oct3.5"
+        AppSubnet        = "10.$spokeOct2.$oct3.0/26"
+        PeSubnet         = "10.$spokeOct2.$oct3.64/26"
+        MiSubnet         = "10.$spokeOct2.$oct3.128/26"
+        SpokeUpperHalf   = "10.$spokeOct2.$oct3.128/25"
+    }
+}
+
+$networkPlan = Get-MemberNetworkPlan -MemberIndex $MemberIndex
+$peSubnet = $networkPlan.PeSubnet
+$miSubnet = $networkPlan.MiSubnet
+$appVmIp = $networkPlan.AppVmIp
 $arcApiVersion = '2025-01-13'
 $results = [System.Collections.Generic.List[object]]::new()
 
@@ -174,7 +200,7 @@ if ($results.Count -eq 0) {
     $natOk = $subnet -and $subnet.natGateway.id -match '/natGateways/nat-datacenter$'
     $routes = if ($subnet.routeTable) { @((Invoke-AzureCli -Arguments @('network', 'route-table', 'show', '--ids', $subnet.routeTable.id)).routes) } else { @() }
     $noDefaultRoute = -not ($routes | Where-Object addressPrefix -EQ '0.0.0.0/0')
-    $spokeRoute = [bool] ($routes | Where-Object addressPrefix -EQ "10.20.$MemberIndex.0/24")
+    $spokeRoute = [bool] ($routes | Where-Object addressPrefix -EQ $networkPlan.SpokePrefix)
     Add-Result -Check 'azure: snet-servers egress on the NAT gateway' -Pass ($natOk -and $noDefaultRoute) -Detail "NAT gateway $(if ($natOk) { 'attached' } else { 'missing' }), default route $(if ($noDefaultRoute) { 'none' } else { 'present' })"
     Add-Result -Check 'azure: snet-servers sends the spoke to the firewall' -Pass $spokeRoute -Detail "$($routes.Count) route(s)"
     foreach ($zone in $zones -split ',') {

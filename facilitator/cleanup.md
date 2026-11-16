@@ -16,7 +16,7 @@ The members' GitHub repos aren't touched by cleanup. Decide with the partner how
 
 ## Cleanup from the pipeline
 
-After the event owner's approval, each member runs this in their own repo:
+After the event owner's approval, in **Path A** each member runs this in their own repo first (in **Path B**, student repos have no member pipeline unless initialized, so the team lead runs member and team cleanup directly from the lead repo):
 
 ```bash
 gh workflow run platform.yml -f stage=teardown
@@ -28,13 +28,19 @@ The team lead then runs the full cleanup in the lead repo:
 gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true -f include-management=true
 ```
 
+If the cohort has more than 256 members (GitHub Actions' matrix cap), remove member scopes in batches first (for example `-f stage=teardown -f members=1-250`, then `-f stage=teardown -f members=251-300`) without `confirm-team-teardown`, and then run the team finalizer with `-f members=none`:
+
+```bash
+gh workflow run platform.yml -f stage=teardown -f members=none -f confirm-team-teardown=true -f include-management=true
+```
+
 Omit only `include-management` if the event owner explicitly reuses the tenant. A one-member repair in the lead repo instead uses `-f members=<index>` and no team confirmation.
 
 The full run removes every roster member first, in parallel, then Team scope once, returning subscriptions to the configured parent. It skips Team scope if a member fails and refuses an unknown subscription under Corp. Each job needs approval where environment reviewers are configured. Without a suffix, Member scope removes all exact `rg-university-<suffix>` groups in that member's subscription. Allow about 20 minutes without an archetype, up to about 2 hours with SQL MI; do not cancel while Azure releases the subnet.
 
 The stage removes only the Owner assignments that vending created: they carry a description that says so. A member's own direct Owner assignment on their workload subscription is left alone.
 
-The workflow never removes its own identity. Each member finalizes their repo (`-Profile Member`); the team lead finalizes the lead repo (default), or the event owner names replacement admins. Each needs repo admin, `gh auth login`, Azure sign-in to the event tenant, and Owner where that pipeline's roles were granted (Tenant Root/configured parent for the lead). Run `Remove-PlatformPipeline.ps1` and verify removal before revoking those human permissions. It removes the pipeline roles, identity, `rg-cicd`, `gh-lab` and its secrets, and repository variables.
+The workflow never removes its own identity. In Path A, each member finalizes their repo (`-Profile Member`); in both paths, the team lead finalizes the lead repo (default), or the event owner names replacement admins (Path B student repos created by `Initialize-CohortRepos.ps1` have no pipeline identity unless a student explicitly initialized one). Each needs repo admin, `gh auth login`, Azure sign-in to the event tenant, and Owner where that pipeline's roles were granted (Tenant Root/configured parent for the lead). Run `Remove-PlatformPipeline.ps1` and verify removal before revoking those human permissions. It removes the pipeline roles, identity, `rg-cicd`, `gh-lab` and its secrets, and repository variables.
 
 ## Repair (coaches only): member cleanup by hand
 

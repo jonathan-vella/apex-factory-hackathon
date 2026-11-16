@@ -3,15 +3,17 @@
 @description('Azure region.')
 param location string
 
-@description('Member index, used for the 10.10.n.0/24 address space.')
+@description('Member index (>= 1), used for the datacenter /24 address space.')
 @minValue(1)
-@maxValue(20)
 param memberIndex int
 
-var vnetPrefix = '10.10.${memberIndex}.0/24'
-var serversPrefix = '10.10.${memberIndex}.0/25'
-// 10.10.n.128/27 stays free for B06's snet-pe-spike.
-var bastionPrefix = '10.10.${memberIndex}.192/26'
+var block = memberIndex / 256
+var dcOct2 = block == 0 ? 10 : 127 + block
+var oct3 = memberIndex % 256
+var vnetPrefix = '10.${dcOct2}.${oct3}.0/24'
+var serversPrefix = '10.${dcOct2}.${oct3}.0/25'
+// .128/27 stays free for B06's snet-pe-spike.
+var bastionPrefix = '10.${dcOct2}.${oct3}.192/26'
 
 resource nsg 'Microsoft.Network/networkSecurityGroups@2025-09-01' = {
   name: 'nsg-servers'

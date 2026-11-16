@@ -28,7 +28,7 @@ Member removes one member's workload resources; Team removes one team's platform
 .PARAMETER SubscriptionId
 The workload subscription for -Scope Member.
 .PARAMETER MemberIndex
-The member index, 1-20, for -Scope Member.
+The member index (1 or greater) for -Scope Member.
 .PARAMETER Suffix
 The archetype suffix, 4-6 lowercase letters or digits, for -Scope Member. Without it, every rg-university-<suffix>
 group in the member's subscription is treated as that member's archetype (the pipeline doesn't know the suffix).
@@ -258,8 +258,8 @@ if ($Scope -eq 'Member') {
     if ($SubscriptionId -notmatch '^[0-9a-fA-F-]{36}$') {
         throw 'For -Scope Member, provide the member workload -SubscriptionId.'
     }
-    if ($MemberIndex -lt 1 -or $MemberIndex -gt 20) {
-        throw 'For -Scope Member, -MemberIndex must be between 1 and 20.'
+    if ($MemberIndex -lt 1) {
+        throw 'For -Scope Member, -MemberIndex must be 1 or greater.'
     }
     if ($Suffix -and $Suffix -cnotmatch '^[a-z0-9]{4,6}$') {
         throw 'For -Scope Member, -Suffix must contain 4-6 lowercase letters or digits.'
@@ -486,7 +486,7 @@ else {
         $firewallGroups = @(Invoke-AzureCli -Arguments @(
             'network', 'firewall', 'policy', 'rule-collection-group', 'list',
             '--subscription', $SharedSubscriptionId, '--resource-group', 'rg-hub', '--policy-name', 'afwp-hub'
-        ) | Where-Object { $_.name -match '^rcg-member-(?:[1-9]|1[0-9]|20)$' })
+        ) | Where-Object { $_.name -match '^rcg-member-[1-9][0-9]*$' })
         foreach ($group in $firewallGroups) {
             Add-CleanupPlan "Delete the kit firewall rule collection group $($group.name) from afwp-hub."
         }
@@ -495,7 +495,7 @@ else {
             'network', 'vnet', 'peering', 'list',
             '--subscription', $SharedSubscriptionId, '--resource-group', 'rg-hub', '--vnet-name', 'vnet-hub'
         ) | Where-Object {
-            $_.name -match '^peer-hub-to-(?:spoke|datacenter)-(?:[1-9]|1[0-9]|20)$'
+            $_.name -match '^peer-hub-to-(?:spoke|datacenter)-[1-9][0-9]*$'
         })
         foreach ($peering in $hubPeerings) {
             Add-CleanupPlan "Delete the kit hub peering $($peering.name)."

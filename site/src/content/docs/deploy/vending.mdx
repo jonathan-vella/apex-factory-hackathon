@@ -10,6 +10,7 @@ next:
 
 import Diagram from "../../../components/Diagram.astro";
 
+**Path:** **Path A: Self-service teams** (in a lead-provisioned cohort, follow [Step 4: Vending and invites](/deploy/lead-setup/step-4-vending-and-invites/) instead).
 **Who:** **Everyone** starts their VMs; the **Team lead** runs the `vending` stage; **Members** save the shared services subscription ID.
 **When:** By **T-1** (1 day before day one), after [Step 2: Foundation](../team-lead-steps/) and every member's [Step 3: Datacenter and workstation](../member-steps/) are complete. See the [stage timing table](../how-it-works/#stages).
 
@@ -57,7 +58,7 @@ Open the **Actions** tab on GitHub and approve the run if asked. The stage runs 
 2. **Parallel VM restart:** restarts `vm-app01` and `vm-dev01` for all vended members at once so they pick up the hub firewall's DNS proxy.
 3. **Parallel exemptions and connectivity probes:** runs `New-DatacenterExemptions.ps1` and `Test-Connectivity.ps1` for every vended member.
 
-If phase 1 stops at an unready member, or phase 2 fails while restarting VMs, fix the cause and re-run `vending` for all members. It is safe to repeat. If phase 3 names members whose exemptions or connectivity probes failed, fix the cause and re-run only for those named indexes:
+If phase 1 stops at an unready member, or phase 2 fails while restarting VMs, fix the cause and re-run `vending` for all members. It is safe to repeat. For large cohorts (more than about 60 members), run `vending` in index batches such as `-f members=1-50` and `-f members=51-100` so each job stays within GitHub Actions' 360-minute limit. If phase 3 names members whose exemptions or connectivity probes failed, fix the cause and re-run only for those named indexes:
 
 ```bash
 gh workflow run platform.yml -f stage=vending -f members=<n>

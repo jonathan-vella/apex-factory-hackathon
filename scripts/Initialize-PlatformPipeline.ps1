@@ -224,10 +224,10 @@ else {
             budgetEmail = if ($callerOid) { $account.user.name } else { '' }
         })
 }
-if ($members.Count -eq 0 -or $members.Count -gt 20) { throw 'A team has 1 to 20 members.' }
+if ($members.Count -eq 0) { throw 'At least one member is required.' }
 $guidPattern = '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$'
 foreach ($member in $members) {
-    if ($member.index -lt 1 -or $member.index -gt 20) { throw 'Every member needs an index from 1 to 20.' }
+    if ($member.index -lt 1) { throw 'Every member needs a positive whole-number index (1 or greater).' }
     if ($member.subscriptionId -notmatch $guidPattern) { throw "Member $($member.index) has no valid workload subscription ID." }
     if ($member.subscriptionId -eq $SharedSubscriptionId) { throw "Member $($member.index) uses the shared services subscription: each member needs a workload subscription of their own." }
 }
@@ -423,14 +423,14 @@ if (-not $SkipGitHub) {
         if ($ParentManagementGroupId) { $variables['PARENT_MG'] = $ParentManagementGroupId }
         if ($DeniedMgPrefix) { $variables['DENIED_MG_PREFIXES'] = $DeniedMgPrefix -join ',' }
         foreach ($name in $variables.Keys) {
-            $null = Invoke-GitHubCli -Arguments @('variable', 'set', $name, '--env', $Environment, '--repo', $Repository, '--body', ([string] $variables[$name]))
+            $null = Invoke-GitHubCli -Arguments @('variable', 'set', $name, '--env', $Environment, '--repo', $Repository) -Body ([string] $variables[$name])
         }
         foreach ($name in $secrets.Keys) {
-            $null = Invoke-GitHubCli -Arguments @('secret', 'set', $name, '--env', $Environment, '--repo', $Repository, '--body', ([string] $secrets[$name]))
+            $null = Invoke-GitHubCli -Arguments @('secret', 'set', $name, '--env', $Environment, '--repo', $Repository) -Body ([string] $secrets[$name])
         }
         # The member indexes and the profile aren't sensitive, and the plan job (no environment) can only read repository variables.
-        $null = Invoke-GitHubCli -Arguments @('variable', 'set', 'MEMBER_INDEXES', '--repo', $Repository, '--body', (@($members.index | Sort-Object) -join ','))
-        $null = Invoke-GitHubCli -Arguments @('variable', 'set', 'PIPELINE_PROFILE', '--repo', $Repository, '--body', $PipelineProfile.ToLowerInvariant())
+        $null = Invoke-GitHubCli -Arguments @('variable', 'set', 'MEMBER_INDEXES', '--repo', $Repository) -Body (@($members.index | Sort-Object) -join ',')
+        $null = Invoke-GitHubCli -Arguments @('variable', 'set', 'PIPELINE_PROFILE', '--repo', $Repository) -Body $PipelineProfile.ToLowerInvariant()
         # Earlier versions kept identifiers in variables, which a public repo's logs print.
         foreach ($legacy in 'AZURE_TENANT_ID', 'AZURE_CLIENT_ID', 'SHARED_SUBSCRIPTION_ID', 'ALLOWED_SUBSCRIPTIONS', 'DENIED_SUBSCRIPTIONS') {
             $null = Invoke-GitHubCli -Arguments @('variable', 'delete', $legacy, '--env', $Environment, '--repo', $Repository) -AllowFailure

@@ -11,9 +11,14 @@ The event runs over two days, with deployment work before day one. [The customer
 
 ## Before the event
 
-Before day one, your team sets up the repositories, the shared landing zone, and each member's simulated datacenter in four numbered steps. **No coach is available during the pre-hackathon**, and pre-hackathon support is best-effort. Your **designated team lead** is your first point of contact.
+Before day one, your team sets up the repositories, the shared landing zone, and each member's simulated datacenter. **No coach is available during the pre-hackathon**, and pre-hackathon support is best-effort. Your **designated team lead** is your first point of contact.
 
-The dates count back from day one, and the steps in [Deploy](../../deploy/) follow the exact chronological order below:
+The kit supports two pre-event setup paths:
+
+- **Path A — Self-service teams ([Deploy](../../deploy/)):** each member creates their own private repository and runs their own preflight and datacenter stages across Steps 1 to 4 below.
+- **Path B — Lead-provisioned cohort ([Lead-provisioned setup](/deploy/lead-setup/step-1-cohort-and-preflight/)):** one platform team lead creates the student repositories (`Initialize-CohortRepos.ps1`), deploys the shared foundation, deploys every student's datacenter and runs spoke vending from the lead repository. Attendees share their GitHub username privately, accept their repository invitation, and complete [Student onboarding](/deploy/lead-setup/student-onboarding/). Large cohorts (`n > 5`) split into 3-to-5-person breakout pods for the team challenges (C1, C4 and C10), each with a nominated **pod lead**.
+
+In **Path A (Self-service teams)**, the dates count back from day one and the steps in [Deploy](../../deploy/) follow the exact chronological order below:
 
 1. **[Step 1: Repo and preflight (T-14)](../../deploy/set-up-your-repo/) (Everyone + Team lead):** meet the [requirements](../requirements/), create your private repo from `apex-accelerator`, import the kit into `factory/`, sign in, and create `.local/settings.json`. Members send their four roster values privately to the team lead and set up the member pipeline; the team lead builds `.local/roster.json` and sets up the lead pipeline. Everyone runs the `whatif` preflight and completes the manual checks.
 2. **[Step 2: Foundation and Graph grant (T-7)](../../deploy/team-lead-steps/) (Team lead + Privileged Role Administrator):** the team lead runs the `foundation` stage to deploy ALZ-lite in the shared services subscription. A Privileged Role Administrator then runs `Grant-SqlMiDirectoryRead.ps1` once for the team. Members have nothing to run at T-7.
@@ -82,4 +87,4 @@ Read [Roles](../roles/), then [Requirements](../requirements/). The [glossary](.
 
 ## After the event (T+2)
 
-Save and push your work before [Tear down](../../deploy/tear-down/). Each member removes their own environment; the team lead then removes the shared foundation, and a named admin removes the pipeline identity and its roles.
+Save and push your work before [Tear down](../../deploy/tear-down/) (Path A) or [Tear down: Lead-provisioned cohort](/deploy/lead-setup/tear-down/) (Path B). Every member scope is removed before the shared foundation, and a named admin removes each pipeline identity and its roles.

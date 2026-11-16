@@ -67,6 +67,17 @@ const drafts = createEventDrafts({ resources: resourceLink, dayOneTime, dayTwoTi
   <fieldset>
     <legend>Contacts and resources</legend>
     <div class="fields">
+      <label class="wide">
+        Pre-event setup mode
+        <select name="setupMode">
+          <option value="self-service" selected>
+            Path A: Self-service teams (members run Steps 1–4)
+          </option>
+          <option value="lead-provisioned">
+            Path B: Lead-provisioned cohort (lead sets up; attendees share GitHub username)
+          </option>
+        </select>
+      </label>
       <label>
         Organizer name
         <input name="organizer" type="text" />
@@ -148,6 +159,7 @@ const drafts = createEventDrafts({ resources: resourceLink, dayOneTime, dayTwoTi
   }
 
   .event-materials input,
+  .event-materials select,
   .event-materials textarea {
     display: block;
     width: 100%;
@@ -189,7 +201,7 @@ const drafts = createEventDrafts({ resources: resourceLink, dayOneTime, dayTwoTi
     background: var(--sl-color-accent-high);
   }
 
-  .event-materials :is(input, textarea, button):focus-visible {
+  .event-materials :is(input, select, textarea, button):focus-visible {
     outline: 2px solid var(--sl-color-accent);
     outline-offset: 2px;
   }

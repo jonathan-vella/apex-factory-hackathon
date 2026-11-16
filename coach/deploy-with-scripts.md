@@ -5,7 +5,7 @@
 
 This page is the coach's repair path, only when an Actions run can't be repaired in time. Rerun or repair the stage first. The kit's scripts are the engine the pipeline stages run, not an alternative attendee deployment path. The pipeline itself is described in the [platform pipeline](../facilitator/platform-pipeline.md) page.
 
-There are two roles. **Member** is each member's datacenter. **Team lead** (called the platform lead in the workflow and scripts) also deploys the foundation and vends every member, and is also a member, so the lead's repair covers both. The [Readiness check](readiness.md) and [C2](c02-secure-ai-ready-foundation.md) hold the checks and the hints. This page is the short sequence.
+There are two roles. **Member** is each member's datacenter (`n >= 1`). **Team lead** (called the platform lead in the workflow and scripts) deploys the foundation and vends every member, is also a member on index `1`, and in **Path B (Lead-provisioned cohort)** also provisions the student repositories (`Initialize-CohortRepos.ps1`) and runs the member and teardown stages across the cohort. The [Readiness check](readiness.md) and [C2](c02-secure-ai-ready-foundation.md) hold the checks and the hints. This page is the short sequence.
 
 Run every command from `factory/` in the member's dev container, signed in with `az login`. In each new terminal, load the member's settings first:
 
@@ -81,7 +81,7 @@ The team lead needs Owner at the configured parent management group (Tenant Root
 
 3. The team lead does their own datacenter as a member, above.
 
-4. At T-1, vend each member one after another, after confirming their Step 3 datacenter and Arc connection are complete. Each run updates the same firewall policy, and takes 4 to 5 minutes:
+4. At T-1, vend each member one after another, after confirming their Step 3 datacenter and Arc connection are complete. Each run updates the same firewall policy (`afwp-hub`, up to 90 RCGs per policy; `vnet-hub` supports up to 650 peerings / 325 members), and takes 4 to 5 minutes (in Actions, cohorts larger than ~60 members batch `stage=vending` with `-f members=1-50`, `-f members=51-100`):
 
    ```powershell
    ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg

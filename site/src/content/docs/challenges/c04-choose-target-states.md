@@ -23,7 +23,7 @@ C3 told you what the source looks like. C4 turns that into decisions the team st
 
 **You decide.** The platform ADR's alternative is yours. The other ADRs give alternatives as a starting point: explain why you reject them and the consequence you accept. Also decide which C3 findings you defer, who owns them and when they get done.
 
-**Where to work.** Your own repo's dev container, in a bash terminal at the repo root (type `exit` if the prompt starts with `PS`). No Azure access is needed. The team writes together on a shared screen, then every teammate saves the final file under the same name in their own `factory/evidence/c04/`.
+**Where to work.** Your own repo's dev container (from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/), or your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort), in a bash terminal at the repo root (type `exit` if the prompt starts with `PS`). No Azure access is needed. The team (or breakout pod) writes together on a shared screen, then every teammate saves the final file under the same name in their own `factory/evidence/c04/`.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
@@ -60,7 +60,7 @@ cp factory/templates/attendee/deferred-work-register.md factory/evidence/c04/
 
 To complete this challenge, show your coach in your own repo's `factory/evidence/c04/`:
 
-- [ ] The platform and migration-method ADRs, each with a decision, an alternative and a consequence. They are scored once, from the team lead's copy.
+- [ ] The platform and migration-method ADRs, each with a decision, an alternative and a consequence. They are scored once per team, from the team lead's (or pod lead's, in a multi-pod cohort) copy.
 - [ ] Your own `adr-app.md` and `adr-data.md`, each with a decision, an alternative and a consequence.
 - [ ] The deferred-work register with every deferred C3 finding present, and the trace-flag removal step listed for each member.
 - [ ] The team files match your teammates' copies.

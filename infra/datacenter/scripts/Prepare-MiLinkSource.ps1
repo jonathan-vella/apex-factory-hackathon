@@ -30,8 +30,9 @@ The script only changes this VM. It never touches Azure, and the source database
 To check the script without running it (syntax, parameter check, help), run this from the repo root on any computer:
 pwsh -NoProfile -File test/Test-MiLinkSource.Tests.ps1
 .PARAMETER MiSubnetPrefix
-The managed instance's subnet, snet-sqlmi in your spoke: 10.20.<n>.128/26, where <n> is your member index
-(the memberIndex value in factory/.local/settings.json). For member 3, 10.20.3.128/26.
+The managed instance's subnet, snet-sqlmi in your spoke: 10.20.<n>.128/26 for members 1-255 (or
+10.<192..255>.<0..255>.128/26 for members 256+), where <n> is your member index in factory/.local/settings.json.
+For member 3, 10.20.3.128/26.
 .EXAMPLE
 .\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.3.128/26
 .EXAMPLE
@@ -42,8 +43,15 @@ C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.3.128/26
 param(
     [Parameter(Mandatory)]
     [ValidateScript({
-        if ($_ -notmatch '^10\.20\.([1-9]|1[0-9]|20)\.128/26$') {
-            throw "MiSubnetPrefix must be 10.20.<n>.128/26, where <n> (1 to 20) is your member index. Got '$_'."
+        if ($_ -notmatch '^10\.(0|[1-9][0-9]{0,2})\.(0|[1-9][0-9]{0,2})\.128/26\z') {
+            throw "MiSubnetPrefix must be 10.20.<1..255>.128/26 (or 10.<192..255>.<0..255>.128/26 for member indexes 256+). Got '$_'."
+        }
+        $oct2 = [int] $Matches[1]
+        $oct3 = [int] $Matches[2]
+        $valid = ($oct2 -eq 20 -and $oct3 -ge 1 -and $oct3 -le 255) -or
+            ($oct2 -ge 192 -and $oct2 -le 255 -and $oct3 -ge 0 -and $oct3 -le 255)
+        if (-not $valid) {
+            throw "MiSubnetPrefix must be 10.20.<1..255>.128/26 (or 10.<192..255>.<0..255>.128/26 for member indexes 256+). Got '$_'."
         }
         $true
     })]

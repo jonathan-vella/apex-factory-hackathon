@@ -1,6 +1,6 @@
 # Event cost estimate
 
-These are approximate list-price estimates in USD for `swedencentral`, with Azure Hybrid Benefit (AHB) on where supported. Use the actual deployment and cleanup times to replace the planning hours below. The sample team has four members; the supported team size is three to five.
+These are approximate list-price estimates in USD for `swedencentral`, with Azure Hybrid Benefit (AHB) on where supported. Use the actual deployment and cleanup times to replace the planning hours below. The sample team below has four members; a platform hub can serve small self-service teams (3 to 5 members) or a larger lead-provisioned cohort of `n` members sharing one hub.
 
 ## Hourly rates
 
@@ -33,6 +33,9 @@ The shared foundation starts earlier. The team lead deploys ALZ-lite at T-7 at 0
 | 3 members | 3 × $204.15 = $612.45 | $280.80 | **$893.25** |
 | 4 members | 4 × $204.15 = $816.60 | $280.80 | **$1,097.40** |
 | 5 members | 5 × $204.15 = $1,020.75 | $280.80 | **$1,301.55** |
+| `n` members (1 hub) | `$204.15 × n` | $280.80 | **`$280.80 + ($204.15 × n)`** |
+
+In **Path B (Lead-provisioned cohort)**, all `n` students share a single `$280.80` foundation rather than running separate Azure Firewalls per 3-to-5-person breakout pod.
 
 Deploying ALZ-lite at T-7 instead of Day 1 adds 216 − 48 = 168 hours of firewall, which is 168 × $1.30 = $218.40 per team compared with the earlier plan (48 × $1.30 = $62.40). The member charges don't change. The owner accepted this extra cost on 2026-10-26: the foundation stays at T-7 and the B22 spec's earlier figure of about $90 (a T-3 start) is superseded. Every day ALZ-lite is deployed earlier or later moves the foundation by 24 × $1.30 = $31.20.
 

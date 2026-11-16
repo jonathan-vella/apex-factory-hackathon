@@ -1,0 +1,100 @@
+---
+title: "Tear down: Lead-provisioned cohort (T+2)"
+description: Confirm every student's branches and evidence are pushed, tear down all member scopes and the shared foundation centrally from the lead repo, and remove the single lead pipeline identity.
+prev:
+  link: /challenges/c10-package-hand-over-review-ai-readiness/
+  label: "C10: Package, hand over, review AI readiness"
+next: false
+---
+
+**Who:** **Students** confirm their branches and evidence are pushed; the **Team lead** runs the cohort `teardown` workflow; the **Lead repo admin** removes the single pipeline identity.
+**When:** **T+2**, after coach scoring sign-off and the event owner's approval to tear down.
+
+In **Path B (Lead-provisioned cohort)**, student repositories (`<event>-student-*`) have **no** `Member` pipeline, `gh-lab` environment, or Azure OIDC identity. **Students do not run any `teardown` workflow and do not run `Remove-PlatformPipeline.ps1`.** Once students push their final commits from `vm-dev01` and their Dev Container or Codespace, the team lead tears down every student subscription and the shared foundation from `<event>-lead`.
+
+See [Cost](/reference/cost/) for when datacenter, SQL Managed Instance, and hub firewall charges stop.
+
+## Before running teardown
+
+Confirm every item below before dispatching `teardown` in `<event>-lead`:
+
+- [ ] Coaches have signed off all challenge scores and evidence; no scoring review remains open.
+- [ ] Every student has pushed their `vm-dev01-work` branch (`git push member vm-dev01-work` in `C:\src\factory` on `vm-dev01`) and verified the commits on GitHub—teardown deletes `vm-dev01`.
+- [ ] Every student has committed and pushed all `factory/evidence/cNN/` deliverables and C9 scripts/results to `main` on `<org>/<event>-student-<nn>`.
+- [ ] The team lead has a private local backup of `<event>-lead/factory/.local/roster.json` and `.local/settings.json` for post-teardown verification (never committed to git).
+- [ ] The event owner has approved teardown and confirmed whether `rg-management` (`id-sqlmi-directory`) should also be deleted (`include-management=true`) or kept for another event in the same tenant.
+
+**Allow time:** about **20 minutes** per wave without an archetype, or **up to 2 hours** when deleting SQL Managed Instances and releasing delegated subnets, followed by roughly **25 minutes** for the shared foundation. **Do not cancel a running job that looks quiet while SQL MI deletes**; check the job log and [Troubleshooting](/reference/troubleshooting/).
+
+## 1. Tear down all member scopes and the shared foundation (Team lead)
+
+Run commands from `factory/` in `<event>-lead` (never from `vm-dev01`):
+
+- **Standard cohort (up to 256 members):** removes all `1..n` member scopes in parallel waves (`MAX_PARALLEL`, default `20`) and, only after every member scope succeeds, tears down the shared foundation (`rg-hub`, `rg-management` when `include-management=true`, policies, and `mg-factory*` management groups):
+
+  ```bash
+  gh workflow run platform.yml \
+    -f stage=teardown \
+    -f members=all \
+    -f confirm-team-teardown=true \
+    -f include-management=true
+  ```
+
+  *(Omit `-f include-management=true` only when the event owner explicitly plans to reuse `rg-management` and `id-sqlmi-directory`'s Graph grant in the same tenant.)*
+
+- **Large cohort (more than 256 members):** stay within GitHub Actions' 256-job matrix cap by tearing down member scopes in index batches first (without `confirm-team-teardown`), then removing the shared foundation with `-f members=none` once every member batch is green:
+
+  ```bash
+  gh workflow run platform.yml -f stage=teardown -f members=1-200
+  gh workflow run platform.yml -f stage=teardown -f members=201-325
+  ```
+
+  After **every** member batch finishes green, finalize the shared foundation:
+
+  ```bash
+  gh workflow run platform.yml \
+    -f stage=teardown \
+    -f members=none \
+    -f confirm-team-teardown=true \
+    -f include-management=true
+  ```
+
+If any member job fails (for example, a lingering resource lock or subnet dependency), team foundation cleanup automatically halts so hub dependencies stay intact while you fix and re-run that index (`-f stage=teardown -f members=<index>`). Never force-delete a SQL Managed Instance subnet association.
+
+## 2. Remove the single lead pipeline identity (Lead repo admin)
+
+A workflow cannot delete the managed identity it is signed in as. Once the `teardown` workflow run is completely green, sign in from `factory/` in `<event>-lead` as an administrator holding repo-admin on `<event>-lead`, **Owner** at Tenant Root (or the parent management group), and **Owner** on the shared services subscription:
+
+```powershell
+az login --tenant '<tenant-id>' --use-device-code
+gh auth login --hostname github.com --git-protocol https --web
+./scripts/Remove-PlatformPipeline.ps1
+```
+
+This single command removes `id-factory-pipeline`'s role assignments across Tenant Root, the shared subscription, and every workload subscription, deletes `rg-cicd`, removes the `gh-lab` environment and pipeline variables on `<event>-lead`, and verifies each item is gone. Nothing needs to be run on student repositories.
+
+## 3. Verify cleanup and manage post-event repository retention
+
+1. **Verify workload and shared resource groups are gone.** From `factory/` in `<event>-lead`, loop across `.local/roster.json` and `.local/settings.json`:
+
+   ```powershell
+   $s = Get-Content .local/settings.json | ConvertFrom-Json
+   $roster = Get-Content .local/roster.json | ConvertFrom-Json
+   foreach ($m in $roster) {
+     $dc = az group exists --subscription $m.subscriptionId --name rg-datacenter
+     $sp = az group exists --subscription $m.subscriptionId --name rg-spoke
+     $un = az group exists --subscription $m.subscriptionId --name "rg-university-$($m.suffix)"
+     [pscustomobject]@{ Index = $m.index; Datacenter = $dc; Spoke = $sp; Archetype = $un }
+   }
+   az group exists --subscription $s.sharedSubscriptionId --name rg-hub
+   az group exists --subscription $s.sharedSubscriptionId --name rg-cicd
+   az group exists --subscription $s.sharedSubscriptionId --name rg-management
+   ```
+
+   Every check must return `false` (except `rg-management` if you intentionally omitted `include-management=true`). Also confirm in the portal that `mg-factory*` management groups, Azure Arc machine registrations, budgets, and vending role assignments are removed and workload subscriptions sit back in their return management group.
+
+2. **Revoke temporary human privilege elevations.** Only after `Remove-PlatformPipeline.ps1` and the verification loop succeed, remove temporary human **Owner** assignments at Tenant Root, Global Administrator access elevation, and Privileged Role Administrator PIM activations.
+
+3. **Archive or lock down student repositories per partner retention policy.** Student repositories (`<org>/<event>-student-*`) and `<org>/<event>-student-template` remain in GitHub with each student's `main` evidence and `vm-dev01-work` code branch preserved. Depending on your partner retention policy:
+   - Archive `<event>-student-*` repositories (`gh repo edit <org>/<repo> --archived`) so evidence remains read-only for post-event review, **or**
+   - Downgrade external Write (`push`) collaborators to Read (`pull`) or remove outside collaborator access once attendees have exported any personal notes they are permitted to keep.

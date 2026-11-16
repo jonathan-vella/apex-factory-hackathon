@@ -3,6 +3,8 @@ function detail(value, placeholder) {
 }
 
 export function createEventDrafts(details = {}) {
+  const setupMode =
+    details.setupMode?.trim() === "lead-provisioned" ? "lead-provisioned" : "self-service";
   const organizer = detail(details.organizer, "organizer name");
   const contact = detail(details.contact, "team lead or organizer contact");
   const briefingWhen = detail(details.briefingWhen, "briefing date and time, including time zone");
@@ -14,6 +16,116 @@ export function createEventDrafts(details = {}) {
   const timeZone = detail(details.timeZone, "time zone");
   const eventLocation = detail(details.eventLocation, "event location or meeting link");
   const resources = detail(details.resources, "event materials and setup link");
+
+  if (setupMode === "lead-provisioned") {
+    const leadGuides = `Requirements: https://factory.apexops.pro/getting-started/requirements/
+Roles: https://factory.apexops.pro/getting-started/roles/
+Student onboarding: https://factory.apexops.pro/deploy/lead-setup/student-onboarding/
+Lead cohort setup: https://factory.apexops.pro/deploy/lead-setup/step-1-cohort-and-preflight/`;
+
+    return [
+      {
+        id: "overview-email",
+        title: "Overview email",
+        text: `Subject: Partner Modernization Factory hackathon: overview and preparation
+
+Hi everyone,
+
+You're invited to the Partner Modernization Factory, a two-day, hands-on hackathon for Microsoft partners.
+
+Working as a delivery team for fictional Contoso University, you'll assess its legacy application, choose a target state, deploy a reusable CoE archetype, modernize the application, migrate its database and prepare a handover. Larger cohorts split into breakout pods of three to five people for team challenges. This is a non-production learning lab.
+
+Know Before You Go
+
+Join the briefing on ${briefingWhen} at ${briefingLocation}. We'll introduce the scenario, explain the hackathon, review student onboarding and answer questions.
+
+Before the briefing, read Partner-Modernization-Factory-Hackathon-and-What-You-Need.pptx (6 slides), attached to this email, and the Requirements and Roles guides.
+
+Event materials: ${resources}
+${leadGuides}
+
+How pre-event setup works (lead-provisioned cohort)
+
+- Your platform team lead pre-creates your private GitHub repository and deploys the shared landing zone, your simulated datacenter and spoke vending ahead of Day 1 (including the T-7 directory grant after foundation deployment and tenant-owner approval). You do not need to create a repository from a template or run the T-14 to T-1 deployment pipelines yourself.
+- Reply privately to your team lead with your GitHub username (and your Microsoft Entra object ID and work email if requested), then accept the GitHub repository invitation as soon as it arrives.
+- Each attendee needs unconditional Owner on their assigned paid workload subscription, MFA, a GitHub account with a paid GitHub Copilot seat (with agent mode, MCP servers and required models allowed), and a laptop with latest stable VS Code, Docker Desktop, Git, Dev Containers and GitHub Copilot Chat. Check Docker Desktop and Windows 11 licensing and Windows Server Azure Hybrid Benefit entitlement in the Requirements guide.
+- Once your team lead confirms your environment is vended, complete Student onboarding before Day 1 so your dev container and vm-dev01 workstation are signed in and ready: https://factory.apexops.pro/deploy/lead-setup/student-onboarding/
+
+No coach is on duty during pre-event setup. Your designated team lead is your first point of contact, and support before the event is best-effort. Share your GitHub username and account details privately, not in public channels.
+
+Event details
+
+Know Before You Go: ${briefingWhen}
+Day 1: ${dayOne}, ${dayOneTime} ${timeZone}
+Day 2: ${dayTwo}, ${dayTwoTime} ${timeZone}
+Event location: ${eventLocation}
+Contact: ${contact}
+
+Best,
+${organizer}`,
+      },
+      {
+        id: "briefing-invite",
+        title: "Know Before You Go invitation",
+        text: `Title: Partner Modernization Factory - Know Before You Go
+Date and time: ${briefingWhen}
+Location: ${briefingLocation}
+Organizer: ${organizer}
+
+Join us for a briefing ahead of the Partner Modernization Factory hackathon. We'll introduce the Contoso University scenario, explain the two-day event, and walk through student onboarding for our lead-provisioned cohort.
+
+We'll cover:
+
+- The hackathon's goals and challenge journey
+- Team and breakout-pod roles and how the work is organized
+- GitHub, Copilot, Azure and workstation requirements
+- How lead-provisioned setup works: sharing your GitHub username privately, accepting your repository invitation and completing Student onboarding
+- Questions and next steps
+
+Before the briefing, read the six-slide Hackathon and What You Need orientation deck shared with the overview email, and the Requirements and Roles guides.
+
+Event materials: ${resources}
+${leadGuides}
+
+Your team lead provisions the repositories and pre-event Azure infrastructure; attendees do not run the T-14 to T-1 pipelines themselves. Reply privately with your GitHub username, accept your repository invitation, and complete Student onboarding before Day 1.
+
+Bring any access or workstation questions. Your designated team lead is the first point of contact for pre-event blockers; support before the event is best-effort.
+
+Contact: ${contact}`,
+      },
+      {
+        id: "hackathon-invite",
+        title: "Hackathon invitation",
+        text: `Title: Partner Modernization Factory - Two-Day Hackathon
+Day 1: ${dayOne}, ${dayOneTime} ${timeZone}
+Day 2: ${dayTwo}, ${dayTwoTime} ${timeZone}
+Location: ${eventLocation}
+Organizer: ${organizer}
+
+Join us for the Partner Modernization Factory, a two-day, hands-on hackathon for Microsoft partners.
+
+You'll work as a delivery team for fictional Contoso University, modernizing its legacy enrollment application and exploring a repeatable approach for customer engagements. The work moves from customer outcomes and architecture decisions through application modernization, database migration, validation and handover.
+
+Day 1 includes the kickoff, customer-outcome and assessment activities, target-state decisions, CoE archetype deployment and the start of application modernization. Day 2 continues modernization, then focuses on migration and go-live, validation, database optimization and handover.
+
+Please arrive with your Student onboarding complete:
+
+- You have accepted your GitHub repository invitation, opened your pre-created private repository in its dev container, and verified GitHub Copilot.
+- Your assigned Azure access is in place, including unconditional Owner on your own workload subscription.
+- Your team lead has deployed and vended your datacenter and spoke, and you have signed in to vm-dev01 and verified Copilot Chat.
+- Both datacenter VMs are running when you arrive. Keep vm-dev01 running throughout the event.
+
+Bring your laptop and any setup questions. Review the event materials and student onboarding guide: ${resources}
+
+${leadGuides}
+
+Share account details privately with your team lead, not in public channels. The standard Day 1 plan starts with the kickoff at 08:30 and C1 at 09:00; confirm any changes for your event.
+
+Contact: ${contact}`,
+      },
+    ];
+  }
+
   const guides = `Requirements: https://factory.apexops.pro/getting-started/requirements/
 Roles: https://factory.apexops.pro/getting-started/roles/
 Deploy: https://factory.apexops.pro/deploy/`;
@@ -41,7 +153,7 @@ ${guides}
 
 High-level requirements
 
-- Each team has 3-5 people, including a nominated team lead. Use a dedicated non-production Entra tenant and empty, supported paid subscriptions: one shared-services subscription per team and one workload subscription per member, including the lead. Each member needs unconditional Owner on their workload subscription and MFA.
+- Each platform team shares a dedicated non-production Entra tenant and empty, supported paid subscriptions: one shared-services subscription per hub and one workload subscription per member, including a nominated team lead (larger cohorts group into breakout pods of three to five people for team challenges). Each member needs unconditional Owner on their workload subscription and MFA.
 - Each member needs a GitHub account in the partner organization, a private repository and a paid GitHub Copilot seat. The organization's policies must allow agent mode, MCP servers and the required models. Verify GitHub plan support and Actions billing.
 - Use latest stable VS Code, Docker Desktop, Git, Dev Containers and GitHub Copilot Chat. Copilot CLI is optional. Check Docker Desktop and Windows 11 licensing, Windows Server Azure Hybrid Benefit entitlement and regional Azure quota in the Requirements guide. Preflight does not check quota or subscription offer type.
 - The team lead additionally needs Owner on shared services and at Tenant Root. Book a Privileged Role Administrator for the T-7 directory grant, which follows foundation deployment and tenant-owner approval.
@@ -129,11 +241,11 @@ export function initEventMaterials() {
 
   const status = root.querySelector("[data-status]");
   const generate = root.querySelector("[data-generate]");
-  const inputs = root.querySelectorAll("input[name]");
+  const fields = root.querySelectorAll("input[name], select[name]");
 
   generate.hidden = false;
   generate.addEventListener("click", () => {
-    const details = Object.fromEntries([...inputs].map((input) => [input.name, input.value]));
+    const details = Object.fromEntries([...fields].map((field) => [field.name, field.value]));
     for (const draft of createEventDrafts(details)) {
       root.querySelector(`#${draft.id}`).value = draft.text;
     }
