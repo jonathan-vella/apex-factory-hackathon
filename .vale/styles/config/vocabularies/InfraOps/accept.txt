@@ -17,6 +17,7 @@ Azure
 Bastion
 Bicep
 CAF
+[Cc]odespace
 Codespaces
 CoE
 Contoso
@@ -40,6 +41,7 @@ DNS
 Entra
 failover
 failovers
+finalizer
 germanywestcentral
 GHCP
 GitHub
@@ -62,6 +64,7 @@ MSMQ
 NAT
 onboarded
 onboarding
+onboards
 PaaS
 perf
 Pre
@@ -69,6 +72,8 @@ PRD
 preflight
 repo
 repos
+ruleset
+rulesets
 runbook
 runbooks
 SKU
@@ -79,6 +84,7 @@ Starlight
 subnet
 subnets
 swedencentral
+teardown
 triaged
 UDR
 UDRs
