@@ -90,19 +90,11 @@ If a run fails, read the run log. The `member` stage is safe to run again until 
 
 ## 3.3 Set up vm-dev01
 
-From C3 onward you do the application and database modernization work on `vm-dev01`, so set it up completely now. First download your readiness evidence and lab credentials file (`datacenter.json`) from `factory/` in your dev container:
-
-```powershell
-./scripts/Get-PipelineEvidence.ps1
-```
-
-If Arc failed, the successful-run evidence download may not yet exist. For the standard disposable lab, run `./scripts/Initialize-Settings.ps1 -WriteLabCredentials` to write the documented [Datacenter credentials](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/datacenter/README.md#credentials) locally; for a custom deployment, ask your team lead privately for the password. (`Get-PipelineEvidence.ps1` reads your `memberIndex` from `.local/settings.json`, so it works in both member and team-lead repos.) Do not publish the password or rerun `member` merely to recreate the credentials file.
-
 <VmDev01Setup pathMode="self-service" />
 
 ### Check your setup
 
-Run in PowerShell 7 on the VM:
+Run in **PowerShell 7 (`pwsh`)** on `vm-dev01`:
 
 ```powershell
 gh auth status
