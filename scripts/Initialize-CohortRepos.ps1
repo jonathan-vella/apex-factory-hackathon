@@ -463,7 +463,7 @@ foreach ($member in $targetMembers) {
         $handoffContent = @(
             "# Student handoff - Member $($member.index)"
             ""
-            "- **Assigned repository:** $repoUrl"
+            "- **Assigned repository:** $repoUrl *(your single GitHub repo for the dev container, ``vm-dev01-work`` app branch, and ``main`` evidence; do not create another GitHub repo)*"
             "- **Accept your GitHub invitation first:** $inviteUrl"
             "- **Member index:** ``$($member.index)``"
             "- **Archetype suffix:** ``$($member.suffix)``"

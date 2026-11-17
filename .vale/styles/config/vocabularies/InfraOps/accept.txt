@@ -12,6 +12,7 @@ archetype
 archetypes
 ASP.NET
 Astro
+auditable
 AVM
 Azure
 Bastion
@@ -76,6 +77,9 @@ PRD
 preflight
 repo
 repos
+revalidate
+revalidated
+revalidates
 ruleset
 rulesets
 runbook

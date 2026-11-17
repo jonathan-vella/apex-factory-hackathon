@@ -1,9 +1,7 @@
 ---
 title: "C10: Package, hand over, review AI readiness"
 description: Close out the engagement as a team with a reusable asset, a handover and an honest AI-readiness review.
-next:
-  link: /deploy/tear-down/
-  label: Tear down (T+2)
+next: false
 ---
 
 ## Background

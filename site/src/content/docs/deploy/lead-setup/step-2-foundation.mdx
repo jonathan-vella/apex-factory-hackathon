@@ -32,14 +32,19 @@ Use only a dedicated, non-production tenant and dedicated, empty subscriptions. 
 
 Confirm that [Step 1](../step-1-cohort-and-preflight/) is complete and `.local/roster.json` is registered in `<event>-lead` via `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`.
 
-From `factory/` in `<event>-lead`, run `whatif` followed by `foundation`:
+From `factory/` in `<event>-lead`, run `whatif`, **wait for it to finish green in Actions**, and then run `foundation` (`platform.yml` cancels older queued runs in the same concurrency group if you queue both at once):
 
 ```bash
 gh workflow run platform.yml -f stage=whatif
-gh workflow run platform.yml -f stage=foundation
 ```
 
-*(If your cohort exceeds 256 members, pass `-f members=1-200` on `whatif` so the matrix stays within GitHub's 256-job cap.)*
+*(If your cohort exceeds 256 members, run sequential index batches such as `-f members=1-200` and `-f members=201-300`, waiting for each batch to finish green before dispatching the next.)*
+
+Once `whatif` is green, dispatch `foundation`:
+
+```bash
+gh workflow run platform.yml -f stage=foundation
+```
 
 On a clean tenant, the ALZ-lite preview job reports **First deployment** before `foundation` creates:
 

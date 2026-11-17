@@ -33,10 +33,15 @@ The `whatif` stage checks the roster and runs the ALZ-lite what-if job. On an em
 
 ```bash
 gh workflow run platform.yml -f stage=whatif
+```
+
+Open the **Actions** tab on GitHub, approve the `whatif` run if asked, and **wait for it to finish green** before dispatching `foundation` (`platform.yml` cancels older queued runs in the same concurrency group if you queue multiple dispatches back-to-back):
+
+```bash
 gh workflow run platform.yml -f stage=foundation
 ```
 
-Open the **Actions** tab on GitHub and approve each run if asked. Done when both runs are green.
+Approve the `foundation` run if asked. Done when both runs are green.
 
 ## 2.2 Grant Microsoft Graph read permissions (Privileged Role Administrator)
 

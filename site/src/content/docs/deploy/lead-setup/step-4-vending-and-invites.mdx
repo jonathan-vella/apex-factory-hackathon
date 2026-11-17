@@ -70,10 +70,15 @@ Do not start `vending` until every slot in the batch shows `Connected`.
      gh workflow run platform.yml -f stage=vending
      ```
 
-   - **More than 50 members:** Phase 1 vends spokes serially so `vnet-hub` peerings and `afwp-hub` rule collection groups never collide, which handles roughly 60 to 70 members inside GitHub Actions' 6-hour (`360`-minute) single-job limit. Dispatch `vending` in batches of up to 50 members (and check the 90-RCG firewall limit in [Scaling to larger cohorts](/deploy/how-it-works/#scaling-to-larger-cohorts)):
+   - **More than 50 members:** Phase 1 vends spokes serially so `vnet-hub` peerings and `afwp-hub` rule collection groups never collide, which handles roughly 60 to 70 members inside GitHub Actions' 6-hour (`360`-minute) single-job limit. Dispatch `vending` in batches of up to 50 members—waiting for each batch to finish green before dispatching the next (and check the 90-RCG firewall limit in [Scaling to larger cohorts](/deploy/how-it-works/#scaling-to-larger-cohorts)):
 
      ```bash
      gh workflow run platform.yml -f stage=vending -f members=1-50
+     ```
+
+     Once `1-50` finishes green:
+
+     ```bash
      gh workflow run platform.yml -f stage=vending -f members=51-100
      ```
 
@@ -88,9 +93,9 @@ Do not start `vending` until every slot in the batch shows `Connected`.
 
 </Steps>
 
-:::note[Assigning or swapping an attendee's Entra identity after vending]
+:::note[Assigning or swapping an attendee after vending]
 
-If an attendee is assigned or swapped after initial vending, update `memberPrincipalId` for their slot in `.local/roster.json`, re-run `./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, and run `gh workflow run platform.yml -f stage=vending -f members=<index>`. Vending is idempotent and safely grants the new principal's Azure roles.
+If an attendee is assigned or swapped after initial vending, update `memberPrincipalId` and `githubUsername` for their slot in `.local/roster.json`, re-run `./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, run `gh workflow run platform.yml -f stage=vending -f members=<index>`, and re-run `Initialize-CohortRepos.ps1` for `-MemberIndex <index>`. Because both scripts add permissions idempotently without revoking prior users, **explicitly remove the departing attendee's access**: delete their vending-created Azure role assignments (`Owner` on the workload subscription, `Reader` on shared services, and `Managed Identity Operator` on `id-sqlmi-directory`, or remove them from the slot's Entra group while preserving unrelated pre-existing roles) and remove their collaborator entry under `<org>/<event>-student-<nn>` > **Settings** > **Collaborators**.
 
 :::
 
@@ -104,19 +109,19 @@ If an attendee is assigned or swapped after initial vending, update `memberPrinc
    - **Outside collaborators** are allowed if attendees sign in with personal or external partner GitHub accounts rather than organization-member accounts.
    - **Direct pushes to `main` and `vm-dev01-work`** are permitted for Write (`push`) collaborators on `<event>-student-*` repositories (no organization rule blocking pushes to `main`).
 
-3. **Send Write collaborator invitations and generate final Handoff Cards.** Run `Initialize-CohortRepos.ps1` from `factory/` in `<event>-lead`:
+3. **Send Write collaborator invitations and generate final Handoff Cards.** Run `Initialize-CohortRepos.ps1` from `factory/` in `<event>-lead` (pass `-CoachTeamSlug` or `-CoachUsername` if granting coach Read access):
 
    ```powershell
    ./scripts/Initialize-CohortRepos.ps1 `
      -RosterPath .local/roster.json `
      -TemplateRepository '<org>/<event>-student-template' `
      -RepoPrefix '<event>-student' `
-     -CoachTeamSlug 'coaches'
+     -CoachTeamSlug '<existing-coach-team-slug>'
    ```
 
    For every slot with `githubUsername` set, the script sends a **Write (`push`)** repository collaborator invitation on `<org>/<event>-student-<nn>` and writes a complete private Handoff Card to `factory/.local/handoff/member-<index>.md` (including the student's repo URL, workload and shared subscription IDs, assigned `index` and `suffix`, and the exact one-line `Initialize-Settings.ps1 ... -WriteLabCredentials` command).
 
-4. **Send each student their Handoff Card privately.** Deliver `factory/.local/handoff/member-<index>.md` to the assigned attendee over a private direct message or encrypted channel—never in a public channel, issue, or commit—and send them the link to [Student onboarding (before Day 1)](../student-onboarding/).
+4. **Send each student their Handoff Card and Entra sign-in details privately.** Confirm each student knows which Entra account to sign in with (either their own Entra account or dedicated lab user credentials matching `memberPrincipalId` / group membership), deliver `factory/.local/handoff/member-<index>.md` over a private direct message or encrypted channel—never in a public channel, issue, or commit—and send them the link to [Student onboarding (before Day 1)](../student-onboarding/).
 
 </Steps>
 

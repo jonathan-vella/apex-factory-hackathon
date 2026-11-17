@@ -37,24 +37,35 @@ Run all dispatches from `factory/` in `<event>-lead`.
    gh variable set MAX_PARALLEL --body "20"
    ```
 
-2. **Dispatch the `member` stage across the cohort.**
-   - **Standard cohort (up to 256 members, all eligible for Windows Server Azure Hybrid Benefit):**
+2. **Dispatch the `member` stage across the cohort (wait for each run to finish before starting the next).** Decide **before your first dispatch** which slots hold eligible Windows Server Azure Hybrid Benefit licenses—once a slot is Arc-onboarded, re-running `member` refuses to overwrite it (see [Azure Hybrid Benefit](/reference/azure-hybrid-benefit/)):
+   - **All slots eligible (up to 256 members):**
 
      ```bash
      gh workflow run platform.yml -f stage=member -f members=all
      ```
 
-   - **Large cohort (above 256 members, or staged waves):** dispatch in index ranges so each run stays within GitHub Actions' 256-job matrix limit:
+   - **Mixed Hybrid Benefit cohort:** partition your roster into disjoint index sets *before* deploying—run eligible indexes without the flag, wait for that run to finish green, then run ineligible indexes with `-f no-hybrid-benefit=true`:
+
+     ```bash
+     gh workflow run platform.yml -f stage=member -f members=<eligible-indexes>
+     ```
+
+     Once the first batch finishes green:
+
+     ```bash
+     gh workflow run platform.yml -f stage=member -f members=<ineligible-indexes> -f no-hybrid-benefit=true
+     ```
+
+   - **Large cohort (above 256 members, or staged waves):** dispatch in index ranges of at most 256 jobs—waiting for each batch to finish green before dispatching the next:
 
      ```bash
      gh workflow run platform.yml -f stage=member -f members=1-50
-     gh workflow run platform.yml -f stage=member -f members=51-100
      ```
 
-   - **Slots without Windows Server Azure Hybrid Benefit:** dispatch those specific indexes separately with `-f no-hybrid-benefit=true` (see [Azure Hybrid Benefit](/reference/azure-hybrid-benefit/)):
+     Once `1-50` finishes green:
 
      ```bash
-     gh workflow run platform.yml -f stage=member -f members=<indexes> -f no-hybrid-benefit=true
+     gh workflow run platform.yml -f stage=member -f members=51-100
      ```
 
 3. **Verify `Test-Datacenter` results in the Actions summary.** Open the workflow run in `<event>-lead` > **Actions**. Confirm every member job is green and every row in its `Test-Datacenter.ps1` summary reports `PASS` (VM sizes and running state, license type, Trusted Launch secure boot and vTPM, zero public IPs, Bastion Standard, IIS response, SQL Server online, and performance dataset present).
@@ -117,10 +128,15 @@ Never run an unfiltered teardown in `<event>-lead` before T+2—always scope rec
   gh workflow run platform.yml -f stage=member -f members=<index>
   ```
 
-- **Failure after Arc onboarding started (before C5):** `member` refuses to overwrite an existing Arc machine resource, and a half-onboarded VM has guest run commands disabled. Tear down that single member index first, then re-run `member` for that index:
+- **Failure after Arc onboarding started (before C5):** `member` refuses to overwrite an existing Arc machine resource, and a half-onboarded VM has guest run commands disabled. Tear down that single member index first, **wait for `teardown` to finish green in Actions**, and then re-run `member` for that index:
 
   ```bash
   gh workflow run platform.yml -f stage=teardown -f members=<index>
+  ```
+
+  Once `teardown` finishes green:
+
+  ```bash
   gh workflow run platform.yml -f stage=member -f members=<index>
   ```
 

@@ -14,15 +14,15 @@ import { Steps } from "@astrojs/starlight/components";
 **Who:** **Team lead** (platform lead). Students do nothing in Steps 1 to 4; they join at [Student onboarding (before Day 1)](../student-onboarding/).
 **When:** By **T-14** (14 days before day one). About 90 minutes for repo setup, roster creation, and the initial `whatif` preflight.
 
-In **Path B (Lead-provisioned cohort)**, one team lead sets up a single `Lead` pipeline repository that provisions and tears down the entire `n`-attendee lab, plus `n` private student repositories with no pipeline credentials. Confirm the accounts, permissions, and tools on [Requirements](/getting-started/requirements/) before starting.
+In **Path B (Lead-provisioned cohort)**, one team lead sets up a single `Lead` pipeline repository that provisions and tears down the entire `n`-attendee lab, plus `n` private student repositories (`<org>/<event>-student-01` .. `<nn>`) with no pipeline credentials. Students never create any GitHub repositories; if the team lead also participates in member challenges alongside students, assign slot `1` (`<event>-student-01`) to the team lead as well, otherwise keep `<event>-lead` strictly for cohort operations. Confirm the accounts, permissions, and tools on [Requirements](/getting-started/requirements/) before starting.
 
 ## 1.1 Create the lead repo and staging student template repo
 
-Create two repositories in your partner GitHub organization from [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator): one **lead repository** that runs `platform.yml`, and one **staging template repository** with the kit pre-imported on `main` so `Initialize-CohortRepos.ps1` can stamp out `n` ready-to-use student repos.
+Create two operator repositories in your partner GitHub organization from [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator): one **lead repository** (`<event>-lead`) that runs `platform.yml`, and one **staging template repository** (`<event>-student-template`) with the kit pre-imported on `main` that only `Initialize-CohortRepos.ps1` uses to stamp out the `n` student repos (students never touch `<event>-lead` or `<event>-student-template`).
 
 <Steps>
 
-1. **Create and import the lead repository (`<org>/<event>-lead`).** Open [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator), choose **Use this template** > **Create a new repository**, name it `<event>-lead` under your partner organization, and set visibility to **Private**. Clone it in VS Code (connect to WSL first on Windows 11), choose **Reopen in Container**, and import the kit at the repo root:
+1. **Create and import the lead repository (`<org>/<event>-lead`).** Open [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator), choose **Use this template** > **Create a new repository**, name it `<event>-lead` under your partner organization, and set visibility to **Private**. Clone it in VS Code into your Linux home folder such as `~/src` (on Windows 11, press `F1` > `WSL: Connect to WSL` or choose `AzureLinux-4` first so VS Code's remote server runs inside WSL), choose **Reopen in Container**, and import the kit at the repo root:
 
    ```bash
    curl -fsSLO https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Import-Kit.ps1
@@ -101,10 +101,10 @@ Work inside your `<event>-lead` Dev Container in PowerShell (`pwsh`).
    Field rules for Path B:
    - `index`: sequential whole numbers `1` to `n`.
    - `subscriptionId`: dedicated, empty workload subscription for that slot.
-   - `memberPrincipalId`: Entra object ID of a dedicated lab user account, the assigned attendee's Entra user, or an Entra security group. Required before Step 4 (`vending`) so the pipeline grants `Owner` on the workload subscription, `Reader` on the shared subscription, and `Managed Identity Operator` on `id-sqlmi-directory`.
+   - `memberPrincipalId`: Entra object ID of a dedicated lab user account, the assigned attendee's Entra user, or an Entra security group. Required before Step 4 (`vending`) so the pipeline grants `Owner` on the workload subscription, `Reader` on the shared subscription, and `Managed Identity Operator` on `id-sqlmi-directory`. Make sure each student knows which Entra sign-in identity to use (or is already a member of the group you specified) before Day 1—a GitHub invite alone does not grant Azure access.
    - `budgetEmail`: recipient for the subscription's $500 budget alert (at 80%).
    - `githubUsername` *(optional at T-14)*: leave blank (`""`) now if attendee names are not finalized yet; fill it in at Step 4 once attendees share their GitHub usernames.
-   - `suffix` *(optional)*: omit on first run so `Initialize-CohortRepos.ps1` generates and saves a deterministic 6-character lowercase alphanumeric suffix per slot.
+   - `suffix` *(optional)*: omit on first run so `Initialize-CohortRepos.ps1` generates a random 6-character lowercase alphanumeric suffix once per slot and persists it to `.local/roster.json`. Back up `.local/roster.json` privately after generation so suffixes are never lost.
 
 4. **Verify regional vCPU and SQL Managed Instance capacity across all `n` subscriptions.** Each attendee slot needs **16 vCPUs** of `Standard_D8as_v6` (`Standard DASv6 Family vCPUs` and `Total Regional vCPUs`, totaling `16 × n` vCPUs across the `n` workload subscriptions and billing account) plus regional capacity for one General Purpose **SQL Managed Instance** per workload subscription in C5:
 
@@ -117,27 +117,27 @@ Work inside your `<event>-lead` Dev Container in PowerShell (`pwsh`).
    }
    ```
 
-   Request quota increases under **Usage + quotas** now if any subscription falls short.
+   For both `Total Regional vCPUs` and `Standard DASv6 Family vCPUs` in every subscription, confirm `CurrentValue + 16 <= Limit`. Then in the Azure portal under **Usage + quotas** (filtered by your region and each workload subscription), verify **Azure SQL Managed Instance** regional vCore and subnet quota (`Microsoft.Sql`), and request increases early through your team lead / event owner if any subscription falls short.
 
 </Steps>
 
 ## 1.3 Stamp out the private student repos
 
-From `factory/` in `<event>-lead`, run `Initialize-CohortRepos.ps1`:
+From `factory/` in `<event>-lead`, run `Initialize-CohortRepos.ps1` (pass `-CoachTeamSlug` for an existing GitHub team in `<org>`, `-CoachUsername` for individual coach accounts, or omit both if you will add coaches later):
 
 ```powershell
 ./scripts/Initialize-CohortRepos.ps1 `
   -RosterPath .local/roster.json `
   -TemplateRepository '<org>/<event>-student-template' `
   -RepoPrefix '<event>-student' `
-  -CoachTeamSlug 'coaches'
+  -CoachTeamSlug '<existing-coach-team-slug>'
 ```
 
 What this script does idempotently:
 
 - Creates private repositories `<event>-student-01` through `<event>-student-<nn>` from `<org>/<event>-student-template` and tags each with the `apex-factory-student` topic.
-- Generates and persists a deterministic 6-character `suffix` for every slot in `.local/roster.json` (preserving any suffix already recorded).
-- Grants the `@<org>/coaches` GitHub team **Read** (`pull`) access to each student repository so coaches can review evidence on event days.
+- Generates a random 6-character `suffix` once per slot and persists it in `.local/roster.json` (preserving any suffix already recorded—keep a private backup of `.local/roster.json`).
+- Grants any specified `-CoachTeamSlug` team or `-CoachUsername` users **Read** (`pull`) access to each student repository so coaches can review evidence on event days.
 - Writes initial private Handoff Cards to `factory/.local/handoff/member-<index>.md`.
 
 :::caution[Never configure a Member pipeline on student repos]
@@ -166,10 +166,15 @@ Do **not** run `Initialize-PlatformPipeline.ps1 -Profile Member` on any `<event>
    gh workflow run platform.yml -f stage=whatif
    ```
 
-   If your cohort has **more than 256 members**, stay under GitHub Actions' 256-job matrix cap by dispatching in index ranges:
+   If your cohort has **more than 256 members**, stay under GitHub Actions' 256-job matrix cap by dispatching in index ranges—waiting for each batch to finish green before starting the next (`platform.yml` cancels older queued runs in the same concurrency group):
 
    ```bash
    gh workflow run platform.yml -f stage=whatif -f members=1-200
+   ```
+
+   Once `1-200` finishes green:
+
+   ```bash
    gh workflow run platform.yml -f stage=whatif -f members=201-300
    ```
 

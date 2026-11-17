@@ -28,34 +28,39 @@ Confirm every item below before dispatching `teardown` in `<event>-lead`:
 
 ## 1. Tear down all member scopes and the shared foundation (Team lead)
 
-Run commands from `factory/` in `<event>-lead` (never from `vm-dev01`):
+Run commands in PowerShell (`pwsh`) from `factory/` in `<event>-lead` (never from `vm-dev01`):
 
 - **Standard cohort (up to 256 members):** removes all `1..n` member scopes in parallel waves (`MAX_PARALLEL`, default `20`) and, only after every member scope succeeds, tears down the shared foundation (`rg-hub`, `rg-management` when `include-management=true`, policies, and `mg-factory*` management groups):
 
-  ```bash
-  gh workflow run platform.yml \
-    -f stage=teardown \
-    -f members=all \
-    -f confirm-team-teardown=true \
+  ```powershell
+  gh workflow run platform.yml `
+    -f stage=teardown `
+    -f members=all `
+    -f confirm-team-teardown=true `
     -f include-management=true
   ```
 
   *(Omit `-f include-management=true` only when the event owner explicitly plans to reuse `rg-management` and `id-sqlmi-directory`'s Graph grant in the same tenant.)*
 
-- **Large cohort (more than 256 members):** stay within GitHub Actions' 256-job matrix cap by tearing down member scopes in index batches first (without `confirm-team-teardown`), then removing the shared foundation with `-f members=none` once every member batch is green:
+- **Large cohort (more than 256 members):** stay within GitHub Actions' 256-job matrix cap by tearing down member scopes in sequential index batches first (without `confirm-team-teardown`), **waiting for each batch to finish green** before dispatching the next, and then removing the shared foundation with `-f members=none`:
 
-  ```bash
+  ```powershell
   gh workflow run platform.yml -f stage=teardown -f members=1-200
+  ```
+
+  Once `1-200` finishes green:
+
+  ```powershell
   gh workflow run platform.yml -f stage=teardown -f members=201-325
   ```
 
   After **every** member batch finishes green, finalize the shared foundation:
 
-  ```bash
-  gh workflow run platform.yml \
-    -f stage=teardown \
-    -f members=none \
-    -f confirm-team-teardown=true \
+  ```powershell
+  gh workflow run platform.yml `
+    -f stage=teardown `
+    -f members=none `
+    -f confirm-team-teardown=true `
     -f include-management=true
   ```
 
@@ -96,5 +101,5 @@ This single command removes `id-factory-pipeline`'s role assignments across Tena
 2. **Revoke temporary human privilege elevations.** Only after `Remove-PlatformPipeline.ps1` and the verification loop succeed, remove temporary human **Owner** assignments at Tenant Root, Global Administrator access elevation, and Privileged Role Administrator PIM activations.
 
 3. **Archive or lock down student repositories per partner retention policy.** Student repositories (`<org>/<event>-student-*`) and `<org>/<event>-student-template` remain in GitHub with each student's `main` evidence and `vm-dev01-work` code branch preserved. Depending on your partner retention policy:
-   - Archive `<event>-student-*` repositories (`gh repo edit <org>/<repo> --archived`) so evidence remains read-only for post-event review, **or**
+   - Archive `<event>-student-*` repositories (`gh repo archive <org>/<repo>`) so evidence remains read-only for post-event review, **or**
    - Downgrade external Write (`push`) collaborators to Read (`pull`) or remove outside collaborator access once attendees have exported any personal notes they are permitted to keep.
