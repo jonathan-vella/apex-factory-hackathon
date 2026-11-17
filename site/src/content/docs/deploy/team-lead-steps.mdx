@@ -27,21 +27,17 @@ Use only a dedicated, non-production tenant and dedicated, empty subscriptions. 
 
 ## 2.1 Deploy the foundation stage (Team lead)
 
-Before running this stage, confirm that [Step 1](../set-up-your-repo/) is complete: `.local/roster.json` is registered with `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, and your account holds **Owner** at Tenant Root plus **Owner** on the shared services subscription.
+**When:** At **T-7**, after [Step 1](../set-up-your-repo/) is complete—including a green `whatif` preflight run—`.local/roster.json` is registered with `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, and your account holds **Owner** at Tenant Root plus **Owner** on the shared services subscription.
 
-The `whatif` stage checks the roster and runs the ALZ-lite what-if job. On an empty foundation, that job reports **First deployment** and previews nothing; this is expected. Its success, not every member preflight row, gates `foundation`. Resolve member failures before their member stages. Foundation creates the management groups, `rg-management` with `log-management`/`id-sqlmi-directory`, and `rg-hub` with firewall, DNS and policies. See the [stage timing table](../how-it-works/#stages).
-
-```bash
-gh workflow run platform.yml -f stage=whatif
-```
-
-Open the **Actions** tab on GitHub, approve the `whatif` run if asked, and **wait for it to finish green** before dispatching `foundation` (`platform.yml` cancels older queued runs in the same concurrency group if you queue multiple dispatches back-to-back):
+Foundation creates the management groups (`mg-factory`, `mg-factory-platform`, `mg-factory-corp`), `rg-management` (`log-management` and `id-sqlmi-directory`), and `rg-hub` (Azure Firewall, Private DNS, and policies). Run from `factory/` in your laptop Dev Container:
 
 ```bash
 gh workflow run platform.yml -f stage=foundation
 ```
 
-Approve the `foundation` run if asked. Done when both runs are green.
+*(Only if you edited `.local/roster.json` since Step 1, run `./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json` and `gh workflow run platform.yml -f stage=whatif` first, and wait for `whatif` to finish green before running `foundation`.)*
+
+Open the **Actions** tab on GitHub and approve the `foundation` run if asked. Done when the run is green.
 
 ## 2.2 Grant Microsoft Graph read permissions (Privileged Role Administrator)
 

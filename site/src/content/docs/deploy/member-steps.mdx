@@ -35,26 +35,28 @@ If `az account show` fails, sign in again with `az login --use-device-code`. `$s
   caption="What the member stage builds: vm-app01 (the legacy app) and vm-dev01 (your workstation), reached through Bastion."
 />
 
-The `member` stage creates `rg-datacenter` with `vm-app01` (legacy Contoso University on IIS, SQL Server 2022, MSMQ) and `vm-dev01` (your Windows 11 workstation), runs `Test-Datacenter.ps1` while both VMs are running, and only if every check passes connects `vm-app01` to Azure Arc.
+The `member` stage runs preflight (`Test-Preflight.ps1 -Fix`), deploys `rg-datacenter` with `vm-app01` (legacy Contoso University on IIS, SQL Server 2022, MSMQ) and `vm-dev01` (your Windows 11 workstation), runs `Test-Datacenter.ps1` while both VMs are running, and—only if every check passes—connects `vm-app01` to Azure Arc.
+
+:::note[Pick the command for your role (never run both)]
+In Path A, everyone—including the team lead—deploys their own datacenter at **T-3**. Because the team lead's repository holds the team-wide `Lead` pipeline (`roster.json` for slots `1..n`), GitHub Actions requires `-f members=1` there so the lead deploys **only their own slot `1` datacenter** instead of every teammate's subscription. Every other member's repository holds a single-user `Member` pipeline, so no `-f members=...` flag is needed.
+:::
 
 <Steps>
 
-1. **Start the preflight and `member` stages.**
-   - **In your own repo (member profile):** run `whatif` first, wait for it to finish green in **Actions** (`platform.yml` cancels older queued runs in the same concurrency group), and then run `member`:
-
-     ```bash
-     gh workflow run platform.yml -f stage=whatif
-     ```
+1. **Deploy your datacenter (`T-3`, in your laptop Dev Container — `factory/`).** Run **one** command matching your role:
+   - **If you are a team member (indexes `2..n`):**
 
      ```bash
      gh workflow run platform.yml -f stage=member
      ```
 
-   - **In the team lead's repo (`Lead` profile):** run `member` only for your own index from `roster.json` (`member` runs preflight automatically inside the job):
+   - **If you are the team lead (deploying your own slot `1` datacenter):**
 
      ```bash
-     gh workflow run platform.yml -f stage=member -f members=<your index>
+     gh workflow run platform.yml -f stage=member -f members=1
      ```
+
+   Open the **Actions** tab on GitHub and approve the run if prompted. *(No Windows Server Azure Hybrid Benefit licenses? Append `-f no-hybrid-benefit=true` to this first dispatch and tell your team lead; see [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/).)*
 
 2. **Check the test result in the Actions run summary.** `Test-Datacenter.ps1` checks VM state and size, license type, Trusted Launch (secure boot and vTPM), no public IPs, Azure Bastion Standard, and in-VM checks (IIS up, SQL Server up, and the performance kit's planted data present). It runs before Arc because Arc turns off the VM run commands that the in-VM checks use. Done when every row is PASS.
 
@@ -64,12 +66,7 @@ The `member` stage creates `rg-datacenter` with `vm-app01` (legacy Contoso Unive
 
 </Steps>
 
-If a run fails, read the run log. The `member` stage is safe to run again until Arc onboarding starts. After Arc starts, see [If you need to start over](#if-you-need-to-start-over).
-
-**No Windows Server licenses?** Azure Hybrid Benefit is on by default for `vm-app01`. If you do not hold eligible licenses, set the input on the initial member stage and let your team lead know, as described on the [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) page:
-
-- In your own repo (member profile): `gh workflow run platform.yml -f stage=member -f no-hybrid-benefit=true`
-- In the team lead's repo: `gh workflow run platform.yml -f stage=member -f members=<your index> -f no-hybrid-benefit=true`
+If a run fails before Arc onboarding starts, read the run log, fix the cause, and run the same command again. After Arc starts, see [If you need to start over](#if-you-need-to-start-over).
 
 ## 3.2 Run the first Arc SQL assessment and check Hybrid Benefit
 
@@ -167,29 +164,33 @@ Start both again before your team lead runs Step 4 at T-1 (`az vm start -g rg-da
 
 ## If you need to start over
 
-Before T+2, never run a full, unfiltered `teardown` in the team lead's repo. To recover one member there, pass `-f members=<your index>` to both `teardown` and `member`, or ask your team lead to escalate to the event owner for a coach repair.
+- **Before Arc onboarding starts:** fix the error and re-run your Step 3.1 `member` command (`gh workflow run platform.yml -f stage=member` for a team member, or `gh workflow run platform.yml -f stage=member -f members=1` for the team lead).
+- **After Arc onboarding starts, before C5:** `member` refuses an existing Arc machine, and a half-onboarded VM has guest run commands disabled. With the event owner's approval, tear down **only your member scope**, **wait for `teardown` to finish green in Actions**, and then re-run `member`:
+  - **If you are a team member (indexes `2..n`, in your own repo):**
 
-- **Before Arc:** in your own repo (member profile), run the `member` stage again to repair the datacenter. In the team lead's repo, add `-f members=<your index>` to the `member` command.
-- **After Arc onboarding starts, before C5:** `member` refuses an existing Arc machine; a partially disabled guest agent can instead make the test fail. Do not blindly rerun it. To rebuild with the event owner's approval, run `teardown`, **wait for it to finish green in Actions**, and then run `member`. In your own repo (member profile):
+    ```bash
+    gh workflow run platform.yml -f stage=teardown
+    ```
 
-  ```bash
-  gh workflow run platform.yml -f stage=teardown
-  ```
+    Once `teardown` finishes green:
 
-  Once `teardown` finishes green:
+    ```bash
+    gh workflow run platform.yml -f stage=member
+    ```
 
-  ```bash
-  gh workflow run platform.yml -f stage=member
-  ```
+  - **If you are the team lead (recovering your own slot `1`—or helping recover one teammate's `<index>`—from your lead repo):** always pass `-f members=<index>` so you never tear down the rest of the team:
 
-  In the team lead's repo, run the same stages with your index:
+    ```bash
+    gh workflow run platform.yml -f stage=teardown -f members=1
+    ```
 
-  ```bash
-  gh workflow run platform.yml -f stage=teardown -f members=<your index>
-  gh workflow run platform.yml -f stage=member -f members=<your index>
-  ```
+    Once `teardown` finishes green:
 
-  Member cleanup removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If you do not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If you were already vended, the team lead must run `vending` for your index afterward.
+    ```bash
+    gh workflow run platform.yml -f stage=member -f members=1
+    ```
+
+  Member cleanup removes `rg-datacenter`, `rg-spoke` and the archetype (including SQL Managed Instance). Repeat Step 3 and the `vm-dev01` setup afterward. Append `-f no-hybrid-benefit=true` to `member` if you lack eligible Windows Server licenses, and if your subscription was already vended in Step 4, have the team lead re-run `gh workflow run platform.yml -f stage=vending -f members=<index>` afterward.
 
 :::caution
 After C5, do not use this recovery; member teardown removes the archetype, including the SQL Managed Instance, which takes hours to provision again. Ask the event owner for a coach repair.

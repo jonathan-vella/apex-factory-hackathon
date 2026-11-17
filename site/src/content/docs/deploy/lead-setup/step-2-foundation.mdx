@@ -30,29 +30,23 @@ Use only a dedicated, non-production tenant and dedicated, empty subscriptions. 
 
 ## 2.1 Deploy the foundation stage
 
-Confirm that [Step 1](../step-1-cohort-and-preflight/) is complete and `.local/roster.json` is registered in `<event>-lead` via `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`.
+**When:** At **T-7**, after [Step 1](../step-1-cohort-and-preflight/) is complete—including a green `whatif` preflight run—and `.local/roster.json` is registered in `<event>-lead` via `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`.
 
-From `factory/` in `<event>-lead`, run `whatif`, **wait for it to finish green in Actions**, and then run `foundation` (`platform.yml` cancels older queued runs in the same concurrency group if you queue both at once):
-
-```bash
-gh workflow run platform.yml -f stage=whatif
-```
-
-*(If your cohort exceeds 256 members, run sequential index batches such as `-f members=1-200` and `-f members=201-300`, waiting for each batch to finish green before dispatching the next.)*
-
-Once `whatif` is green, dispatch `foundation`:
+From `factory/` in `<event>-lead`, dispatch `foundation`:
 
 ```bash
 gh workflow run platform.yml -f stage=foundation
 ```
 
-On a clean tenant, the ALZ-lite preview job reports **First deployment** before `foundation` creates:
+*(Only if you updated `.local/roster.json` since Step 1, sync secrets with `./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json` and run `gh workflow run platform.yml -f stage=whatif`—batched as `-f members=1-200`, then `-f members=201-300` above 256 members—waiting for `whatif` to finish green before dispatching `foundation`.)*
+
+`foundation` creates:
 
 - Management groups `mg-factory`, `mg-factory-platform`, and `mg-factory-corp` under Tenant Root, with core governance policies assigned at `mg-factory-corp`.
 - `rg-management` in the shared services subscription containing `log-management` and the user-assigned managed identity `id-sqlmi-directory`.
 - `rg-hub` in the shared services subscription containing `vnet-hub`, Azure Firewall (`afw-hub` / `afwp-hub`), and Private DNS zones.
 
-Open the **Actions** tab on `<event>-lead` and approve each run if prompted. Done when both `whatif` and `foundation` are green.
+Open the **Actions** tab on `<event>-lead` and approve the run if prompted. Done when `foundation` is green.
 
 ## 2.2 Grant Microsoft Graph read permissions
 

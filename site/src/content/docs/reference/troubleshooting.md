@@ -43,19 +43,10 @@ sidebar:
 
 ### If Arc onboarding needs recovery
 
-**After Arc onboarding starts, before C5:** the stage refuses an Arc machine; a partially disabled guest agent can instead break the test. With the event owner's approval, rebuild with `teardown`, then `member`. In the member's own repo (member profile), run:
+**After Arc onboarding starts, before C5:** the stage refuses an Arc machine; a partially disabled guest agent can instead break the test. With the event owner's approval, tear down your member scope first, **wait for `teardown` to finish green in Actions**, and then re-run `member`:
 
-```bash
-gh workflow run platform.yml -f stage=teardown
-gh workflow run platform.yml -f stage=member
-```
-
-In the team lead's repo, run the same stages with the member's index:
-
-```bash
-gh workflow run platform.yml -f stage=teardown -f members=<your index>
-gh workflow run platform.yml -f stage=member -f members=<your index>
-```
+- **Team member (`2..n`, in your own repo):** run `gh workflow run platform.yml -f stage=teardown`, wait for it to finish green, then run `gh workflow run platform.yml -f stage=member`.
+- **Team lead (for your own slot `1` or a single member `<index>` from the lead repo):** run `gh workflow run platform.yml -f stage=teardown -f members=<index>`, wait for it to finish green, then run `gh workflow run platform.yml -f stage=member -f members=<index>`.
 
 Member `teardown` removes `rg-datacenter`, `rg-spoke` and the archetype, including the SQL Managed Instance. Repeat Step 3 and the `vm-dev01` setup. If the member does not hold eligible Windows Server licenses, add `-f no-hybrid-benefit=true` to the `member` command. If the member was already vended, the team lead must run `vending` for that index afterward. Before T+2, never run a full, unfiltered team `teardown` in the team lead's repo; pass `-f members=<your index>` or ask your team lead to escalate to the event owner for a coach repair. After C5, do not use this recovery; ask the event owner for a coach repair.
 

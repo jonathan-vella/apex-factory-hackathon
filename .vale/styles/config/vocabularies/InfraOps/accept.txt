@@ -71,6 +71,8 @@ onboarded
 onboarding
 onboards
 PaaS
+peering
+peerings
 perf
 Pre
 PRD
