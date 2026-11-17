@@ -43,23 +43,26 @@ import Diagram from "../../../components/Diagram.astro";
 
 Two different values name member-scoped things. Both are saved in `factory/.local/settings.json`, and later pages show them as `$s.memberIndex` and `$s.suffix`:
 
-- The **member index** `n` (1 to 20) is a number your team lead assigns (1 to 20, usually 1 to 5 with the lead as 1). It sets your IP ranges and appears in names such as `rcg-member-<n>`, your firewall rule collection group in the hub. It is unique within a team.
+- The **member index** `n` is a positive whole number starting at `1` (with the team lead as `1`) that your team lead assigns. It sets your IP ranges and appears in names such as `rcg-member-<n>`, your firewall rule collection group in the hub. It is unique within a platform team.
 - The **suffix** is a random six-character string that `Initialize-Settings.ps1` generates once and never changes. It names your archetype resources, for example `rg-university-<suffix>`.
 
 ## IP address plan
+
+For member index `n`, let `b = floor(n / 256)` and `o3 = n % 256`. Indexes `1` to `255` (`b = 0`) use `10.10.n.0/24` and `10.20.n.0/24`; indexes `256` and higher (`b >= 1`) use non-overlapping `/24` blocks in `10.128.0.0/10` (`10.(127 + b).o3.0/24`) for datacenters and `10.192.0.0/10` (`10.(191 + b).o3.0/24`) for spokes.
 
 | Range | Purpose |
 |---|---|
 | `10.100.0.0/16` | Hub VNet (shared services subscription) |
 | `10.100.0.0/26` | `AzureFirewallSubnet` inside the hub |
 | `10.100.0.4` | Default hub firewall private IP; confirm the assigned address in its Overview |
-| `10.10.n.0/24` | Member `n`'s datacenter VNet `vnet-datacenter` (workload subscription) |
-| `10.10.n.0/25` | `snet-servers` inside the datacenter: `vm-app01` at `.4`, `vm-dev01` at `.5` |
-| `10.10.n.192/26` | `AzureBastionSubnet` inside the datacenter |
-| `10.20.n.0/24` | Member `n`'s spoke VNet `vnet-spoke` (workload subscription) |
-| `10.20.n.0/26`, `.64/26`, `.128/26` | Spoke subnets `snet-app`, `snet-pe` and `snet-sqlmi` |
+| `10.10.n.0/24` (`n = 1..255`) | Member `n`'s datacenter VNet `vnet-datacenter` (workload subscription) |
+| `10.10.n.0/25`, `.192/26` (`n = 1..255`) | `snet-servers` (`vm-app01` at `.4`, `vm-dev01` at `.5`) and `AzureBastionSubnet` inside the datacenter |
+| `10.20.n.0/24` (`n = 1..255`) | Member `n`'s spoke VNet `vnet-spoke` (workload subscription) |
+| `10.20.n.0/26`, `.64/26`, `.128/26` (`n = 1..255`) | Spoke subnets `snet-app`, `snet-pe` and `snet-sqlmi` |
+| `10.(127 + floor(n/256)).(n%256).0/24` (`n >= 256`) | Overflow datacenter VNet pool inside `10.128.0.0/10` (`snet-servers` `.0/25` with `.4` and `.5`, `AzureBastionSubnet` `.192/26`; for example `n = 256` uses `10.128.0.0/24`) |
+| `10.(191 + floor(n/256)).(n%256).0/24` (`n >= 256`) | Overflow spoke VNet pool inside `10.192.0.0/10` (`snet-app` `.0/26`, `snet-pe` `.64/26`, `snet-sqlmi` `.128/26`; for example `n = 256` uses `10.192.0.0/24`) |
 
-`snet-servers` belongs to the datacenter, not the spoke. The datacenter and the spoke aren't peered with each other: traffic between them goes through the hub firewall.
+`snet-servers` belongs to the datacenter, not the spoke. The datacenter and the spoke aren't peered with each other: traffic between them goes through the hub firewall. `afwp-hub` computes its SNAT private ranges dynamically so every member's `snet-pe` (`/26` at `.64/26`) is excluded and source-NATed for symmetric private-endpoint routing while MI link and management traffic retain their real source IPs.
 
 `snet-sqlmi` has the network security group `nsg-sqlmi` and the route table `rt-sqlmi`. Vending creates both once, empty, and SQL MI's network intent policy then adds its own rules and routes. Don't redeploy them inline, because that would remove the MI's rules. The kit adds its MI link rules as separate child resources.
 

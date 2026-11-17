@@ -1,4 +1,4 @@
-// rg-spoke: vnet-spoke 10.20.n.0/24 with snet-app, snet-pe and snet-sqlmi, their route tables,
+// rg-spoke: vnet-spoke with snet-app, snet-pe and snet-sqlmi, their route tables,
 // nsg-sqlmi, and the peering to the hub. DNS points at the firewall (DNS proxy).
 param location string
 param memberIndex int
@@ -9,12 +9,16 @@ param logAnalyticsWorkspaceId string
 @description('nsg-sqlmi and rt-sqlmi already exist: leave them, and their MI-added rules and routes, alone.')
 param miNetworkExists bool
 
-var vnetPrefix = '10.20.${memberIndex}.0/24'
-var appPrefix = '10.20.${memberIndex}.0/26'
-var pePrefix = '10.20.${memberIndex}.64/26'
-var miPrefix = '10.20.${memberIndex}.128/26'
-var datacenterPrefix = '10.10.${memberIndex}.0/24'
-var sqlServerIp = '10.10.${memberIndex}.4'
+var block = memberIndex / 256
+var dcOct2 = block == 0 ? 10 : 127 + block
+var spokeOct2 = block == 0 ? 20 : 191 + block
+var oct3 = memberIndex % 256
+var vnetPrefix = '10.${spokeOct2}.${oct3}.0/24'
+var appPrefix = '10.${spokeOct2}.${oct3}.0/26'
+var pePrefix = '10.${spokeOct2}.${oct3}.64/26'
+var miPrefix = '10.${spokeOct2}.${oct3}.128/26'
+var datacenterPrefix = '10.${dcOct2}.${oct3}.0/24'
+var sqlServerIp = '10.${dcOct2}.${oct3}.4'
 
 // SQL MI adds its own rules and routes (network intent policy). A PUT of nsg-sqlmi or rt-sqlmi would
 // remove them, so they're created once, empty, and the kit's rules and routes are child resources.

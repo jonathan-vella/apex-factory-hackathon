@@ -6,7 +6,7 @@ Tests infra/datacenter/scripts/Prepare-MiLinkSource.ps1 without running it: synt
 .DESCRIPTION
 The script changes a SQL Server and Windows Firewall, so it only runs on vm-app01, in a Bastion session. These checks cover what can be tested anywhere:
 it parses in PowerShell 7 and (on Windows) in Windows PowerShell 5.1, it uses no PowerShell 7-only syntax, it asks for an elevated session,
-it accepts only 10.20.<n>.128/26 with n from 1 to 20, it has comment-based help, and it logs to C:\LabTools\logs. It also checks that the datacenter's
+it accepts valid spoke snet-sqlmi prefixes (10.20.<1..255>.128/26 and 10.<192..255>.<0..255>.128/26), it has comment-based help, and it logs to C:\LabTools\logs. It also checks that the datacenter's
 run-command registrations don't mention it and that the C7 page downloads it from the right path.
 .EXAMPLE
 ./test/Test-MiLinkSource.Tests.ps1
@@ -59,11 +59,11 @@ $validate = $parameter.Attributes | Where-Object { $_.TypeName.Name -eq 'Validat
 Assert-True ($null -ne $validate) 'MiSubnetPrefix must validate its value.'
 $validator = $validate.PositionalArguments[0].ScriptBlock.GetScriptBlock()
 
-foreach ($good in '10.20.1.128/26', '10.20.3.128/26', '10.20.9.128/26', '10.20.10.128/26', '10.20.19.128/26', '10.20.20.128/26') {
+foreach ($good in '10.20.1.128/26', '10.20.3.128/26', '10.20.9.128/26', '10.20.10.128/26', '10.20.19.128/26', '10.20.20.128/26', '10.20.21.128/26', '10.20.255.128/26', '10.192.0.128/26', '10.192.1.128/26', '10.255.255.128/26') {
     $result = $validator.InvokeWithContext($null, @(New-Object psvariable '_', $good))
     Assert-True ($true -eq $result[0]) "$good should be accepted."
 }
-foreach ($bad in '10.20.0.128/26', '10.20.21.128/26', '10.20.3.0/24', '10.20.3.128/25', '10.10.3.128/26', '10.20.3.128', '10.20.03.128/26', '10.20.3.128/26 ', '', 'any') {
+foreach ($bad in '10.20.0.128/26', '10.20.256.128/26', '10.21.1.128/26', '10.191.0.128/26', '10.20.3.0/24', '10.20.3.128/25', '10.10.3.128/26', '10.20.3.128', '10.20.03.128/26', '10.192.00.128/26', '10.20.3.128/26 ', '', 'any') {
     $rejected = $false
     try { $null = $bad | ForEach-Object $validator } catch { $rejected = $true }
     Assert-True $rejected "'$bad' should be rejected."
@@ -86,7 +86,7 @@ Assert-True ($null -eq $registrations) 'The datacenter run-command registrations
 
 $page = Get-Content -Raw (Join-Path $repoRoot 'site/src/content/docs/challenges/c07-migrate-and-go-live.mdx')
 Assert-True ($page.Contains('raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/infra/datacenter/scripts/Prepare-MiLinkSource.ps1')) 'C7 must download the script from its raw URL on main.'
-Assert-True ($page -match '-MiSubnetPrefix 10\.20\.') 'C7 must show the -MiSubnetPrefix command.'
+Assert-True ($page -match '-MiSubnetPrefix 10\.') 'C7 must show the -MiSubnetPrefix command.'
 
 Write-Output "PASS: $passed MI link source script checks (nothing was run against Azure or SQL Server)."
 exit 0

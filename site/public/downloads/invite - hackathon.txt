@@ -17,9 +17,9 @@ You’ll work as a delivery team for fictional Contoso University, modernizing i
 
 Day 1 includes the kickoff, customer-outcome and assessment activities, target-state decisions, CoE archetype deployment and the start of application modernization. Day 2 continues modernization, then focuses on migration and go-live, validation, database optimization and handover.
 
-Please arrive with your pre-event setup complete (Deploy guide, Steps 1–4):
+Please arrive with your pre-event setup complete (Path A Deploy Steps 1–4, or Path B Student onboarding):
 
-- Your private GitHub repository and Copilot-enabled development environment are ready, and your preflight is complete.
+- Your private GitHub repository (self-created in Path A, or accepted from your team lead's invitation in Path B) and Copilot-enabled dev container are ready.
 - Your Azure access is in place, including unconditional Owner on your own workload subscription.
 - Your datacenter is deployed and tested, vm-app01 is connected to Azure Arc, vm-dev01 is set up, and your team lead has completed vending.
 - Both datacenter VMs are running when you arrive. Keep vm-dev01 running throughout the event.
@@ -28,7 +28,8 @@ Bring your laptop and any questions about the setup or event. Please read the Ha
 
 - Requirements: https://factory.apexops.pro/getting-started/requirements/
 - Roles: https://factory.apexops.pro/getting-started/roles/
-- Deploy: https://factory.apexops.pro/deploy/
+- Deploy (Path A — Self-service teams): https://factory.apexops.pro/deploy/
+- Student onboarding (Path B — Lead-provisioned cohort): https://factory.apexops.pro/deploy/lead-setup/student-onboarding/
 
 Do not share tenant, subscription or personal access details in public channels; share roster information privately with your team lead.
 

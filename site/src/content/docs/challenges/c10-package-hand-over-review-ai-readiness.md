@@ -22,13 +22,13 @@ Modernizing one app is only worth it if the next team can repeat it and the cust
 
 **Starting point.** The source material lives in each member's own repo: the `factory/evidence/cNN/` folders for C1 to C9, including every member's [C8 acceptance pack](../c08-validate-the-pattern/). Use [C1's outcomes](../c01-define-the-opportunity/) and [C9's fix scripts](../c09-optimize-the-db-with-ghcp/) in the final package. Ask every teammate to share their C8 pack (`factory/evidence/c08/acceptance-handover.md` and its `acceptance.json`) on one screen or in your team chat. Save each as `factory/evidence/c10/member-packs/member-<n>.md` and `member-<n>-acceptance.json`, where `<n>` is that member's index.
 
-**Fixed by the kit.** The three attendee templates and the scoring rule: the team lead's copy is the one coaches score.
+**Fixed by the kit.** The three attendee templates and the scoring rule: the team lead's (or pod lead's, in a multi-pod cohort) copy is the one coaches score.
 
 **You decide.** Which asset to package, who the engagement is handed to and how they operate it, and where Copilot's agents needed a human.
 
-**Where to work.** The dev container of your own repo, with VS Code open on it (the repo you created in [Set up your repo](../../deploy/set-up-your-repo/)). No `vm-dev01` or Azure access is needed. Run `git pull` first, so you start from the latest `main`.
+**Where to work.** The dev container of your own repo, with VS Code open on it (the repo you created in [Set up your repo](../../deploy/set-up-your-repo/), or your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort). No `vm-dev01` or Azure access is needed. Run `git pull` first, so you start from the latest `main`.
 
-One person, ideally the team lead, owns the package in their repo at `factory/evidence/c10/` and types the final files on one screen; don't open each other's repos. The other members draft their assigned parts and send them to that person. Split the work so nobody waits: one person on the handover (requirement 2), one on the gap register and checklist (requirements 3 and 4), and the others on the asset (requirement 1) and the showcase (requirement 5). Then swap to review each other's parts. When the package is final, everyone copies the files unchanged to their own repo.
+One person, ideally the team lead (or pod lead), owns the package in their repo at `factory/evidence/c10/` and types the final files on one screen; don't open each other's repos. The other members draft their assigned parts and send them to that person. Split the work so nobody waits: one person on the handover (requirement 2), one on the gap register and checklist (requirements 3 and 4), and the others on the asset (requirement 1) and the showcase (requirement 5). Then swap to review each other's parts. When the package is final, everyone copies the files unchanged to their own repo.
 
 When the files are final, every teammate saves the same files under the same names in their own `factory/evidence/c10/`, commits with a conventional message (for example `docs: C10 package`) and pushes `main`.
 
@@ -66,7 +66,7 @@ To complete this challenge, show your coach in `factory/evidence/c10/` on `main`
 - [ ] The AI-readiness gap register, with an entry each time a coach unblocked the team (including a supplied checkpoint), or a credible non-use entry explaining the human reviews that were still needed.
 - [ ] The factory-kit checklist, with all items addressed.
 - [ ] The showcase outline (`showcase.md`), delivered to your coach.
-- [ ] Every teammate's copies match the team lead's.
+- [ ] Every teammate's copies match the team lead's (or pod lead's, in a multi-pod cohort) copy.
 - [ ] Outcome check (unscored guidance): every gap in your register has an owner and a next step, so Dana can say what comes after the handover.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
@@ -99,4 +99,4 @@ C10 produces documents only, so there is no deployed state to reset. To redo a d
 - [Cloud Adoption Framework: AI adoption](https://learn.microsoft.com/azure/cloud-adoption-framework/ai/strategy)
 - [Cloud Adoption Framework: Manage](https://learn.microsoft.com/azure/cloud-adoption-framework/manage/ready-cloud-operations)
 
-After the showcase, save your work and follow [Tear down (T+2)](../../deploy/tear-down/).
+After the showcase, save your work and follow [Tear down (T+2)](../../deploy/tear-down/) (or [Tear down: Lead-provisioned cohort](/deploy/lead-setup/tear-down/)).

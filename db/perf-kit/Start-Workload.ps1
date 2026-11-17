@@ -13,9 +13,9 @@ app. At the end it prints the calls, errors, average and 95th percentile duratio
 Point it at the source SQL Server before migration, or at SQL MI after cutover. Needs only the
 SqlServer module, which it installs for the current user if it's missing.
 .PARAMETER Server
-The SQL Server to load. Defaults to the source, 10.10.n.4. After cutover, the SQL MI host name.
+The SQL Server to load. Defaults to the source vm-app01 IP derived from -MemberIndex. After cutover, the SQL MI host name.
 .PARAMETER MemberIndex
-The member index n, 1-20, which sets the default Server.
+The member index n (1 or greater), which sets the default Server.
 .PARAMETER Authentication
 SqlPassword connects as contosoapp (source only), with -SqlPassword, else the password in the kit folder's .local/<subscription-id>/datacenter.json, else the documented lab password.
 ActiveDirectoryDefault uses the signed-in Entra identity, which SQL MI needs after cutover.
@@ -37,7 +37,7 @@ How many connections run queries at the same time.
 [CmdletBinding()]
 param(
     [string] $Server,
-    [ValidateRange(1, 20)]
+    [ValidateRange(1, [int]::MaxValue)]
     [int] $MemberIndex = 1,
     [ValidateSet('SqlPassword', 'ActiveDirectoryDefault', 'ActiveDirectoryInteractive')]
     [string] $Authentication = 'SqlPassword',
@@ -50,8 +50,34 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
+
+function Get-MemberNetworkPlan {
+    param([int] $MemberIndex)
+    $block = [int][Math]::Floor($MemberIndex / 256)
+    if ($block -gt 64) {
+        throw "MemberIndex $MemberIndex exceeds the IPv4 address pool capacity."
+    }
+    $dcOct2 = if ($block -eq 0) { 10 } else { 127 + $block }
+    $spokeOct2 = if ($block -eq 0) { 20 } else { 191 + $block }
+    $oct3 = $MemberIndex % 256
+    return [pscustomobject]@{
+        DcSecondOctet    = $dcOct2
+        SpokeSecondOctet = $spokeOct2
+        ThirdOctet       = $oct3
+        DatacenterPrefix = "10.$dcOct2.$oct3.0/24"
+        SpokePrefix      = "10.$spokeOct2.$oct3.0/24"
+        AppVmIp          = "10.$dcOct2.$oct3.4"
+        DevVmIp          = "10.$dcOct2.$oct3.5"
+        AppSubnet        = "10.$spokeOct2.$oct3.0/26"
+        PeSubnet         = "10.$spokeOct2.$oct3.64/26"
+        MiSubnet         = "10.$spokeOct2.$oct3.128/26"
+        SpokeUpperHalf   = "10.$spokeOct2.$oct3.128/25"
+    }
+}
+
+$networkPlan = Get-MemberNetworkPlan -MemberIndex $MemberIndex
 if (-not $Server) {
-    $Server = "10.10.$MemberIndex.4"
+    $Server = $networkPlan.AppVmIp
 }
 Import-Module (Join-Path -Path $PSScriptRoot -ChildPath 'PerfKit.psm1') -Force
 Import-PerfKitSqlServer

@@ -19,8 +19,8 @@ The Entra tenant ID.
 .PARAMETER SubscriptionId
 Your workload subscription ID.
 .PARAMETER MemberIndex
-Your member index, assigned by your team lead. Teams use 1 to 5, with the team lead as 1; scripts
-accept indexes from 1 to 20.
+Your member index, assigned by your team lead: a unique positive whole number (1 or greater, with 1 typically
+assigned to the first member or team lead).
 .PARAMETER Location
 The Azure region. Defaults to swedencentral.
 .PARAMETER SharedSubscriptionId
@@ -30,21 +30,29 @@ Restores your resource-name suffix on a machine that has lost .local/settings.js
 dev container. The script generates the suffix once: a random six-character string of lowercase letters and
 digits. Use that one; the parameter accepts 4 to 6 lowercase letters or digits.
 It is refused when settings.json already holds a different suffix: the suffix is never changed.
+.PARAMETER WriteLabCredentials
+Also writes .local/<subscription-id>/datacenter.json with the documented fixed lab credentials when that file
+does not already exist, so challenges that read passwords from it work when the datacenter was provisioned by a
+pipeline.
 .EXAMPLE
 ./scripts/Initialize-Settings.ps1
 .EXAMPLE
 ./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '00000000-0000-0000-0000-000000000000'
+.EXAMPLE
+./scripts/Initialize-Settings.ps1 -TenantId '<tenant-id>' -SubscriptionId '<subscription-id>' -SharedSubscriptionId '<shared-subscription-id>' -MemberIndex 1 -Location 'swedencentral' -Suffix 'ab12cd' -WriteLabCredentials
 #>
 
 [CmdletBinding()]
 param(
     [string] $TenantId,
     [string] $SubscriptionId,
+    [ValidateRange(1, [int]::MaxValue)]
     [int] $MemberIndex,
     [string] $Location,
     [string] $SharedSubscriptionId,
     [ValidatePattern('^[a-z0-9]{4,6}$')]
-    [string] $Suffix
+    [string] $Suffix,
+    [switch] $WriteLabCredentials
 )
 
 $ErrorActionPreference = 'Stop'
@@ -107,8 +115,8 @@ $TenantId = Read-Setting -Name 'tenantId' -Prompt 'Tenant ID' -Value $TenantId `
 $SubscriptionId = Read-Setting -Name 'subscriptionId' -Prompt 'Your workload subscription ID' -Value $SubscriptionId `
     -Default ($current['subscriptionId'] ?? $account.id) -Validate $isGuid -Hint 'Expected a GUID.'
 $memberDefault = if ($current['memberIndex']) { [string]$current['memberIndex'] } else { '' }
-$MemberIndex = [int](Read-Setting -Name 'memberIndex' -Prompt 'Your member index (team uses 1-5; team lead is 1; scripts accept 1-20; assigned by your team lead)' -Value $(if ($MemberIndex) { [string]$MemberIndex }) `
-    -Default $memberDefault -Validate { param($v) $v -match '^\d+$' -and [int]$v -ge 1 -and [int]$v -le 20 } -Hint 'Expected a whole number from 1 to 20.')
+$MemberIndex = [int](Read-Setting -Name 'memberIndex' -Prompt 'Your member index (whole number 1 or greater, assigned by your team lead)' -Value $(if ($MemberIndex) { [string]$MemberIndex }) `
+    -Default $memberDefault -Validate { param($v) $v -match '^[1-9]\d*$' } -Hint 'Expected a whole number 1 or greater.')
 $Location = Read-Setting -Name 'location' -Prompt 'Location' -Value $Location `
     -Default ($current['location'] ?? 'swedencentral') -Validate { param($v) $v -match '^[a-z0-9]+$' } -Hint 'Expected a region name like swedencentral.'
 $SharedSubscriptionId = Read-Setting -Name 'sharedSubscriptionId' -Prompt 'Shared services subscription ID (team lead: yours; members: press Enter, you add it in Step 4)' -Value $SharedSubscriptionId `
@@ -171,3 +179,19 @@ New-Item -ItemType Directory -Force -Path $settingsDir | Out-Null
 $settings | ConvertTo-Json | Set-Content -Path $settingsPath
 Write-Host "Wrote $((Resolve-Path $settingsPath).Path)"
 Write-Host "Your suffix is '$resourceSuffix'. It names your resources; don't change it."
+
+if ($WriteLabCredentials) {
+    $secretsDir = Join-Path -Path $settingsDir -ChildPath $SubscriptionId
+    $secretsFile = Join-Path -Path $secretsDir -ChildPath 'datacenter.json'
+    if (-not (Test-Path -Path $secretsFile)) {
+        New-Item -ItemType Directory -Force -Path $secretsDir | Out-Null
+        $labPassword = 'FactoryLab-2026-Pw'
+        [ordered]@{
+            adminUsername  = 'labadmin'
+            adminPassword  = $labPassword
+            sqlAppLogin    = 'contosoapp'
+            sqlAppPassword = $labPassword
+        } | ConvertTo-Json | Set-Content -Path $secretsFile -Encoding utf8NoBOM
+        Write-Host 'Saved the documented lab credentials in .local/<subscription-id>/datacenter.json.'
+    }
+}

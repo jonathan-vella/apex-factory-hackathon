@@ -36,7 +36,7 @@ Confirm that the assignment is gone. Do not remove the baseline `alzl-allowed-lo
 
 ## Day 2: fail the replica go/no-go and abort
 
-**Trigger:** at C7's go/no-go, before cutover, for **one member per team** whom the coach picks, so the rest of the team keeps its C7 pace. The coach tells that member that the read-only replica check has failed (for example, lag is non-zero, the database is not `READ_ONLY`, or the fingerprints differ). The trigger is an exercise; do not deliberately corrupt the source database. Cap it at 15 minutes (record, cancel, delete the MI copy, write the plan); the member then restarts the link, and the wait for the new seeding is real, so they use it for the runbook. Because C8 and C9 need the cutover, the member continues with them as soon as their cutover is complete.
+**Trigger:** at C7's go/no-go, before cutover, for **one member per team (or 1 member per pod in a multi-pod cohort)** whom the coach picks, so the rest of the team or pod keeps its C7 pace. The coach tells that member that the read-only replica check has failed (for example, lag is non-zero, the database is not `READ_ONLY`, or the fingerprints differ). The trigger is an exercise; do not deliberately corrupt the source database. Cap it at 15 minutes (record, cancel, delete the MI copy, write the plan); the member then restarts the link, and the wait for the new seeding is real, so they use it for the runbook. Because C8 and C9 need the cutover, the member continues with them as soon as their cutover is complete.
 
 **Coach action:** do not let that member cut over. Ask them to stop application writes, preserve the source as the authoritative database, and show their abort and recovery plan.
 

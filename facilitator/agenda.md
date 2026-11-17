@@ -8,11 +8,11 @@ Staff at least one coach per six attendees. Before kickoff, read the guide's [ki
 
 | When | Activity | Owner |
 |---|---|---|
-| T-30 to T-14 | Event-owner setup: team size, tenant and subscription access, each team nominates its team lead, and the team lead books the Privileged Role Administrator for T-7 (see the [guide](guide.md#t-30-to-t-14-event-owner)) | Event owner, team lead |
-| Step 1 (T-14) | Repo setup and preflight; each member shares their subscription ID, index, object ID and email privately with the team lead | Team lead, members |
+| T-30 to T-14 | Event-owner setup: choose Path A (self-service teams) or Path B (lead-provisioned cohort, with 3-to-5-person breakout pods and pod leads when `n > 5`), tenant and subscription access, nominate the team lead, and book the Privileged Role Administrator for T-7 (see the [guide](guide.md#t-30-to-t-14-event-owner)) | Event owner, team lead |
+| Step 1 (T-14) | Path A: repo setup and preflight; each member shares subscription ID, index, object ID and email privately with the team lead. Path B: team lead runs `Initialize-CohortRepos.ps1` and cohort `whatif`; students share GitHub usernames privately and accept repo invites | Team lead, members |
 | Step 2 (T-7) | Team lead runs the `foundation` stage (ALZ-lite, pipeline run 1), then a Privileged Role Administrator runs the Graph grant for the SQL MI identity | Team lead, Privileged Role Administrator |
-| Step 3 (T-3) | Each member runs the `whatif` and `member` stages (preflight, datacenter, `Test-Datacenter.ps1` while the VMs run, then Arc onboarding), saves `factory/evidence/readiness/test-datacenter.txt`, runs the first migration assessment and sets up `vm-dev01` with Copilot working in VS Code through Bastion | Members (team lead is first point of contact) |
-| Step 4 (T-1) | Team lead runs the `vending` stage (pipeline run 2): it stops at the first member who is not ready; earlier members are vended but not restarted, exempted or probed, and later members are not vended. Fix phase 1 or 2 failures and re-run for all members; phase 3 failures name the members to rerun | Team lead |
+| Step 3 (T-3) | Path A: each member runs `whatif` and `member` (datacenter, `Test-Datacenter.ps1` before Arc, Arc onboarding). Path B: team lead runs `member` across the cohort. Everyone completes the portal migration assessment, `vm-dev01` Copilot setup and `factory/evidence/readiness/` | Team lead, members |
+| Step 4 (T-1) | Team lead runs the `vending` stage (in batches such as `-f members=1-50` when `n > 60`): it stops at the first member who is not ready; earlier members are vended but not restarted, exempted or probed, and later members are not vended. Fix phase 1 or 2 failures and re-run; phase 3 failures name the members to rerun | Team lead |
 | Before Day 1 | Start both VMs of every datacenter (idle ones may have been stopped), check the room and projection, stage demo materials and publish this agenda | Event owner, coaches |
 
 ## Day 1

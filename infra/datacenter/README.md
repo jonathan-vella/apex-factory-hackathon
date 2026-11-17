@@ -31,7 +31,7 @@ flowchart LR
 
 ## Resources
 
-`n` is the member index, 1–20.
+`n` is a positive whole-number member index (`n >= 1`). For `n = 1..255`, the datacenter VNet is `10.10.n.0/24`; for `n >= 256`, it uses `10.(127 + floor(n/256)).(n%256).0/24` inside `10.128.0.0/10` (for example `10.128.0.0/24` for `n = 256`). The table below shows `10.10.n.*` for `n = 1..255` (substitute `10.(127 + floor(n/256)).(n%256).*` for `n >= 256`).
 
 | Resource | Name | Notes |
 |---|---|---|
@@ -124,7 +124,7 @@ You need PowerShell 7.4 or later and the Azure CLI, signed in to the member's te
 | Parameter | Default | Notes |
 |---|---|---|
 | `SubscriptionId` | Required | The member's workload subscription |
-| `MemberIndex` | `1` | 1–20. Sets the address space `10.10.n.0/24` |
+| `MemberIndex` | `1` | Positive integer (`n >= 1`). Sets `10.10.n.0/24` (`1..255`) or `10.(127 + floor(n/256)).(n%256).0/24` (`256+`) |
 | `Location` | `swedencentral` | Fallback: `germanywestcentral` |
 | `VmSize` | `Standard_D8as_v6` | Any Gen2 size that supports Trusted Launch, for example a v7 size |
 | `DevImageSku` | `win11-25h2-ent` | Windows 11 Enterprise image SKU for `vm-dev01` |

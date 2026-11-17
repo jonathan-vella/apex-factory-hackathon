@@ -5,9 +5,8 @@ targetScope = 'subscription'
 @description('Azure region. Fallback: germanywestcentral.')
 param location string = 'swedencentral'
 
-@description('Member index n, 1-20. The datacenter uses 10.10.n.0/24.')
+@description('Member index n (>= 1). Members 1-255 use 10.10.n.0/24; 256+ use 10.128.0.0/10.')
 @minValue(1)
-@maxValue(20)
 param memberIndex int = 1
 
 @description('Size of both VMs. A v7 or other Gen2 size needs no other change.')
@@ -36,8 +35,11 @@ param configRunId string = utcNow()
 var adminUsername = 'labadmin'
 var appVmName = 'vm-app01'
 var devVmName = 'vm-dev01'
-var appVmIp = '10.10.${memberIndex}.4'
-var devVmIp = '10.10.${memberIndex}.5'
+var block = memberIndex / 256
+var dcOct2 = block == 0 ? 10 : 127 + block
+var oct3 = memberIndex % 256
+var appVmIp = '10.${dcOct2}.${oct3}.4'
+var devVmIp = '10.${dcOct2}.${oct3}.5'
 var packageUrl = 'https://github.com/jonathan-vella/apex-factory-hackathon/releases/download/legacy-v1/ContosoUniversity-legacy.zip'
 
 resource rg 'Microsoft.Resources/resourceGroups@2023-07-01' = {

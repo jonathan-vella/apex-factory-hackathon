@@ -2,22 +2,7 @@
 // Zones: none set. afw-hub has no zone; pip-afw-hub (Standard) is zone-redundant automatically.
 param location string
 param logAnalyticsWorkspaceId string
-
-// One member per spoke: 10.20.n.0/24, n = 1-20. Only snet-pe (10.20.n.64/26) is left out of the
-// SNAT private ranges, so the firewall SNATs network-rule traffic to private endpoints (flow symmetry)
-// and keeps the real source IP for everything else, including MI link.
-var memberIndexes = range(1, 20)
-var snatPrivateRanges = concat(
-  [
-    '10.10.0.0/16'
-    '10.100.0.0/16'
-    '172.16.0.0/12'
-    '192.168.0.0/16'
-    '100.64.0.0/10'
-  ],
-  map(memberIndexes, n => '10.20.${n}.0/26'),
-  map(memberIndexes, n => '10.20.${n}.128/25')
-)
+param extraSnatPrefixes array = []
 
 // Verified on https://learn.microsoft.com/azure/private-link/private-endpoint-dns (2026-10-02).
 // ACR's data endpoints register in privatelink.azurecr.io too.
@@ -60,20 +45,11 @@ resource firewallPip 'Microsoft.Network/publicIPAddresses@2025-09-01' = {
   }
 }
 
-resource firewallPolicy 'Microsoft.Network/firewallPolicies@2025-09-01' = {
-  name: 'afwp-hub'
-  location: location
-  properties: {
-    sku: {
-      tier: 'Standard'
-    }
-    threatIntelMode: 'Alert'
-    dnsSettings: {
-      enableProxy: true
-    }
-    snat: {
-      privateRanges: snatPrivateRanges
-    }
+module firewallPolicy 'firewall-policy.bicep' = {
+  name: 'alz-lite-firewall-policy'
+  params: {
+    location: location
+    extraSnatPrefixes: extraSnatPrefixes
   }
 }
 
@@ -86,7 +62,7 @@ resource firewall 'Microsoft.Network/azureFirewalls@2025-09-01' = {
       tier: 'Standard'
     }
     firewallPolicy: {
-      id: firewallPolicy.id
+      id: firewallPolicy.outputs.id
     }
     ipConfigurations: [
       {
@@ -149,7 +125,7 @@ resource zoneLinks 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2024-0
 
 output vnetId string = vnet.id
 output firewallPrivateIp string = firewall.properties.ipConfigurations[0].properties.privateIPAddress
-output firewallPolicyId string = firewallPolicy.id
+output firewallPolicyId string = firewallPolicy.outputs.id
 output dnsZoneIds object = {
   blob: zones[0].id
   serviceBus: zones[1].id

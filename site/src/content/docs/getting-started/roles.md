@@ -5,47 +5,50 @@ sidebar:
   order: 2
 ---
 
-A team is **3 to 5 people**. Every attendee on the team is a **member**, and one colleague the team nominates is also the **team lead** (called the **platform lead** in the workflow and scripts). The **event owner** coordinates the event, and **coaches** support teams on the two event days.
+Every attendee in a platform team is a **member**, and one colleague is also the **team lead** (called the **platform lead** in the workflow and scripts). The **event owner** coordinates the event, and **coaches** support teams on the two event days.
+
+The kit supports two ways to organize a delivery:
+
+- **Path A — Self-service teams:** typically **3 to 5 people** per team, sharing one Azure hub. Each member creates their own repository and runs their own preflight, datacenter and teardown stages in [Deploy](../../deploy/).
+- **Path B — Lead-provisioned cohort:** one platform team with **`n` attendees** sharing a single Azure hub. One platform team lead pre-creates the student repositories (`Initialize-CohortRepos.ps1`) and runs the shared foundation, datacenter and vending stages from the lead repository ([Step 1: Cohort repos, roster and preflight](/deploy/lead-setup/step-1-cohort-and-preflight/)), while attendees complete [Student onboarding](/deploy/lead-setup/student-onboarding/). When a cohort has **more than 5 attendees** (`n > 5`), split into **breakout pods of 3 to 5 people** for the team challenges (C1, C4 and C10) and showcase, and nominate one **pod lead** per pod.
 
 ## Support before the event
 
 - **No coach is available during the pre-hackathon.** Pre-hackathon support is best-effort only.
 - **Every pre-event escalation follows this path:** member → team lead → event owner. Your event owner shares how to contact them; start with your designated team lead.
-- **Step 1 to Step 4 are numbered in order.** Follow the chronological steps in [Deploy](../../deploy/), from Step 1 (T-14) through Step 4 (T-1).
+- **Follow your event's setup path in order.** Self-service teams follow Step 1 (T-14) through Step 4 (T-1) in [Deploy](../../deploy/); lead-provisioned cohorts follow [Lead-provisioned setup](/deploy/lead-setup/step-1-cohort-and-preflight/) and [Student onboarding](/deploy/lead-setup/student-onboarding/).
 
 ## Member and team lead at a glance
 
-The team lead is not a separate non-coding manager. The team lead is a full member of the team who also runs the shared foundation and connects the team's subscriptions.
+The team lead is not a separate non-coding manager. The team lead is a full member who also runs the shared foundation and connects the workload subscriptions (and, in Path B, provisions the cohort's student repositories and datacenters).
 
 | Area | Member (everyone, including the team lead) | Team lead (in addition to every member task) |
 | --- | --- | --- |
 | Azure subscriptions | Owns one **workload subscription** (`rg-datacenter`, `rg-spoke`, and the C5 archetype) | Also owns the team's **shared services subscription** (`rg-management`, `rg-hub`) and holds **Owner at Tenant Root** |
-| GitHub repository | Works in one private repo created from `apex-accelerator`, with the kit in `factory/` | Uses the same private repo, configured with the lead pipeline profile (`-RosterPath`) |
-| Step 1 (T-14) | Sets up the repo, runs the `whatif` preflight, and sends four roster values privately to the team lead | Assigns distinct member indexes as described below, taking `1`; collects `roster.json` and sets up the lead pipeline |
-| Step 2 (T-7) | Nothing to run | Runs the `foundation` stage (ALZ-lite) once for the team, books a Privileged Role Administrator for the Graph grant and escalates to the event owner if unable to find one |
-| Step 3 (T-3) | Runs the `member` stage (datacenter, `Test-Datacenter.ps1`, Arc onboarding), runs the first Arc SQL assessment, sets up `vm-dev01`, and commits `factory/evidence/readiness/` | Does the same Step 3 tasks for their own workload subscription (`-f members=1`) |
-| Step 4 (T-1) | Starts both datacenter VMs before vending and saves the shared services subscription ID afterward | Runs the `vending` stage once for the team (it automatically checks that each member's datacenter and Arc connection are ready, vends each spoke, restarts the VMs, records exemptions, and runs connectivity probes) |
-| Event days (Day 1 and Day 2) | Completes every member challenge in their own repo and subscription, and contributes to the team challenges (C1, C4, C10) | Same as every other member, plus coordinates shared hub or policy questions with the coach |
-| [After the event (T+2)](../../deploy/tear-down/) | Saves and pushes work, then removes their member scope | Removes the shared foundation after member cleanup and coordinates pipeline-access removal with the named admin |
+| GitHub repository | Works in one private repo from `apex-accelerator` with the kit in `factory/` (self-created in Path A; pre-created by the lead in Path B) | Uses their private repo configured with the lead pipeline profile (`-RosterPath`) |
+| Step 1 (T-14) | Path A: sets up the repo, runs `whatif`, and sends four roster values privately to the team lead. Path B: sends GitHub username privately and accepts the repo invite | Assigns distinct positive whole-number member indexes starting at `1` (taking `1`); builds `roster.json`, sets up the lead pipeline, and in Path B runs `Initialize-CohortRepos.ps1` |
+| Step 2 (T-7) | Nothing to run | Runs the `foundation` stage (ALZ-lite) once for the hub, books a Privileged Role Administrator for the Graph grant and escalates to the event owner if unable to find one |
+| Step 3 (T-3) | Path A: runs the `member` stage, runs the first Arc SQL assessment, sets up `vm-dev01` and commits `factory/evidence/readiness/`. Path B: follows [Student onboarding](/deploy/lead-setup/student-onboarding/) after the lead deploys the datacenters | Path A: runs Step 3 for their own subscription (`-f members=1`). Path B: runs the `member` stage across the cohort roster |
+| Step 4 (T-1) | Starts both datacenter VMs before vending and saves the shared services subscription ID afterward | Runs the `vending` stage across the roster (checks that each member's datacenter and Arc connection are ready, vends each spoke, restarts the VMs, records exemptions, and runs connectivity probes) |
+| Event days (Day 1 and Day 2) | Completes every member challenge in their own repo and subscription, and contributes to the team challenges (C1, C4, C10) in their team or breakout pod | Same as every other member, plus coordinates shared hub or policy questions with the coach |
+| [After the event (T+2)](../../deploy/tear-down/) | Saves and pushes work; in Path A also removes their member scope | Removes member scopes (all scopes in Path B, remaining scopes in Path A) before the shared foundation and coordinates pipeline-access removal with the named admin |
 | First contact | Before day one, asks the **team lead** first and escalates through them to the **event owner**; on event days, asks a coach for challenge support | Is the first contact before the event and escalates to the event owner; on event days, brings in a coach for challenge support |
 
 ## Member
 
-Everyone on the team, the team lead included.
+Everyone on the team or cohort, the team lead included.
 
-Each member has a dedicated workload subscription, a private repo and a unique index assigned by the team lead: a number from **1 to 20**, normally **1 to 5**, with the **team lead as 1**. You:
+Each member has a dedicated workload subscription, a private repo and a unique index assigned by the team lead: a **positive whole number starting at 1**, with the **team lead as 1**.
 
-- complete [Step 1: Repo and preflight](../../deploy/set-up-your-repo/) by T-14 and send your four roster values privately to your team lead,
-- complete [Step 3: Datacenter and workstation](../../deploy/member-steps/) by T-3 so your datacenter is tested, `vm-app01` is Arc-connected, and `vm-dev01` has VS Code and GitHub Copilot ready,
-- start both VMs for [Step 4: Vending](../../deploy/vending/) at T-1,
-- work through the member challenges in your own subscription and the team challenges together with your teammates,
-- commit your evidence to `factory/evidence/` on `main` in your own repo. There is no shared team repo.
+- **In Path A (Self-service teams),** you complete [Step 1: Repo and preflight](../../deploy/set-up-your-repo/) by T-14, send your four roster values privately to your team lead, complete [Step 3: Datacenter and workstation](../../deploy/member-steps/) by T-3, and start both VMs for [Step 4: Vending](../../deploy/vending/) at T-1.
+- **In Path B (Lead-provisioned cohort),** you send your GitHub username privately to the team lead, accept the repository invitation, and complete [Student onboarding](/deploy/lead-setup/student-onboarding/) once your datacenter and spoke are vended.
+- **On event days (both paths),** you work through the member challenges in your own subscription and the team challenges together with your team or breakout pod, committing your evidence to `factory/evidence/` on `main` in your own repo. There is no shared team repo.
 
 ### Roster values
 
-Your team lead needs four values from you in Step 1 (T-14) to connect your subscription in Step 4 (T-1):
+In **Path A**, your team lead needs four values from you in Step 1 (T-14) to connect your subscription in Step 4 (T-1). (In **Path B**, the event owner or team lead may already hold the subscription map and ask you only for your GitHub username, Entra object ID and work email; follow [Student onboarding](/deploy/lead-setup/student-onboarding/).)
 
-After Step 1 creates settings, load `$s = Get-Content .local/settings.json | ConvertFrom-Json` from `factory/` before using the values below.
+After `.local/settings.json` is created, load `$s = Get-Content .local/settings.json | ConvertFrom-Json` from `factory/` before using the values below:
 
 1. Your workload subscription ID (`$s.subscriptionId`)
 2. Your member index (`$s.memberIndex`, assigned by your team lead)
@@ -56,21 +59,28 @@ Share them privately with your team lead. Never put them in a repo, an issue, or
 
 ## Team lead
 
-One colleague nominated by the team. You do every member step on your own workload subscription (using member index `1`), and you run the team's shared stages from your repo:
+One colleague nominated for each platform hub. You do every member challenge on your own workload subscription (using member index `1`), and you run the shared stages from your repo:
 
-1. **[Step 1: Repo and preflight (T-14)](../../deploy/set-up-your-repo/):** assign distinct member indexes as described above, taking `1` yourself; collect the four roster values in `factory/.local/roster.json` and initialize the pipeline with `-RosterPath .local/roster.json`.
-2. **[Step 2: Foundation and Graph grant (T-7)](../../deploy/team-lead-steps/):** run the `whatif` and `foundation` stages to deploy ALZ-lite in the shared services subscription, then book a Privileged Role Administrator to run `Grant-SqlMiDirectoryRead.ps1` once for the team. If you cannot find a role holder, escalate to the event owner.
-3. **[Step 3: Datacenter and workstation (T-3)](../../deploy/member-steps/):** run the `member` stage for your own workload subscription (`-f members=1`) and set up your own `vm-dev01`.
-4. **[Step 4: Vending (T-1)](../../deploy/vending/):** once every member has finished Step 3 and started both VMs, run the `vending` stage. The pipeline automatically verifies that each member's datacenter VNet exists and `vm-app01` is Arc-connected before vending their spoke.
+1. **Step 1 (T-14):** assign distinct positive whole-number member indexes starting at `1` (taking `1` yourself), collect `factory/.local/roster.json`, and initialize the lead pipeline with `-RosterPath .local/roster.json` ([Path A](../../deploy/set-up-your-repo/) or [Path B cohort setup](/deploy/lead-setup/step-1-cohort-and-preflight/) with `Initialize-CohortRepos.ps1`).
+2. **Step 2 (T-7):** run the `whatif` and `foundation` stages to deploy ALZ-lite in the shared services subscription, then book a Privileged Role Administrator to run `Grant-SqlMiDirectoryRead.ps1` once for the hub ([Path A](../../deploy/team-lead-steps/) or Path B Step 2). If you cannot find a role holder, escalate to the event owner.
+3. **Step 3 (T-3):** in Path A, run the `member` stage for your own workload subscription (`-f members=1`) and set up your own `vm-dev01` ([Step 3](../../deploy/member-steps/)). In Path B, run the `member` stage across the cohort roster so every student's datacenter and Arc connection are ready before onboarding.
+4. **Step 4 (T-1):** once every member's datacenter is Arc-connected and both VMs are running, run the `vending` stage ([Step 4](../../deploy/vending/) or Path B Step 4; batch with `-f members=1-50`, `-f members=51-100` when `n > 60`).
 
 The team lead needs a second subscription for shared services and the Owner role at Tenant Root. [Requirements](../requirements/#accounts-and-access) lists both.
 
 <details>
 <summary>Why the team lead role exists</summary>
 
-The hub network, management groups, policies, and private DNS zones are shared across the team, so one person deploys them once instead of every member deploying a duplicate hub. Those resources also require Owner at Tenant Root and a one-time Microsoft Graph permission grant that only a directory administrator can perform.
+The hub network, management groups, policies, and private DNS zones are shared across all members on that hub, so one person deploys them once instead of every member deploying a duplicate hub. Those resources also require Owner at Tenant Root and a one-time Microsoft Graph permission grant that only a directory administrator can perform.
 
 </details>
+
+## Pod lead (breakout pods in larger cohorts)
+
+When a single-hub cohort has **more than 5 attendees** (`n > 5`), working on one shared screen for C1, C4 and C10 is too crowded. Split the cohort into **breakout pods of 3 to 5 members** for collaboration and scoring:
+
+- **One platform team lead** still manages the shared Azure hub, `roster.json` and pipeline stages for all `n` members.
+- **Each breakout pod** nominates one **pod lead**. During C1, C4 and C10, each pod writes its own canvas, team ADRs, deferred-work register and handover package together, every pod member commits the pod's final files to their own repo, and the coach scores team items once per pod from **that pod lead's copy**. Each pod gets its own scoreboard sheet.
 
 ## Event owner
 

@@ -15,12 +15,12 @@ One workflow, `platform.yml`, runs in your own repo. You pick a stage and walk a
 
 | Stage | Profile | When | What it does | Time |
 | --- | --- | --- | --- | --- |
-| `whatif` | Member | T-14 ([Step 1](../set-up-your-repo/)), and again at T-3 | Runs the preflight. On a new subscription it also registers the Azure providers and the public IP feature. | About 15 min; allow up to 15 more for new provider registrations to propagate |
-| `whatif` | Lead | T-14 ([Step 1](../set-up-your-repo/)) and T-7 ([Step 2](../team-lead-steps/)) | Runs the member preflight at T-14; at T-7, previews ALZ-lite and runs a preflight for each roster member. | About 15 min at T-14; at T-7, about 3 min plus a few minutes per member; allow up to 15 more for provider registrations |
-| `member` | Member; Lead (own index) | T-3 ([Step 3](../member-steps/)) | Deploys the datacenter, runs the datacenter test, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 60 min |
-| `foundation` | Lead | T-7 ([Step 2](../team-lead-steps/)) | Deploys ALZ-lite for the team: management groups, hub, policies. | 15 to 25 min |
-| `vending` | Lead | T-1 ([Step 4](../vending/)) | Checks datacenter/Arc readiness, connects subscriptions to the hub, restarts VMs, records exemptions if needed and tests connectivity. | Measured: about 62 min for 3 members; estimate: 75 min for 5 (not measured) |
-| `teardown` | Both | T+2 | Removes what the other stages built. | about 20 min, then about 25 for the team |
+| `whatif` | Member (Path A) | T-14 ([Path A Step 1](../set-up-your-repo/)), and again at T-3 | Runs the preflight. On a new subscription it also registers the Azure providers and the public IP feature. | About 15 min; allow up to 15 more for new provider registrations to propagate |
+| `whatif` | Lead (Path A & Path B) | T-14 ([Path A Step 1](../set-up-your-repo/) or [Path B Step 1](../lead-setup/step-1-cohort-and-preflight/)) and T-7 ([Path A Step 2](../team-lead-steps/) or [Path B Step 2](../lead-setup/step-2-foundation/)) | Previews ALZ-lite and runs preflight across every roster subscription (batch with `-f members=1-200` above 256 members). | About 15 min at T-14; about 3 min plus a few minutes per concurrent batch at T-7; allow up to 15 more for provider registrations |
+| `foundation` | Lead (Path A & Path B) | T-7 ([Path A Step 2](../team-lead-steps/) or [Path B Step 2](../lead-setup/step-2-foundation/)) | Deploys ALZ-lite for the team: management groups, hub, policies. | 15 to 25 min |
+| `member` | Member (Path A); Lead (own index in Path A, or `all` / range in Path B) | T-3 ([Path A Step 3](../member-steps/) or [Path B Step 3](../lead-setup/step-3-datacenters/)) | Deploys the datacenter, runs the datacenter test, and only if that passes onboards `vm-app01` to Azure Arc. | 35 to 60 min per concurrent wave (`MAX_PARALLEL` defaults to `20` in the lead repo) |
+| `vending` | Lead (Path A & Path B) | T-1 ([Path A Step 4](../vending/) or [Path B Step 4](../lead-setup/step-4-vending-and-invites/)) | Checks datacenter/Arc readiness, connects subscriptions to the hub, restarts VMs, records exemptions if needed and tests connectivity. | Measured: about 62 min for 3 members; estimate: 75 min for 5; batch with `-f members=1-50` above 50 members |
+| `teardown` | Both (Path A); Lead only (Path B) | T+2 ([Path A](../tear-down/) or [Path B](../lead-setup/tear-down/)) | Removes member scopes first, then the shared foundation when confirmed. | About 20 min without SQL MI (up to 2 hours with SQL MI), then about 25 min for the foundation |
 
 The order is fixed by the event: Step 1 (repo and preflight), Step 2 (foundation and the Graph grant), Step 3 (each member's datacenter and `vm-dev01` setup), and Step 4 (vending, which verifies each member's datacenter and Arc connection automatically). The [deployment guide](../) has the timeline.
 
@@ -69,4 +69,23 @@ Subscription IDs and the roster are stored as environment secrets, never in the 
 
 ## One profile per repo
 
-A repo has exactly one pipeline profile. The team lead sets up the lead profile in their repo and uses it to run their own member stage for index 1; they don't configure a second member profile. Every other member sets up the member profile in their own repo.
+A repository configures at most one pipeline profile, and the two operating models differ in which repositories hold a pipeline:
+
+- **Path A (Self-service teams):** The team lead sets up the `Lead` profile in their own repository (covering every member on the roster, including their own index `1`, without adding a second `Member` profile). Every other team member sets up the `Member` profile in their own repository.
+- **Path B (Lead-provisioned cohort):** **Only the team lead's repository** configures a pipeline (`Lead` profile, covering all `1..n` roster members). Student repositories have **no** `gh-lab` environment, OIDC managed identity, or pipeline secrets—attendees receive Write (`push`) collaborator access only so they can commit challenge deliverables and `vm-dev01-work` commits without deployment permissions.
+
+## Scaling to larger cohorts
+
+The kit scripts impose no upper cap on attendee count (`MemberIndex` accepts any integer `1` or greater). Spoke and datacenter address blocks scale deterministically by index (see [Naming and IP plan](../../reference/naming-and-ip-plan/)):
+
+- **Indexes `1` to `255`:** allocate `/24` blocks at `10.10.<n>.0/24` (datacenter) and `10.20.<n>.0/24` (spoke).
+- **Indexes `256` and above:** allocate `/24` blocks sequentially from non-overlapping `10.128.0.0/10` (datacenter) and `10.192.0.0/10` (spoke) pools.
+
+When `n` approaches Azure or GitHub Actions platform limits, split stage dispatches into index ranges (for example `-f members=1-50`) or run multiple hubs:
+
+| Platform threshold | Limit | How to operate at scale |
+| --- | --- | --- |
+| **GitHub Actions single-job timeout** | 6 hours (`360` minutes) per job | Serial spoke vending in `vending` Phase 1 handles roughly 60 to 70 members per run. Above `n = 50`, dispatch `vending` in batches such as `-f members=1-50`, then `-f members=51-100`. |
+| **Azure Firewall Policy rule collection groups** | 90 Rule Collection Groups per `afwp-hub` | Vending creates one `rcg-member-<n>` per member on `afwp-hub`. Plan at most 85 to 90 members per hub before standing up a second lead hub. |
+| **GitHub Actions `ROSTER_JSON` secret & matrix fan-out** | 48 KiB per secret (~250 members) and 256 jobs per matrix | One `ROSTER_JSON` secret holds roughly 250 roster entries; above ~250 members, split across a second lead repo and hub (or batch matrix runs with `-f members=1-200` and `-f members=201-250`). |
+| **Azure Virtual Network peerings** | 650 peerings per `vnet-hub` | Each vended member adds 2 hub peerings (`vnet-datacenter` and `vnet-spoke`), capping a single `vnet-hub` at 325 members when Firewall Policy capacity is partitioned across policies or hubs. |

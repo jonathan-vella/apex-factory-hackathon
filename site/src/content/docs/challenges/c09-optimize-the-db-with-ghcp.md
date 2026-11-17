@@ -120,7 +120,7 @@ To complete this challenge, show your coach in `factory/evidence/c09/` of your o
 <details>
 <summary>My cutover isn't complete, or the managed instance is stopped</summary>
 
-If C7 is unfinished, the source has the same planted issues. The workload already knows the documented default lab password, so for a standard deployment run:
+If C7 is unfinished, the source has the same planted issues. `-MemberIndex $n` automatically resolves the source IP for any member index (`10.10.<n>.4` for `1` to `255`, or `10.(127 + floor(n/256)).(n%256).4` for `256` and higher). The workload already knows the documented default lab password, so for a standard deployment run:
 
 ```powershell
 ./db/perf-kit/Start-Workload.ps1 -MemberIndex $n -DurationMinutes 5 -Concurrency 8
@@ -128,7 +128,7 @@ If C7 is unfinished, the source has the same planted issues. The workload alread
 
 Only a deployment with a custom `-SqlAppPassword` needs `-SqlPassword`: retrieve it privately from the dev container's `.local/<subscription-id>/datacenter.json`, then on the VM set `$pw = Read-Host -AsSecureString 'Custom contosoapp password'` and add `-SqlPassword $pw`. Never put it in evidence.
 
-In SSMS, connect to `10.10.<n>.4` with **SQL Server Authentication** as `contosoapp`, and tick **Trust server certificate** in the Connect dialog: the source has a self-signed certificate. The managed instance doesn't need that.
+In SSMS, connect to `10.10.<n>.4` (or `10.(127 + floor(n/256)).(n%256).4` when `<n>` is `256` or higher) with **SQL Server Authentication** as `contosoapp`, and tick **Trust server certificate** in the Connect dialog: the source has a self-signed certificate. The managed instance doesn't need that.
 
 Check MI state with `az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query state -o tsv`. If `Stopped`, select **Start** immediately and allow **about 20 minutes**; use the wait for plan review and non-database preparation. `Ready` means it runs. Your event owner set the schedule before C5: by default weekdays 07:30–18:30 W. Europe time, applying once the link is removed.
 

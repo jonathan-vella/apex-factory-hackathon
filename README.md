@@ -2,7 +2,7 @@
 
 > **Modernize today. Enable AI tomorrow.**
 
-A two-day, challenge-based hackathon kit for Microsoft partners. A team of up to five builds a secure Azure landing zone, deploys a CoE archetype with [APEX](https://apexops.pro/), modernizes a legacy .NET app with GitHub Copilot, migrates its database to SQL Managed Instance with Azure Arc, and tunes it. They leave with assets they can reuse in customer delivery.
+A two-day, challenge-based hackathon kit for Microsoft partners. Partner teams and cohorts build a secure Azure landing zone, deploy a CoE archetype with [APEX](https://apexops.pro/), modernize a legacy .NET app with GitHub Copilot, migrate its database to SQL Managed Instance with Azure Arc, and tune it. They leave with assets they can reuse in customer delivery.
 
 **Start here:** [factory.apexops.pro](https://factory.apexops.pro/), the student site. It has the requirements, the deployment guide, ten challenges and the reference pages.
 
@@ -16,8 +16,8 @@ Contoso University is a fictional public university. Its student enrollment app 
 
 ## How it works
 
-- **Everyone creates their own repo** from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template and imports this kit into `factory/` with `scripts/Import-Kit.ps1`. There is no shared team repo.
-- **Deployment is GitHub Actions only.** Each member deploys their own simulated datacenter in Step 3. The team lead, a colleague the team nominates and the team's first point of contact, deploys the shared foundation in Step 2 and connects every ready member in Step 4 (`vending` checks each member's datacenter and Arc status automatically). The kit's PowerShell scripts are the engine the pipeline runs; a coach can run one by hand to repair a run.
+- **Every attendee works in their own private repo** created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template with this kit imported into `factory/` via `scripts/Import-Kit.ps1` (created either by each member in **Path A: Self-service teams** or in bulk by the team lead with `scripts/Initialize-CohortRepos.ps1` in **Path B: Lead-provisioned cohort**). There is no shared team repo.
+- **Deployment is GitHub Actions only.** In Path A, each member deploys their own simulated datacenter in Step 3 while the team lead deploys the shared foundation in Step 2 and connects every ready member in Step 4 (`vending` checks each member's datacenter and Arc status automatically). In Path B, one platform team lead runs all pre-event stages (`foundation`, `member` and `vending`) for all `n` students sharing one Azure hub, and large cohorts (`n > 5`) split into 3-to-5-person breakout pods (each with a nominated pod lead) for C1, C4 and C10 scoring. The kit's PowerShell scripts are the engine the pipeline runs; a coach can run one by hand to repair a run.
 - **The challenges are C1 to C10.** Each page has five parts: Background, Challenge, Requirements, Success criteria and References. The scoring is 170 base points (45 team and 125 member) over 750 minutes, with a maximum score of 200 including bonuses.
 - **Students modernize the app themselves** with GitHub Copilot. The kit never changes Contoso University's code.
 

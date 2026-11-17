@@ -15,14 +15,14 @@ This page is the big picture. When you're ready to work, start with [Requirement
 
 | Where | What you do there |
 |---|---|
-| Dev container | VS Code on your laptop, in your own repo. You trigger deployments with GitHub Actions and run the readiness setup, C1, C2, C4, C5 with APEX and `azd`, and C10 here. C8 uses both the dev container and `vm-dev01`. [Set up your repo](../../deploy/set-up-your-repo/) creates it. |
+| Dev container | VS Code on your laptop, in your own repo. You trigger deployments with GitHub Actions (in Path A) and run C1, C2, C4, C5 with APEX and `azd`, and C10 here. C8 uses both the dev container and `vm-dev01`. [Set up your repo](../../deploy/set-up-your-repo/) (Path A) or [Student onboarding](/deploy/lead-setup/student-onboarding/) (Path B) sets it up. |
 | `vm-dev01` | Your workstation through Bastion, next to the private network. From C3 the app work happens here; never stop it during the event. [Switch to the workstation](../../guides/ghcp-upgrade/#switching-to-vm-dev01). |
 | Browser and Azure portal | The Arc assessment, MI link, Bastion and C8 smoke checks. Follow [the readiness assessment](../../deploy/member-steps/#32-run-the-first-arc-sql-assessment-and-check-hybrid-benefit) and [C7 migration](../../challenges/c07-migrate-and-go-live/). |
 | Your own repo | [Written evidence](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) goes in `factory/evidence/` on `main`; run `git pull` first. On the VM, use the plain clone and `git pull --rebase`. |
 
 Each challenge page has a **Where to run** block that says which one to use.
 
-Your team lead assigns a distinct member index to each person. Teams use `1` to `5`, with the team lead as `1`; the scripts accept indexes from `1` to `20`.
+Your team lead assigns a distinct positive whole-number member index to each person, starting at `1` with the team lead as `1`.
 
 ## What changes
 
@@ -59,6 +59,6 @@ The team shares one hub. Each member has a datacenter, a spoke and a CoE archety
 
 Pick a challenge to see the parts it touches. [How it works](../../deploy/how-it-works/) shows which stage builds each part.
 
-<ArchitectureDiagram interactive name="landing-arch" caption="n is your member index (1–20). The suffix is the six-character string from your settings. Names and ranges are in the naming and IP plan under Reference, including the archetype resource names." />
+<ArchitectureDiagram interactive name="landing-arch" caption="n is your member index (starting at 1; indexes 1–255 use 10.10.n.0/24 and 10.20.n.0/24, and 256+ use the 10.128.0.0/10 and 10.192.0.0/10 pools). The suffix is the six-character string from your settings. Names and ranges are in the naming and IP plan under Reference, including the archetype resource names." />
 
 </details>

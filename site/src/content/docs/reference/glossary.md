@@ -45,13 +45,14 @@ sidebar:
 | Harness | Where the Upgrade agent runs. **Local** runs next to the app on `vm-dev01`; you pick it in Copilot Chat. |
 | Hub | The team's shared virtual network `vnet-hub` in the shared services subscription, with Azure Firewall. Every member's spoke is peered to it. |
 | Kit | This repository's content as you use it: the scripts, infrastructure, app, templates and archetype, imported into the `factory/` folder of your own repo. |
+| Lead-provisioned cohort | Path B pre-event setup: one platform team lead pre-creates the student repositories (`Initialize-CohortRepos.ps1`), deploys the shared foundation, deploys every student's datacenter and runs spoke vending from the lead repo while attendees complete [Student onboarding](/deploy/lead-setup/student-onboarding/). |
 | Key Vault | Azure's secrets service. The app reads its database connection configuration using managed identity. |
 | KPI | Key performance indicator: the measurable evidence that a business outcome was achieved. |
 | Log Analytics | Azure Monitor's workspace for centralized logs; the foundation creates `log-management`. |
 | Management group | A container above subscriptions that applies policy and access to everything inside it. ALZ-lite creates several and places your workload subscription under its Corp group. |
 | Managed identity | An Azure-managed identity that obtains Entra tokens without an application password or key. |
 | MCP | Model Context Protocol: the interface through which an agent can discover and call tool servers. |
-| Member index | The number from 1 to 20 that the team lead assigns you. It sets your IP ranges and your peerings to the team's hub. Not the same as the suffix. Scripts and pages show it as `$s.memberIndex`, read from `factory/.local/settings.json`. |
+| Member index | A positive whole number starting at `1` (with the team lead as `1`) that the team lead assigns you. It sets your IP ranges (`10.10.n.0/24` and `10.20.n.0/24` for `1` to `255`, or the `10.128.0.0/10` and `10.192.0.0/10` overflow pools for `256` and higher) and your peerings to the team's hub. Not the same as the suffix. Scripts and pages show it as `$s.memberIndex`, read from `factory/.local/settings.json`. |
 | MI link | The managed instance link: a continuous, online replication path from an on-premises (or Arc-enabled) SQL Server to Azure SQL Managed Instance, used for the C7 migration. |
 | MFA | Multifactor authentication: sign-in that requires more than one type of proof. |
 | Microsoft Entra ID | The directory and identity service used for Azure sign-in, managed identities and database authentication. |
@@ -61,6 +62,7 @@ sidebar:
 | OIDC | OpenID Connect: the federation protocol GitHub Actions uses to obtain Azure tokens without a stored client secret. |
 | PIM | Privileged Identity Management. It grants an Azure or Entra role for a limited time after you activate it. If your Owner role is "eligible", activate it before you run preflight. |
 | Platform lead | The name the workflow and the scripts use for the team lead. |
+| Pod lead | In a multi-pod cohort (`n > 5` attendees sharing one Azure hub), one member nominated in each 3-to-5-person breakout pod whose repository holds that pod's scored copy of the C1, C4 and C10 team deliverables. |
 | Playbook | `.github/modernization/playbook.md`, the source of truth for the Upgrade agent's sequence, checks and recovery. |
 | Preflight | The automated and manual checks you run before the event with the `whatif` stage of the platform pipeline. They are the first part of the readiness check. |
 | Private endpoint | A private IP address in your virtual network for an Azure service, so traffic to it stays off the public internet. |

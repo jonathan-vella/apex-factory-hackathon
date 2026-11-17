@@ -13,6 +13,17 @@ One workflow, `.github/workflows/platform.yml`, is installed in each attendee's 
 
 The profile is a repository variable, `PIPELINE_PROFILE`, that setup writes. A member pipeline refuses the `foundation` and `vending` stages.
 
+In **Path A (Self-service teams)**, each member sets up the `Member` profile in their own repo while the team lead sets up the `Lead` profile in the lead repo. In **Path B (Lead-provisioned cohort)**, `Initialize-CohortRepos.ps1` creates and seeds the private student repositories (no member pipeline setup required in student repos), and the team lead runs `whatif`, `foundation`, `member`, `vending` and `teardown` for all `n` cohort members from the single `Lead` repo.
+
+## Scale thresholds for larger cohorts
+
+Member indexes accept any positive integer `n >= 1` (`1..255` use `10.10.n.0/24` and `10.20.n.0/24`; `256+` use `10.(127 + floor(n/256)).(n%256).0/24` in `10.128.0.0/10` and `10.(191 + floor(n/256)).(n%256).0/24` in `10.192.0.0/10`). When running a large single-hub cohort, plan around four platform limits:
+
+- **`90` firewall rule collection groups per policy:** Azure Firewall allows up to 90 RCGs in `afwp-hub` (above 90 members, group rules or split across policies).
+- **`60–70` serial vends per 360-minute Actions job:** spoke vending updates `afwp-hub` sequentially (4 to 5 minutes per member); above ~60 members, dispatch `stage=vending` in range slices such as `-f members=1-50`, `-f members=51-100`.
+- **`256` matrix jobs per stage:** GitHub Actions caps matrix expansion at 256 jobs per workflow run. Above 256 members, dispatch `whatif`, `member` and member `teardown` in batches (`-f members=1-250`, `-f members=251-300`), and run `-f stage=teardown -f members=none -f confirm-team-teardown=true -f include-management=true` for the final team-scope teardown once all member scopes are empty.
+- **`325` members (`650` hub VNet peerings):** Azure Virtual Network allows up to 650 peerings on `vnet-hub`, and each member uses two peerings (`vnet-datacenter` and `vnet-spoke`). Above 325 members, provision an additional hub.
+
 ## Accepted risk
 
 The identity can create management groups, assign policy and roles, and is Owner on subscriptions. Anyone who can run a workflow in its environment can use it. We accept that for a short-lived lab in a non-production tenant, and we say so up front.
@@ -84,7 +95,7 @@ Not tested, and not promised:
 - **Vending of the members in parallel.** The vend itself runs one member at a time by design, because each run updates the shared firewall policy. Only the restarts and the probes run in parallel.
 - **A member run with a required reviewer in a private repo.** Free plans have none.
 - **A real event tenant.** The Tenant Root path ran in the owner's own tenant, where the account holds elevated access. An event tenant (for example CSP with delegated access) can differ, so keep the preflight's management-group check as a gate.
-- **More than three members** in one lead run. Three ran in parallel and in order without trouble; the numbering (address ranges, firewall priorities) is built for 20.
+- **More than three members** in one lead run. Three ran in parallel and in order without trouble; non-overlapping pool addressing supports `n >= 1` (`1..255` on `10.10.n.0/24` and `10.20.n.0/24`, `256+` on `10.128.0.0/10` and `10.192.0.0/10`), subject to the Azure and GitHub scale thresholds above (`90` firewall RCGs, `60–70` serial vends per 360-minute job, `256` matrix jobs, and `325` members / `650` hub peerings).
 
 ## What the tests found
 

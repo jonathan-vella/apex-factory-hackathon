@@ -1,0 +1,189 @@
+---
+title: "Step 1: Cohort repos, roster and preflight (T-14)"
+description: Create the lead repo and staging student template, assemble the cohort roster, stamp out private student repos, and run the T-14 preflight.
+prev:
+  link: /deploy/
+  label: Deploy overview
+next:
+  link: /deploy/lead-setup/step-2-foundation/
+  label: "Step 2: Foundation and Graph grant (T-7)"
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+**Who:** **Team lead** (platform lead). Students do nothing in Steps 1 to 4; they join at [Student onboarding (before Day 1)](../student-onboarding/).
+**When:** By **T-14** (14 days before day one). About 90 minutes for repo setup, roster creation, and the initial `whatif` preflight.
+
+In **Path B (Lead-provisioned cohort)**, one team lead sets up a single `Lead` pipeline repository that provisions and tears down the entire `n`-attendee lab, plus `n` private student repositories with no pipeline credentials. Confirm the accounts, permissions, and tools on [Requirements](/getting-started/requirements/) before starting.
+
+## 1.1 Create the lead repo and staging student template repo
+
+Create two repositories in your partner GitHub organization from [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator): one **lead repository** that runs `platform.yml`, and one **staging template repository** with the kit pre-imported on `main` so `Initialize-CohortRepos.ps1` can stamp out `n` ready-to-use student repos.
+
+<Steps>
+
+1. **Create and import the lead repository (`<org>/<event>-lead`).** Open [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator), choose **Use this template** > **Create a new repository**, name it `<event>-lead` under your partner organization, and set visibility to **Private**. Clone it in VS Code (connect to WSL first on Windows 11), choose **Reopen in Container**, and import the kit at the repo root:
+
+   ```bash
+   curl -fsSLO https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Import-Kit.ps1
+   pwsh ./Import-Kit.ps1
+   rm Import-Kit.ps1
+   ```
+
+2. **Commit and merge the lead import to `main`.** Set your git identity, push the imported kit on a `feat/import-kit` branch, open a pull request on GitHub, and merge it into `main` so `.github/workflows/platform.yml` is on the default branch:
+
+   ```bash
+   git config --global user.name "<your name>"
+   git config --global user.email "<your email>"
+   git switch -c feat/import-kit
+   git add -A
+   LEFTHOOK_EXCLUDE=iac-security-baseline git commit -m "chore: import the factory kit"
+   git push -u origin feat/import-kit
+   ```
+
+   Merge the pull request on GitHub, then bring your local clone onto `main`:
+
+   ```bash
+   git switch main && git pull
+   ```
+
+3. **Create and prepare the staging student template (`<org>/<event>-student-template`).** Create a second **Private** repository `<org>/<event>-student-template` from [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator), clone it into a separate folder (or Dev Container), run the same `Import-Kit.ps1` import, and merge its `feat/import-kit` pull request into `main`. Verify that `factory/`, `.devcontainer/`, `.github/`, `agent-output/university/`, and `infra/bicep/university/` are all committed on `main`.
+
+4. **Mark `<org>/<event>-student-template` as a GitHub template repository.** Authenticate `gh` if needed, then enable template generation so `Initialize-CohortRepos.ps1` can clone `main` cleanly into each student repo:
+
+   ```bash
+   gh repo edit <org>/<event>-student-template --template
+   ```
+
+</Steps>
+
+Done when both `<org>/<event>-lead` and `<org>/<event>-student-template` have `factory/` on `main`, and `<event>-student-template` is enabled as a template repository.
+
+## 1.2 Sign in, create lead settings, and assemble `.local/roster.json`
+
+Work inside your `<event>-lead` Dev Container in PowerShell (`pwsh`).
+
+<Steps>
+
+1. **Sign in to Azure and GitHub.** Authenticate to the event's Microsoft Entra tenant and to GitHub:
+
+   ```bash
+   pwsh
+   ```
+
+   ```powershell
+   az login --tenant '<tenant-id>' --use-device-code
+   gh auth login --hostname github.com --git-protocol https --web
+   gh auth setup-git
+   ```
+
+2. **Create `.local/settings.json` for the lead repo.** Enter the tenant ID, workload subscription `#1` (or your lead workload subscription), index `1`, your Azure region (such as `swedencentral`), and the **shared services subscription ID**:
+
+   ```powershell
+   cd factory
+   ./scripts/Initialize-Settings.ps1
+   ```
+
+3. **Assemble `factory/.local/roster.json` for all `1..n` attendee slots.** Create one object per slot (`1..n`). `factory/.local/` is git-ignored; never commit identifiers to git:
+
+   ```json
+   [
+     {
+       "index": 1,
+       "subscriptionId": "<workload-subscription-id>",
+       "memberPrincipalId": "<entra-object-id>",
+       "budgetEmail": "<alert-email>",
+       "githubUsername": ""
+     }
+   ]
+   ```
+
+   Field rules for Path B:
+   - `index`: sequential whole numbers `1` to `n`.
+   - `subscriptionId`: dedicated, empty workload subscription for that slot.
+   - `memberPrincipalId`: Entra object ID of a dedicated lab user account, the assigned attendee's Entra user, or an Entra security group. Required before Step 4 (`vending`) so the pipeline grants `Owner` on the workload subscription, `Reader` on the shared subscription, and `Managed Identity Operator` on `id-sqlmi-directory`.
+   - `budgetEmail`: recipient for the subscription's $500 budget alert (at 80%).
+   - `githubUsername` *(optional at T-14)*: leave blank (`""`) now if attendee names are not finalized yet; fill it in at Step 4 once attendees share their GitHub usernames.
+   - `suffix` *(optional)*: omit on first run so `Initialize-CohortRepos.ps1` generates and saves a deterministic 6-character lowercase alphanumeric suffix per slot.
+
+4. **Verify regional vCPU and SQL Managed Instance capacity across all `n` subscriptions.** Each attendee slot needs **16 vCPUs** of `Standard_D8as_v6` (`Standard DASv6 Family vCPUs` and `Total Regional vCPUs`, totaling `16 × n` vCPUs across the `n` workload subscriptions and billing account) plus regional capacity for one General Purpose **SQL Managed Instance** per workload subscription in C5:
+
+   ```powershell
+   $s = Get-Content .local/settings.json | ConvertFrom-Json
+   $roster = Get-Content .local/roster.json | ConvertFrom-Json
+   foreach ($m in $roster) {
+     Write-Host "=== Slot $($m.index) ==="
+     az vm list-usage --subscription $m.subscriptionId --location $s.location --output table
+   }
+   ```
+
+   Request quota increases under **Usage + quotas** now if any subscription falls short.
+
+</Steps>
+
+## 1.3 Stamp out the private student repos
+
+From `factory/` in `<event>-lead`, run `Initialize-CohortRepos.ps1`:
+
+```powershell
+./scripts/Initialize-CohortRepos.ps1 `
+  -RosterPath .local/roster.json `
+  -TemplateRepository '<org>/<event>-student-template' `
+  -RepoPrefix '<event>-student' `
+  -CoachTeamSlug 'coaches'
+```
+
+What this script does idempotently:
+
+- Creates private repositories `<event>-student-01` through `<event>-student-<nn>` from `<org>/<event>-student-template` and tags each with the `apex-factory-student` topic.
+- Generates and persists a deterministic 6-character `suffix` for every slot in `.local/roster.json` (preserving any suffix already recorded).
+- Grants the `@<org>/coaches` GitHub team **Read** (`pull`) access to each student repository so coaches can review evidence on event days.
+- Writes initial private Handoff Cards to `factory/.local/handoff/member-<index>.md`.
+
+:::caution[Never configure a Member pipeline on student repos]
+
+Do **not** run `Initialize-PlatformPipeline.ps1 -Profile Member` on any `<event>-student-*` repository. In Path B, `<event>-lead` runs every deployment and teardown centrally; student repositories carry no Azure OIDC federated credentials, `gh-lab` environments, or secrets.
+
+:::
+
+## 1.4 Initialize the lead pipeline and run `whatif` preflight
+
+<Steps>
+
+1. **Confirm your administrative roles.** Your Azure account must hold **Owner** at **Tenant Root** (via Global Administrator access elevation), **Owner** on the shared services subscription, and **Owner** on every workload subscription in `.local/roster.json` (or via an inherited management group).
+
+2. **Initialize the `Lead` pipeline in `<event>-lead`.** Run from `factory/`:
+
+   ```powershell
+   ./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json
+   ```
+
+   This creates `id-factory-pipeline` in `rg-cicd` on the shared services subscription, configures the `gh-lab` environment on `<event>-lead`, and uploads the redacted subscription and roster secrets. Whenever you edit `.local/roster.json` later, re-run this command so `gh-lab` stays in sync.
+
+3. **Dispatch the `whatif` preflight stage.** Run `Test-Preflight.ps1 -Fix` across the cohort to validate permissions and register missing Azure resource providers on every workload subscription:
+
+   ```bash
+   gh workflow run platform.yml -f stage=whatif
+   ```
+
+   If your cohort has **more than 256 members**, stay under GitHub Actions' 256-job matrix cap by dispatching in index ranges:
+
+   ```bash
+   gh workflow run platform.yml -f stage=whatif -f members=1-200
+   gh workflow run platform.yml -f stage=whatif -f members=201-300
+   ```
+
+   Approve the run in **Actions** if prompted. If new resource providers were registered, wait 10 to 15 minutes and dispatch `whatif` once more. Treat any `FAIL` row—or a warning on `Management groups`—as a blocker before Step 2.
+
+4. **Complete the organization and licensing checks.** Verify these items across your GitHub organization and Azure tenant before T-14:
+   - **GitHub Copilot policy:** Copilot Chat, custom agents (`01-Orchestrator`, `08-As-Built`), MCP servers in `.mcp.json`, and the models used by the Upgrade agent are enabled for attendees.
+   - **Outside collaborators (if external attendees):** if students use GitHub accounts outside `<org>`, confirm the organization policy allows inviting outside collaborators with Write (`push`) permission on private repositories.
+   - **Branch rules on `<event>-student-*`:** ensure no organization-wide branch protection rule blocks Write (`push`) collaborators from pushing directly to `main` and `vm-dev01-work` on `<event>-student-*` repositories.
+   - **GitHub Actions billing:** check included private-repo Actions minutes, spending limits, and payment method on `<org>`, plus [Scaling to larger cohorts](/deploy/how-it-works/#scaling-to-larger-cohorts) if `n > 50`.
+   - **Azure licensing:** verify Windows Server Azure Hybrid Benefit eligibility for `vm-app01` (or record which slots need `-f no-hybrid-benefit=true` in Step 3; see [Azure Hybrid Benefit](/reference/azure-hybrid-benefit/)) and per-user Windows 11 rights for `vm-dev01`.
+
+</Steps>
+
+Done when `<event>-lead`'s `whatif` run reports `GO` across every roster slot and all organization checks are verified.
+
+Next: [Step 2: Foundation and Graph grant (T-7)](../step-2-foundation/).

@@ -28,7 +28,7 @@ on Azure needs. Quota is deliberately not checked.
 .PARAMETER SubscriptionId
 The member's workload subscription.
 .PARAMETER MemberIndex
-The member index n, 1-20. The datacenter uses 10.10.n.0/24.
+The member index n (1 or greater). Members 1-255 use 10.10.n.0/24; 256+ use 10.128.0.0/10.
 .PARAMETER Location
 The Azure region. Fallback: germanywestcentral.
 .PARAMETER VmSize
@@ -59,7 +59,7 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[0-9a-fA-F-]{36}$')]
     [string] $SubscriptionId,
-    [ValidateRange(1, 20)]
+    [ValidateRange(1, [int]::MaxValue)]
     [int] $MemberIndex = 1,
     [string] $Location = 'swedencentral',
     [string] $VmSize = 'Standard_D8as_v6',
@@ -85,6 +85,34 @@ $hybridBenefit = -not $NoHybridBenefit.IsPresent
 $labPassword = 'FactoryLab-2026-Pw'
 $adminPasswordOverride = $AdminPassword
 $sqlAppPasswordOverride = $SqlAppPassword
+
+function Get-MemberNetworkPlan {
+    param([int] $MemberIndex)
+    $block = [int][Math]::Floor($MemberIndex / 256)
+    if ($block -gt 64) {
+        throw "MemberIndex $MemberIndex exceeds the IPv4 address pool capacity."
+    }
+    $dcOct2 = if ($block -eq 0) { 10 } else { 127 + $block }
+    $spokeOct2 = if ($block -eq 0) { 20 } else { 191 + $block }
+    $oct3 = $MemberIndex % 256
+    return [pscustomobject]@{
+        DcSecondOctet    = $dcOct2
+        SpokeSecondOctet = $spokeOct2
+        ThirdOctet       = $oct3
+        DatacenterPrefix = "10.$dcOct2.$oct3.0/24"
+        ServersPrefix    = "10.$dcOct2.$oct3.0/25"
+        BastionPrefix    = "10.$dcOct2.$oct3.192/26"
+        SpokePrefix      = "10.$spokeOct2.$oct3.0/24"
+        AppVmIp          = "10.$dcOct2.$oct3.4"
+        DevVmIp          = "10.$dcOct2.$oct3.5"
+        AppSubnet        = "10.$spokeOct2.$oct3.0/26"
+        PeSubnet         = "10.$spokeOct2.$oct3.64/26"
+        MiSubnet         = "10.$spokeOct2.$oct3.128/26"
+        SpokeUpperHalf   = "10.$spokeOct2.$oct3.128/25"
+    }
+}
+
+$networkPlan = Get-MemberNetworkPlan -MemberIndex $MemberIndex
 
 function Invoke-AzureCli {
     param([string[]] $Arguments)
@@ -140,12 +168,12 @@ Write-Information @"
 
 Deploying the datacenter for member $MemberIndex to ${Location}:
   Resource group   $resourceGroup
-  Network          vnet-datacenter 10.10.$MemberIndex.0/24, snet-servers 10.10.$MemberIndex.0/25, nsg-servers,
-                   AzureBastionSubnet 10.10.$MemberIndex.192/26, nat-datacenter with pip-nat-datacenter,
+  Network          vnet-datacenter $($networkPlan.DatacenterPrefix), snet-servers $($networkPlan.ServersPrefix), nsg-servers,
+                   AzureBastionSubnet $($networkPlan.BastionPrefix), nat-datacenter with pip-nat-datacenter,
                    bas-datacenter (Bastion Standard, native client support) with pip-bas-datacenter
-  vm-app01         10.10.$MemberIndex.4, $VmSize, Windows Server 2022 + SQL Server 2022 Developer, IIS, MSMQ,
+  vm-app01         $($networkPlan.AppVmIp), $VmSize, Windows Server 2022 + SQL Server 2022 Developer, IIS, MSMQ,
                    legacy Contoso University. P30 data disk for SQL Server
-  vm-dev01         10.10.$MemberIndex.5, $VmSize, Windows 11 Enterprise ($DevImageSku), developer tools.
+  vm-dev01         $($networkPlan.DevVmIp), $VmSize, Windows 11 Enterprise ($DevImageSku), developer tools.
                    OS disk at performance tier P30
   Scripts          $repository at '$ScriptsRef'
 Cost: $costText, about `$0.78/hour when both VMs are stopped (deallocated): Bastion Standard keeps

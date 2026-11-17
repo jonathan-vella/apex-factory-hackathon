@@ -192,3 +192,4 @@ if (-not $SkipGitHub) {
 }
 if ($problems.Count -gt 0) { throw "Not everything was removed:`n  $($problems -join "`n  ")" }
 Write-Information 'Verified: the identity, its roles, rg-cicd, the GitHub environment and the repository variables are gone.'
+exit 0

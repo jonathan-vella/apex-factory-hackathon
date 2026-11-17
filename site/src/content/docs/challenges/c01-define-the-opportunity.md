@@ -44,11 +44,11 @@ The one-time evidence setup takes about 5 minutes and requirements 2 to 5 add up
 
 **You decide.** The priority rank (1 to 6) of the outcomes, why your top two come first and your sixth comes last, the specific target value for each KPI, the `Today:` and `Target:` summary across all six dimensions, and the one-sentence target outcome statement that defines "done" for Dana.
 
-**Where to work.** The dev container of your own repo, and only there: it has the tools and the GitHub sign-in you set up in [Step 1: Repo and preflight](../../deploy/set-up-your-repo/). Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if it isn't already open in it. The terminal opens at the repo root, so you don't need to `cd`. Work on one shared screen: one person types, everyone contributes. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer.
+**Where to work.** The dev container of your own repo, and only there: it has the tools and the GitHub sign-in you set up in [Step 1: Repo and preflight](../../deploy/set-up-your-repo/) (or in your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort). Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if it isn't already open in it. The terminal opens at the repo root, so you don't need to `cd`. Work on one shared screen: one person types, everyone contributes. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer.
 
 ### Where your evidence goes
 
-The team doesn't collect evidence in a common repository. You work in one private repo of your own (the one from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/), with the kit in `factory/` and the import merged into `main`). Your evidence lives in it, on `main`, under `factory/evidence/cNN/` (`c01` to `c10`), next to `factory/evidence/readiness/` from Step 3. Your coach reads each member's repo to score it. One rule says where to commit:
+The team doesn't collect evidence in a common repository. You work in one private repo of your own (from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/) or [Student onboarding](/deploy/lead-setup/student-onboarding/), with the kit in `factory/` and the import merged into `main`). Your evidence lives in it, on `main`, under `factory/evidence/cNN/` (`c01` to `c10`), next to `factory/evidence/readiness/` from Step 3. Your coach reads each member's repo to score it. One rule says where to commit:
 
 - **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
 - **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
@@ -59,7 +59,7 @@ Commit messages in your own repo must be conventional commits (`type: Subject`, 
 
 The kit clone at `C:\src\factory` on `vm-dev01-work` has no commit hook. Use the `app:` messages from the playbook for those task commits; use conventional commit types for commits in your own repo.
 
-**Team deliverables** (the C1 canvas, C4's team ADRs, the C10 package): the team writes one document together on one person's screen. Then the typist posts the final file in the team channel, and every teammate saves it unchanged under the same name in their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the team lead's copy, so the other copies must match it.
+**Team deliverables** (the C1 canvas, C4's team ADRs, the C10 package): the team writes one document together on one person's screen. Then the typist posts the final file in the team channel, and every teammate saves it unchanged under the same name in their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the team lead's (or pod lead's, in a multi-pod cohort) copy, so the other copies must match it.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
@@ -114,10 +114,10 @@ The `-n` keeps anything you already created in Step 3 (such as `factory/evidence
 
 To complete this challenge, show your coach in your own repo:
 
-- [ ] `factory/evidence/c01/opportunity-canvas.md`, committed on `main`, with all six outcomes ranked and each mapped to a problem/trigger, a CAF outcome category, a stakeholder voice, a solution, a KPI and a target (with no template placeholder comments left in place). Scored once per team from the team lead's copy.
+- [ ] `factory/evidence/c01/opportunity-canvas.md`, committed on `main`, with all six outcomes ranked and each mapped to a problem/trigger, a CAF outcome category, a stakeholder voice, a solution, a KPI and a target (with no template placeholder comments left in place). Scored once per team from the team lead's (or pod lead's, in a multi-pod cohort) copy.
 - [ ] Each of the six dimensions has both a `Today:` and a `Target:` line, and no `<!-- ... -->` comment lines remain in the file.
 - [ ] A one-sentence target outcome statement linking trigger, solution and measurable outcome that the whole team can repeat.
-- [ ] Every teammate's copy is committed on `main` of their own repo and matches the team lead's.
+- [ ] Every teammate's copy is committed on `main` of their own repo and matches the team lead's (or pod lead's).
 - [ ] Outcome check (unscored guidance): the KPI for your top-ranked outcome is one you will verify with evidence in C8, C9 or C10.
 
 Next, continue with [C2: Secure, AI-ready foundation](../c02-secure-ai-ready-foundation/).

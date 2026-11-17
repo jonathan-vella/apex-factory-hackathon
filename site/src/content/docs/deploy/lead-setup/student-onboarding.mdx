@@ -1,0 +1,193 @@
+---
+title: "Student onboarding (before Day 1)"
+description: Accept your GitHub invite, open your student repo in a Dev Container or Codespaces, run your Handoff Card setup command, sign in on vm-dev01, and confirm your readiness evidence.
+prev:
+  link: /deploy/lead-setup/step-4-vending-and-invites/
+  label: "Step 4: Vending and collaborator invites (T-1)"
+next:
+  link: /challenges/
+  label: Challenges overview
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+**Who:** **Every student** in a lead-provisioned event.
+**When:** Before Day 1 kickoff (allow **20 to 30 minutes** once your team lead sends your private Handoff Card).
+
+Your team lead has already deployed the shared Azure landing zone, your simulated datacenter (`vm-app01` and `vm-dev01`), Azure Arc, and your spoke network—and created your private student repository (`<org>/<your-repo>`). You do **not** run Steps 1 to 4 or configure any GitHub Actions pipeline. Complete the five onboarding steps below so your workspaces and Copilot tools are ready before Day 1 starts at 08:30.
+
+If anything blocks you, contact your **designated team lead** first. Check [Requirements](/getting-started/requirements/) if you still need VS Code, WSL, Docker, or browser setup on your laptop.
+
+## 1. Share your GitHub username and accept your repository invitation
+
+<Steps>
+
+1. **Send your GitHub username** to your team lead if you haven't already, and receive your private **Handoff Card** (`member-<index>.md`). Keep the values on that card private—never paste subscription IDs, tenant IDs, or lab passwords into issues, commits, or public chats.
+
+2. **Accept your collaborator invitation.** Open the GitHub invitation email or go directly to:
+
+   ```text
+   https://github.com/<org>/<your-repo>/invitations
+   ```
+
+   Select **Accept invitation**. Until you accept, GitHub hides private repositories and `git clone` returns `404 Not Found`.
+
+</Steps>
+
+Done when `https://github.com/<org>/<your-repo>` opens in your browser and shows the `factory/` folder on `main`.
+
+## 2. Open your student repository in a Dev Container or GitHub Codespaces
+
+You use this Linux container workspace for challenges C1, C2, C4, C5, C8, and C10. Pick **either** local VS Code Dev Containers **or** GitHub Codespaces (if enabled by your organizer):
+
+- **Option A — GitHub Codespaces in your browser (zero local Docker or WSL install):** On `https://github.com/<org>/<your-repo>`, select **Code** > **Codespaces** > **Create codespace on main** (or open it inside VS Code Desktop via the GitHub Codespaces extension). Wait a few minutes for the container terminal to appear.
+- **Option B — Local VS Code + Dev Container:** On Windows 11, press `F1` > `WSL: Connect to WSL` first so VS Code runs inside Ubuntu (on macOS or Linux, open VS Code directly). Press `F1` > `Git: Clone`, clone `https://github.com/<org>/<your-repo>.git` into your home folder, and choose **Reopen in Container** when prompted (`F1` > `Dev Containers: Reopen in Container`). The first container build takes about 10 minutes.
+
+Once the container terminal opens, configure your git identity so commits succeed:
+
+```bash
+git config --global user.name "<your name>"
+git config --global user.email "<your email>"
+```
+
+<details>
+<summary>Ignore the template README at the repository root</summary>
+
+Your student repo already has `factory/` and the CoE archetype committed on `main`. Ignore the template's root `README.md`, do not run `npm run setup`, and ignore any scheduled template workflow runs. Follow this page and the [Challenges](/challenges/) pages instead.
+
+</details>
+
+## 3. Sign in and run your one-line settings command
+
+<Steps>
+
+1. **Start PowerShell and sign in to Azure and GitHub.** In the container terminal:
+
+   ```bash
+   pwsh
+   ```
+
+   ```powershell
+   az login --tenant '<tenant-id>' --use-device-code
+   az account set --subscription '<workload-subscription-id>'
+   az account show --output table
+   gh auth login --hostname github.com --git-protocol https --web
+   gh auth setup-git
+   ```
+
+   Use the `<tenant-id>` and `<workload-subscription-id>` from your Handoff Card. Confirm `az account show` matches your assigned workload subscription ID.
+
+2. **Run the exact one-line settings command from your Handoff Card.** Switch into `factory/` and paste the `./scripts/Initialize-Settings.ps1 ... -WriteLabCredentials` command from your Handoff Card:
+
+   ```powershell
+   cd factory
+   ./scripts/Initialize-Settings.ps1 -TenantId '<tenant-id>' -SubscriptionId '<workload-subscription-id>' -SharedSubscriptionId '<shared-services-subscription-id>' -MemberIndex <index> -Location '<location>' -Suffix '<suffix>' -WriteLabCredentials
+   ```
+
+   *(Copy the exact command from your Handoff Card rather than typing placeholders.)* This writes two git-ignored local files—`factory/.local/settings.json` and `factory/.local/<workload-subscription-id>/datacenter.json`—so every kit script and `azd` deployment knows your assigned slot, suffix, shared subscription, and VM credentials.
+
+3. **Verify Copilot, APEX agents, MCP servers, and MFA.**
+   - Sign in to **GitHub Copilot** in VS Code (Accounts icon at the bottom left), open **Copilot Chat**, and send `"hello"`.
+   - Open Copilot Chat's agent picker and confirm **`01-Orchestrator`** and **`08-As-Built`** appear and respond without an organization policy block.
+   - Confirm the MCP servers defined in `.mcp.json` (repo root) start in VS Code (`F1` > **MCP: List Servers**).
+   - Sign in to the [Azure portal](https://portal.azure.com) with your assigned Entra account and confirm **MFA** works and you can view `rg-datacenter` and `rg-spoke` in your workload subscription.
+
+</Steps>
+
+## 4. Sign in and configure `vm-dev01` through Bastion
+
+From C3 onward, application and database modernization work (C3, C6, C7, C8, and C9) runs on `vm-dev01` inside your simulated datacenter. Configure it now using **PowerShell 7 (`pwsh`)** on the VM—never Windows PowerShell 5.1.
+
+<Steps>
+
+1. **Read your `labadmin` password.** In your Dev Container or Codespace PowerShell terminal (inside `factory/`):
+
+   ```powershell
+   $s = Get-Content .local/settings.json | ConvertFrom-Json
+   (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
+   ```
+
+2. **Connect to `vm-dev01` via Azure Bastion.** In the Azure portal (filtered to your workload subscription), open **Resource groups** > **rg-datacenter** > **vm-dev01** > **Connect** > **Bastion**. Select **Password**, enter username `labadmin` and the password from step 1, and select **Connect** (allow browser pop-ups and clipboard access). Wait up to five minutes on first sign-in for VS Code extensions to finish installing.
+
+3. **Sign in on `vm-dev01` with your own GitHub account.** Open **PowerShell 7 (`pwsh`)** on `vm-dev01`:
+
+   ```powershell
+   gh auth login --web
+   gh auth setup-git
+   $u = gh api user | ConvertFrom-Json
+   git config --global user.name ($u.name ?? $u.login)
+   git config --global user.email "$($u.id)+$($u.login)@users.noreply.github.com"
+   ```
+
+4. **Sign in on `vm-dev01` with your own Entra identity.** Still in `pwsh` on `vm-dev01`:
+
+   ```powershell
+   az login --tenant '<tenant-id>' --use-device-code
+   az account set --subscription '<workload-subscription-id>'
+   az account show --query name -o tsv
+   [Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')
+   ```
+
+   Setting `AZURE_TOKEN_CREDENTIALS=AzureCliCredential` ensures local app runs authenticate as your Entra identity rather than the VM's system-assigned identity. Open VS Code only *after* setting this variable.
+
+5. **Refresh `C:\src\factory`, add your `member` remote, and push `vm-dev01-work`.**
+
+   ```powershell
+   cd C:\src\factory
+   git switch main
+   git pull
+   git remote add member https://github.com/<org>/<your-repo>.git
+   git switch -c vm-dev01-work
+   git push -u member vm-dev01-work
+   git remote -v
+   git branch -vv
+   ```
+
+   `origin` points to the public kit and `member` points to your private student repo. Never push to `origin` and never merge `vm-dev01-work` into `main` (see [Save your work and keep the branches straight](/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight)).
+
+6. **Clone your student repo separately on `main` for challenge evidence.**
+
+   ```powershell
+   git clone https://github.com/<org>/<your-repo>.git C:\src\<your-repo>
+   ```
+
+   Keep `C:\src\<your-repo>` on `main` for evidence files; keep application code changes in `C:\src\factory` on `vm-dev01-work`.
+
+7. **Open VS Code on `C:\src\factory` and enable the Upgrade agent.**
+
+   ```powershell
+   code C:\src\factory
+   ```
+
+   Trust the workspace, sign in to **GitHub Copilot** via the **Accounts** menu, enable the **GitHub Copilot upgrade** extension (and disable **GitHub Copilot modernization** for the workspace if installed), set Chat **Session Target** to **Local**, allow models under `F1` > **MCP: List Servers** > **Upgrade** > **Configure Model Access**, select **Upgrade** in the agent picker, and send `"hello"`.
+
+</Steps>
+
+Verify everything on `vm-dev01` in `pwsh`:
+
+```powershell
+gh auth status
+az account show --query name -o tsv
+[Environment]::GetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'User')
+git -C C:\src\factory branch -vv
+git -C C:\src\<your-repo> branch --show-current
+```
+
+Keep `vm-dev01` running during the event—never shut down or deallocate it while hacking.
+
+## 5. Confirm readiness evidence on `main`
+
+Your team lead already pushed `factory/evidence/readiness/test-datacenter.txt` to your student repository in Step 3. Add two quick readiness items so your coach can see your workstation and portal access are working on Day 1:
+
+1. Pull `main` in `C:\src\<your-repo>` (or in your Dev Container) and confirm `factory/evidence/readiness/test-datacenter.txt` is present with `PASS` results.
+2. In the Azure portal, open **Azure Arc** > **SQL Server instances**, select the instance on `vm-app01`, open **Migration** > **Assessments** (choose **Run assessment** if not yet run), select **Azure SQL Managed Instance**, and save an exported report or screenshot (with subscription and tenant IDs redacted) into `factory/evidence/readiness/`.
+3. Save a screenshot of Copilot Chat replying `"hello"` in VS Code on `vm-dev01` into `C:\src\<your-repo>\factory\evidence\readiness\`, commit with `docs: add student readiness evidence`, and push to `main`.
+
+Across every challenge, evidence follows one rule:
+
+- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
+- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
+
+Done when `factory/evidence/readiness/` on `main` in `<org>/<your-repo>` holds `test-datacenter.txt`, your Arc SQL assessment screenshot or export, and your `vm-dev01` Copilot screenshot. Let your team lead know you are ready!
+
+Next: join the 30-minute hackathon introduction at **08:30 on Day 1**, then start [C1: Define the opportunity](/challenges/c01-define-the-opportunity/) at **09:00**.

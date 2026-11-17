@@ -72,6 +72,25 @@ function Invoke-AzureCli {
     }
 }
 
+function Get-OptionalResource {
+    param([string[]] $Arguments)
+    $PSNativeCommandUseErrorActionPreference = $false
+    $output = & az @Arguments --only-show-errors --output json 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        $reason = (($output | ForEach-Object { $_.ToString() }) -join ' ') -replace '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}', '<id>'
+        if ($reason -match 'ResourceGroupNotFound|ResourceNotFound|\(NotFound\)|Not Found') {
+            return $null
+        }
+        $what = ($Arguments | Select-Object -First 3) -join ' '
+        throw "Lookup '$what' failed (exit $LASTEXITCODE): $($reason.Substring(0, [Math]::Min(300, $reason.Length)))"
+    }
+    $text = ($output | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] } | ForEach-Object { $_.ToString() }) -join "`n"
+    if ($text.Trim()) {
+        return $text | ConvertFrom-Json
+    }
+    return $null
+}
+
 function Get-CallerRoleName {
     param([string] $Scope)
     $account = Invoke-AzureCli -Arguments @('account', 'show')
@@ -111,6 +130,19 @@ function Initialize-ManagementGroup {
                 }
             }
             Write-Information "Created management group $($group.Name)."
+        }
+    }
+    $corpScope = "/providers/Microsoft.Management/managementGroups/$Prefix-corp"
+    for ($attempt = 1; $attempt -le 8; $attempt++) {
+        try {
+            if (@(Get-CallerRoleName -Scope $corpScope) -contains 'Owner') { break }
+        }
+        catch {
+            Write-Verbose "Waiting for Owner propagation at $corpScope (attempt $attempt)."
+        }
+        if ($attempt -lt 8) {
+            Write-Information "Waiting 15 seconds for Owner role inheritance to propagate to $Prefix-corp (attempt $attempt of 8)."
+            Start-Sleep -Seconds 15
         }
     }
 }
@@ -157,6 +189,20 @@ This takes 15-25 minutes, mostly Azure Firewall.
 
 "@
 
+$existingPolicy = Get-OptionalResource -Arguments @(
+    'resource', 'show',
+    '--subscription', $SharedSubscriptionId,
+    '-g', 'rg-hub',
+    '-n', 'afwp-hub',
+    '--resource-type', 'Microsoft.Network/firewallPolicies',
+    '--api-version', '2025-09-01'
+)
+[string[]] $extraSnatPrefixes = @(
+    if ($existingPolicy -and $existingPolicy.properties -and $existingPolicy.properties.snat -and $existingPolicy.properties.snat.privateRanges) {
+        $existingPolicy.properties.snat.privateRanges | ForEach-Object { [string] $_ }
+    }
+)
+
 $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "alz-lite-$([guid]::NewGuid()).parameters.json"
 @{
     '$schema' = 'https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#'
@@ -167,6 +213,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "alz-lite-$([guid]
         sharedSubscriptionId = @{ value = $SharedSubscriptionId }
         additionalAllowedLocations = @{ value = @($AdditionalAllowedLocation) }
         setDefenderFoundationalOnly = @{ value = -not $SkipDefender.IsPresent }
+        extraSnatPrefixes = @{ value = @($extraSnatPrefixes) }
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
 

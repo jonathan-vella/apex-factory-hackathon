@@ -28,7 +28,7 @@ such as Test-Datacenter.ps1's in-VM checks, before this script: they can't pass 
 .PARAMETER SubscriptionId
 The member's workload subscription, which holds rg-datacenter.
 .PARAMETER MemberIndex
-The member index n, 1-20. vm-app01 is 10.10.n.4.
+The member index n (1 or greater). Members 1-255 use 10.10.n.4 for vm-app01; 256+ use 10.128.0.0/10.
 .PARAMETER Location
 The region of the Arc machine resource. Use the datacenter's region.
 .EXAMPLE
@@ -43,7 +43,7 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[0-9a-fA-F-]{36}$')]
     [string] $SubscriptionId,
-    [ValidateRange(1, 20)]
+    [ValidateRange(1, [int]::MaxValue)]
     [int] $MemberIndex = 1,
     [string] $Location = 'swedencentral'
 )
@@ -61,6 +61,32 @@ Connect to vm-app01 through Bastion (the portal: $resourceGroup > $vmName > Conn
   ./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName vm-app01) and read C:\LabTools\logs\Connect-AppArc.log.
   The agent's own logs are in C:\ProgramData\AzureConnectedMachineAgent\Log, and azcmagent show prints its status.
 "@
+
+function Get-MemberNetworkPlan {
+    param([int] $MemberIndex)
+    $block = [int][Math]::Floor($MemberIndex / 256)
+    if ($block -gt 64) {
+        throw "MemberIndex $MemberIndex exceeds the IPv4 address pool capacity."
+    }
+    $dcOct2 = if ($block -eq 0) { 10 } else { 127 + $block }
+    $spokeOct2 = if ($block -eq 0) { 20 } else { 191 + $block }
+    $oct3 = $MemberIndex % 256
+    return [pscustomobject]@{
+        DcSecondOctet    = $dcOct2
+        SpokeSecondOctet = $spokeOct2
+        ThirdOctet       = $oct3
+        DatacenterPrefix = "10.$dcOct2.$oct3.0/24"
+        SpokePrefix      = "10.$spokeOct2.$oct3.0/24"
+        AppVmIp          = "10.$dcOct2.$oct3.4"
+        DevVmIp          = "10.$dcOct2.$oct3.5"
+        AppSubnet        = "10.$spokeOct2.$oct3.0/26"
+        PeSubnet         = "10.$spokeOct2.$oct3.64/26"
+        MiSubnet         = "10.$spokeOct2.$oct3.128/26"
+        SpokeUpperHalf   = "10.$spokeOct2.$oct3.128/25"
+    }
+}
+
+$networkPlan = Get-MemberNetworkPlan -MemberIndex $MemberIndex
 
 function Invoke-AzureCli {
     param([string[]] $Arguments, [switch] $AllowFailure)
@@ -104,7 +130,7 @@ $vm = Invoke-AzureCli -Arguments @('vm', 'show', '--show-details', '--subscripti
 if ($vm.powerState -ne 'VM running') {
     throw "$vmName is '$($vm.powerState)'. Start it with: az vm start --subscription <subscription-id> -g $resourceGroup -n $vmName"
 }
-$expectedIp = "10.10.$MemberIndex.4"
+$expectedIp = $networkPlan.AppVmIp
 if ($vm.privateIps -ne $expectedIp) {
     throw "$vmName has IP $($vm.privateIps), not $expectedIp. Check -MemberIndex."
 }

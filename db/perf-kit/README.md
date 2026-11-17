@@ -62,8 +62,8 @@ After cutover, against SQL MI, which is Entra-only. On `vm-dev01`, use `ActiveDi
 
 | Parameter | Default | Notes |
 |---|---|---|
-| `Server` | `10.10.n.4` | The source SQL Server, from `MemberIndex`. After cutover, the SQL MI host name |
-| `MemberIndex` | `1` | 1–20 |
+| `Server` | `10.10.n.4` (`1..255`) | The source SQL Server, derived from `MemberIndex` (`10.10.n.4` for `1` to `255`, or `10.(127 + floor(n/256)).(n%256).4` for `256` and above). After cutover, pass the SQL MI host name |
+| `MemberIndex` | `1` | Positive whole number (`1` or greater) |
 | `Authentication` | `SqlPassword` | `SqlPassword` connects as `contosoapp`, with the `-SqlPassword` you pass, else the password in `.local/<subscription-id>/datacenter.json` in the kit folder if it's there, else the documented lab password. The VM's clone of the kit has no `.local` folder: if you deployed the datacenter with `-SqlAppPassword`, pass that password as `-SqlPassword` on `vm-dev01`. `ActiveDirectoryDefault` uses the signed-in Entra identity (`az login`, or Visual Studio Code), for SQL MI. `ActiveDirectoryInteractive` signs you in in a browser, once per run. Use it on `vm-dev01`: it signs in as you, and doesn't depend on `az login` or on what the VM itself holds |
 | `DurationMinutes` | `15` | |
 | `Concurrency` | `8` | Connections running queries at the same time |

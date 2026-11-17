@@ -4,6 +4,7 @@ targetScope = 'subscription'
 
 param location string
 param setDefenderFoundationalOnly bool
+param extraSnatPrefixes array = []
 
 resource managementRg 'Microsoft.Resources/resourceGroups@2023-07-01' = {
   name: 'rg-management'
@@ -29,6 +30,7 @@ module hub 'hub.bicep' = {
   params: {
     location: location
     logAnalyticsWorkspaceId: workspace.outputs.workspaceId
+    extraSnatPrefixes: extraSnatPrefixes
   }
 }
 

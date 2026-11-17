@@ -7,9 +7,8 @@ targetScope = 'managementGroup'
 @description('Azure region. Fallback: germanywestcentral.')
 param location string = 'swedencentral'
 
-@description('Member index n, 1-20. The spoke uses 10.20.n.0/24 and the datacenter 10.10.n.0/24.')
+@description('Member index n (>= 1). Members 1-255 use spoke 10.20.n.0/24 and datacenter 10.10.n.0/24; 256+ use 10.192.0.0/10 and 10.128.0.0/10.')
 @minValue(1)
-@maxValue(20)
 param memberIndex int = 1
 
 @description('Prefix of the kit\'s management groups.')

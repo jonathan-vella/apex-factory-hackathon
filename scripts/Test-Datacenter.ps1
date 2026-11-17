@@ -12,7 +12,7 @@ after Arc onboarding, so the row fails from then on: keep the output you saved b
 .PARAMETER SubscriptionId
 The member's workload subscription.
 .PARAMETER MemberIndex
-The member index n, 1-20.
+The member index n (1 or greater).
 .PARAMETER VmSize
 The VM size the datacenter was deployed with, if not the default.
 .PARAMETER NoHybridBenefit
@@ -29,7 +29,7 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[0-9a-fA-F-]{36}$')]
     [string] $SubscriptionId,
-    [ValidateRange(1, 20)]
+    [ValidateRange(1, [int]::MaxValue)]
     [int] $MemberIndex = 1,
     [string] $VmSize = 'Standard_D8as_v6',
     [switch] $NoHybridBenefit
@@ -40,7 +40,33 @@ $subscription = $SubscriptionId
 $expectedSize = $VmSize
 $resourceGroup = 'rg-datacenter'
 $scriptsDir = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'datacenter', 'scripts'
-$appVmIp = "10.10.$MemberIndex.4"
+
+function Get-MemberNetworkPlan {
+    param([int] $MemberIndex)
+    $block = [int][Math]::Floor($MemberIndex / 256)
+    if ($block -gt 64) {
+        throw "MemberIndex $MemberIndex exceeds the IPv4 address pool capacity."
+    }
+    $dcOct2 = if ($block -eq 0) { 10 } else { 127 + $block }
+    $spokeOct2 = if ($block -eq 0) { 20 } else { 191 + $block }
+    $oct3 = $MemberIndex % 256
+    return [pscustomobject]@{
+        DcSecondOctet    = $dcOct2
+        SpokeSecondOctet = $spokeOct2
+        ThirdOctet       = $oct3
+        DatacenterPrefix = "10.$dcOct2.$oct3.0/24"
+        SpokePrefix      = "10.$spokeOct2.$oct3.0/24"
+        AppVmIp          = "10.$dcOct2.$oct3.4"
+        DevVmIp          = "10.$dcOct2.$oct3.5"
+        AppSubnet        = "10.$spokeOct2.$oct3.0/26"
+        PeSubnet         = "10.$spokeOct2.$oct3.64/26"
+        MiSubnet         = "10.$spokeOct2.$oct3.128/26"
+        SpokeUpperHalf   = "10.$spokeOct2.$oct3.128/25"
+    }
+}
+
+$networkPlan = Get-MemberNetworkPlan -MemberIndex $MemberIndex
+$appVmIp = $networkPlan.AppVmIp
 $results = [System.Collections.Generic.List[object]]::new()
 
 function Add-Result {
@@ -140,7 +166,7 @@ catch {
 if ($results.Count -eq 0) {
     $appLicense = if ($NoHybridBenefit) { 'None' } else { 'Windows_Server' }
     $appVm = Test-Vm -Name 'vm-app01' -PrivateIp $appVmIp -LicenseType $appLicense
-    $devVm = Test-Vm -Name 'vm-dev01' -PrivateIp "10.10.$MemberIndex.5" -LicenseType 'Windows_Client'
+    $devVm = Test-Vm -Name 'vm-dev01' -PrivateIp $networkPlan.DevVmIp -LicenseType 'Windows_Client'
 
     if ($appVm) {
         $dataDisks = @($appVm.storageProfile.dataDisks)

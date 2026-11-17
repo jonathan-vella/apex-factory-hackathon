@@ -66,6 +66,89 @@ try {
     Assert-True ($run.ExitCode -ne 0 -and $run.Output -match 'different') 'A shared subscription equal to the workload subscription must be refused.'
     $passed++
 
+    # MemberIndex accepts values > 20 (for example 25 and 300) and rejects 0.
+    foreach ($largeIndex in 25, 300) {
+        $run = Invoke-Child -Variables @{ s = $settingsScript; idx = $largeIndex } -Script "$stub`n& `$s -MemberIndex `$idx"
+        Assert-True ($run.ExitCode -eq 0) "MemberIndex $largeIndex should be accepted: $($run.Output)"
+        $settings = Get-Content $settingsFile -Raw | ConvertFrom-Json
+        Assert-True ($settings.memberIndex -eq $largeIndex) "settings.json should store memberIndex $largeIndex."
+        $passed++
+    }
+
+    $run = Invoke-Child -Variables @{ s = $settingsScript; a = $guidA; b = $guidB } -Script "$stub`n& `$s -TenantId `$a -SubscriptionId `$b -MemberIndex 0 -Location swedencentral"
+    Assert-True ($run.ExitCode -ne 0) "MemberIndex 0 must be rejected: $($run.Output)"
+    $passed++
+
+    # -WriteLabCredentials writes .local/<subscriptionId>/datacenter.json without printing GUIDs or overwriting an existing file.
+    $labKit = Join-Path $work 'kit-lab'
+    New-Item -ItemType Directory -Path (Join-Path $labKit 'scripts') -Force | Out-Null
+    Copy-Item (Join-Path $repoRoot 'scripts/Initialize-Settings.ps1') (Join-Path $labKit 'scripts')
+    $labSettingsScript = Join-Path $labKit 'scripts/Initialize-Settings.ps1'
+    $datacenterCredsPath = Join-Path $labKit ".local/$guidB/datacenter.json"
+
+    $run = Invoke-Child -Variables @{ s = $labSettingsScript; a = $guidA; b = $guidB; c = $guidC } -Script "$stub`n& `$s -TenantId `$a -SubscriptionId `$b -SharedSubscriptionId `$c -MemberIndex 25 -Location swedencentral -Suffix ab12cd -WriteLabCredentials"
+    Assert-True ($run.ExitCode -eq 0) "-WriteLabCredentials failed: $($run.Output)"
+    Assert-True (Test-Path $datacenterCredsPath) 'datacenter.json should be created when -WriteLabCredentials is passed.'
+    $creds = Get-Content $datacenterCredsPath -Raw | ConvertFrom-Json
+    Assert-True ($creds.adminUsername -eq 'labadmin' -and $creds.adminPassword -eq 'FactoryLab-2026-Pw' -and $creds.sqlAppLogin -eq 'contosoapp' -and $creds.sqlAppPassword -eq 'FactoryLab-2026-Pw') 'datacenter.json should hold the documented lab credentials.'
+    Assert-True ($run.Output -notmatch '[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}') "-WriteLabCredentials console output must not contain any GUID: $($run.Output)"
+    $passed++
+
+    Set-Content -Path $datacenterCredsPath -Value '{"adminUsername":"labadmin","adminPassword":"CustomKeep-Pw1","sqlAppLogin":"contosoapp","sqlAppPassword":"CustomKeep-Pw1"}' -Encoding utf8NoBOM
+    $run = Invoke-Child -Variables @{ s = $labSettingsScript } -Script "$stub`n& `$s -WriteLabCredentials"
+    Assert-True ($run.ExitCode -eq 0) "Re-running -WriteLabCredentials failed: $($run.Output)"
+    $credsAfter = Get-Content $datacenterCredsPath -Raw | ConvertFrom-Json
+    Assert-True ($credsAfter.sqlAppPassword -eq 'CustomKeep-Pw1') 'Existing datacenter.json must not be overwritten.'
+    $passed++
+
+    # Get-PipelineEvidence -MemberIndex 35 filters server-side (?per_page=100&name=...) and downloads exact --name even past 30 artifacts.
+    $evidenceKit = Join-Path $work 'kit-evidence'
+    New-Item -ItemType Directory -Path (Join-Path $evidenceKit 'scripts') -Force | Out-Null
+    Copy-Item (Join-Path $repoRoot 'scripts/Get-PipelineEvidence.ps1') (Join-Path $evidenceKit 'scripts')
+    $evidenceScript = Join-Path $evidenceKit 'scripts/Get-PipelineEvidence.ps1'
+    $ghLog = Join-Path $evidenceKit 'gh-calls.log'
+    $ghEvidenceStub = @'
+function global:gh {
+    $global:LASTEXITCODE = 0
+    $joined = $args -join ' '
+    Add-Content -Path $logFile -Value $joined
+    if ($args[0] -eq 'run' -and $args[1] -eq 'list') {
+        return '[{"databaseId":777}]'
+    }
+    if ($args[0] -eq 'api' -and $joined -like '*runs/777/artifacts*') {
+        # Unfiltered call returns only the first 30 artifacts (simulating GitHub default page size of 30).
+        if ($args[1] -eq 'repos/contoso/factory-lead/actions/runs/777/artifacts?per_page=100&name=readiness-test-datacenter-member-35') {
+            return 'readiness-test-datacenter-member-35'
+        }
+        return ((1..30 | ForEach-Object { "readiness-test-datacenter-member-$_" }) -join "`n")
+    }
+    if ($args[0] -eq 'run' -and $args[1] -eq 'download') {
+        $dirIdx = [Array]::IndexOf($args, '--dir')
+        $targetDir = $args[$dirIdx + 1]
+        $nameIdx = [Array]::IndexOf($args, '--name')
+        if ($nameIdx -lt 0) {
+            $global:LASTEXITCODE = 1
+            return 'Expected --name for targeted member download'
+        }
+        $artName = $args[$nameIdx + 1]
+        $artFolder = Join-Path $targetDir $artName
+        New-Item -ItemType Directory -Force -Path $artFolder | Out-Null
+        Set-Content -Path (Join-Path $artFolder 'test-datacenter.txt') -Value "PASS evidence for $artName"
+        return ''
+    }
+    $global:LASTEXITCODE = 1
+    return "Unexpected gh call: $joined"
+}
+'@
+    $run = Invoke-Child -Variables @{ e = $evidenceScript; logFile = $ghLog } -Script "$ghEvidenceStub`n& `$e -Repository 'contoso/factory-lead' -MemberIndex 35"
+    Assert-True ($run.ExitCode -eq 0) "Get-PipelineEvidence -MemberIndex 35 failed: $($run.Output)"
+    $savedEvidence = Get-Content (Join-Path $evidenceKit 'evidence/readiness/test-datacenter.txt') -Raw
+    Assert-True ($savedEvidence -match 'readiness-test-datacenter-member-35') "Expected member 35 evidence, got: $savedEvidence"
+    $loggedCalls = Get-Content $ghLog -Raw
+    Assert-True ($loggedCalls -match '\?per_page=100&name=readiness-test-datacenter-member-35') "Expected server-side artifact name filter in gh api call: $loggedCalls"
+    Assert-True ($loggedCalls -match 'run download 777 --repo contoso/factory-lead --name readiness-test-datacenter-member-35') "Expected exact --name download in gh run download: $loggedCalls"
+    $passed++
+
     # With a signed-in az account, the script shows the subscription name and tenant before it writes.
     $azStub = @'
 function global:az {
@@ -121,6 +204,79 @@ function global:az {
         Assert-True ($run.ExitCode -eq 0) "Vending what-if failed (principal='$principal'): $($run.Output)"
         $expected = if ($principal) { 'Hub Reader\s+the member' } else { 'Hub Reader\s+skipped' }
         Assert-True ($run.Output -match $expected) "The vending summary should show the hub Reader grant as '$expected' (principal='$principal'): $($run.Output)"
+        $passed++
+    }
+
+    # Deploy-Vending SNAT array handling: 0, 1 (singleton!), 516 (member 21 skips parent afwp-hub update), and 518 (member 256 appends 2 prefixes cleanly).
+    $snatCases = @(
+        @{ Name = 'zero-existing'; MemberIndex = 21; InitialCount = 0; ExpectPolicyDeploy = $true; ExpectedFinalCount = 2 }
+        @{ Name = 'singleton-existing'; MemberIndex = 21; InitialCount = 1; ExpectPolicyDeploy = $true; ExpectedFinalCount = 3 }
+        @{ Name = 'prepopulated-516-member21'; MemberIndex = 21; InitialCount = 516; ExpectPolicyDeploy = $false; ExpectedFinalCount = 0 }
+        @{ Name = 'prepopulated-516-member256'; MemberIndex = 256; InitialCount = 516; ExpectPolicyDeploy = $true; ExpectedFinalCount = 518 }
+    )
+    foreach ($sc in $snatCases) {
+        $snatCapture = Join-Path $work "snat-$($sc.Name).json"
+        $snatLog = Join-Path $work "snat-$($sc.Name).log"
+        Set-Content -Path $snatLog -Value '' -NoNewline
+        $snatRunScript = @'
+$hubSub = '22222222-2222-2222-2222-222222222222'
+$initialRanges = if ([int]$initCount -eq 0) {
+    @()
+} elseif ([int]$initCount -eq 1) {
+    @('10.10.0.0/16')
+} else {
+    @('10.10.0.0/16','10.128.0.0/10','10.100.0.0/16','172.16.0.0/12','192.168.0.0/16','100.64.0.0/10') +
+    @(1..255 | ForEach-Object { "10.20.$_.0/26" }) +
+    @(1..255 | ForEach-Object { "10.20.$_.128/25" })
+}
+$policyJson = @{ properties = @{ snat = @{ privateRanges = @($initialRanges) } } } | ConvertTo-Json -Depth 6 -Compress
+function global:az {
+    $global:LASTEXITCODE = 0
+    $command = $args -join ' '
+    Add-Content -Path $logFile -Value $command
+    if ($command -like 'account show*') { return '{"tenantId":"tenant-1","user":{"type":"user"}}' }
+    if ($command -like 'ad signed-in-user show*') { return '{"id":"user-1"}' }
+    if ($command -like 'role assignment list*') { return '[{"roleDefinitionName":"Owner"}]' }
+    if ($command -like 'network vnet show*vnet-hub*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub`",`"location`":`"swedencentral`"}" }
+    if ($command -like 'resource show*afw-hub*') { return "{`"properties`":{`"ipConfigurations`":[{`"properties`":{`"privateIPAddress`":`"10.100.0.4`"}}],`"firewallPolicy`":{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/firewallPolicies/afwp-hub`"}}}" }
+    if ($command -like 'resource show*afwp-hub*') { return $policyJson }
+    if ($command -like 'resource show*log-management*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-management/providers/Microsoft.OperationalInsights/workspaces/log-management`"}" }
+    if ($command -like 'identity show*') { return '{"id":"identity-1"}' }
+    if ($command -like 'group show*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub`"}" }
+    if ($command -like 'deployment group create*vending-afwp-snat-*') {
+        $pIdx = [Array]::IndexOf($args, '--parameters')
+        $pFile = $args[$pIdx + 1].TrimStart('@')
+        Copy-Item -LiteralPath $pFile -Destination $capFile -Force
+        return '{"properties":{"provisioningState":"Succeeded"}}'
+    }
+    if ($command -like 'deployment mg create*') { return '{"properties":{"provisioningState":"Succeeded"}}' }
+    if ($command -like 'policy state trigger-scan*') { return '{}' }
+    $global:LASTEXITCODE = 1
+    return 'not found'
+}
+& $v -WorkloadSubscriptionId '11111111-1111-1111-1111-111111111111' -SharedSubscriptionId $hubSub -MemberIndex ([int]$mIdx) -BudgetEmail 'lead@example.test' -Confirm:$false *>&1
+'@
+        $run = Invoke-Child -Variables @{
+            v         = $vendingScript
+            initCount = [string]$sc.InitialCount
+            mIdx      = [string]$sc.MemberIndex
+            capFile   = $snatCapture
+            logFile   = $snatLog
+        } -Script $snatRunScript
+        Assert-True ($run.ExitCode -eq 0) "SNAT case '$($sc.Name)' failed: $($run.Output)"
+        $loggedCmds = @(Get-Content -Path $snatLog)
+        $policyDeployIdx = [Array]::FindIndex($loggedCmds, [Predicate[string]]{ param($x) $x -like 'deployment group create*vending-afwp-snat-*' })
+        $mgDeployIdx = [Array]::FindIndex($loggedCmds, [Predicate[string]]{ param($x) $x -like 'deployment mg create*' })
+        Assert-True ($mgDeployIdx -ge 0) "SNAT case '$($sc.Name)' did not run deployment mg create."
+        if ($sc.ExpectPolicyDeploy) {
+            Assert-True ($policyDeployIdx -ge 0 -and $policyDeployIdx -lt $mgDeployIdx) "SNAT case '$($sc.Name)' must update afwp-hub BEFORE mg deployment."
+            $capturedParams = (Get-Content -Raw -Path $snatCapture | ConvertFrom-Json).parameters.extraSnatPrefixes.value
+            Assert-True (@($capturedParams).Count -eq $sc.ExpectedFinalCount) "SNAT case '$($sc.Name)' expected $($sc.ExpectedFinalCount) prefixes, got $(@($capturedParams).Count)."
+            Assert-True (@($capturedParams | Where-Object { $_ -match '\s' -or ($_ -split '/').Count -ne 2 }).Count -eq 0) "SNAT case '$($sc.Name)' produced a corrupted/concatenated CIDR string!"
+        }
+        else {
+            Assert-True ($policyDeployIdx -lt 0) "SNAT case '$($sc.Name)' must skip parent afwp-hub update when prefixes are already pre-populated!"
+        }
         $passed++
     }
 

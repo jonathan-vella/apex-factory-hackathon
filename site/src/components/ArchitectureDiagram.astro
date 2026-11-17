@@ -185,7 +185,7 @@ const label =
     <section class="frame frame--member">
       <div class="frame__head">
         <span class="frame__title">Member workload subscription</span>
-        <span class="frame__sub">one per member, n = 1–20</span>
+        <span class="frame__sub">one per member, n ≥ 1 (shown for n = 1–255)</span>
       </div>
 
       <div class="grid grid--member">
@@ -304,7 +304,9 @@ const label =
         member's SQL Managed Instance uses.
       </li>
       <li>
-        Member workload subscription, one per member (n is 1 to 20). Resource group
+        Member workload subscription, one per member (n ≥ 1: 10.10.n.0/24 and 10.20.n.0/24 for n = 1
+        to 255, or 10.(127 + floor(n/256)).(n%256).0/24 in 10.128.0.0/10 and 10.(191 +
+        floor(n/256)).(n%256).0/24 in 10.192.0.0/10 for n ≥ 256). Resource group
         <code>rg-datacenter</code> (built in the readiness check) holds <code>vnet-datacenter</code>{" "}
         (10.10.n.0/24). Subnet
         <code>snet-servers</code> (10.10.n.0/25) has <code>vm-app01</code> (10.10.n.4, the legacy

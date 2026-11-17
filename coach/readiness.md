@@ -2,7 +2,7 @@
 
 Coach and team-lead reference. No coach is on duty during the pre-hackathon window; support before day one is best-effort and attendees contact their designated team lead first. Attendees follow the numbered steps in [Step 3: Datacenter and workstation](../site/src/content/docs/deploy/member-steps.mdx#readiness-checklist) and [Step 4: Vending](../site/src/content/docs/deploy/vending.mdx).
 
-The readiness setup has no points. Before day one, each member runs [Step 1](../site/src/content/docs/deploy/set-up-your-repo.mdx) (T-14) and [Step 3](../site/src/content/docs/deploy/member-steps.mdx) (T-3) in their own repository against their own workload subscription. At T-1 ([Step 4](../site/src/content/docs/deploy/vending.mdx)), the team lead runs the `vending` stage once for the whole team: `Invoke-PipelineVending.ps1` automatically checks that each member's `vnet-datacenter` exists and `vm-app01` is `Connected` in Azure Arc before vending their spoke.
+The readiness setup has no points. In **Path A (Self-service teams)**, each member runs [Step 1](../site/src/content/docs/deploy/set-up-your-repo.mdx) (T-14) and [Step 3](../site/src/content/docs/deploy/member-steps.mdx) (T-3) in their own repository against their own workload subscription. In **Path B (Lead-provisioned cohort)**, the team lead creates the student repositories (`Initialize-CohortRepos.ps1`) and runs `whatif` and `member` across the cohort from the lead repository (batching `-f members=1-250` when `n > 256`), while attendees complete Student onboarding. At T-1 ([Step 4](../site/src/content/docs/deploy/vending.mdx)), the team lead runs the `vending` stage across the roster (batching `-f members=1-50` when `n > 60`): `Invoke-PipelineVending.ps1` automatically checks that each member's `vnet-datacenter` exists and `vm-app01` is `Connected` in Azure Arc before vending their spoke.
 
 If a coach is reviewing readiness evidence at kickoff on day one (or helping a team lead troubleshoot a member before T-1), use the checklist below.
 
@@ -28,7 +28,7 @@ Use this list when spot-checking `factory/evidence/readiness/` in a member's rep
 
 ## How members get there
 
-Members run the readiness check from GitHub Actions in their own repo, using the settings registered with the pipeline. The steps are on the [member steps](../site/src/content/docs/deploy/member-steps.mdx) page. The team lead does the same in the lead's repo, with `-f members=<lead's index>`.
+In **Path A**, members run the readiness stages from GitHub Actions in their own repo using the settings registered with the pipeline ([member steps](../site/src/content/docs/deploy/member-steps.mdx)), and the team lead runs their own datacenter in the lead repo with `-f members=1`. In **Path B**, the team lead dispatches `whatif`, `member` and `vending` for all `n` cohort indexes from the lead repo, and students complete Student onboarding in their pre-created repo and on `vm-dev01`.
 
 With required reviewers enabled, approvals apply to jobs, not once per stage. `whatif` has preflight, plus ALZ-lite what-if in the lead profile. `member` has preflight, then the member matrix. `foundation` and `vending` each have one job. `all` has preflight, ALZ-lite what-if, foundation, the member matrix and vending in sequence. `teardown` has the member matrix, then team cleanup only for an explicitly confirmed full lead teardown. Matrix jobs can appear together in one approval prompt; approve only the named, intended jobs.
 
