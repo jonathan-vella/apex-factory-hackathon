@@ -102,7 +102,7 @@ test("blank event details remain visible placeholders", () => {
         "utf8",
       );
       assert.match(content, /https:\/\/factory\.apexops\.pro\/deploy\/lead-setup\/student-onboarding\//);
-      assert.doesNotMatch(content, /VS Code 1\.100|three-page|25-minute|\b20\d{2}\b/);
+      assert.doesNotMatch(content, /VS Code 1\.100|three-page|25-minute|\bUbuntu\b|\b20\d{2}\b/);
     }
   });
 
@@ -129,11 +129,13 @@ test("lead-provisioned setupMode tailors all three drafts to Path B student onbo
     assert.ok(draft.text.includes("https://factory.apexops.pro/getting-started/requirements/"));
     assert.ok(draft.text.includes("https://factory.apexops.pro/getting-started/roles/"));
     assert.doesNotMatch(draft.text, /\[[^\]]+\]/);
-    assert.doesNotMatch(draft.text, /VS Code 1\.100|three-page|25-minute|\b20\d{2}\b/);
+    assert.doesNotMatch(draft.text, /VS Code 1\.100|three-page|25-minute|\bUbuntu\b|\b20\d{2}\b/);
   }
   assert.match(email.text, /GitHub username/);
   assert.match(email.text, /repository invitation/);
+  assert.match(email.text, /GitHub Codespaces/);
   assert.match(email.text, /do not need to create a repository from a template or run the T-14 to T-1 deployment pipelines yourself/);
   assert.match(briefing.text, /attendees do not run the T-14 to T-1 pipelines themselves/);
+  assert.match(hackathon.text, /dev container or GitHub Codespaces/);
   assert.match(hackathon.text, /Keep vm-dev01 running throughout the event/);
 });

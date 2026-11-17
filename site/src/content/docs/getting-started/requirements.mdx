@@ -8,7 +8,7 @@ sidebar:
 import { Steps } from "@astrojs/starlight/components";
 import Diagram from "../../../components/Diagram.astro";
 
-**Validated on:** 2026-10-30 (documentation review; reconfirm access, plans and product requirements before each event).
+**Validated on:** 2026-11-17 (documentation review; reconfirm access, plans and product requirements before each event).
 
 This page lists what you need before you deploy anything. Checking it takes about 30 minutes, plus any time your organization needs to grant access. Ask for access early: that is the slow part. If something blocks you before day one, ask your team lead; they can escalate to the event owner.
 
@@ -57,31 +57,42 @@ Every member's datacenter, network and archetype live in their own workload subs
 
 ## Tools
 
-You only need a few host tools to open the dev container. Everything else, including the Azure CLI, is inside it.
+You only need a few host tools to open the dev container. Everything else, including the Azure CLI, is inside it. In a lead-provisioned cohort (Path B) where the organizer enables GitHub Codespaces, students can work in the browser (or through the GitHub Codespaces extension in VS Code) without local Docker Desktop or WSL; everyone using a local dev container needs the tools below.
 
 | Tool | Why | Who / by when | Verify |
 | --- | --- | --- | --- |
 | [VS Code](https://code.visualstudio.com/) latest stable (1.106 or newer; checked 2026-10-29) | The editor, agent mode and **Git: Clone** | Each attendee, before T-14 | `code --version` |
+| [WSL 2](https://learn.microsoft.com/windows/wsl/install) via [`wsl-launchpad`](https://github.com/jonathan-vella/wsl-launchpad) (Windows 11 only) | Ready-to-code WSL 2 environment with Azure Linux, developer tools and optional dotfiles so your clone and dev container run on Linux | Windows 11 users, before T-14 | `wsl --version` and `wsl --list --verbose` |
 | [Docker Desktop](https://www.docker.com/products/docker-desktop/) | Runs the dev container. For professional use, organizations with 250 or more employees or $10 million or more in annual revenue need a paid Docker subscription; [confirm your license](https://docs.docker.com/subscription-billing/desktop-license/) before T-14. | Each attendee and the partner licensing administrator, before T-14 | `docker version` |
-| [Git](https://git-scm.com/downloads) | VS Code's **Git: Clone** needs it | Each attendee, before T-14 | `git --version` |
-| VS Code extensions: Dev Containers (`ms-vscode-remote.remote-containers`) and GitHub Copilot Chat (`github.copilot-chat`) | Open the container and sign in to Copilot | Each attendee, before T-14 | `code --list-extensions` |
+| [Git](https://git-scm.com/downloads) | VS Code's **Git: Clone** and `wsl-launchpad` image verification (`gpg.exe` in Git for Windows) need it | Each attendee, before T-14 | `git --version` |
+| VS Code extensions: Dev Containers (`ms-vscode-remote.remote-containers`), GitHub Copilot Chat (`github.copilot-chat`), and on Windows 11 **WSL** (`ms-vscode-remote.remote-wsl`) | Open the container, sign in to Copilot and connect VS Code to WSL on Windows 11 | Each attendee, before T-14 | `code --list-extensions` |
 
 ```powershell
 code --install-extension ms-vscode-remote.remote-containers
 code --install-extension github.copilot-chat
+# On Windows 11, also install the WSL extension:
+code --install-extension ms-vscode-remote.remote-wsl
 ```
 
-Done when each verify command prints a version or lists the extensions.
+Done when each verify command prints a version or lists the extensions (and on Windows 11, `wsl --list --verbose` shows `* AzureLinux-4` on version `2`).
 
 <details>
 <summary>Windows 11 from scratch</summary>
 
 <Steps>
 
-1. In **PowerShell as administrator**, run `wsl --install` to install [WSL](https://learn.microsoft.com/windows/wsl/install) with Ubuntu, then restart. Open **Ubuntu** from the Start menu once; its first launch asks you to create a Linux user name and password.
-2. Install Docker Desktop and turn on **Use the WSL 2 based engine**. Then open Docker Desktop **Settings** > **Resources** > **WSL integration** and switch on **Ubuntu**. Without this, the dev container can't find Docker from Ubuntu.
-3. Install VS Code, the two extensions above, and the **WSL** extension (`ms-vscode-remote.remote-wsl`).
-4. You clone your repo from inside Ubuntu, not into a Windows folder. The dev container is much faster that way, and line endings stay correct.
+1. Install [WSL 2](https://learn.microsoft.com/windows/wsl/install) (2.6.0 or newer; in an elevated Windows terminal run `wsl --install --no-distribution` or `wsl --update`, then restart if prompted), [PowerShell 7.4 or newer](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows) (`pwsh`), and [Git for Windows](https://gitforwindows.org/) (bundles `gpg.exe` to verify Microsoft's signed image checksum). Then in **PowerShell 7** on Windows, clone [`wsl-launchpad`](https://github.com/jonathan-vella/wsl-launchpad) and run `bootstrap.ps1`, replacing `devuser` with your chosen lowercase non-root Linux username:
+
+   ```powershell
+   git clone https://github.com/jonathan-vella/wsl-launchpad.git
+   Set-Location .\wsl-launchpad
+   pwsh -NoProfile -File .\bootstrap.ps1 -LinuxUser devuser
+   ```
+
+   The bootstrap installs **Azure Linux 4** (`AzureLinux-4`, preview—suitable for this non-production lab), makes `AzureLinux-4` your default WSL 2 distribution, creates `devuser` (locked password, no `sudo`; open `wsl -d AzureLinux-4 -u root` for administrative tasks), and installs native Linux tools (`az`, `gh`, `bicep`, `copilot`, `git`) with weekly package updates. Launchpad marks its VS Code Remote-WSL workflow on `AzureLinux-4` as not yet validated end-to-end; see its [troubleshooting guide](https://github.com/jonathan-vella/wsl-launchpad/blob/main/docs/troubleshooting.md) if you hit a startup issue. Optional Linux dotfiles (`dotfiles/install.sh`, run from a separate Linux-side checkout) and one-time Microsoft CFS feed forwarding (`configure-cfs.ps1`, for Microsoft maintainers building APEX dev containers) are separate manual steps in the [`wsl-launchpad` README](https://github.com/jonathan-vella/wsl-launchpad#readme).
+2. Install Docker Desktop and turn on **Use the WSL 2 based engine**. Open Docker Desktop **Settings** > **Resources** > **WSL integration**, confirm integration is enabled for your default WSL distribution (or switch on **`AzureLinux-4`**), and run `wsl -d AzureLinux-4 --exec docker version` in PowerShell 7 to verify Docker is reachable inside WSL.
+3. Install VS Code and the three extensions above (`ms-vscode-remote.remote-containers`, `github.copilot-chat` and `ms-vscode-remote.remote-wsl`).
+4. Clone your hackathon repo inside your WSL Linux home folder (for example `~/src`), not into a Windows folder. The dev container is much faster on the Linux filesystem, and line endings stay correct.
 
 </Steps>
 
@@ -91,13 +102,13 @@ Done when each verify command prints a version or lists the extensions.
 
 Ask your network administrator to allow outbound HTTPS to the endpoints the kit uses. GitHub's service ranges can change; consult the [GitHub metadata API](https://api.github.com/meta) and the [VS Code network list](https://code.visualstudio.com/docs/setup/network) rather than copying a static list into a firewall rule.
 
-- **GitHub and Copilot:** `github.com`, `api.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `*.githubassets.com`, `api.githubcopilot.com`, `*.githubcopilot.com` and `default.exp-tas.com`.
-- **Azure and Microsoft:** `*.azure.com`, `*.microsoft.com`, `login.microsoftonline.com`, `learn.microsoft.com`.
+- **GitHub and Copilot:** `github.com`, `api.github.com`, `cli.github.com`, `codeload.github.com`, `*.githubusercontent.com`, `*.githubassets.com`, `api.githubcopilot.com`, `*.githubcopilot.com` and `default.exp-tas.com`.
+- **Azure and Microsoft:** `*.azure.com`, `*.microsoft.com`, `aka.ms`, `login.microsoftonline.com`, `learn.microsoft.com`.
 - **Docker Hub:** `docker.io`, `registry-1.docker.io`, `auth.docker.io` and `production.cloudflare.docker.com`.
 - **The dev container:** `ghcr.io`, `mcr.microsoft.com`, `registry.npmjs.org`, `pypi.org` and `files.pythonhosted.org`. `packagefeedproxy.microsoft.io` is not the partner default; allow it only if your organization specifically uses that proxy.
 - **VS Code:** `update.code.visualstudio.com`, `code.visualstudio.com`, `go.microsoft.com`, `marketplace.visualstudio.com`, `*.gallery.vsassets.io`, `*.gallerycdn.vsassets.io`, `raw.githubusercontent.com`, `*.vscode-cdn.net`, `vscode.download.prss.microsoft.com`, `download.visualstudio.microsoft.com`, `vscode-sync.trafficmanager.net`, `vscode-sync-insiders.trafficmanager.net`, `vscode.dev` and `*.vscode-unpkg.net`.
 
-The exact VS Code endpoints can change; check its current network list before the event. A wildcard is not a testable URL by itself: have the network administrator verify the endpoints seen during extension installation, dev-container build and Copilot sign-in. Test exact hosts with HTTPS from the network you will use.
+The exact VS Code endpoints and `aka.ms` download redirects (used by `wsl-launchpad` for the signed Azure Linux WSL image and package repositories) can change; check current lists and redirects before the event. A wildcard is not a testable URL by itself: have the network administrator verify the endpoints seen during WSL bootstrap, extension installation, dev-container build and Copilot sign-in. Test exact hosts with HTTPS from the network you will use.
 
 ## Next
 
