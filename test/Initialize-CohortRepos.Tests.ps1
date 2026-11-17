@@ -419,6 +419,7 @@ try {
     $member25Sub = Get-TestGuid -Number 25
     $member25Suffix = $savedRoster[24].suffix
     Assert-True ($handoff25Text -match 'https://github\.com/contoso/factory-student-25') 'Handoff card missing repo URL.'
+    Assert-True ($handoff25Text -match 'do not create another GitHub repo') 'Handoff card missing single-repo reminder.'
     Assert-True ($handoff25Text -match 'https://github\.com/contoso/factory-student-25/invitations') 'Handoff card missing invitations URL.'
     Assert-True ($handoff25Text -match 'https://factory\.apexops\.pro/deploy/lead-setup/student-onboarding/') 'Handoff card missing onboarding URL.'
     Assert-True ($handoff25Text -match [regex]::Escape("./scripts/Initialize-Settings.ps1 -TenantId '$tenantGuid' -SubscriptionId '$member25Sub' -SharedSubscriptionId '$sharedGuid' -MemberIndex 25 -Location 'swedencentral' -Suffix '$member25Suffix' -WriteLabCredentials")) "Handoff card missing exact Initialize-Settings one-liner: $handoff25Text"

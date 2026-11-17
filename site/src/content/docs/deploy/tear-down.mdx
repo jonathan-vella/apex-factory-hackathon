@@ -44,7 +44,7 @@ gh workflow run platform.yml -f stage=teardown
 gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true -f include-management=true
 ```
 
-If the tenant will be reused, omit `-f include-management=true`. If your roster has more than 256 members (GitHub Actions' matrix job cap), remove members in batches first (for example `-f stage=teardown -f members=1-250`, then `-f stage=teardown -f members=251-300`), and then run `-f stage=teardown -f members=none -f confirm-team-teardown=true -f include-management=true` to remove the team foundation.
+If the tenant will be reused, omit `-f include-management=true`. If your roster has more than 256 members (GitHub Actions' matrix job cap), remove members in batches first (for example `-f stage=teardown -f members=1-250`, wait for that run to finish green, then `-f stage=teardown -f members=251-300` and wait for it to finish green), and then run `-f stage=teardown -f members=none -f confirm-team-teardown=true -f include-management=true` to remove the team foundation.
 
 **In the team lead's repo, for one member only:** add their index and omit the team confirmation:
 

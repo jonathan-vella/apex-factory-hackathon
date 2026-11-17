@@ -11,11 +11,11 @@ sidebar:
 
 **When:** [C3](../../challenges/c03-assess-the-source/), [C6](../../challenges/c06-modernize-with-ghcp/), [C7](../../challenges/c07-migrate-and-go-live/), [C8](../../challenges/c08-validate-the-pattern/) and [C9](../../challenges/c09-optimize-the-db-with-ghcp/).
 
-**Before you start:** finish [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01). This guide explains the agent workflow and branch rules; the challenges set the acceptance bar.
+**Before you start:** finish setting up `vm-dev01` in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01) (Path A) or [Student onboarding §4](../../deploy/lead-setup/student-onboarding/#4-sign-in-and-configure-vm-dev01-through-bastion) (Path B). This guide explains the agent workflow and branch rules; the challenges set the acceptance bar.
 
 ## Switching to vm-dev01
 
-The setup now lives entirely in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01), including steps 1 to 9 for Bastion, sign-ins, the two clones and the Local harness. If you are reconnecting, use [Coming back later](../../deploy/member-steps/#coming-back-later); do not repeat clone or branch creation.
+The setup lives in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01) for Path A and [Student onboarding §4](../../deploy/lead-setup/student-onboarding/#4-sign-in-and-configure-vm-dev01-through-bastion) for Path B, covering Bastion, sign-ins, the two local folders on `vm-dev01` and the Local harness. If you are reconnecting, use [Coming back later](../../deploy/member-steps/#coming-back-later); do not repeat clone or branch creation.
 
 ### Check your setup
 
@@ -27,7 +27,7 @@ Use [Coming back later in Step 3](../../deploy/member-steps/#coming-back-later).
 
 ## Save your work and keep the branches straight
 
-You have one repo of your own on GitHub. Your dev container holds a clone of it, and on `vm-dev01` it has a second, plain clone for evidence. The code you change on the VM lives in the kit clone, on its own branch. Keep this table in mind; most confusion comes from mixing them up.
+You have **one private repo of your own on GitHub** (created in Step 1 in Path A, or assigned on your Handoff Card in Path B—never create a second GitHub repo). Your dev container holds one clone of it, and on `vm-dev01` it has a second local clone (`C:\src\<your-repo>`) for evidence alongside the VM's pre-cloned kit folder (`C:\src\factory`), which pushes your app branch (`vm-dev01-work`) to that same GitHub repo via the `member` remote. Keep this table in mind; most confusion comes from mixing them up.
 
 | Where | Repo | Branch | What's there |
 | --- | --- | --- | --- |
@@ -35,7 +35,7 @@ You have one repo of your own on GitHub. Your dev container holds a clone of it,
 | `vm-dev01`, `C:\src\factory` (C3, C6, C7, C9) | The public kit (`origin`), connected to your repo (`member`) | `vm-dev01-work` | The kit at the repo root: the app and your changes |
 | `vm-dev01`, `C:\src\<your-repo>` (C3, C6, C7, C9; C8 in part) | Your own repo | `main` | Evidence only, in `factory\evidence\` |
 
-After each task, commit and push to your branch. Because [Step 3.3, item 6](../../deploy/member-steps/#33-set-up-vm-dev01) set the upstream, a plain `git push` goes to `member/vm-dev01-work`:
+After each task, commit and push to your branch. Because your initial `vm-dev01` setup ([Step 3.3](../../deploy/member-steps/#33-set-up-vm-dev01) / [Student onboarding §4](../../deploy/lead-setup/student-onboarding/#4-sign-in-and-configure-vm-dev01-through-bastion)) set the upstream with `git push -u member vm-dev01-work`, a plain `git push` goes to `member/vm-dev01-work`:
 
 ```powershell
 cd C:\src\factory
@@ -51,7 +51,7 @@ Your own repo now has the `vm-dev01-work` branch next to `main`. The two branche
 :::caution[Don't mix up the branches]
 
 - **Stay on `vm-dev01-work`** in `C:\src\factory`. Check with `git branch -vv` before you commit. Don't commit on `main` there.
-- **Don't run `git pull` in `C:\src\factory`** after [Step 3.3, item 5](../../deploy/member-steps/#33-set-up-vm-dev01). Pulling the public kit's `main` into your work branch causes conflicts. If a coach tells you to, they'll give the exact command. (Evidence is different: you do pull in `C:\src\<your-repo>`, see below.)
+- **Don't run `git pull` in `C:\src\factory`** after the one-time refresh during initial `vm-dev01` setup ([Step 3.3](../../deploy/member-steps/#33-set-up-vm-dev01) / [Student onboarding §4](../../deploy/lead-setup/student-onboarding/#4-sign-in-and-configure-vm-dev01-through-bastion)). Pulling the public kit's `main` into your work branch causes conflicts. If a coach tells you to, they'll give the exact command. (Evidence is different: you do pull in `C:\src\<your-repo>`, see below.)
 - **Never push to `origin`.** It's the public kit and the push is refused. Push with a plain `git push`, or `git push member vm-dev01-work`.
 - **Never merge `vm-dev01-work` into your repo's `main`, or open a pull request from it.** It would put the kit at the repo root next to the accelerator and break the dev container setup. GitHub shows a "Compare & pull request" banner for the branch: ignore it. Don't delete the branch either.
 - **If `git push` says "no upstream branch"**, run `git push -u member vm-dev01-work`. **If it says permission denied** for the public kit repo, you pushed to `origin`: run `git branch -vv`, then `git push -u member vm-dev01-work`.

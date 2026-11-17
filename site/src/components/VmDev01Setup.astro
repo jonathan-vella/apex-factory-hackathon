@@ -1,0 +1,278 @@
+---
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+interface Props {
+  pathMode: "self-service" | "lead-provisioned";
+}
+
+const { pathMode } = Astro.props;
+const isPathB = pathMode === "lead-provisioned";
+---
+
+<Aside type="tip" title="One GitHub repo, two local folders on vm-dev01">
+  {isPathB ? (
+    <p>
+      <strong>Do not create a new GitHub repository.</strong> Reuse the private{" "}
+      <code>&lt;org&gt;/&lt;your-repo&gt;</code> student repository listed on your Handoff Card (for
+      example <code>&lt;org&gt;/&lt;event&gt;-student-01</code>). On <code>vm-dev01</code>, two
+      separate local folders connect to that one GitHub repository for different jobs:
+    </p>
+  ) : (
+    <p>
+      <strong>Do not create a new GitHub repository.</strong> Reuse the private{" "}
+      <code>&lt;your-org&gt;/&lt;your-repo&gt;</code> repository you created in{" "}
+      <a href="/deploy/set-up-your-repo/#11-create-your-repo-everyone">Step 1.1</a>. On{" "}
+      <code>vm-dev01</code>, two separate local folders connect to that one GitHub repository for
+      different jobs:
+    </p>
+  )}
+  <table>
+    <thead>
+      <tr>
+        <th>
+          Folder on <code>vm-dev01</code>
+        </th>
+        <th>Where it comes from</th>
+        <th>Branch &amp; remote you push to</th>
+        <th>What goes here</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>
+          <code>C:\src\factory</code>
+        </td>
+        <td>Pre-cloned on the VM from the public kit</td>
+        <td>
+          <code>vm-dev01-work</code> &rarr; pushes to <code>member</code> (your existing GitHub
+          repo)
+        </td>
+        <td>
+          Contoso University app code and <code>.github/upgrades/</code>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <code>C:\src\&lt;your-repo&gt;</code>
+        </td>
+        <td>A second local clone of your existing GitHub repo</td>
+        <td>
+          <code>main</code> &rarr; pushes to <code>origin</code> (that same GitHub repo)
+        </td>
+        <td>
+          Written challenge evidence only (<code>factory\evidence\</code>)
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</Aside>
+
+<p>
+  Use two browser windows on your own computer: one for Bastion, the other for the Azure portal and
+  this site. Allow portal pop-ups and Bastion clipboard access, and enter sign-in codes on your own
+  computer where your passkeys and password manager work. Step 1 below runs in your Dev Container
+  (or GitHub Codespace), step 2 runs in your local browser, and steps 3 to 9 run on{" "}
+  <code>vm-dev01</code> in <strong>PowerShell 7</strong> (<code>pwsh</code>), never Windows
+  PowerShell 5.1.
+</p>
+
+<Steps>
+  <ol>
+    <li>
+      {isPathB ? (
+        <>
+          <p>
+            <strong>Read your VM password and repo URL.</strong> In PowerShell in your Dev Container
+            or Codespace, from <code>factory/</code>:
+          </p>
+          <pre><code class="language-powershell">{`$s = Get-Content .local/settings.json | ConvertFrom-Json
+(Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
+git remote get-url origin`}</code></pre>
+          <p>
+            Keep the password for <code>labadmin</code> (which also opens <code>vm-app01</code>) and
+            your student repo URL (<code>https://github.com/&lt;org&gt;/&lt;your-repo&gt;.git</code>
+            ) handy, along with the <code>&lt;tenant-id&gt;</code> and{" "}
+            <code>&lt;workload-subscription-id&gt;</code> from your Handoff Card.
+          </p>
+        </>
+      ) : (
+        <>
+          <p>
+            <strong>Get your VM password, subscription ID and Step 1 repo URL.</strong> In
+            PowerShell in your dev container, from <code>factory/</code>:
+          </p>
+          <pre><code class="language-powershell">{`$s = Get-Content .local/settings.json | ConvertFrom-Json
+(Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
+$s.subscriptionId
+git remote get-url origin`}</code></pre>
+          <p>
+            The outputs are the password for <code>labadmin</code> (which also opens{" "}
+            <code>vm-app01</code>), your workload subscription ID, and the URL of the private GitHub
+            repo you created in Step 1 (
+            <code>https://github.com/&lt;your-org&gt;/&lt;your-repo&gt;.git</code>). Keep them
+            privately for the next steps. If <code>datacenter.json</code> is missing after a green
+            run, run <code>./scripts/Get-PipelineEvidence.ps1</code> from <code>factory/</code>{" "}
+            first (or for the standard disposable lab when Arc failed, run{" "}
+            <code>./scripts/Initialize-Settings.ps1 -WriteLabCredentials</code>; for custom
+            credentials, ask your team lead privately).
+          </p>
+        </>
+      )}
+    </li>
+
+    <li>
+      <p>
+        <strong>Connect through Bastion.</strong> In the Azure portal, check your directory and
+        workload subscription filter. Open <strong>Resource groups</strong> &gt;{" "}
+        <strong>rg-datacenter</strong> &gt; <strong>vm-dev01</strong> &gt; <strong>Connect</strong>{" "}
+        &gt; <strong>Bastion</strong>. Choose <strong>Password</strong>, enter <code>labadmin</code>{" "}
+        and the password, then <strong>Connect</strong>. After your first sign-in, wait up to five
+        minutes for the VS Code extensions to finish installing. On a Windows computer,{" "}
+        <code>./scripts/Connect-DatacenterVm.ps1</code> is an optional shortcut (needs PowerShell 7,
+        Azure CLI with the <code>bastion</code> extension, and a local copy of <code>factory/</code>
+        ).
+      </p>
+    </li>
+
+    <li>
+      <p>
+        <strong>Sign in to GitHub and set your git identity.</strong> Open{" "}
+        <strong>
+          PowerShell 7 (<code>pwsh</code>)
+        </strong>{" "}
+        on <code>vm-dev01</code>:
+      </p>
+      <pre><code class="language-powershell">{`gh auth login --web
+gh auth setup-git
+$u = gh api user | ConvertFrom-Json
+git config --global user.name ($u.name ?? $u.login)
+git config --global user.email "$($u.id)+$($u.login)@users.noreply.github.com"`}</code></pre>
+      <p>
+        Choose <strong>GitHub.com</strong>, <strong>HTTPS</strong> and <strong>Yes</strong> to
+        authenticate Git. Enter the one-time code at <code>https://github.com/login/device</code> on
+        your own computer. <code>gh auth setup-git</code> lets pushes use that sign-in.
+      </p>
+    </li>
+
+    <li>
+      <p>
+        <strong>Sign in to Azure with your own identity.</strong> Still in <code>pwsh</code> on{" "}
+        <code>vm-dev01</code>:
+      </p>
+      {isPathB ? (
+        <pre><code class="language-powershell">{`az login --tenant '<tenant-id>' --use-device-code
+az account set --subscription '<workload-subscription-id>'
+az account show --query name -o tsv
+[Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')`}</code></pre>
+      ) : (
+        <pre><code class="language-powershell">{`az login --use-device-code
+az account set --subscription '<workload-subscription-id>'
+az account show --query name -o tsv
+[Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')`}</code></pre>
+      )}
+      <p>
+        Enter the code at <code>https://microsoft.com/devicelogin</code> (or run{" "}
+        <code>az login</code> in Bastion if your tenant blocks device code sign-in). Confirm the
+        subscription name matches your workload subscription. Setting{" "}
+        <code>AZURE_TOKEN_CREDENTIALS=AzureCliCredential</code> makes local app runs use your own
+        Entra data roles instead of the VM&apos;s system-assigned identity. Open VS Code only{" "}
+        <em>after</em> setting this variable, and never set it on App Service.
+      </p>
+    </li>
+
+    <li>
+      <p>
+        <strong>Refresh the pre-cloned kit folder once before creating your work branch:</strong>
+      </p>
+      <pre><code class="language-powershell">{`cd C:\\src\\factory
+git switch main
+git pull`}</code></pre>
+      <p>
+        <code>C:\src\factory</code> is already pre-cloned on <code>vm-dev01</code> from the public
+        kit. If the folder is missing, ask your team lead before the event or your coach on event
+        days; if they ask you to recreate it, run this sparse clone so answer keys and documentation
+        tooling stay out:
+      </p>
+      <pre><code class="language-powershell">{`git clone --no-checkout https://github.com/jonathan-vella/apex-factory-hackathon.git C:\\src\\factory
+cd C:\\src\\factory
+git sparse-checkout set --no-cone '/*' '!/coach/' '!/facilitator/' '!/docs/' '!/site/' '!/test/' '!/.vale/' '!/.vale.ini' '!/.markdownlint-cli2.mjs' '!/.prettierignore' '!/prettier.config.mjs' '!/lefthook.yml' '!/package.json' '!/package-lock.json' '!/.node-version' '!/.nvmrc'
+git checkout`}</code></pre>
+    </li>
+
+    <li>
+      <p>
+        <strong>
+          Point a <code>member</code> remote at your existing GitHub repo and push{" "}
+          <code>vm-dev01-work</code> (once):
+        </strong>{" "}
+        use the exact repository URL from step 1—do not create a new repository on GitHub:
+      </p>
+      <pre><code class="language-powershell">{isPathB
+  ? `cd C:\\src\\factory
+git remote add member https://github.com/<org>/<your-repo>.git
+git switch -c vm-dev01-work
+git push -u member vm-dev01-work
+git remote -v
+git branch -vv`
+  : `cd C:\\src\\factory
+git remote add member https://github.com/<your-org>/<your-repo>.git
+git switch -c vm-dev01-work
+git push -u member vm-dev01-work
+git remote -v
+git branch -vv`}</code></pre>
+      <p>
+        <code>origin</code> stays the public kit and <code>member</code> points to your existing
+        private GitHub repo. <code>vm-dev01-work</code> tracks <code>member/vm-dev01-work</code>.
+        Never push to <code>origin</code>, never run <code>git pull</code> in{" "}
+        <code>C:\src\factory</code> after this setup, and never merge <code>vm-dev01-work</code>{" "}
+        into <code>main</code> (their folder layouts differ; see{" "}
+        <a href="/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight">
+          Save your work and keep the branches straight
+        </a>
+        ).
+      </p>
+    </li>
+
+    <li>
+      <p>
+        <strong>
+          Clone that same GitHub repo into <code>C:\src\&lt;your-repo&gt;</code> for evidence:
+        </strong>{" "}
+        make a local clone of your existing private repo alongside <code>C:\src\factory</code>:
+      </p>
+      <pre><code class="language-powershell">{isPathB
+  ? `git clone https://github.com/<org>/<your-repo>.git C:\\src\\<your-repo>`
+  : `git clone https://github.com/<your-org>/<your-repo>.git C:\\src\\<your-repo>`}</code></pre>
+      <p>
+        This local folder stays on <code>main</code> for files under <code>factory\evidence\</code>;
+        application code changes stay in <code>C:\src\factory</code> on <code>vm-dev01-work</code>.
+      </p>
+    </li>
+
+    <li>
+      <p>
+        <strong>Open VS Code on the kit root and sign in to Copilot:</strong>
+      </p>
+      <pre><code class="language-powershell">{`code C:\\src\\factory`}</code></pre>
+      <p>
+        Trust the authors when VS Code asks. Choose the <strong>Accounts</strong> icon &gt;{" "}
+        <strong>Sign in with GitHub to use GitHub Copilot</strong> and complete browser sign-in.
+        Open <code>C:\src\factory</code> (not <code>app/</code>) so the agent finds{" "}
+        <code>.github/skills/</code> and <code>.github/modernization/</code>.
+      </p>
+    </li>
+
+    <li>
+      <p>
+        <strong>Configure the Upgrade agent.</strong> In <strong>Extensions</strong>, enable{" "}
+        <strong>GitHub Copilot upgrade</strong>; disable{" "}
+        <strong>GitHub Copilot modernization</strong> for the workspace if present. In Chat, choose{" "}
+        <strong>Local</strong> for <strong>Session Target</strong> (not the remote coding agent
+        harness). Press <code>F1</code> &gt; <strong>MCP: List Servers</strong> &gt;{" "}
+        <strong>Upgrade</strong> &gt; <strong>Configure Model Access</strong> and allow the models
+        you will use. Confirm the agent picker lists <strong>Upgrade</strong>, then send{" "}
+        <code>&quot;hello&quot;</code>.
+      </p>
+    </li>
+  </ol>
+</Steps>
