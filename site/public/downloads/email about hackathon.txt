@@ -24,7 +24,7 @@ Each platform team shares a dedicated, non-production Microsoft Entra tenant and
 
 - Their own paid workload subscription in the team’s tenant, with unconditional Owner assigned (Contributor does not qualify) and MFA registered. Azure Pass, Sponsorship and Microsoft Partner Network benefit offers are not supported.
 - A GitHub account in the partner organization, a private repository, and a paid GitHub Copilot seat. The organization’s policies must allow agent mode, MCP servers and the models used in the event, and GitHub Actions billing must be in place for private repositories.
-- A computer with the latest stable VS Code, Docker Desktop, Git, and the Dev Containers and GitHub Copilot Chat extensions. Windows users should also plan to use the documented WSL 2 and Ubuntu setup. Larger organizations need a paid Docker Desktop subscription.
+- A computer with the latest stable VS Code, Docker Desktop, Git, and the Dev Containers and GitHub Copilot Chat extensions for local dev-container setups (in a lead-provisioned cohort with organizer-enabled GitHub Codespaces, attendees can work in the browser without local Docker Desktop or WSL). Windows users running locally should use the documented WSL 2 setup. Larger organizations using Docker Desktop need a paid Docker subscription.
 - An eligible Windows 11 per-user license for the vm-dev01 workstation. Windows Server Azure Hybrid Benefit is on by default for vm-app01; use the documented opt-out if you hold no eligible licenses.
 - Enough regional vCPU quota in the event region (swedencentral unless told otherwise) for two Standard_D8as_v6 VMs (16 vCPUs) plus the services deployed in C5. Preflight does not check quota or the subscription offer type.
 

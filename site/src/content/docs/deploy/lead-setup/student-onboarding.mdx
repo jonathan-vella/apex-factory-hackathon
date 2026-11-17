@@ -41,7 +41,7 @@ Done when `https://github.com/<org>/<your-repo>` opens in your browser and shows
 You use this Linux container workspace for challenges C1, C2, C4, C5, C8, and C10. Pick **either** local VS Code Dev Containers **or** GitHub Codespaces (if enabled by your organizer):
 
 - **Option A — GitHub Codespaces in your browser (zero local Docker or WSL install):** On `https://github.com/<org>/<your-repo>`, select **Code** > **Codespaces** > **Create codespace on main** (or open it inside VS Code Desktop via the GitHub Codespaces extension). Wait a few minutes for the container terminal to appear.
-- **Option B — Local VS Code + Dev Container:** On Windows 11, press `F1` > `WSL: Connect to WSL` first so VS Code runs inside Ubuntu (on macOS or Linux, open VS Code directly). Press `F1` > `Git: Clone`, clone `https://github.com/<org>/<your-repo>.git` into your home folder, and choose **Reopen in Container** when prompted (`F1` > `Dev Containers: Reopen in Container`). The first container build takes about 10 minutes.
+- **Option B — Local VS Code + Dev Container:** On Windows 11, press `F1` > `WSL: Connect to WSL` (or `WSL: Connect to WSL using Distro...` and choose `AzureLinux-4`) first so VS Code's remote server runs inside WSL (on macOS or Linux, open VS Code directly). Press `F1` > `Git: Clone`, clone `https://github.com/<org>/<your-repo>.git` into your Linux home folder (such as `~/src`), and choose **Reopen in Container** when prompted (`F1` > `Dev Containers: Reopen in Container`). The first container build takes about 10 minutes.
 
 Once the container terminal opens, configure your git identity so commits succeed:
 

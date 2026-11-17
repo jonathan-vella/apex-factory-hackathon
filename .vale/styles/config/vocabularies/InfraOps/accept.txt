@@ -17,6 +17,7 @@ Azure
 Bastion
 Bicep
 CAF
+CFS
 [Cc]odespace
 Codespaces
 CoE
@@ -38,6 +39,7 @@ deployer
 deployers
 dev
 DNS
+dotfiles
 Entra
 failover
 failovers
@@ -45,6 +47,7 @@ finalizer
 germanywestcentral
 GHCP
 GitHub
+GnuPG
 hackathon
 hackathons
 IaC
@@ -54,6 +57,7 @@ IP
 IPs
 KPI
 KPIs
+Launchpad
 lifeline
 lifelines
 MCP
@@ -97,6 +101,7 @@ VMs
 VNet
 VNets
 WAF
+WSL
 azd
 Priya
 unscored
