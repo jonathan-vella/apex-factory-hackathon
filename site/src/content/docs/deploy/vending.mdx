@@ -68,7 +68,7 @@ When the run is green, post "vended" in your team's private channel along with t
 
 ## 4.3 Save the shared services subscription ID (Members)
 
-Once the team lead confirms that Step 4 is green and shares the shared services subscription ID in your team channel, save it in your `factory/.local/settings.json` from `factory/` in your dev container:
+**Who:** Team members (`2..n`) only—the team lead already saved `sharedSubscriptionId` in Step 1.4. Once the team lead confirms that Step 4 is green and shares the shared services subscription ID in your private team channel, each team member saves it in `factory/.local/settings.json` from `factory/` in their laptop Dev Container:
 
 ```powershell
 ./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
