@@ -13,25 +13,16 @@ const sourceUrl = `https://github.com/jonathan-vella/apex-factory-hackathon/blob
 const isChallenge = data.kind === "challenge";
 
 const scopeLabel = data.scope ? data.scope : undefined;
-const points = [
-  data.teamPoints ? `${data.teamPoints} team` : undefined,
-  data.memberPoints ? `${data.memberPoints} member` : undefined,
-]
-  .filter(Boolean)
-  .join(" + ");
 
-const headings = [
-  ...(data.scoringHtml ? [{ depth: 2, slug: "scoring", text: "Scoring" }] : []),
-  ...data.sections.map((section) => ({
-    depth: 2,
-    slug: section.slug,
-    text: section.title,
-  })),
-];
+const headings = data.sections.map((section) => ({
+  depth: 2,
+  slug: section.slug,
+  text: section.title,
+}));
 
 const frontmatter = {
   title: data.title,
-  description: "Coach material: answers, scoring, lifelines and the run of show.",
+  description: "Coach material: answers, lifelines and the run of show.",
   editUrl: false,
   lastUpdated: false,
   prev: false,
@@ -61,16 +52,6 @@ const frontmatter = {
             <dd>{data.minutes} min</dd>
           </div>
         )}
-        {points && (
-          <div>
-            <dt>Points</dt>
-            <dd>{points}</dd>
-          </div>
-        )}
-        <div>
-          <dt>Bonus</dt>
-          <dd>{data.bonus ?? "None listed"}</dd>
-        </div>
       </dl>
     )}
 
@@ -81,17 +62,6 @@ const frontmatter = {
     </p>
 
     {data.introHtml.trim() && <div class="coach-intro" set:html={data.introHtml} />}
-
-    {data.scoringHtml && (
-      <section class="coach-card coach-card--scoring" id="scoring">
-        <h2>Scoring</h2>
-        <p class="coach-card__note">
-          From the scoring rubric. Use Scoreboard and badges in the Coach sidebar for scoring rules,
-          lifeline caps and bonus awards.
-        </p>
-        <div set:html={data.scoringHtml} />
-      </section>
-    )}
 
     {data.sections.map((section) => (
       <section class={`coach-card coach-card--${section.kind}`} id={section.slug}>

@@ -1,19 +1,18 @@
 # Facilitator guide
 
 This guide is the run-of-show and decision reference for the event owner, coaches and team leads. The
-attendee challenges define the work; the [scoring rubric](scoring-rubric.md) is the single source of truth
-for points.
+attendee challenges (`C1`–`C10`) define the work.
 
 ## Roles
 
 | Role | Owns |
 |---|---|
 | Event owner | Copy and brand the kit, set dates and region, confirm each team's roster and member indexes, confirm access and logistics, handle escalations, lock the roster, own cleanup and the final record |
-| Coach | On duty during the two event days (not during pre-hackathon setup, where support is best-effort). Support the kickoff's full-ALZ slides or recording, give the live APEX demo, sign off challenge evidence, hand out and apply lifelines, trigger and reverse the curveballs |
+| Coach | On duty during the two event days (not during pre-hackathon setup, where support is best-effort). Support the kickoff's full-ALZ slides or recording, give the live APEX demo, review challenge deliverables, hand out and apply lifelines, trigger and reverse the curveballs |
 | Tech lead | A technical presenter designated by the event owner from the event delivery team, which may be Microsoft, a partner or another third party. Gives the 08:30 Day 1 kickoff |
 | Team lead (called the platform lead in the workflow and scripts) | A colleague nominated for the platform hub and the **first point of contact** for teammates during pre-hackathon setup and the event. Keeps `roster.json`, assigns member indexes (`n >= 1`, lead is `1`), deploys ALZ-lite once for the hub in Step 2 (T-7), books a Privileged Role Administrator for the Graph grant, vends each member subscription in Step 4 (T-1, where the pipeline checks each member's datacenter and Arc status automatically), and coordinates policy exemptions and shared network changes. In **Path B (Lead-provisioned cohort)**, also creates the student repos with `Initialize-CohortRepos.ps1` and runs the `member` and `teardown` stages across the cohort. Also a member on their own workload subscription |
-| Pod lead (multi-pod cohorts, `n > 5`) | One colleague nominated in each 3-to-5-person breakout pod when more than five attendees share one Azure hub. Owns that pod's canonical, scored copy of the C1, C4 and C10 team deliverables |
-| Member | Complete pre-hackathon setup (Path A Steps 1, 3 and 4, or Path B Student onboarding) and the challenges, review AI changes, keep evidence and run the app modernization work in their own repository |
+| Pod lead (multi-pod cohorts, `n > 5`) | One colleague nominated in each 3-to-5-person breakout pod when more than five attendees share one Azure hub. Owns that pod's canonical copy of the C1, C4 and C10 team deliverables |
+| Member | Complete pre-hackathon setup (Path A Steps 1, 3 and 4, or Path B Student onboarding) and the challenges on `vm-dev01`, review AI changes, and commit deliverables on `main` in their own repository |
 
 ## Timeline and gates
 
@@ -21,7 +20,7 @@ for points.
 
 Attendees need the answers below before they can run preflight at T-14, so settle them first.
 
-- Choose the event dates, setup path (**Path A: Self-service teams**, typically 3 to 5 members per hub, or **Path B: Lead-provisioned cohort**, `n` attendees sharing one hub), breakout-pod layout (for `n > 5` on one hub, group attendees into **3-to-5-person breakout pods**, each nominating a **pod lead** for C1, C4 and C10 scoring), and region (`swedencentral`; `germanywestcentral` is the fallback).
+- Choose the event dates, setup path (**Path A: Self-service teams**, typically 3 to 5 members per hub, or **Path B: Lead-provisioned cohort**, `n` attendees sharing one hub), breakout-pod layout (for `n > 5` on one hub, group attendees into **3-to-5-person breakout pods**, each nominating a **pod lead** for C1, C4 and C10 collaboration), and region (`swedencentral`; `germanywestcentral` is the fallback).
 - Plan one Entra tenant per platform hub, with one shared services subscription plus one workload subscription per member (`n + 1` subscriptions in total; for example, five members need six subscriptions). Every subscription must be paid and pass `Test-Preflight.ps1`; trial, Azure Pass and sponsorship subscriptions are not supported. Each member needs an unconditional Owner assignment on their workload subscription: preflight fails without it, and there is no Contributor fallback.
 - Check Azure and GitHub scale thresholds when planning a large single-hub cohort (`n` members):
   - **Azure VNet peerings (`325` members / `650` hub peerings):** each member adds two hub peerings (`vnet-datacenter` and `vnet-spoke`), so one `vnet-hub` supports at most 325 members (start a second hub/tenant above 325).
@@ -82,16 +81,15 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 
 ### Kickoff and event days
 
-- Lock the roster at kickoff, after the T-3 review and the T-1 vending, and before scoring begins. Explain the evidence handoff. Don't announce lifelines: coaches decide when to use them.
-- Follow the [two-day agenda](agenda.md). The foundation and MI work deliberately overlap other challenges. Time boxes are pacing: coaches flex on the day, and the minutes and points don't change.
+- Lock the roster at kickoff, after the T-3 review and the T-1 vending. Explain the single-clone `vm-dev01` workflow (`C:\src\<your-repo>` on `main`) and team deliverables (`C1`, `C4`, `C10` committed once in the team/pod lead's repo). Don't announce lifelines: coaches decide when to use them.
+- Follow the [two-day agenda](agenda.md). The foundation and MI work deliberately overlap other challenges. Time boxes are pacing: coaches flex on the day.
 - Staff at least one coach for every six attendees.
-- Day 1 starts with a 30-minute PowerPoint introduction by the tech lead at 08:30, then C1 at 09:00 and C2 at 09:45: the foundation already exists, so each member uses C2 to test an AI coding agent against the repository baseline and ALZ-lite `Deny` policies in `rg-spoke`. On Day 2 at 08:30, check both VMs are running and the Graph grant is done (`Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints "already granted"), then the members start the MI link.
-- Record every score and bonus in the [scoreboard](../coach/scoreboard.md) (one scoreboard sheet per team, or one sheet per 3-to-5-person breakout pod when `n > 5`, scoring team items once per pod from the pod lead's copy); do not change the base contract. Teams or pods with the same score share the rank. Each team's or pod's bonus is capped at 30 points and awarded in the order of its scoring sections until it reaches the cap.
-- Give the [curveballs](../coach/curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link guide](../site/src/content/docs/guides/arc-mi-link.md#abort-before-cutover) abort path for the Day 2 curveball. The staged Day 2 abort is part of the event and earns no bonus.
+- Day 1 starts with a 30-minute PowerPoint introduction by the tech lead at 08:30, then C1 at 09:00 and C2 at 09:45: the foundation already exists, so each member uses C2 on `vm-dev01` to test an AI coding agent against the repository baseline and ALZ-lite `Deny` policies in `rg-spoke`. On Day 2 at 08:30, check both VMs are running and the Graph grant is done (`Grant-SqlMiDirectoryRead.ps1 -WhatIf` prints "already granted"), then the members start the MI link.
+- Give the [curveballs](../coach/curveballs.md) only at their scheduled triggers. Reverse the Day 1 policy after the exercise; use the [MI link guide](../site/src/content/docs/guides/arc-mi-link.md#abort-before-cutover) abort path for the Day 2 curveball.
 
 ### T+2: event owner and team lead
 
-- Collect evidence and follow-ups, sign off scores, verify pushed app/evidence branches and private settings backups, then give the owner's cleanup go. Follow [cleanup.md](cleanup.md). In Path A, each member runs `teardown` in their repo first; in both paths, the lead runs `gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true -f include-management=true` (for `n > 256`, batch member teardowns first and finalize team cleanup with `-f members=none -f confirm-team-teardown=true -f include-management=true`). Omit only `include-management` for agreed tenant reuse. The full run includes absent roster members and waits for every Member scope before Team scope. Allow up to about 2 hours with SQL MI; do not cancel during subnet release.
+- Verify that members have pushed their final commits on `main` from `vm-dev01` and saved private settings backups, then give the owner's cleanup go. Follow [cleanup.md](cleanup.md). In Path A, each member runs `teardown` in their repo first; in both paths, the lead runs `gh workflow run platform.yml -f stage=teardown -f members=all -f confirm-team-teardown=true -f include-management=true` (for `n > 256`, batch member teardowns first and finalize team cleanup with `-f members=none -f confirm-team-teardown=true -f include-management=true`). Omit only `include-management` for agreed tenant reuse. The full run includes absent roster members and waits for every Member scope before Team scope. Allow up to about 2 hours with SQL MI; do not cancel during subnet release.
 - A named admin runs `scripts/Remove-PlatformPipeline.ps1` right after the `teardown` stage, on the date agreed at T-30: the lead profile in the team lead's repo, and `-Profile Member` in each member's repo. The workflow never removes its own identity or roles.
 - Confirm that the named kit resource groups and subscription-level artifacts are gone. The team cleanup preserves `rg-management`, `id-sqlmi-directory` and its Graph grant by default (the `include-management` input removes them). The event owner decides: delete them unless the tenant is reused for another event (see the cleanup page).
 - Remove access that was only needed for the event: the team lead's Owner at Tenant Root, any Global Administrator elevation used to give it, and the Privileged Role Administrator's activation or Reader grant.
@@ -124,13 +122,11 @@ An event copy of this repository doesn't change what attendees run by default. `
 - `Deploy-Datacenter.ps1` has its own `-Repository`, which `Import-Kit.ps1` doesn't pass on, so a coach repair needs both.
 - The kit clone on `vm-dev01` and the lifelines still come from upstream.
 
-## Lifeline handout and scoring
+## Lifeline handout
 
-Lifelines are coach-only. Students do not fetch branches or copy checkpoints themselves. Give a lifeline when a member has tried the documented hot-spot fixes and is blocked with the time box at risk; choose the earliest checkpoint that unblocks them. Save the member's work, fetch and apply the branch with them, and confirm the member can continue from the next task. The [lifeline index](../coach/lifelines.md) has the exact fetch steps. The clone on `vm-dev01` leaves out `coach/`, `facilitator/`, `docs/`, `site/` and `test/` (and the documentation and lint tooling at the repo root: see `infra/datacenter/README.md`) on newly deployed VMs, so members can't browse the answer keys there. Lifeline branches still work: they are fetched from `origin` and exist as git branches regardless of the sparse checkout.
+Lifelines are coach-only. Students do not fetch branches or copy checkpoints themselves. Give a lifeline when a member has tried the documented hot-spot fixes and is blocked with the time box at risk; choose the earliest checkpoint that unblocks them. Save the member's work, apply the checkpoint with them, and confirm the member can continue from the next task (and note the lifeline in C10's AI-readiness gap register). The [lifeline index](../coach/lifelines.md) has the exact steps. The pre-cloned `C:\src\factory` folder on `vm-dev01` leaves out `coach/`, `facilitator/`, `docs/`, `site/` and `test/` (sparse checkout) so members can't browse the answer keys there, while lifeline branches remain available from its `origin`.
 
-Record the branch or image used in the member's scoreboard row. Apply the challenge-specific cap in [Scoreboard and badges](../coach/scoreboard.md); later challenges remain fully eligible. Do not cap a challenge merely because the member asked for help or used ordinary hints.
-
-For sign-off, compare the submitted evidence with the matching rubric row, ask the member to explain the result, and record the awarded points and any partial-credit reason. Evidence must be attributable to the challenge and reproducible where practical. Do not put secrets or tenant, subscription or object IDs into this public repository.
+For challenge review, inspect the working artifacts in `C:\src\<your-repo>` on `main` (and live Azure resources where applicable) and ask the member or team to explain their decisions. Do not put secrets or tenant, subscription or object IDs into this public repository.
 
 ## Escalation
 

@@ -12,9 +12,9 @@ Used in [C6, requirement 2](../../../challenges/c06-modernize-with-ghcp/#require
 
 ## Before you send
 
-A new chat on `vm-dev01`, VS Code opened on `C:\src\factory`, for **C6 requirement 2**; harness **Local**, agent **Upgrade**, and a balanced model for execution. Use the playbook's
+A new chat on `vm-dev01`, VS Code opened on `C:\src\<your-repo>`, for **C6 requirement 2**; harness **Local**, agent **Upgrade**, and a balanced model for execution. Use the playbook's
 [Models](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#models)
-table as the single source for the picker names. You're on `vm-dev01-work` with a clean tree (see
+table as the single source for the picker names. You're on `main` with a clean tree (see
 [prerequisites](../00-prerequisites/)).
 
 ## The prompt
@@ -34,10 +34,9 @@ Approve builds and file edits as they come up; if the agent stops halfway, reply
 2. Run that task's check from the playbook's
    [Task checks](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#task-checks)
    table. It is the single source for the seven checks and their hot spots.
-3. Check you stayed in scope: `git status --short -- . ':!app' ':!.github/upgrades'` must print nothing.
-4. Commit and push `app: task 0N <name>` to your work branch before you start the next task's chat. Check
-   `git branch -vv` first, and keep the branches straight as in
-   [Save your work and keep the branches straight](../../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight).
+3. Check you stayed in scope: `git status --short -- app .github/upgrades` shows only your app and upgrade changes.
+4. Commit and push `feat(app): task 0N <name>` on `main` before you start the next task's chat, as in
+   [Save your work in your single clone on main](../../../guides/ghcp-upgrade/#save-your-work-in-your-single-clone-on-main).
 
 ## Local configuration
 

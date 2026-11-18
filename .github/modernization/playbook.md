@@ -30,32 +30,32 @@ The prompt pauses at the assessment gate, so you can switch from a balanced mode
 
 ## Rules for the whole run
 
-- **Scope.** Only `app/ContosoUniversity` and `.github/upgrades/` change. Before every commit, `git status --short -- . ':!app' ':!.github/upgrades'` must print nothing. If it prints anything, restore it with `git restore` before you commit.
+- **Scope.** Only `app/ContosoUniversity` and `.github/upgrades/` change during the Upgrade agent steps. Before every task commit, `git status --short -- app .github/upgrades` shows only your app and upgrade changes. If the agent touched anything outside `app/` or `.github/upgrades/`, restore it with `git restore` before you commit.
 - **Run the app after every task.** The agent's own validation can pass without the app ever starting. Build, `dotnet run`, open the pages, then commit.
-- **Commit and push after every task**, before the next one starts, on your `vm-dev01-work` branch: `git add -A`, `git commit -m "app: task 0N <name>"`, `git push`. The push goes to your own repo (the `member` remote), not the public kit. Check `git branch -vv` before you commit, and don't run `git pull`: the [guide](https://factory.apexops.pro/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) lists the branch rules. The scenario uses manual commits, so the agent doesn't commit for you.
+- **Commit and push after every task**, before the next one starts, on `main` in `C:\src\<your-repo>`: `git add app/ContosoUniversity .github/upgrades`, `git commit -m "feat(app): task 0N <name>"`, `git push`. Check `git branch --show-current` prints `main` before you commit. The scenario uses manual commits, so the agent doesn't commit for you.
 - **Local runs** need `ASPNETCORE_ENVIRONMENT=Development`. `dotnet run` sets it from the launch profile; `dotnet run --no-launch-profile` starts in Production, which refuses the on-premises SQL login.
-- **Names.** Replace `<suffix>` (your archetype suffix) and `<n>` (your member index) with your values, angle brackets included. Read them from `factory/.local/settings.json` in your dev container (`$s.suffix`, `$s.memberIndex`); on `vm-dev01`, the suffix is in the name of the resource group `rg-university-<suffix>`. The archetype's resources are in `rg-university-<suffix>`: `stuniversity<suffix>`, `sbns-university-<suffix>`, `kv-university-<suffix>`, `cruniversity<suffix>`, `appi-university-<suffix>`, `sqlmi-university-<suffix>`, `id-university-<suffix>` and `app-university-<suffix>`.
-- **Three kinds of numbers.** A **Step** is a playbook section (0 to 5). An **agent task** is one of the Upgrade agent's seven tasks (01 to 07, the `app: task 0N <name>` commits). A **requirement** is a challenge page's numbered item, such as C6 requirement 5.
+- **Names.** Replace `<suffix>` (your archetype suffix) and `<n>` (your member index) with your values, angle brackets included. Read them from `C:\src\<your-repo>\factory\.local\settings.json` on `vm-dev01` (`$s.suffix`, `$s.memberIndex`). The archetype's resources are in `rg-university-<suffix>`: `stuniversity<suffix>`, `sbns-university-<suffix>`, `kv-university-<suffix>`, `cruniversity<suffix>`, `appi-university-<suffix>`, `sqlmi-university-<suffix>`, `id-university-<suffix>` and `app-university-<suffix>`.
+- **Three kinds of numbers.** A **Step** is a playbook section (0 to 5). An **agent task** is one of the Upgrade agent's seven tasks (01 to 07, the `feat(app): task 0N <name>` commits). A **requirement** is a challenge page's numbered item, such as C6 requirement 5.
 - **Stuck?** After two attempts at a step, ask your coach.
 
 ## Step 0: Set up
 
-**Goal:** a ready VM: signed in, your two folders in place, a clean legacy tree and the Upgrade agent ready in the Local harness.
+**Goal:** a ready VM: signed in, your single clone (`C:\src\<your-repo>` on `main`) in place, a clean legacy tree and the Upgrade agent ready in the Local harness.
 
-You set this up once, in the `vm-dev01` setup of the [member steps](https://factory.apexops.pro/deploy/member-steps/#33-set-up-vm-dev01). The steps (sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the kit clone, the `member` remote and your `vm-dev01-work` branch, your plain clone for evidence, VS Code, the Upgrade agent) are all in [Step 3.3](https://factory.apexops.pro/deploy/member-steps/#33-set-up-vm-dev01). Don't repeat them here. Before Step 1, check in PowerShell 7 on `vm-dev01`:
+You set this up once, in the `vm-dev01` setup of the [member steps](https://factory.apexops.pro/deploy/member-steps/#33-set-up-vm-dev01) (or [Student onboarding](https://factory.apexops.pro/deploy/lead-setup/student-onboarding/)). Don't repeat the clone here. Before Step 1, check in PowerShell 7 on `vm-dev01`:
 
 ```powershell
-Set-Location C:\src\factory
-git branch -vv                                  # must show * vm-dev01-work tracking member/vm-dev01-work
+Set-Location C:\src\<your-repo>
+git branch --show-current                       # must print main
 az account show --query name -o tsv             # your workload subscription, the one with rg-datacenter
-git status --short --ignored -- app .github     # must print nothing
+git status --short --ignored -- app .github/upgrades   # must print nothing
 ```
 
-If the last command prints something, leftover plans, skills and build output from an earlier attempt would steer the agent. Remove them (a dry run first, to read the list):
+If the last command prints something, leftover plans and build output from an earlier attempt would steer the agent. Remove them (a dry run first, to read the list):
 
 ```powershell
-git clean -ndx -- app .github
-git clean -fdx -- app .github
+git clean -ndx -- app .github/upgrades
+git clean -fdx -- app .github/upgrades
 ```
 
 In VS Code, the agent picker must list **Upgrade**, **GitHub Copilot modernization** must be disabled for the workspace, and the chat's **Session Target** must be **Local**. If the Upgrade server can't call a model, give it model access: **MCP: List Servers** > **Upgrade** > **Configure Model Access**.
@@ -84,7 +84,7 @@ In VS Code, the agent picker must list **Upgrade**, **GitHub Copilot modernizati
    - `git status --short -- app` prints nothing.
 
    If a check fails, tell the agent which one, in the same chat. The Upgrade agent can revise its own plan.
-6. Commit and push: `app: assess and plan`. This commit is your baseline: if you ever have to restart the seven tasks, `git reset --hard` to it (it discards uncommitted work, and your next push needs `git push --force-with-lease`), then check the tree is clean again with Step 0's last command.
+6. Commit and push on `main`: `git add .github/upgrades && git commit -m "docs(app): assess and plan" && git push`. This commit is your baseline: if you ever have to restart the seven tasks in C6, restore only `app` and `.github/upgrades` from that commit (`git restore --source=<c3-commit-sha> --worktree --staged -- app .github/upgrades && git clean -fdx -- app .github/upgrades`) so you never lose C1–C5 commits on `main`.
 
 **Hot spots**
 
@@ -111,14 +111,14 @@ For each task, in order:
    The task IDs are in `.github/upgrades/scenarios/dotnet-version-upgrade/tasks.md`, for example `01-aspnetcore-net10`.
 3. Approve builds and file edits. If the agent stops halfway, reply `continue`.
 4. Build and run the app, then do the task's check below.
-5. Commit and push: `app: task 0N <name>`.
+5. Commit and push: `git add app/ContosoUniversity .github/upgrades && git commit -m "feat(app): task 0N <name>" && git push`.
 
 ### Local configuration
 
 Task 01 gives the project a new `UserSecretsId`, so set your user secrets **after** task 01, and again whenever the `UserSecretsId` changes:
 
 ```powershell
-Set-Location C:\src\factory\app\ContosoUniversity
+Set-Location C:\src\<your-repo>\app\ContosoUniversity
 dotnet user-secrets set 'ConnectionStrings:DefaultConnection' 'Server=10.10.<n>.4;Database=ContosoUniversity;User Id=contosoapp;Password=FactoryLab-2026-Pw;TrustServerCertificate=True;MultipleActiveResultSets=True'
 dotnet user-secrets set 'Storage:BlobServiceUri' 'https://stuniversity<suffix>.blob.core.windows.net'
 dotnet user-secrets set 'Storage:ContainerName' 'teaching-materials'
@@ -149,7 +149,7 @@ git grep -n -E "Trace\.|Debug\.Write" -- app/ContosoUniversity
 Task 05's checks. The Production runs read `KeyVault:VaultUri` from the environment, because user secrets load only in Development:
 
 ```powershell
-Set-Location C:\src\factory\app\ContosoUniversity
+Set-Location C:\src\<your-repo>\app\ContosoUniversity
 dotnet run                                       # A: Development, no vault: pages work
 $env:ASPNETCORE_ENVIRONMENT = 'Production'
 dotnet run --no-launch-profile                   # B: refuses to start, KeyVault:VaultUri is missing
@@ -161,7 +161,7 @@ Remove-Item Env:ASPNETCORE_ENVIRONMENT, Env:KeyVault__VaultUri
 Task 06's check. Application Insights has local authentication off, so your own sign-in needs **Monitoring Metrics Publisher** on it. The archetype grants it to the member who deploys it (since 2026-10-20), so with a current package C6 asks for no Azure change besides the image push. If you deployed an earlier package, grant it once yourself (you're Owner of your workload subscription); the agent doesn't run it. The command is safe to repeat:
 
 ```powershell
-Set-Location C:\src\factory\app\ContosoUniversity
+Set-Location C:\src\<your-repo>\app\ContosoUniversity
 $appi = az monitor app-insights component show -g rg-university-<suffix> -a appi-university-<suffix> --query id -o tsv --only-show-errors
 az role assignment create --assignee (az ad signed-in-user show --query id -o tsv) --role 'Monitoring Metrics Publisher' --scope $appi --output none   # only for a deployment from before 2026-10-20
 az extension add -n application-insights --only-show-errors   # install first: an install mid-command garbles the value
@@ -197,14 +197,14 @@ git grep -n "new NotificationService" -- app
 git grep -n -i -E "System\.Web|System\.Messaging|MessageQueue|Trace\.|Debug\.Write" -- app/ContosoUniversity
 ```
 
-To use a skill, ask in a new chat with agent **Upgrade** or **Agent**: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Then run the app, commit and push: `app: gaps`.
+To use a skill, ask in a new chat with agent **Upgrade** or **Agent**: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Then run the app, commit and push: `git add app/ContosoUniversity && git commit -m "fix(app): gaps" && git push`.
 
 ## Step 4: Package (C6)
 
 **Goal:** the image in your private registry, built without Docker. The `sdk-container-publish` skill has the details. The push writes to Azure, so you run these commands in your own terminal; the agent explains and checks, it doesn't run them.
 
 ```powershell
-Set-Location C:\src\factory\app\ContosoUniversity
+Set-Location C:\src\<your-repo>\app\ContosoUniversity
 $token = az acr login --name cruniversity<suffix> --expose-token --only-show-errors | ConvertFrom-Json
 $env:DOTNET_CONTAINER_REGISTRY_UNAME = $token.username
 $env:DOTNET_CONTAINER_REGISTRY_PWORD = $token.accessToken

@@ -93,6 +93,8 @@ Test-Tool -Name 'gh'
 Test-Tool -Name 'pwsh'
 Test-Tool -Name 'az'
 Test-Tool -Name 'bicep'
+Test-Tool -Name 'node'
+Test-Tool -Name 'azd'
 Test-Tool -Name 'code'
 
 Invoke-Check 'dev: dotnet SDK 10 installed' {

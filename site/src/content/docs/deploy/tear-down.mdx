@@ -14,17 +14,15 @@ This page covers **Path A (Self-service teams)**. In a **lead-provisioned cohort
 :::
 
 **Who:** each **member**, then the **team lead**, then the named **admin for each repo**.
-**When:** **T+2**, after the event owner's approval and evidence sign-off.
+**When:** **T+2**, after the event owner's approval.
 
-Run commands from `factory/` in your own computer's dev container, not from `vm-dev01`: member removal deletes that VM. Members remove their own scopes first; the team lead's full run then verifies/removes every member scope before removing the foundation.
+Run commands from `~/src/<your-repo>/factory` in [Azure Cloud Shell](https://shell.azure.com), not from `vm-dev01`: member removal deletes that VM. Members remove their own scopes first; the team lead's full run then verifies/removes every member scope before removing the foundation.
 
 See [Cost](../../reference/cost/) for when the foundation, datacenter and archetype charges stop.
 
 ## Before you run teardown
 
-- [ ] Coaches have signed off scores and evidence; no scoring question remains.
-- [ ] On `vm-dev01`, `git branch -vv` shows `vm-dev01-work` tracking your own repo with every commit pushed; verify the commits on GitHub.
-- [ ] Written evidence and C9 fix scripts/results are committed and pushed on your own repo's `main`, not left only on the VM.
+- [ ] On `vm-dev01`, `git -C C:\src\<your-repo> status` is clean and all commits on `main` (app modernization, archetype outputs, C9 scripts, and `factory/evidence/` deliverables) are pushed to GitHub; verify the commits on GitHub.
 - [ ] You have privately saved your settings values (subscription, member index, suffix, location) and the agreed return management group. Never commit them.
 - [ ] The event owner has approved removal, named each repo's finalizer admin and decided whether the tenant will be reused.
 
@@ -32,7 +30,7 @@ See [Cost](../../reference/cost/) for when the foundation, datacenter and archet
 
 ## Run the `teardown` stage
 
-**When:** At **T+2**, from `factory/` in your laptop Dev Container, in this exact order:
+**When:** At **T+2**, from `~/src/<your-repo>/factory` in [Azure Cloud Shell](https://shell.azure.com), in this exact order:
 
 1. **First — each team member (indexes `2..n`, in their own repo):** removes only that member's datacenter, spoke, and archetype:
 

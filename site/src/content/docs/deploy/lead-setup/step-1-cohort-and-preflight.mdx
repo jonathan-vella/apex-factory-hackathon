@@ -22,9 +22,13 @@ Create two operator repositories in your partner GitHub organization from [`apex
 
 <Steps>
 
-1. **Create and import the lead repository (`<org>/<event>-lead`).** Open [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator), choose **Use this template** > **Create a new repository**, name it `<event>-lead` under your partner organization, and set visibility to **Private**. Clone it in VS Code into your Linux home folder such as `~/src` (on Windows 11, press `F1` > `WSL: Connect to WSL` or choose `AzureLinux-4` first so VS Code's remote server runs inside WSL), choose **Reopen in Container**, and import the kit at the repo root:
+1. **Create and import the lead repository (`<org>/<event>-lead`).** Open [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator), choose **Use this template** > **Create a new repository**, name it `<event>-lead` under your partner organization, and set visibility to **Private**. Clone it in [Azure Cloud Shell](https://shell.azure.com) (PowerShell) into `~/src`, and import the kit at the repo root:
 
-   ```bash
+   ```powershell
+   mkdir -p ~/src
+   cd ~/src
+   git clone https://github.com/<org>/<event>-lead.git
+   cd <event>-lead
    curl -fsSLO https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Import-Kit.ps1
    pwsh ./Import-Kit.ps1
    rm Import-Kit.ps1
@@ -32,22 +36,22 @@ Create two operator repositories in your partner GitHub organization from [`apex
 
 2. **Commit and merge the lead import to `main`.** Set your git identity, push the imported kit on a `feat/import-kit` branch, open a pull request on GitHub, and merge it into `main` so `.github/workflows/platform.yml` is on the default branch:
 
-   ```bash
+   ```powershell
    git config --global user.name "<your name>"
    git config --global user.email "<your email>"
    git switch -c feat/import-kit
    git add -A
-   LEFTHOOK_EXCLUDE=iac-security-baseline git commit -m "chore: import the factory kit"
+   git commit -m "chore: import the factory kit"
    git push -u origin feat/import-kit
    ```
 
    Merge the pull request on GitHub, then bring your local clone onto `main`:
 
-   ```bash
+   ```powershell
    git switch main && git pull
    ```
 
-3. **Create and prepare the staging student template (`<org>/<event>-student-template`).** Create a second **Private** repository `<org>/<event>-student-template` from [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator), clone it into a separate folder (or Dev Container), run the same `Import-Kit.ps1` import, and merge its `feat/import-kit` pull request into `main`. Verify that `factory/`, `.devcontainer/`, `.github/`, `agent-output/university/`, and `infra/bicep/university/` are all committed on `main`.
+3. **Create and prepare the staging student template (`<org>/<event>-student-template`).** Create a second **Private** repository `<org>/<event>-student-template` from [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator), clone it into a separate folder in Cloud Shell, run the same `Import-Kit.ps1` import, and merge its `feat/import-kit` pull request into `main`. Verify that `factory/`, `app/ContosoUniversity/`, `.github/`, `agent-output/university/`, and `infra/bicep/university/` are all committed on `main`.
 
 4. **Mark `<org>/<event>-student-template` as a GitHub template repository.** Authenticate `gh` if needed, then enable template generation so `Initialize-CohortRepos.ps1` can clone `main` cleanly into each student repo:
 
@@ -61,7 +65,7 @@ Done when both `<org>/<event>-lead` and `<org>/<event>-student-template` have `f
 
 ## 1.2 Sign in, create lead settings, and assemble `.local/roster.json`
 
-Work inside your `<event>-lead` Dev Container in PowerShell (`pwsh`).
+Work inside your `<event>-lead` clone in [Azure Cloud Shell](https://shell.azure.com) (PowerShell).
 
 <Steps>
 
@@ -183,7 +187,7 @@ Do **not** run `Initialize-PlatformPipeline.ps1 -Profile Member` on any `<event>
 4. **Complete the organization and licensing checks.** Verify these items across your GitHub organization and Azure tenant before T-14:
    - **GitHub Copilot policy:** Copilot Chat, custom agents (`01-Orchestrator`, `08-As-Built`), MCP servers in `.mcp.json`, and the models used by the Upgrade agent are enabled for attendees.
    - **Outside collaborators (if external attendees):** if students use GitHub accounts outside `<org>`, confirm the organization policy allows inviting outside collaborators with Write (`push`) permission on private repositories.
-   - **Branch rules on `<event>-student-*`:** ensure no organization-wide branch protection rule blocks Write (`push`) collaborators from pushing directly to `main` and `vm-dev01-work` on `<event>-student-*` repositories.
+   - **Branch rules on `<event>-student-*`:** ensure no organization-wide branch protection rule blocks Write (`push`) collaborators from pushing directly to `main` on `<event>-student-*` repositories.
    - **GitHub Actions billing:** check included private-repo Actions minutes, spending limits, and payment method on `<org>`, plus [Scaling to larger cohorts](/deploy/how-it-works/#scaling-to-larger-cohorts) if `n > 50`.
    - **Azure licensing:** verify Windows Server Azure Hybrid Benefit eligibility for `vm-app01` (or record which slots need `-f no-hybrid-benefit=true` in Step 3; see [Azure Hybrid Benefit](/reference/azure-hybrid-benefit/)) and per-user Windows 11 rights for `vm-dev01`.
 

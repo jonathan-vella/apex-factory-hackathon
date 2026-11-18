@@ -29,7 +29,7 @@ Use only a dedicated, non-production tenant and dedicated, empty subscriptions. 
 
 **When:** At **T-7**, after [Step 1](../set-up-your-repo/) is complete—including a green `whatif` preflight run—`.local/roster.json` is registered with `Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, and your account holds **Owner** at Tenant Root plus **Owner** on the shared services subscription.
 
-Foundation creates the management groups (`mg-factory`, `mg-factory-platform`, `mg-factory-corp`), `rg-management` (`log-management` and `id-sqlmi-directory`), and `rg-hub` (Azure Firewall, Private DNS, and policies). Run from `factory/` in your laptop Dev Container:
+Foundation creates the management groups (`mg-factory`, `mg-factory-platform`, `mg-factory-corp`), `rg-management` (`log-management` and `id-sqlmi-directory`), and `rg-hub` (Azure Firewall, Private DNS, and policies). Run from `~/src/<your-repo>/factory` in [Azure Cloud Shell](https://shell.azure.com):
 
 ```bash
 gh workflow run platform.yml -f stage=foundation

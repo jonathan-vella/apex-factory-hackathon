@@ -10,15 +10,13 @@ const sectionKinds: Record<string, string> = {
   "expected evidence": "evidence",
   "model answer": "answer",
   "common mistakes": "mistakes",
-  "partial credit": "partial",
-  bonus: "bonus",
   reset: "reset",
   "sign-off checklist": "evidence",
   hints: "mistakes",
   recovery: "reset",
 };
 
-// Coach pages that are not scored challenges. The file name is the page id and the route.
+// Coach pages that are not challenges. The file name is the page id and the route.
 const pageFiles = new Set(["readiness", "deploy-with-scripts"]);
 
 export const coachSchema = z.object({
@@ -28,11 +26,7 @@ export const coachSchema = z.object({
   studentPage: z.string().optional(),
   scope: z.string().optional(),
   minutes: z.number().optional(),
-  teamPoints: z.number().optional(),
-  memberPoints: z.number().optional(),
-  bonus: z.string().optional(),
   introHtml: z.string(),
-  scoringHtml: z.string().optional(),
   sections: z.array(
     z.object({
       title: z.string(),
@@ -105,7 +99,10 @@ export function coachLoader(): Loader {
       const render = async (markdown: string, sourcePath: string) =>
         (await renderMarkdown(rewriteLinks(markdown, sourcePath))).html;
 
-      async function build(sourcePath: string, rubric: string) {
+      async function build(
+        sourcePath: string,
+        challengesMeta: { id: string; scope: string; minutes: number }[],
+      ) {
         const { title, intro, sections } = splitMarkdown(await read(sourcePath));
         const fileName = posix.basename(sourcePath, ".md");
         const number = /^c(\d+)-/.exec(fileName)?.[1];
@@ -134,35 +131,20 @@ export function coachLoader(): Loader {
         if (number) {
           const id = Number(number);
           base.studentPage = `/challenges/${fileName}/`;
-          const row = new RegExp(
-            `^\\|\\s*C${id}\\s[^|]*\\|\\s*([^|]+?)\\s*\\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|`,
-            "m",
-          ).exec(rubric);
-          if (row) {
-            base.scope = row[1];
-            base.minutes = Number(row[2]);
-            base.teamPoints = Number(row[3]);
-            base.memberPoints = Number(row[4]);
+          const meta = challengesMeta.find((c) => c.id === `C${id}`);
+          if (meta) {
+            base.scope = meta.scope;
+            base.minutes = meta.minutes;
           }
-          const scoring = new RegExp(
-            `^### C${id} — [^\\n]+\\n([\\s\\S]*?)(?=^#{2,3} |(?![\\s\\S]))`,
-            "m",
-          ).exec(rubric);
-          if (scoring) {
-            base.scoringHtml = await render(scoring[1], "facilitator/scoring-rubric.md");
-          }
-          const bonusText = sections
-            .find((s) => sectionKinds[s.title.toLowerCase()] === "bonus")
-            ?.lines.join(" ");
-          const bonus = bonusText && /up to (\d+)\s+(?:bonus\s+)?points?/i.exec(bonusText);
-          if (bonus) base.bonus = `up to ${bonus[1]} pts`;
         }
         const id = number ? `c${number}` : fileName === "agenda" ? "run-of-show" : fileName;
         return { id, data: base };
       }
 
       async function loadAll() {
-        const rubric = (await read("facilitator/scoring-rubric.md")).replace(/\r\n/g, "\n");
+        const challengesJson = JSON.parse(await read("site/src/data/challenges.json")) as {
+          challenges: { id: string; scope: string; minutes: number }[];
+        };
         const files = (await readdir(`${repoRoot}coach`))
           .filter((name) => name.endsWith(".md"))
           .map((name) => `coach/${name}`);
@@ -170,7 +152,7 @@ export function coachLoader(): Loader {
         store.clear();
         for (const sourcePath of files) {
           try {
-            const { id, data } = await build(sourcePath, rubric);
+            const { id, data } = await build(sourcePath, challengesJson.challenges);
             store.set({
               id,
               data: await parseData({ id, data }),

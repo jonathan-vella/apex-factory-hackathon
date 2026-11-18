@@ -11,24 +11,15 @@ const others = [
   { id: "run-of-show", title: "Two-day agenda" },
   { id: "readiness", title: "Readiness check" },
   { id: "lifelines", title: "Lifelines" },
-  { id: "scoreboard", title: "Scoreboard and badges" },
   { id: "curveballs", title: "Curveballs" },
   { id: "apex-demo", title: "APEX demo script" },
   { id: "automation-map", title: "Automation map" },
   { id: "deploy-with-scripts", title: "Repair: deploy with scripts" },
 ];
 
-const points = (data: (typeof challenges)[number]["data"]) =>
-  [
-    data.teamPoints ? `${data.teamPoints} team` : undefined,
-    data.memberPoints ? `${data.memberPoints} member` : undefined,
-  ]
-    .filter(Boolean)
-    .join(" + ");
-
 const frontmatter = {
   title: "Coach cheat sheets",
-  description: "Coach material: answers, scoring, lifelines and the run of show.",
+  description: "Coach material: answers, lifelines and the run of show.",
   editUrl: false,
   lastUpdated: false,
   prev: false,
@@ -45,10 +36,10 @@ const frontmatter = {
     </aside>
 
     <p>
-      One cheat sheet per challenge, rendered from the <code>coach/</code> folder and the scoring
-      rubric, plus the Readiness check and the coach-only repair path. Start with Two-day agenda in
-      the sidebar, then Readiness check and C1 to C10. Lifelines, Scoreboard and badges, Curveballs
-      and APEX demo script are also in the sidebar.
+      One cheat sheet per challenge, rendered from the <code>coach/</code> folder, plus the
+      Readiness check and the coach-only repair path. Start with Two-day agenda in the sidebar, then
+      Readiness check and C1 to C10. Lifelines, Curveballs and APEX demo script are also in the
+      sidebar.
     </p>
 
     <h2>Challenges</h2>
@@ -58,8 +49,6 @@ const frontmatter = {
           <th>Challenge</th>
           <th>Scope</th>
           <th>Minutes</th>
-          <th>Points</th>
-          <th>Bonus</th>
         </tr>
       </thead>
       <tbody>
@@ -70,8 +59,6 @@ const frontmatter = {
             </td>
             <td>{data.scope}</td>
             <td>{data.minutes}</td>
-            <td>{points(data)}</td>
-            <td>{data.bonus ?? "None listed"}</td>
           </tr>
         ))}
       </tbody>

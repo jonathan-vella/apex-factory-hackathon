@@ -1,6 +1,6 @@
 ---
 title: "C4: Choose target states"
-description: Commit to app, data, platform and migration-method decisions as ADRs, and record everything you are deferring.
+description: Record your platform, migration-method, app and data decisions and deferred-work register in one concise team document.
 ---
 
 ## Background
@@ -9,89 +9,75 @@ C3 told you what the source looks like. C4 turns that into decisions the team st
 
 **Business context.** Dana, the CIO, has to take the plan to the board. C4 puts each decision in writing, with the road not taken and what the choice costs, so she can defend it.
 
-**Business outcome.** Current platform. The ADRs name the target stack (.NET 10, ASP.NET Core, App Service and SQL Managed Instance) and why each beats its alternative. Deferred work has an owner and a date, so nothing is forgotten.
+**Business outcome.** Current platform. The decision table names the target stack (.NET 10, ASP.NET Core, App Service and SQL Managed Instance) and why each beats its alternative. Deferred work has an owner and a timeline, so nothing is forgotten.
 
-**Objective.** Be able to record a decision as an architecture decision record (ADR) with its alternative and consequence, and to track the work you are consciously not doing yet.
+**Objective.** Be able to record target-state architecture decisions with their alternatives and consequences, and track the work you are consciously deferring.
 
-**Time and points.** Day 1, **11:30**, **45 min**, **Team and member**, **25 pts** (15 team + 10 member).
+**Time and scope.** Day 1, **11:30**, **45 min**, **Team**.
 
 ## Challenge
 
-**Starting point.** Everyone's triaged C3 findings (`factory/evidence/c03/triage.md`), including the trace-flag decision, and C2's datacenter compliance/deferred-work entry ("none needed" is valid for exemptions). Each teammate shares theirs on the shared screen.
+**Starting point.** Everyone's triaged C3 findings (`factory/evidence/c03/triage.md`), including the trace-flag decision.
 
 **Fixed by the kit.** The platform is the CoE archetype (App Service, container registry, SQL Managed Instance, Blob, Service Bus, Key Vault, Application Insights). The migration method is the Arc SQL migration assessment plus the MI link, online, with a planned cutover. The app target is .NET 10 and ASP.NET Core MVC. The data target is SQL Managed Instance with Microsoft Entra authentication only.
 
-**You decide.** The platform ADR's alternative is yours. The other ADRs give alternatives as a starting point: explain why you reject them and the consequence you accept. Also decide which C3 findings you defer, who owns them and when they get done.
+**You decide.** For each of the four areas (**Platform**, **Migration method**, **Application**, **Data**), review and refine the chosen target, the alternative you rejected, why the chosen target fits C1's outcomes and C3's findings, and the consequences/trade-offs you accept. Also assign an owner and timeline to each deferred item in the **Deferred-work register**.
 
 :::note[Where to work]
 
-<span class="sl-badge">Dev container · repo root (bash)</span> — Open your own repo's dev container (from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/), or your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort), in a bash terminal at the repo root (type `exit` if the prompt starts with `PS`). No Azure access is needed. The team (or breakout pod) writes the team files together on one shared screen, then every teammate saves them under the same names in their own `factory/evidence/c04/` alongside their own `adr-app.md` and `adr-data.md`.
+<span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work together on one shared screen in the team/pod lead's clone (`C:\src\<your-repo>` on `main` on `vm-dev01`). `Import-Kit.ps1` already pre-created `factory/evidence/c04/decisions-and-register.md` in your repository. Commit once in the team/pod lead's repository and share the completed file in the team channel.
 
 :::
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
-### Set up the files
-
-Run `git pull`, then copy the templates ([ADR](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/adr.md), [deferred-work register](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/deferred-work-register.md)) from `factory/templates/attendee/`. This gives you four ADR files and the register, each with prompts to fill in:
-
-```bash title="Dev container — repo root (bash)"
-git pull
-mkdir -p factory/evidence/c04
-for name in adr-platform adr-migration adr-app adr-data; do cp factory/templates/attendee/adr.md "factory/evidence/c04/$name.md"; done
-cp factory/templates/attendee/deferred-work-register.md factory/evidence/c04/
-```
-
 ## Requirements
 
-1. **Platform ADR (team, about 10 min).** <span class="sl-badge">Dev container · Shared screen</span> Write `adr-platform.md`: the shape of the CoE archetype and why it fits C1's opportunity.
+1. **Open `factory/evidence/c04/decisions-and-register.md` (5 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> Open the pre-created file in VS Code on the team/pod lead's `vm-dev01` (if missing, copy `factory/templates/attendee/decisions-and-register.md` to `factory/evidence/c04/decisions-and-register.md`).
 
-2. **Migration-method ADR (team, about 10 min).** <span class="sl-badge">Dev container · Shared screen</span> Write `adr-migration.md`. The decision is the one the kit fixes: the Arc SQL migration assessment plus the MI link, online, with a planned cutover. Record an offline backup and restore as the alternative. Its consequence is a long outage while the backup restores, where the link needs only a short stop at cutover.
+2. **Complete the four-row Target-state decisions table (20 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> Review and tailor the four rows in **Target-state decisions**:
+   - **Platform:** CoE archetype in the vended spoke (`App Service Linux P1v3`, `SQL MI GP Gen5 4 vCores`, private endpoints) vs custom Bicep from scratch or VM lift-and-shift.
+   - **Migration method:** Managed Instance link (online seeding + planned cutover) and .NET SDK container publish to ACR vs offline backup/restore or Dockerfile build.
+   - **Application:** .NET 10 ASP.NET Core MVC with `DefaultAzureCredential` (Blob Storage, Service Bus, Key Vault, OpenTelemetry) vs keeping .NET Framework 4.8 on a VM.
+   - **Data:** Azure SQL Managed Instance General Purpose (Gen5, 4 vCores, 64 GB, AHB `BasePrice`, Entra authentication) vs SQL Server on an Azure VM.
 
-3. **App ADR (each member, about 5 min).** <span class="sl-badge">Dev container · Member</span> In your own repo, write `adr-app.md` for the app target state: .NET 10, ASP.NET Core MVC, GitHub Copilot's Upgrade agent. The alternative can be keeping .NET Framework 4.8 on a VM, or a manual rewrite.
+3. **Complete the Deferred-work register table (15 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> Fill in **Deferred-work register** with:
+   - Removing startup trace flags `-T1800` and `-T9567` on `vm-app01` after C7 cutover (`Prepare-MiLinkSource.ps1 -RemoveTraceFlags`), with an owner and timeline (`C7 Requirement 7`).
+   - Tuning top resource-consuming queries on SQL MI with Query Store (`C9`).
+   - Any additional findings deferred from C2 or C3 (such as enabling paid Microsoft Defender for Cloud workload plans post-hackathon).
 
-4. **Data ADR (each member, about 5 min).** <span class="sl-badge">Dev container · Member</span> In your own repo, write `adr-data.md`: SQL Managed Instance with Microsoft Entra authentication only; SQL Server on an Azure VM is the alternative. If you think C3 found a real blocker, show your coach and record it in the ADR and register. A customer might need the VM alternative, but the event path stays on SQL MI.
+4. **Commit once in the team/pod lead's repo and share (5 min).** <span class="sl-badge note">vm-dev01 · Team/pod lead</span> Commit `decisions-and-register.md` on `main` in the team/pod lead's repository and share it in the team channel:
 
-5. **Deferred-work register (team, about 10 min).** <span class="sl-badge">Dev container · Shared screen</span> Assemble `deferred-work-register.md`. One teammate types it from everyone's `triage.md`. It holds:
-   - every C3 finding you are deferring, including the trace-flag removal after cutover, with one row per member because each member has their own `vm-app01`;
-   - one datacenter entry per member from C2, even when no exemption is needed. Record the production target, a named teammate as owner and a timeline. If an exemption exists, read its reason, owner and target date from the description and replace "GitHub Actions pipeline" with the accountable teammate. Map the policy assignment to finding and its target date to timeline; the target is to meet the policy and retire the exemption.
-
-   Every row has an owner, a target and a timeline.
-
-6. **Commit (about 5 min).** <span class="sl-badge">Dev container · Every member</span> Commit (`docs: C4 target-state decisions`) and push everything to `main` of your own repo (see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)). Every teammate saves the final team files under the same names as their teammates.
+   ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
+   cd C:\src\<your-repo>
+   git pull --rebase
+   git add factory/evidence/c04/decisions-and-register.md
+   git commit -m "docs: C4 target-state decisions and deferred register"
+   git push
+   ```
 
 ## Success criteria
 
-To complete this challenge, show your coach in your own repo's `factory/evidence/c04/`:
+To complete this challenge, review with your coach in the team/pod lead's repo:
 
-- [ ] The platform and migration-method ADRs, each with a decision, an alternative and a consequence. They are scored once per team, from the team lead's (or pod lead's, in a multi-pod cohort) copy.
-- [ ] Your own `adr-app.md` and `adr-data.md`, each with a decision, an alternative and a consequence.
-- [ ] The deferred-work register with every deferred C3 finding present, and the trace-flag removal step listed for each member.
-- [ ] The team files match your teammates' copies.
-- [ ] Outcome check (unscored guidance): your ADRs tie back to the top-ranked outcome from C1, and Dana could read them without asking you a question.
-
-<details>
-<summary>How detailed does an ADR need to be?</summary>
-
-One page: context, decision, alternatives considered, consequences. The template has headings for each. Fill them in, don't pad them.
-
-</details>
+- [ ] `factory/evidence/c04/decisions-and-register.md` committed on `main` in the team/pod lead's repo and shared in the team channel.
+- [ ] All four rows (**Platform**, **Migration method**, **Application**, **Data**) state the chosen target, an alternative considered, the reasoning tied to C1/C3, and the consequence/trade-off.
+- [ ] The **Deferred-work register** lists the trace-flag removal after C7 cutover and other deferred items, each with a named owner, target resolution, and timeline.
+- [ ] Outcome check: your decisions tie back to the top-ranked outcome from C1, and Dana could defend them to the board.
 
 <details>
-<summary>What goes in the register versus an ADR?</summary>
+<summary>What goes in the register versus the decision table?</summary>
 
-An ADR commits to a choice. The register tracks something you're explicitly not doing now, like removing the trace flags only after the link is gone. If it has an owner and a date, it's a register entry, not a decision.
+The decision table commits to a target architecture choice and trade-off. The deferred-work register tracks work you are explicitly sequencing later (such as removing the trace flags after the MI link is deleted in C7, or tuning queries in C9) with a named owner and timeline.
 
 </details>
 
 <details>
 <summary>If you need to start over</summary>
 
-There's nothing in Azure to reset. Correct typos in place while an ADR is **Proposed**, then commit, for example `docs: correct C4 ADR`. Once an ADR is **Accepted**, supersede it with a new ADR instead of rewriting the accepted decision or deleting it. Keep the deferred-work register current as work is completed.
+There's nothing in Azure to reset. Edit `factory/evidence/c04/decisions-and-register.md` in place and commit on `main`.
 
 </details>
-
-**Bonus.** None for C4.
 
 ## References
 

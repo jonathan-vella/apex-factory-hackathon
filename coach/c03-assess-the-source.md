@@ -28,22 +28,13 @@ Other findings from the Upgrade agent's assessment (framework APIs retired in .N
 
 ## Business outcome check
 
-The outcome is safe, repeatable change. Open the member's triage table and check that a reader like Priya can tell blockers from accepted risks without asking. This supports the scoring row on the triage table. It earns no points of its own.
+The outcome is safe, repeatable change. Open the member's `factory/evidence/c03/triage.md` table and `.github/upgrades/scenarios/dotnet-version-upgrade/plan.md` in `C:\src\<your-repo>` on `main` and check that a reader like Priya can tell blockers from accepted risks without asking.
 
 ## Common mistakes
 
 - Ticking the trace-flag finding as "fix: remove the trace flags now" removes the recommended seeding and replication optimizations before they are used. Leave them until after cutover.
 - Treating every Arc assessment warning as a blocker — most warnings in this environment are expected/self-inflicted; a true blocker needs an actual unsupported feature in use by the application, not a setting the kit itself introduced.
 - Starting to run the Upgrade agent's tasks during C3 — the challenge stops at the assessment and the approved plan. Task execution is C6's job.
-
-## Partial credit
-
-- All findings triaged except the trace-flag one is superficial ("accepted, no explanation"): partial credit — ask the member to re-read the MI link preparation article and redo that one entry.
-- Triage table complete but informal (not using the deferred-work register template yet): accept, as long as the content is there; the register comes in C4.
-
-## Bonus
-
-Up to 5 points for triaging another Arc assessment finding beyond the required trace-flag finding, with source, reasoning and target-state impact, not just a label. A second Upgrade assessment finding doesn't count: the attendee page requires one from the Arc report.
 
 ## Reset
 

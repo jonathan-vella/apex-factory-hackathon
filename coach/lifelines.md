@@ -33,41 +33,36 @@ A lifeline is for a member who is blocked, not slow: they've tried the playbook'
 | C7 configuration on App Service | `lifeline/L5-cutover` |
 | The image won't build or push, and the clock is out | The known-good image |
 
-**Cost in points:** a lifeline caps that challenge's points, but later challenges stay eligible. The [scoring rubric](../facilitator/scoring-rubric.md) controls evidence; **Scoreboard and badges** in the Coach sidebar owns the caps and recording. L1 to L4 cap C6 at 15 of 30 member points. L5 and the known-good image used at C7 go-live cap C7 at 10 of 20 member points. Student pages don't mention lifelines or caps: you decide, you apply, and you tell the member what it costs. Ordinary hints and coach discussion never trigger a cap.
+Student pages don't mention lifelines: you decide, you apply, and you ask the team to record the lifeline in C10's AI-readiness gap register (`handover-and-ai-review.md`).
 
 ## How to apply one
 
-The member's work lives in a clone of the public kit, so lifeline branches are already available from its `origin`. The sparse clone excludes the folders and root tooling listed in the [datacenter README](../infra/datacenter/README.md), but fetching and switching to a lifeline work unchanged: the branches come from `origin` regardless of the sparse checkout. On `vm-dev01`, in `C:\src\factory`, with the member, first check `git branch -vv`: `* vm-dev01-work` should track `member/vm-dev01-work` (see the [upgrade guide](../site/src/content/docs/guides/ghcp-upgrade.md#save-your-work-and-keep-the-branches-straight)). If `member` is missing, use [Step 3.3](../site/src/content/docs/deploy/member-steps.mdx#33-set-up-vm-dev01) to add it.
+`vm-dev01` has a pre-cloned sparse checkout of the public kit at `C:\src\factory` whose `origin` holds the `lifeline/*` branches, while the member works in `C:\src\<your-repo>` on `main`. On `vm-dev01`, with the member:
 
-1. Save the member's work, so nothing is lost. It stays on `vm-dev01-work` as a backup:
+1. Save the member's current work in `C:\src\<your-repo>` on `main` so nothing is lost:
 
    ```powershell
+   cd C:\src\<your-repo>
    git add -A
-   git commit -m "wip: before lifeline"
+   git commit -m "chore(app): save work before lifeline"
    git push
    ```
 
-2. Fetch the lifeline from the public kit, switch to it and push it to the member's repo as a branch with the same name:
+2. Fetch the lifeline branch in `C:\src\factory`, then restore `app` and `.github/upgrades` from that lifeline into `C:\src\<your-repo>` on `main`:
 
    ```powershell
-   git fetch origin lifeline/L3-servicebus:lifeline/L3-servicebus
-   git switch lifeline/L3-servicebus
-   git push -u member lifeline/L3-servicebus
+   git -C C:\src\factory fetch origin lifeline/L3-servicebus:lifeline/L3-servicebus
+   cd C:\src\<your-repo>
+   git clean -fdx -- app .github/upgrades
+   Copy-Item -Path C:\src\factory\app\ContosoUniversity -Destination C:\src\<your-repo>\app -Recurse -Force
+   git --git-dir=C:\src\factory\.git --work-tree=C:\src\<your-repo> checkout lifeline/L3-servicebus -- app .github/upgrades
+   git add app .github/upgrades
+   git commit -m "feat(app): apply lifeline L3-servicebus"
+   git push
    ```
 
-   From now on the member commits and pushes on the lifeline branch with a plain `git push`. Tell them not to switch back to `vm-dev01-work`.
-
-   If GitHub refuses the push because the token lacks the `workflow` scope (the lifeline carries the kit's workflow files), run `gh auth refresh -h github.com -s workflow` and push again.
-
-3. Remove leftovers that `git switch` keeps, because old plans and build output steer the agent:
-
-   ```powershell
-   git clean -ndx -- app .github     # dry run: read the list
-   git clean -fdx -- app .github
-   ```
-
-4. Set the user secrets again (playbook, step 2, "Local configuration"). The lifeline's project has its own `UserSecretsId`, so the member's earlier secrets don't apply.
-5. Run the app and do the checks for the last task the lifeline contains. Then the member starts the next task in a new chat, in the Local harness.
+3. Set the user secrets again in `C:\src\<your-repo>\app\ContosoUniversity` (playbook, step 2, "Local configuration"). The lifeline's project has its own `UserSecretsId`, so the member's earlier secrets don't apply.
+4. Run the app and do the checks for the last task the lifeline contains. Then the member starts the next task in a new chat, in the Local harness.
 
 **The known-good image.** The member's registry has no public access, but `az acr import` runs inside Azure and works because the registry allows trusted Azure services. The archetype gives its deployer the import role:
 
@@ -75,7 +70,7 @@ The member's work lives in a clone of the public kit, so lifeline branches are a
 az acr import --name cruniversity<suffix> --source ghcr.io/jonathan-vella/contoso-university:known-good --image contoso-university:known-good
 ```
 
-Then go live with the tag `known-good` in the playbook's step 5, C7 requirement 6. This caps C7 at 10 of 20 member points, the same as L5. The Key Vault secret and the database user are still needed.
+Then go live with the tag `known-good` in the playbook's step 5, C7 requirement 6. The Key Vault secret and the database user are still needed.
 
 ## Rebuild the lifelines
 

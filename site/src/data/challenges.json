@@ -1,6 +1,6 @@
 {
   "title": "Partner Modernization Factory challenges",
-  "description": "The order, scope, time, points and business outcome of each challenge. scripts/check-content-invariants.mjs checks the challenge pages, the challenges overview and the scoring rubric against this file.",
+  "description": "The order, scope, time and business outcome of each challenge. scripts/check-content-invariants.mjs checks the challenge pages and the challenges overview against this file.",
   "challenges": [
     {
       "id": "C1",
@@ -11,8 +11,6 @@
       "day": "Day 1",
       "scope": "Team",
       "minutes": 45,
-      "teamPoints": 10,
-      "memberPoints": 0,
       "voice": "Dana",
       "outcome": "All six, in order",
       "objective": "Connect customer problems and triggers to prioritized business outcomes, map each outcome to a CAF category and a concrete solution, and define KPIs you can measure later in the hackathon."
@@ -26,8 +24,6 @@
       "day": "Day 1",
       "scope": "Member",
       "minutes": 45,
-      "teamPoints": 0,
-      "memberPoints": 15,
       "voice": "Tomás",
       "outcome": "Secure by default",
       "objective": "Be able to test an AI coding agent against repository security guardrails and Azure Landing Zone Deny policies, and explain why platform guardrails are mandatory for agentic AI."
@@ -41,8 +37,6 @@
       "day": "Day 1",
       "scope": "Member",
       "minutes": 60,
-      "teamPoints": 0,
-      "memberPoints": 15,
       "voice": "Priya",
       "outcome": "Safe, repeatable change",
       "objective": "Be able to triage migration assessment findings and tell an expected, self-inflicted finding from a real blocker."
@@ -54,13 +48,11 @@
       "title": "Choose target states",
       "file": "c04-choose-target-states.md",
       "day": "Day 1",
-      "scope": "Team + member",
+      "scope": "Team",
       "minutes": 45,
-      "teamPoints": 15,
-      "memberPoints": 10,
       "voice": "Dana",
       "outcome": "Current platform",
-      "objective": "Be able to record a decision as an architecture decision record (ADR) with its alternative and consequence, and to track the work you are consciously not doing yet."
+      "objective": "Be able to record target-state architecture decisions with their alternatives and consequences, and track the work you are consciously deferring."
     },
     {
       "id": "C5",
@@ -71,8 +63,6 @@
       "day": "Day 1",
       "scope": "Member",
       "minutes": 90,
-      "teamPoints": 0,
-      "memberPoints": 15,
       "voice": "Priya",
       "outcome": "Repeatable provisioning",
       "objective": "Be able to adapt and deploy a reference platform into a governed spoke, and check that it is private and policy-compliant."
@@ -86,8 +76,6 @@
       "day": "Day 1–2",
       "scope": "Member",
       "minutes": 180,
-      "teamPoints": 0,
-      "memberPoints": 30,
       "voice": "Dana",
       "outcome": "Current platform",
       "objective": "Be able to drive the Upgrade agent task by task, check its output, and package the result as a container image."
@@ -101,8 +89,6 @@
       "day": "Day 2",
       "scope": "Member",
       "minutes": 120,
-      "teamPoints": 0,
-      "memberPoints": 20,
       "voice": "Marcus",
       "outcome": "Safe, repeatable change",
       "objective": "Be able to migrate a database online with the MI link, validate the replica, cut over safely, and bring the app up on the new platform."
@@ -116,11 +102,9 @@
       "day": "Day 2",
       "scope": "Member",
       "minutes": 45,
-      "teamPoints": 0,
-      "memberPoints": 10,
       "voice": "Tomás",
       "outcome": "Secure by default",
-      "objective": "Be able to validate a migrated workload with a repeatable pack and record each result with evidence."
+      "objective": "Be able to validate a migrated workload with a repeatable pack and record the automated acceptance verdict."
     },
     {
       "id": "C9",
@@ -131,8 +115,6 @@
       "day": "Day 2",
       "scope": "Member",
       "minutes": 60,
-      "teamPoints": 0,
-      "memberPoints": 10,
       "voice": "Marcus",
       "outcome": "Reliable at enrollment peaks",
       "objective": "Be able to find the worst queries in Query Store, fix the cause with Copilot's help, and show the before and after."
@@ -146,8 +128,6 @@
       "day": "Day 2",
       "scope": "Team",
       "minutes": 60,
-      "teamPoints": 20,
-      "memberPoints": 0,
       "voice": "Dana",
       "outcome": "Documented path to AI",
       "objective": "Be able to package a reusable asset, complete a handover, and assess how ready a customer is to run GitHub Copilot's agents unattended."

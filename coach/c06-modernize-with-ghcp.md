@@ -9,7 +9,7 @@ This is the longest member challenge (180 minutes) and the one most likely to ru
 
 **Timing cues:** by the Day 1 break, expect the framework migration and database task to build and run. At the Day 2 midpoint, identify any remaining service gaps; reserve the last 30 minutes for packaging and checks. Offer an appropriate lifeline only after the member has tried the documented fixes.
 
-- Seven `app: task 0N <name>` commits on `vm-dev01-work`, plus `factory/evidence/c06/task-checks.md` on `main`: task, commit hash, build result, pages checked, playbook-check result and redacted supporting output, with the work-branch commit log. Read the work branch only for these C6 app commits; written C6 and C9 evidence stays on `main`.
+- Seven `feat(app): task 0N <name>` commits on `main` in `C:\src\<your-repo>` (no manual `task-checks.md` file is required).
 - The app running on `vm-dev01`: uploads landing in the archetype's Blob container, a notification toast within 5 seconds of a student edit, telemetry visible in Application Insights.
 - `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` clean, or a documented remediation for anything it flags.
 - The image pushed to the archetype's ACR (`az acr repository show-tags`), with App Service's identity, app settings and Key Vault access (the identity's **Key Vault Secrets User** role assignment) checked but **not changed** to point at the new image.
@@ -30,7 +30,7 @@ After all seven: package with `dotnet publish /t:PublishContainer` (no Dockerfil
 
 ## Business outcome check
 
-The outcome is a current platform. Ask the member to show their search of the committed app and its configuration files for a database password or key, and the result. User secrets on the VM and Key Vault are expected; a password in a committed file is not. This supports the scoring row on the seven task commits and the clean vulnerability audit. It earns no points of its own.
+The outcome is a current platform. Ask the member to show their search of the committed app and its configuration files for a database password or key, and the result. User secrets on the VM and Key Vault are expected; a password in a committed file is not.
 
 ## Common mistakes
 
@@ -40,22 +40,18 @@ The outcome is a current platform. Ask the member to show their search of the co
 - Leaving `AZURE_TOKEN_CREDENTIALS` unset on `vm-dev01`, causing 403s on Blob/Service Bus that look like app bugs but are a credential configuration gap.
 - Running the CVE audit once at the start and not re-running it after later tasks touch dependencies.
 
-## Partial credit
-
-- All seven tasks complete, but one or two checks not fully passing (for example, OpenTelemetry events visible but incomplete attribute coverage): partial credit, with the specific gap noted.
-- CVE audit shows an unremediated vulnerability in a transitive package with no available fix: accept as documented, not a blocker.
-- Image not pushed to the registry by the time C6 ends: partial credit, complete it as the first five minutes of C7.
-
-## Bonus
-
-Re-running the agent task 07 CVE audit after gap fixes and packaging (challenge requirements 3 and 4), and recording that it's still clean or what was fixed, is worth up to 5 bonus points.
-
 ## Lifelines
 
-Offer a lifeline only after the member has tried the playbook's fixes and the time box is at risk. Use the earliest checkpoint that unblocks them: L1 for task 01, L2 for tasks 02–03, L3 for task 04, or L4 for tasks 05–07. Follow the [Lifelines handout](lifelines.md) with the member; preserve their work first.
-
-Explain that any L1–L4 checkpoint caps C6 at **15 of 30 member points**, not later challenges. Record the checkpoint, evidence and cap in the member's C6 scoreboard cell (`15/30 — L3-servicebus`, for example). Use **Scoreboard and badges** in the Coach sidebar for the scoring rules. Ordinary hints and discussion do not trigger the cap.
+Offer a lifeline only after the member has tried the playbook's fixes and the time box is at risk. Use the earliest checkpoint that unblocks them: L1 for task 01, L2 for tasks 02–03, L3 for task 04, or L4 for tasks 05–07. Follow the [Lifelines handout](lifelines.md) with the member; preserve their work first and ask the team to note the lifeline in C10's AI-readiness gap register.
 
 ## Reset
 
-Not applicable at the infrastructure level. If the app's local git history needs a clean restart, follow the attendee page: on `vm-dev01`, find the playbook's `app: assess and plan` commit with `git log --oneline` in `C:\src\factory`, then `git reset --hard <commit-id>` on `vm-dev01-work`. This discards uncommitted work, and the next push needs `git push --force-with-lease`. Check the tree is clean with playbook Step 0's final command. Ask first if the member has already pushed, and confirm the redo is really needed.
+Not applicable at the infrastructure level. If the app in `C:\src\<your-repo>` needs a clean restart from the C3 baseline commit (`<c3-commit-sha>`), restore only `app` and `.github/upgrades` so C1–C5 commits on `main` are preserved:
+
+```powershell
+cd C:\src\<your-repo>
+git restore --source=<c3-commit-sha> --worktree --staged -- app .github/upgrades
+git clean -fdx -- app .github/upgrades
+```
+
+Never run `git reset --hard` or `git push --force` on `main`.

@@ -308,7 +308,7 @@ function Get-DefaultState {
             default_branch = 'main'
             files          = @(
                 'factory/scripts/Initialize-Settings.ps1',
-                '.devcontainer/devcontainer.json',
+                'app/ContosoUniversity/ContosoUniversity.csproj',
                 '.github/workflows/platform.yml',
                 'infra/bicep/university/azure.yaml'
             )
@@ -445,7 +445,7 @@ try {
     # 2b. Fails closed when TemplateRepository lacks factory/scripts/Initialize-Settings.ps1.
     $stateMissingKit = Get-DefaultState
     $stateMissingKit['template']['files'] = @(
-        '.devcontainer/devcontainer.json',
+        'app/ContosoUniversity/ContosoUniversity.csproj',
         '.github/workflows/platform.yml',
         'infra/bicep/university/azure.yaml'
     )

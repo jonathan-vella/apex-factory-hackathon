@@ -13,13 +13,13 @@ This is the core modernization. GitHub Copilot's Upgrade agent does the work in 
 
 **Objective.** Be able to drive the Upgrade agent task by task, check its output, and package the result as a container image.
 
-**Time and points.** Day 1, **14:45**, resuming Day 2 at **09:00**, **180 min**, **Member**, **30 pts** (member). The time box is split across both days.
+**Time and scope.** Day 1, **14:45**, resuming Day 2 at **09:00**, **180 min**, **Member**. The time box is split across both days.
 
 ## Challenge
 
 **Validated baseline:** GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, recorded in `versions.md`. Documentation reviewed **2026-10-30**, not a new runtime test. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`. The owner retests current versions before the dry run.
 
-**Starting point.** C3's reviewed assessment and approved plan (`plan.md`, committed as `app: assess and plan`; no task has started). C5's deployed archetype (for the registry and the App Service identity you'll check against, not deploy to).
+**Starting point.** C3's reviewed assessment and approved plan (`plan.md`, committed on `main` in `C:\src\<your-repo>`; no task has started). C5's deployed archetype (for the registry and the App Service identity you'll check against, not deploy to).
 
 **Fixed by the kit.** The target: .NET 10 and ASP.NET Core MVC, with uploads on Blob, notifications on Service Bus, secrets in Key Vault and telemetry in Application Insights. The app runs on `vm-dev01` against the source database, and is packaged for App Service. The seven agent tasks and their checks are in the playbook.
 
@@ -29,17 +29,17 @@ The kit keeps the **Azure Monitor OpenTelemetry Distro**, which its runtime vali
 
 :::note[Where to work]
 
-Everything runs on <span class="sl-badge note">vm-dev01 · Bastion</span> (not in the dev container; see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)):
+Everything runs on <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> on `main` ([Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)):
 
-- <span class="sl-badge note">vm-dev01 · C:\src\factory (vm-dev01-work)</span> — VS Code and PowerShell 7 in your kit clone for the Upgrade agent tasks, gap checks, container publish (`dotnet publish /t:PublishContainer`) and `app:` commits. The private registry has no public access, so the image push requires `vm-dev01`.
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (main)</span> — Save `task-checks.md` and screenshots in `C:\src\<your-repo>\factory\evidence\c06\` on `main` (see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)).
+- Run all seven Upgrade agent tasks, gap checks, and container publish (`dotnet publish /t:PublishContainer`) directly in `C:\src\<your-repo>` on `main`. The private registry has no public access, so the image push requires `vm-dev01`.
+- Your Git commits on `main` and the image tag in ACR are the deliverables—no manual `task-checks.md` commit-hash or screenshot transcription file is needed.
 - Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
 
 :::
 
 Paste-ready prompts are in the [prompt library](../../prompts/): [Run a task](../../prompts/vscode/02-run-a-task/), [CVE scan](../../prompts/vscode/03-cve-scan/), [Troubleshoot](../../prompts/vscode/04-troubleshoot/) and [App Service check](../../prompts/vscode/05-app-service-check/). The playbook stays the source for the checks.
 
-**Three kinds of numbers appear here.** **Requirements 1 to 5** are this page's. **Agent task 01 to 07** are the Upgrade agent's seven tasks, which the playbook's `app: task 0N` commits use. **Playbook Step 0 to 5** are the sections of `.github/modernization/playbook.md`. Step 0 is the set-up you did in the readiness check: if its **Check** line fails, finish it first, because it counts against the 180 minutes.
+**Three kinds of numbers appear here.** **Requirements 1 to 5** are this page's. **Agent task 01 to 07** are the Upgrade agent's seven tasks (`feat(app): task 0N <name>` commits on `main`). **Playbook Step 0 to 5** are the sections of `.github/modernization/playbook.md`.
 
 ### The source database login
 
@@ -49,15 +49,13 @@ The only Azure resource change in C6 is the image push (requirement 4). Your sig
 
 ## Requirements
 
-1. **Switch to `vm-dev01`** <span class="sl-badge note">vm-dev01 · C:\src\factory (VS Code)</span> as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (it's already set up, see [set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), then follow the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone. In VS Code, open Copilot Chat and set **Session Target** to **Local** (not Copilot) and the agent to **Upgrade**. Use one chat per agent task, build and run the app after every agent task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once. Done when the playbook's Step 0 **Check** line passes and either the picker lists **Upgrade** or `@upgrade` responds.
+1. **Open `C:\src\<your-repo>` on `vm-dev01`** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code)</span> and follow the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md`. In VS Code, open Copilot Chat and set **Session Target** to **Local** (not Copilot) and the agent to **Upgrade**. Use one chat per agent task, build and run the app after every agent task, then commit and `git push` on `main` before the next. Done when the playbook's Step 0 **Check** line passes and either the picker lists **Upgrade** or `@upgrade` responds.
 
-2. **Run all seven agent tasks in order:** <span class="sl-badge note">vm-dev01 · C:\src\factory (VS Code &amp; pwsh)</span> <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (main)</span> 01 .NET 10 and ASP.NET Core MVC; 02 SQL Managed Instance; 03 Blob; 04 Service Bus; 05 Key Vault; 06 OpenTelemetry; 07 CVE audit. Each agent task's check is in the playbook's Step 2 task checks table: don't skip a check to save time. Done when you have seven commits `app: task 0N <name>` on `vm-dev01-work`, each after a passing build and a local run.
+2. **Run all seven agent tasks in order:** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> 01 .NET 10 and ASP.NET Core MVC; 02 SQL Managed Instance; 03 Blob; 04 Service Bus; 05 Key Vault; 06 OpenTelemetry; 07 CVE audit. Each agent task's check is in the playbook's Step 2 task checks table: don't skip a check to save time. Done when you have seven commits (`feat(app): task 0N <name>`) pushed on `main`, each after a passing build and a local run.
 
-   Record each task in `C:\src\<your-repo>\factory\evidence\c06\task-checks.md` on `main`: task, commit hash, build result, pages checked and playbook-check result, with redacted output or screenshots. Add `git -C C:\src\factory log --oneline` output. Commits alone cannot prove a past build and local run.
+3. **Close the gaps the agent tasks don't fully cover,** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> with playbook Step 3. If one of its two searches finds something, use the matching skill in `.github/skills/` (`aspnet-startup-migration`, `notification-service-di` or `trace-to-opentelemetry`) by asking in a new chat: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Done when both `git grep` searches in playbook Step 3 print nothing; run the app again, then commit (`fix(app): gaps`) and push on `main`.
 
-3. **Close the gaps the agent tasks don't fully cover,** <span class="sl-badge note">vm-dev01 · C:\src\factory (VS Code &amp; pwsh)</span> with playbook Step 3. If one of its two searches finds something, use the matching skill in `.github/skills/` (`aspnet-startup-migration`, `notification-service-di` or `trace-to-opentelemetry`) by asking in a new chat: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Done when both `git grep` searches in playbook Step 3 print nothing; run the app again, then commit and push `app: gaps` as the playbook directs.
-
-4. **Package the app** <span class="sl-badge note">vm-dev01 · C:\src\factory\app\ContosoUniversity (pwsh)</span> with .NET SDK container publishing (no `Dockerfile`) and push it to your archetype's private registry, with playbook Step 4 (the `sdk-container-publish` skill explains it). Done when `az acr repository show-tags` lists `c6`.
+4. **Package the app** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\app\ContosoUniversity (pwsh)</span> with .NET SDK container publishing (no `Dockerfile`) and push it to your archetype's private registry, with playbook Step 4 (the `sdk-container-publish` skill explains it). Done when `az acr repository show-tags` lists `c6`.
 
 5. **Check, don't set, the web app's App Service configuration:** <span class="sl-badge note">vm-dev01 · PowerShell 7</span> its identity, its app settings, its Key Vault access, and that your image landed in the registry. Playbook Step 5 and the `app-service-configuration` skill have the commands. This vault uses Azure RBAC, not access policies, so ignore the vault's **Access policies** blade: the web app's access is a role assignment. Set up the names once, then run the checks:
 
@@ -77,18 +75,14 @@ The only Azure resource change in C6 is the image push (requirement 4). Your sig
 
 ## Success criteria
 
-To complete this challenge, show your coach:
+To complete this challenge, review with your coach on `vm-dev01`:
 
-- [ ] Seven agent task commits (`app: task 0N <name>`), each preceded by a passing build and a local run, pushed to `vm-dev01-work` in your own repo.
-- [ ] `task-checks.md` on `main`, with the per-task results, evidence and work-branch commit log. Coaches read `vm-dev01-work` only for C6's app/task commits; all C6 and C9 written evidence is read from `main`.
-- [ ] Coaches read those seven `app:` task commits on `vm-dev01-work` only for C6; they read your challenge evidence from `main` in your own repo.
-- [ ] The app running on `vm-dev01` against the source database, with uploads landing in Blob, a notification toast (a small pop-up at the top right) appearing within 5 seconds of an edit, and telemetry reaching Application Insights.
+- [ ] Seven agent task commits (`feat(app): task 0N <name>`), each preceded by a passing build and a local run, pushed on `main` in `C:\src\<your-repo>`.
+- [ ] The app running on `vm-dev01` against the source database, with uploads landing in Blob, a notification toast appearing within 5 seconds of an edit, and telemetry reaching Application Insights.
 - [ ] `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` reporting nothing, or a documented remediation.
 - [ ] The image tag in your registry (`az acr repository show-tags`).
-- [ ] The App Service identity, app settings and Key Vault access checked and recorded (the output of the `appsettings list` and `role assignment list` commands in requirement 5), not changed to point at your image.
-- [ ] Outcome check (unscored guidance): search the committed app and its configuration files for a database password or key, and record that none is left.
-
-Save your screenshots and notes in `factory/evidence/c06/` on `main` of your own repo (on `vm-dev01`, `C:\src\<your-repo>\factory\evidence\c06\`; see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes) and [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo)).
+- [ ] The App Service identity, app settings and Key Vault access checked (not changed to point at your image yet).
+- [ ] Outcome check: search the committed app and its configuration files for a database password or key, and confirm none is left.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
@@ -116,11 +110,17 @@ That's correct outside `Development` without `KeyVault:VaultUri`: it's by design
 <details>
 <summary>If you need to start over</summary>
 
-To restart the seven agent tasks from a clean .NET Framework 4.8 tree, reset `vm-dev01-work` to the playbook's `app: assess and plan` commit. Find it with `git log --oneline` in `C:\src\factory`, then run `git reset --hard <commit-id>`. This discards uncommitted work, and your next push needs `git push --force-with-lease`. Check the tree is clean again with the last command in playbook Step 0. Ask your coach first if you've already pushed.
+To restart the seven agent tasks from a clean .NET Framework 4.8 tree without losing your C1–C5 commits on `main`, find your C3 baseline commit (`git log --oneline -- .github/upgrades`) and restore only `app` and `.github/upgrades`:
+
+```powershell
+cd C:\src\<your-repo>
+git restore --source=<c3-commit-sha> --worktree --staged -- app .github/upgrades
+git clean -fdx -- app .github/upgrades
+```
+
+Never run `git reset --hard` or `git push --force` on `main`.
 
 </details>
-
-**Bonus.** Up to 5 pts for running the agent task 07 CVE audit again after the gap fixes and packaging (requirements 3 and 4), and recording that it's still clean, or what it found and how you fixed it.
 
 ## References
 

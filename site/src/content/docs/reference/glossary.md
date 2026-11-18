@@ -32,11 +32,11 @@ sidebar:
 | Corp management group | `mg-factory-corp`, the management group holding the team's workload subscriptions and their inherited policies. |
 | CVE | Common Vulnerabilities and Exposures: a published identifier for a known vulnerability. C6 audits direct and transitive dependencies. |
 | Cutover | The moment in C7 when the app switches from the source database on `vm-app01` to the managed instance, and the MI link is removed. |
-| Datacenter | This kit's simulated on-premises environment: `vm-app01` (the legacy app and database) and `vm-dev01` (the member's workstation). |
+| Datacenter | This kit's simulated on-premises environment: `vm-app01` (the legacy app and database) and `vm-dev01` (the member's workstation for `C1`–`C10`). |
 | DeployIfNotExists | Azure Policy effect that deploys a missing related resource or setting, subject to its assignment identity and permissions. |
-| Dev container | A ready-made Linux workspace that VS Code opens inside Docker, in your own repo (from `apex-accelerator`), with the Azure CLI, PowerShell 7, Git, `azd` and Bicep. You run the kit's scripts from `factory/` inside it. |
+| Cloud Shell | Browser-based shell (`https://shell.azure.com`) with PowerShell 7, Azure CLI, and GitHub CLI preinstalled, used for pre-`T-3` repository setup/pipeline dispatch and `T+2` teardown. |
 | DNS proxy | A DNS forwarder. The hub firewall forwards queries so standard Azure service host names resolve to private addresses. |
-| Evidence folder | `factory/evidence/` in your own repo, set up in C1 from `factory/templates/team/evidence` (Step 3 already added `readiness/`). It holds written challenge evidence (`cNN/`) on `main`. In the dev container, run `git pull` first; on `vm-dev01`, use the plain clone and `git pull --rebase`. No code is deployed from it. |
+| Evidence folder | `factory/evidence/` in your own repo on `main`, pre-populated by `Import-Kit.ps1` with the challenge working templates. On `vm-dev01`, work in `C:\src\<your-repo>` on `main` and run `git pull --rebase` before pushing. Team deliverables (`C1`, `C4`, `C10`) are committed once in the team/pod lead's repo. |
 | Event owner | The person coordinating the event: confirms each team's roster and member indexes, handles escalations from team leads, and owns cleanup. |
 | Exemption | A recorded decision that a policy doesn't apply to a resource. The `vending` stage creates them for your datacenter when the team lead vends you at T-1, and you check them in C2. |
 | Gate | A checkpoint you pass before you go on. T-14 and T-3 are gates before the event. In C3 the assessment gate and the plan gate are the points where you review the Upgrade agent's output before it continues. |
@@ -62,14 +62,14 @@ sidebar:
 | OIDC | OpenID Connect: the federation protocol GitHub Actions uses to obtain Azure tokens without a stored client secret. |
 | PIM | Privileged Identity Management. It grants an Azure or Entra role for a limited time after you activate it. If your Owner role is "eligible", activate it before you run preflight. |
 | Platform lead | The name the workflow and the scripts use for the team lead. |
-| Pod lead | In a multi-pod cohort (`n > 5` attendees sharing one Azure hub), one member nominated in each 3-to-5-person breakout pod whose repository holds that pod's scored copy of the C1, C4 and C10 team deliverables. |
+| Pod lead | In a multi-pod cohort (`n > 5` attendees sharing one Azure hub), one member nominated in each 3-to-5-person breakout pod whose repository holds that pod's copy of the C1, C4 and C10 team deliverables. |
 | Playbook | `.github/modernization/playbook.md`, the source of truth for the Upgrade agent's sequence, checks and recovery. |
 | Preflight | The automated and manual checks you run before the event with the `whatif` stage of the platform pipeline. They are the first part of the readiness check. |
 | Private endpoint | A private IP address in your virtual network for an Azure service, so traffic to it stays off the public internet. |
 | Privileged Role Administrator | Microsoft Entra directory role used for the one-time SQL MI directory-read grant; different from Azure resource Owner. |
 | Query Store | SQL Server's built-in record of query plans and run times. C9 uses it to show that each fix worked. |
 | RBAC | Role-based access control: permissions granted to an identity at a defined scope. |
-| Readiness check | The Step 3 checklist before the event that confirms your datacenter (`vm-app01` connected to Azure Arc) and `vm-dev01` are ready. It has no points and isn't a challenge. The Step 4 `vending` run checks each member's datacenter and Arc status automatically before vending their subscription. |
+| Readiness check | The Step 3 checklist before the event that confirms your datacenter (`vm-app01` connected to Azure Arc) and `vm-dev01` are ready. It isn't a challenge. The Step 4 `vending` run checks each member's datacenter and Arc status automatically before vending their subscription. |
 | Run command | An Azure feature that runs a script inside a VM without signing in to it. Arc onboarding turns it off for `vm-app01`, so the datacenter test must run before it (the `member` stage does). |
 | Roster | The team lead's private `.local/roster.json`: member indexes and the values needed to vend each workload subscription. Never commit it. |
 | Scenario | The kind of job the Upgrade agent runs. C3 uses `dotnet-version-upgrade`. |

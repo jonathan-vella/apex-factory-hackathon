@@ -13,7 +13,7 @@ import VmDev01Setup from "../../../components/VmDev01Setup.astro";
 **Who:** **Everyone** (every member, including the team lead).
 **When:** By **T-3** (3 days before day one). About 35 to 60 minutes unattended for the `member` stage, plus 30 minutes to set up `vm-dev01`.
 
-Complete [Step 1: Repo and preflight (T-14)](../set-up-your-repo/) first. Run every command from the `factory/` folder in PowerShell (`pwsh`) inside your dev container. Your **designated team lead** is your first point of contact if you hit a problem.
+Complete [Step 1: Repo and preflight (T-14)](../set-up-your-repo/) first. Run the Step 3.1–3.2 commands from `~/src/<your-repo>/factory` in PowerShell (`pwsh`) inside [Azure Cloud Shell](https://shell.azure.com). Once `vm-dev01` is deployed, you set up `C:\src\<your-repo>` on `vm-dev01` in Step 3.3 and work there for the rest of the event. Your **designated team lead** is your first point of contact if you hit a problem.
 
 The datacenter starts billing when you deploy it in Step 3 and continues until teardown at T+2, including while its VMs are deallocated. See [Cost](../../reference/cost/) for per-member rates and event estimates.
 
@@ -43,7 +43,7 @@ In Path A, everyone—including the team lead—deploys their own datacenter at 
 
 <Steps>
 
-1. **Deploy your datacenter (`T-3`, in your laptop Dev Container — `factory/`).** Run **one** command matching your role:
+1. **Deploy your datacenter (`T-3`, in Azure Cloud Shell — `~/src/<your-repo>/factory`).** Run **one** command matching your role:
    - **If you are a team member (indexes `2..n`):**
 
      ```bash
@@ -98,45 +98,37 @@ gh auth status
 git config --global user.name
 az account show --query name -o tsv
 [Environment]::GetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'User')
-git -C C:\src\factory remote -v
-git -C C:\src\factory branch -vv
 git -C C:\src\<your-repo> branch --show-current
-git -C C:\src\factory status --short --ignored -- app .github
+git -C C:\src\<your-repo> status --short --ignored -- app .github/upgrades
+Get-Content C:\src\<your-repo>\factory\.local\settings.json
 ```
 
-Done when GitHub is signed in, git has your name, Azure shows your workload subscription, the variable is `AzureCliCredential`, the remotes and work-branch upstream match step 6, and the evidence clone is on `main`. The last command prints nothing. VS Code must be open on `C:\src\factory`, with **Upgrade**, **Local** and a Copilot reply to "hello".
+Done when GitHub is signed in, git has your name, Azure shows your workload subscription, the variable is `AzureCliCredential`, `C:\src\<your-repo>` is on `main`, `settings.json` has your `suffix` and `memberIndex`, and the `git status` command prints nothing. VS Code must be open on `C:\src\<your-repo>`, with **Upgrade**, **Local** and a Copilot reply to "hello".
 
-If the last command lists leftovers, inspect them before removing files that git does not track, including ignored files from those two folders:
+If the `git status` command lists leftovers under `app` or `.github/upgrades`, inspect them before removing files that git does not track:
 
 ```powershell
-cd C:\src\factory
-git clean -ndx -- app .github
-git clean -fdx -- app .github
+cd C:\src\<your-repo>
+git clean -ndx -- app .github/upgrades
+git clean -fdx -- app .github/upgrades
 ```
 
 ### Coming back later
 
-Repeat steps 1 and 2 above, open PowerShell 7 and run `code C:\src\factory`; do not repeat clone or branch creation. Read this site in the VM's browser or on your own computer. The app and modernization files are in the kit clone; evidence goes in your private clone on `main`. Restart only when no agent run is active: a restart ends Bastion and interrupts the run. Never stop or deallocate `vm-dev01` during the event.
+Connect to `vm-dev01` through Bastion, open PowerShell 7 and run `code C:\src\<your-repo>`; do not repeat the clone. Read this site in the VM's browser or on your own computer. All challenge work and working artifacts live in `C:\src\<your-repo>` on `main`. Restart only when no agent run is active: a restart ends Bastion and interrupts the run. Never stop or deallocate `vm-dev01` during the event.
 
-## 3.4 Save and commit your readiness evidence
-
-`./scripts/Get-PipelineEvidence.ps1` saved `factory/evidence/readiness/test-datacenter.txt` in your dev container and created `.local/<subscription-id>/datacenter.json`. Add your screenshots or exports to `factory/evidence/readiness/`, commit with a conventional message such as `docs: readiness evidence`, and push to `main`. The evidence rule is the same everywhere:
-
-- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
-- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
-
-Redact subscription, tenant, and object IDs from anything you commit.
+## 3.4 Confirm your readiness checklist
 
 ### Readiness checklist
 
-Confirm that `factory/evidence/readiness/` in your repository on `main` holds these six items before Step 4 (T-1):
+Confirm that `factory/evidence/readiness/` in `C:\src\<your-repo>` on `main` holds `test-datacenter.txt` (committed in Step 3.3 step 1) and that these readiness checks are complete before Step 4 (T-1):
 
 1. **Preflight GO.** The `whatif` **run log**, in the member's **Preflight** step, showing `GO`. WARN rows do not prevent GO; confirm the separate manual checks too.
-2. **Datacenter test PASS before Arc.** `evidence/readiness/test-datacenter.txt` with every check PASS.
+2. **Datacenter test PASS before Arc.** `factory/evidence/readiness/test-datacenter.txt` committed on `main` with every check PASS.
 3. **Arc connected, with the SQL extension.** `vm-app01` showing as **Connected** under **Azure Arc** > **Machines**, and its instance listed under **SQL Server instances** (checked automatically by Step 4 Vending).
-4. **Arc migration assessment output.** A screenshot or exported report for `ContosoUniversity`.
-5. **Hybrid Benefit and VM state confirmation.** Output or screenshot of `az vm list -g rg-datacenter -d -o table` and `vm-app01`'s `licenseType`.
-6. **`vm-dev01` and Copilot working.** A screenshot of Copilot Chat answering in VS Code on `vm-dev01`, saved into `C:\src\<your-repo>\factory\evidence\readiness\` and pushed to `main`.
+4. **Arc migration assessment ready.** Assessment for `ContosoUniversity` against **Azure SQL Managed Instance** visible in the portal ready for C3 triage.
+5. **Hybrid Benefit and VM state confirmed.** Both VMs running and `vm-app01`'s `licenseType` verified.
+6. **`vm-dev01` and Copilot working.** `C:\src\<your-repo>` cloned on `main`, `factory/.local/settings.json` written, and Copilot Chat answering `"hello"` in VS Code on `vm-dev01`.
 
 Let your team lead know as soon as your Step 3 checklist is complete so they know you are ready for [Step 4: Vending (T-1)](../vending/).
 

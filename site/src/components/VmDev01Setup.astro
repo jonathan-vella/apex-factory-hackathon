@@ -8,14 +8,12 @@ interface Props {
 const { pathMode } = Astro.props;
 const isPathB = pathMode === "lead-provisioned";
 
-const step1PathA = `./scripts/Get-PipelineEvidence.ps1
+const step1PathA = `cd ~/src/<your-repo>/factory
+./scripts/Get-PipelineEvidence.ps1
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
 $s.subscriptionId
-git remote get-url origin`;
-
-const step1PathB = `$s = Get-Content .local/settings.json | ConvertFrom-Json
-(Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).adminPassword
+$s.suffix
 git remote get-url origin`;
 
 const step3GitHub = `gh auth login --web
@@ -34,100 +32,64 @@ az account set --subscription '<workload-subscription-id>'
 az account show --query name -o tsv
 [Environment]::SetEnvironmentVariable('AZURE_TOKEN_CREDENTIALS', 'AzureCliCredential', 'User')`;
 
-const step5Refresh = `cd C:\\src\\factory
-git switch main
-git pull`;
+const step5Clone = isPathB
+  ? `git clone https://github.com/<org>/<your-repo>.git C:\\src\\<your-repo>
+cd C:\\src\\<your-repo>`
+  : `git clone https://github.com/<your-org>/<your-repo>.git C:\\src\\<your-repo>
+cd C:\\src\\<your-repo>`;
 
-const step5SparseFallback = `git clone --no-checkout https://github.com/jonathan-vella/apex-factory-hackathon.git C:\\src\\factory
-cd C:\\src\\factory
-git sparse-checkout set --no-cone \`
-  '/*' '!/coach/' '!/facilitator/' '!/docs/' '!/site/' '!/test/' \`
-  '!/.vale/' '!/.vale.ini' '!/.markdownlint-cli2.mjs' '!/.prettierignore' \`
-  '!/prettier.config.mjs' '!/lefthook.yml' '!/package.json' \`
-  '!/package-lock.json' '!/.node-version' '!/.nvmrc'
-git checkout`;
+const step6SettingsPathA = `cd C:\\src\\<your-repo>\\factory
+./scripts/Initialize-Settings.ps1 -TenantId '<tenant-id>' -SubscriptionId '<workload-subscription-id>' -SharedSubscriptionId '<shared-services-subscription-id>' -MemberIndex <index> -Location '<location>' -Suffix '<suffix>' -WriteLabCredentials`;
 
-const step6Remote = isPathB
-  ? `cd C:\\src\\factory
-git remote add member https://github.com/<org>/<your-repo>.git
-git switch -c vm-dev01-work
-git push -u member vm-dev01-work
-git remote -v
-git branch -vv`
-  : `cd C:\\src\\factory
-git remote add member https://github.com/<your-org>/<your-repo>.git
-git switch -c vm-dev01-work
-git push -u member vm-dev01-work
-git remote -v
-git branch -vv`;
+const step6SettingsPathB = `cd C:\\src\\<your-repo>\\factory
+./scripts/Initialize-Settings.ps1 -TenantId '<tenant-id>' -SubscriptionId '<workload-subscription-id>' -SharedSubscriptionId '<shared-services-subscription-id>' -MemberIndex <index> -Location '<location>' -Suffix '<suffix>' -WriteLabCredentials`;
 
-const step7Clone = isPathB
-  ? `git clone https://github.com/<org>/<your-repo>.git C:\\src\\<your-repo>`
-  : `git clone https://github.com/<your-org>/<your-repo>.git C:\\src\\<your-repo>`;
-
-const step8Code = `code C:\\src\\factory`;
+const step7Code = `code C:\\src\\<your-repo>`;
 ---
 
 {isPathB ? (
   <p>
     <strong>Who runs this:</strong> Every student, on their own assigned <code>vm-dev01</code>.
     <br />
-    <strong>Why:</strong> From C3 onward, the Contoso University app and SQL Server live behind
-    private endpoints inside your datacenter and spoke network—your laptop Dev Container (or
-    Codespace) cannot reach them, so all C3, C6, C7, C8 (VM checks) and C9 work runs on{" "}
-    <code>vm-dev01</code>.
+    <strong>Why:</strong> Every challenge (<code>C1</code> to <code>C10</code>) runs inside your{" "}
+    <code>vm-dev01</code> workstation in Azure—reaching both GitHub and the private endpoints in
+    your datacenter and spoke network from a single clone (<code>C:\src\&lt;your-repo&gt;</code> on{" "}
+    <code>main</code>).
   </p>
 ) : (
   <p>
     <strong>Who runs this:</strong> Every team member—including the team lead—for their own{" "}
     <code>vm-dev01</code>.
     <br />
-    <strong>Why:</strong> From C3 onward, the Contoso University app and SQL Server live behind
-    private endpoints inside your datacenter and spoke network—your laptop Dev Container cannot
-    reach them, so all C3, C6, C7, C8 (VM checks) and C9 work runs on <code>vm-dev01</code>.
+    <strong>Why:</strong> Every challenge (<code>C1</code> to <code>C10</code>) runs inside your{" "}
+    <code>vm-dev01</code> workstation in Azure—reaching both GitHub and the private endpoints in
+    your datacenter and spoke network from a single clone (<code>C:\src\&lt;your-repo&gt;</code> on{" "}
+    <code>main</code>).
   </p>
 )}
 
-<Aside type="tip" title="One GitHub repo — why vm-dev01 has two local folders">
+<Aside type="tip" title="One GitHub repo and one local clone on vm-dev01">
   {isPathB ? (
     <p>
       <strong>Do not create a new GitHub repository.</strong> Reuse the single private{" "}
       <code>&lt;org&gt;/&lt;your-repo&gt;</code> student repo from your Handoff Card (for example{" "}
-      <code>&lt;org&gt;/&lt;event&gt;-student-01</code>). Your student repo&apos;s <code>main</code>{" "}
-      branch has the APEX accelerator at the root and the kit nested under <code>factory/</code>,
-      whereas GitHub Copilot&apos;s Upgrade agent requires the kit at the workspace root so it can
-      discover <code>.github/skills/</code> and <code>.github/modernization/</code>. That is why{" "}
-      <code>vm-dev01</code> uses two local folders backed by your <strong>same</strong> GitHub repo:
+      <code>&lt;org&gt;/&lt;event&gt;-student-01</code>). You clone it once to{" "}
+      <code>C:\src\&lt;your-repo&gt;</code> on <code>main</code>: <code>app/ContosoUniversity</code>
+      , <code>.github/modernization/</code>, <code>.github/skills/</code>,{" "}
+      <code>infra/bicep/university/</code> and <code>factory/</code> all live side by side in that
+      single folder.
     </p>
   ) : (
     <p>
       <strong>Do not create a new GitHub repository.</strong> Reuse the single private{" "}
       <code>&lt;your-org&gt;/&lt;your-repo&gt;</code> repo you created in{" "}
-      <a href="/deploy/set-up-your-repo/#11-create-your-repo-everyone">Step 1.1</a>. Your Step 1
-      repo&apos;s <code>main</code> branch has the APEX accelerator at the root and the kit nested
-      under <code>factory/</code>, whereas GitHub Copilot&apos;s Upgrade agent requires the kit at
-      the workspace root so it can discover <code>.github/skills/</code> and{" "}
-      <code>.github/modernization/</code>. That is why <code>vm-dev01</code> uses two local folders
-      backed by your <strong>same</strong> GitHub repo:
+      <a href="/deploy/set-up-your-repo/#11-create-your-repo-everyone">Step 1.1</a>. You clone it
+      once to <code>C:\src\&lt;your-repo&gt;</code> on <code>main</code>:{" "}
+      <code>app/ContosoUniversity</code>, <code>.github/modernization/</code>,{" "}
+      <code>.github/skills/</code>, <code>infra/bicep/university/</code> and <code>factory/</code>{" "}
+      all live side by side in that single folder.
     </p>
   )}
-  <ul>
-    <li>
-      <strong>
-        <code>C:\src\factory</code> (app &amp; upgrade workspace):
-      </strong>{" "}
-      pre-cloned on the VM from the public kit at the root. In step 6 you add a <code>member</code>{" "}
-      remote pointing to your existing GitHub repo and push your code on a separate{" "}
-      <code>vm-dev01-work</code> branch (never merged into <code>main</code>).
-    </li>
-    <li>
-      <strong>
-        <code>C:\src\&lt;your-repo&gt;</code> (evidence workspace):
-      </strong>{" "}
-      a normal clone of your existing GitHub repo on <code>main</code> (step 7), used only to commit
-      and push screenshots, reports and C9 scripts under <code>factory\evidence\</code>.
-    </li>
-  </ul>
 </Aside>
 
 <p>
@@ -143,53 +105,37 @@ const step8Code = `code C:\\src\\factory`;
       {isPathB ? (
         <>
           <p>
-            <strong>
-              [In your Dev Container or Codespace — <code>factory/</code>]
-            </strong>{" "}
-            Read your <code>vm-dev01</code> password and student repo URL so you have them ready
-            before opening Bastion:
-          </p>
-          <Code code={step1PathB} lang="powershell" />
-          <p>
-            Copy the <code>labadmin</code> password (which also opens <code>vm-app01</code>) and
-            your student repo URL (<code>https://github.com/&lt;org&gt;/&lt;your-repo&gt;.git</code>
-            ), along with <code>&lt;tenant-id&gt;</code> and{" "}
-            <code>&lt;workload-subscription-id&gt;</code> from your Handoff Card.
+            <strong>[On your laptop — Handoff Card]</strong> Open your private Handoff Card (
+            <code>member-&lt;index&gt;.md</code>) so you have your student repo URL (
+            <code>https://github.com/&lt;org&gt;/&lt;your-repo&gt;.git</code>),{" "}
+            <code>&lt;tenant-id&gt;</code>, <code>&lt;workload-subscription-id&gt;</code>,{" "}
+            <code>&lt;suffix&gt;</code>, and the one-line <code>Initialize-Settings.ps1</code>{" "}
+            command ready. For the standard disposable lab, the <code>labadmin</code> password is in{" "}
+            <a href="https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/datacenter/README.md#credentials">
+              infra/datacenter/README.md
+            </a>{" "}
+            (or provided by your team lead).
           </p>
         </>
       ) : (
         <>
           <p>
             <strong>
-              [On your laptop, in your Dev Container — <code>factory/</code>]
+              [In Azure Cloud Shell — <code>~/src/&lt;your-repo&gt;/factory</code>]
             </strong>{" "}
             Download your readiness artifact and print your <code>vm-dev01</code> password, workload
-            subscription ID and Step 1 repo URL:
+            subscription ID, Step 1 suffix, and repo URL:
           </p>
           <Code code={step1PathA} lang="powershell" />
           <p>
             <code>Get-PipelineEvidence.ps1</code> saves{" "}
             <code>factory/evidence/readiness/test-datacenter.txt</code> and writes{" "}
-            <code>.local/&lt;subscription-id&gt;/datacenter.json</code> (using{" "}
-            <code>memberIndex</code> from <code>.local/settings.json</code>, so the exact same
-            command works in both member repos and the team lead&apos;s repo). Keep the{" "}
-            <code>labadmin</code> password, subscription ID and Step 1 repo URL (
-            <code>https://github.com/&lt;your-org&gt;/&lt;your-repo&gt;.git</code>) privately for
-            the steps below.
+            <code>.local/&lt;subscription-id&gt;/datacenter.json</code>. Commit and push{" "}
+            <code>factory/evidence/readiness/test-datacenter.txt</code> from Cloud Shell (`git add
+            evidence/readiness/test-datacenter.txt && git commit -m "docs: add readiness test
+            output" && git push`), and keep the <code>labadmin</code> password, subscription ID,{" "}
+            <code>$s.suffix</code>, and repo URL privately for the steps below.
           </p>
-          <details>
-            <summary>If Arc failed and datacenter.json was not downloaded</summary>
-            <p>
-              For the standard disposable lab, run{" "}
-              <code>./scripts/Initialize-Settings.ps1 -WriteLabCredentials</code> from{" "}
-              <code>factory/</code> to write the{" "}
-              <a href="https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/datacenter/README.md#credentials">
-                standard lab credentials
-              </a>{" "}
-              locally; for custom credentials, ask your team lead privately. Do not publish the
-              password or rerun <code>member</code> just to recreate <code>datacenter.json</code>.
-            </p>
-          </details>
         </>
       )}
     </li>
@@ -203,9 +149,7 @@ const step8Code = `code C:\\src\\factory`;
         <strong>Connect</strong> &gt; <strong>Bastion</strong>, select <strong>Password</strong>,
         enter <code>labadmin</code> and the password from step 1, and choose{" "}
         <strong>Connect</strong>. On first sign-in, wait up to five minutes for VS Code extensions
-        to finish installing. (Optional Windows shortcut:{" "}
-        <code>./scripts/Connect-DatacenterVm.ps1</code> with PowerShell 7 and the Azure CLI{" "}
-        <code>bastion</code> extension.)
+        to finish installing.
       </p>
     </li>
 
@@ -248,55 +192,24 @@ const step8Code = `code C:\\src\\factory`;
         <strong>
           [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>)]
         </strong>{" "}
-        Refresh the pre-cloned public kit at <code>C:\src\factory</code> once so you start from the
-        latest kit files before creating your work branch:
+        Clone your private GitHub repository into <code>C:\src\&lt;your-repo&gt;</code> on{" "}
+        <code>main</code>:
       </p>
-      <Code code={step5Refresh} lang="powershell" />
-      <details>
-        <summary>Only if C:\src\factory is missing on vm-dev01</summary>
-        <p>
-          Ask your team lead before the event or your coach on event days first. If they ask you to
-          recreate it, run this sparse clone so coach answer keys and site tooling stay out:
-        </p>
-        <Code code={step5SparseFallback} lang="powershell" wrap />
-      </details>
+      <Code code={step5Clone} lang="powershell" />
     </li>
 
     <li>
       <p>
         <strong>
           [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>), in{" "}
-          <code>C:\src\factory</code>]
+          <code>C:\src\&lt;your-repo&gt;\factory</code>]
         </strong>{" "}
-        Link <code>C:\src\factory</code> to your existing GitHub repo as the <code>member</code>{" "}
-        remote and push a new <code>vm-dev01-work</code> branch—this backs up your C3/C6 app
-        modernization commits to your own private GitHub repo because you cannot push to the public
-        kit (<code>origin</code>):
+        Write your local git-ignored settings (<code>.local/settings.json</code> and{" "}
+        <code>.local/&lt;subscription-id&gt;/datacenter.json</code>) on <code>vm-dev01</code>,
+        passing your existing <code>-Suffix</code> and <code>-WriteLabCredentials</code> so your
+        archetype suffix never drifts:
       </p>
-      <Code code={step6Remote} lang="powershell" />
-      <p>
-        Use the exact repo URL from step 1 (do not create a new GitHub repo). Verify{" "}
-        <code>origin</code> is the public kit, <code>member</code> is your private repo, and{" "}
-        <code>vm-dev01-work</code> tracks <code>member/vm-dev01-work</code>. Never push to{" "}
-        <code>origin</code>, never run <code>git pull</code> in <code>C:\src\factory</code> after
-        this step, and never merge <code>vm-dev01-work</code> into <code>main</code> (see{" "}
-        <a href="/guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight">
-          Save your work and keep the branches straight
-        </a>
-        ).
-      </p>
-    </li>
-
-    <li>
-      <p>
-        <strong>
-          [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>)]
-        </strong>{" "}
-        Clone that same existing GitHub repo into <code>C:\src\&lt;your-repo&gt;</code> on{" "}
-        <code>main</code>—this gives you a clean working copy on the VM where you save screenshots,
-        reports and C9 scripts into <code>factory\evidence\</code> without touching your app branch:
-      </p>
-      <Code code={step7Clone} lang="powershell" />
+      <Code code={isPathB ? step6SettingsPathB : step6SettingsPathA} lang="powershell" />
     </li>
 
     <li>
@@ -304,12 +217,12 @@ const step8Code = `code C:\\src\\factory`;
         <strong>
           [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>), then VS Code]
         </strong>{" "}
-        Open VS Code at the root of <code>C:\src\factory</code> and sign in to GitHub
-        Copilot—opening <code>C:\src\factory</code> (not <code>app/</code> and not{" "}
-        <code>C:\src\&lt;your-repo&gt;</code>) ensures Copilot discovers{" "}
-        <code>.github/skills/</code> and <code>.github/modernization/playbook.md</code>:
+        Open VS Code at the root of <code>C:\src\&lt;your-repo&gt;</code> and sign in to GitHub
+        Copilot—opening the repo root ensures Copilot discovers <code>.github/agents/</code>,{" "}
+        <code>.github/skills/</code>, <code>.github/modernization/playbook.md</code>,{" "}
+        <code>app/ContosoUniversity/</code> and <code>infra/bicep/university/</code>:
       </p>
-      <Code code={step8Code} lang="powershell" />
+      <Code code={step7Code} lang="powershell" />
       <p>
         Trust the workspace authors when prompted, then choose the <strong>Accounts</strong> icon
         &gt; <strong>Sign in with GitHub to use GitHub Copilot</strong>.
@@ -327,7 +240,9 @@ const step8Code = `code C:\\src\\factory`;
         set <strong>Session Target</strong> to <strong>Local</strong>, press <code>F1</code> &gt;{" "}
         <strong>MCP: List Servers</strong> &gt; <strong>Upgrade</strong> &gt;{" "}
         <strong>Configure Model Access</strong> to allow your models, select{" "}
-        <strong>Upgrade</strong> in the agent picker, and send <code>&quot;hello&quot;</code>.
+        <strong>Upgrade</strong> in the agent picker, and send <code>&quot;hello&quot;</code>. Also
+        confirm <code>01-Orchestrator</code> and <code>08-As-Built</code> appear in the agent
+        picker.
       </p>
     </li>
   </ol>

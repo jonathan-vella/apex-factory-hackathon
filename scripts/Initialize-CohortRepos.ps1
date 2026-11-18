@@ -292,7 +292,7 @@ else {
 
 $requiredTemplateFiles = @(
     'factory/scripts/Initialize-Settings.ps1',
-    '.devcontainer/devcontainer.json',
+    'app/ContosoUniversity/ContosoUniversity.csproj',
     '.github/workflows/platform.yml',
     'infra/bicep/university/azure.yaml'
 )
@@ -463,15 +463,15 @@ foreach ($member in $targetMembers) {
         $handoffContent = @(
             "# Student handoff - Member $($member.index)"
             ""
-            "- **Assigned repository:** $repoUrl *(your single GitHub repo for the dev container, ``vm-dev01-work`` app branch, and ``main`` evidence; do not create another GitHub repo)*"
+            "- **Assigned repository:** $repoUrl *(your single GitHub repo cloned at ``C:\src\$($member.repoName)`` on ``main`` on ``vm-dev01``; do not create another GitHub repo)*"
             "- **Accept your GitHub invitation first:** $inviteUrl"
             "- **Member index:** ``$($member.index)``"
             "- **Archetype suffix:** ``$($member.suffix)``"
             "- **Student onboarding guide:** https://factory.apexops.pro/deploy/lead-setup/student-onboarding/"
             ""
-            "## Initialize local settings"
+            "## Initialize local settings on ``vm-dev01``"
             ""
-            "Open your repository in a dev container or GitHub Codespace, change into ``factory/``, and run:"
+            "Connect to ``vm-dev01`` via Azure Bastion, clone your repository to ``C:\src\$($member.repoName)`` on ``main``, change into ``factory/``, and run in PowerShell 7 (``pwsh``):"
             ""
             '```powershell'
             $initCmd

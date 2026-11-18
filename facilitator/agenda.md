@@ -1,8 +1,8 @@
 # Two-day agenda (coach)
 
-The challenge minutes are effort targets, not a serial schedule. The platform foundation is built before the event: ALZ-lite at Step 2 (T-7) and vending at Step 4 (T-1), so Day 1 opens with a 30-minute PowerPoint introduction by the tech lead, starts C1 at 09:00, and runs C2 as a 45-minute member challenge testing AI coding agents against repository and landing-zone guardrails. SQL Managed Instance provisioning overlaps the start of C6, and the MI link starts on Day 2 at 08:30 while C6 finishes. The challenge totals are 10 challenges and 750 minutes. The pre-hackathon setup has no points and no minutes in that total.
+The challenge minutes are effort targets, not a serial schedule. The platform foundation is built before the event: ALZ-lite at Step 2 (T-7) and vending at Step 4 (T-1), so Day 1 opens with a 30-minute PowerPoint introduction by the tech lead, starts C1 at 09:00, and runs C2 as a 45-minute member challenge testing AI coding agents against repository and landing-zone guardrails on `vm-dev01`. SQL Managed Instance provisioning overlaps the start of C6, and the MI link starts on Day 2 at 08:30 while C6 finishes. The challenge totals are 10 challenges and 750 minutes.
 
-Staff at least one coach per six attendees. Before kickoff, read the guide's [kickoff duties](guide.md#kickoff-and-event-days), [lifeline handout rules](guide.md#lifeline-handout-and-scoring) and [escalation table](guide.md#escalation). The [platform pipeline](platform-pipeline.md), [cost estimate](cost-estimate.md) and [cleanup](cleanup.md) are the operational references. Use **Scoreboard and badges**, **Curveballs** and **APEX demo script** in the Coach sidebar during the event.
+Staff at least one coach per six attendees. Before kickoff, read the guide's [kickoff duties](guide.md#kickoff-and-event-days), [lifeline handout rules](guide.md#lifeline-handout) and [escalation table](guide.md#escalation). The [platform pipeline](platform-pipeline.md), [cost estimate](cost-estimate.md) and [cleanup](cleanup.md) are the operational references. Use **Lifelines**, **Curveballs** and **APEX demo script** in the Coach sidebar during the event.
 
 ## Before the event
 
@@ -24,7 +24,7 @@ Staff at least one coach per six attendees. Before kickoff, read the guide's [ki
 | 09:45–10:30 | Secure, AI-ready foundation (AI guardrails test) | C2 / members | Each member tests an AI coding agent against APEX's Bicep baseline (`iac-security-baseline.md`) and ALZ `Deny` policies in `rg-spoke`, checks exemptions and runs `Test-Connectivity.ps1` |
 | 10:15 (inside C2) | Day 1 policy curveball | Coach, team lead | Follow **Curveballs** in the Coach sidebar; capture the denial and decision, then remove only the exercise assignment before C5 at 13:45 |
 | 10:30–11:30 | Assess the source | C3 / members | Each member runs the Upgrade agent assessment and plan on `vm-dev01` and triages the Arc SQL assessment findings |
-| 11:30–12:15 | Choose target states | C4 / teams and members | Complete the ADRs and deferred-work register |
+| 11:30–12:15 | Choose target states | C4 / teams | Complete `decisions-and-register.md` in the team/pod lead's repo |
 | 12:15–13:15 | Lunch break | — | — |
 | 13:15–13:45 | APEX archetype demo | C5 / coach | Use the 30-minute script; show APEX's artifact/review flow and the `azd` deployment path |
 | 13:45–14:45 | Deploy the CoE archetype | C5 / members | Adapt, preview, provision and document the deployed state |
@@ -38,13 +38,13 @@ Staff at least one coach per six attendees. Before kickoff, read the guide's [ki
 |---|---|---|---|
 | 08:30–09:00 | Reconnect, check both VMs are running and the Graph grant is done, then start the MI link | Team lead, members | The link is C7 requirements 1 and 2 (prepare the source, then start the link), started early so seeding overlaps the end of C6. Requirements 1 and 2 count toward C7's 120 minutes, but the wait of up to 10 minutes while the link is created overlaps C6 and doesn't count |
 | 09:00–10:30 | Modernize with GitHub Copilot, part 2 | C6 / members | Complete the 180-minute total across both days |
-| 10:30–12:30 | Migrate and go live | C7 / members | About 100 minutes of C7's 120-minute effort remain after the early link setup. This window includes seeding slack; do not extend the scored effort or skip go/no-go. Trigger the abort curveball at go/no-go |
+| 10:30–12:30 | Migrate and go live | C7 / members | About 100 minutes of C7's 120-minute effort remain after the early link setup. This window includes seeding slack; do not skip go/no-go. Trigger the abort curveball at go/no-go |
 | 12:30–13:15 | Lunch break | — | — |
-| 13:15–14:00 | Validate the pattern | C8 / members | Smoke, load, security, upload, notification and telemetry checks |
-| 14:00–15:00 | Optimize the database with GitHub Copilot | C9 / members | Query Store before and after |
+| 13:15–14:00 | Validate the pattern | C8 / members | Smoke, load, security (`acceptance.json`), upload, notification and telemetry checks on `vm-dev01` |
+| 14:00–15:00 | Optimize the database with GitHub Copilot | C9 / members | Query Store `baseline` vs `after` and 5 `.sql` fix scripts |
 | 15:00–15:15 | Break | — | — |
-| 15:15–16:15 | Package, hand over and review AI readiness | C10 / teams | Complete the handover and gap register |
-| 16:15–17:00 | Showcase, scoring and close | Event owner, coaches, teams | Sign off evidence, apply the 30-point bonus ceiling and list owner follow-ups |
+| 15:15–16:15 | Package, hand over and review AI readiness | C10 / teams | Complete `reusable-asset/` and `handover-and-ai-review.md` in the team/pod lead's repo |
+| 16:15–17:00 | Showcase and close | Event owner, coaches, teams | 5-minute team showcases and owner follow-ups |
 
 ## Planned overlaps and controls
 

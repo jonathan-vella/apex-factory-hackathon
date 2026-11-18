@@ -3,14 +3,14 @@
 
 <#
 .SYNOPSIS
-Prepares vm-app01's SQL Server and the ContosoUniversity database for the SQL Managed Instance link migration in C7. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
+Prepares vm-app01's SQL Server and the ContosoUniversity database for the SQL Managed Instance link migration in C7, or removes startup trace flags -T1800 and -T9567 after cutover (-RemoveTraceFlags).
 .DESCRIPTION
 Run it on vm-app01 in a Bastion session, in Windows PowerShell 5.1, as an administrator (select Start, type powershell,
 right-click Windows PowerShell and choose Run as administrator). It needs your own admin session: VM run commands stop working once
 vm-app01 is Arc-enabled in the readiness check, so there's no remote way to run it. The labadmin user is a SQL Server sysadmin.
 
-It follows "Prepare environment for a Managed Instance link migration" (SQL Server migration in Azure Arc) and
-logs each step with its time to C:\LabTools\logs\Prepare-MiLinkSource.log:
+With -MiSubnetPrefix (default parameter set), it follows "Prepare environment for a Managed Instance link migration" (SQL Server
+migration in Azure Arc), safe to run again, and logs each step with its time to C:\LabTools\logs\Prepare-MiLinkSource.log:
 
 1. Windows Firewall: allows TCP 5022 inbound from the MI subnet only. Outbound is allowed by default.
 2. Checks the instance: SQL Server 2022, availability groups on, trace flags 1800 and 9567 on,
@@ -25,6 +25,10 @@ logs each step with its time to C:\LabTools\logs\Prepare-MiLinkSource.log:
 6. Takes a full backup with checksum to F:\SQLBackup, which the link needs before seeding. It replaces the
    backup file of an earlier run.
 
+With -RemoveTraceFlags (post-cutover cleanup in C7), it verifies that no distributed availability group or MI link is active on the
+instance, removes only startup parameters -T1800 and -T9567 from the SQL Server registry key while preserving all other SQLArg*
+entries (-d, -e, -l, etc.), restarts MSSQLSERVER, and verifies with DBCC TRACESTATUS(-1) that neither trace flag 1800 nor 9567 is on.
+
 The script only changes this VM. It never touches Azure, and the source database keeps working.
 
 To check the script without running it (syntax, parameter check, help), run this from the repo root on any computer:
@@ -33,15 +37,20 @@ pwsh -NoProfile -File test/Test-MiLinkSource.Tests.ps1
 The managed instance's subnet, snet-sqlmi in your spoke: 10.20.<n>.128/26 for members 1-255 (or
 10.<192..255>.<0..255>.128/26 for members 256+), where <n> is your member index in factory/.local/settings.json.
 For member 3, 10.20.3.128/26.
+.PARAMETER RemoveTraceFlags
+Removes startup trace flags -T1800 and -T9567 after the MI link cutover is complete and the link has been deleted, restarts
+MSSQLSERVER, and verifies that neither trace flag is active.
 .EXAMPLE
 .\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.3.128/26
+.EXAMPLE
+C:\LabTools\Prepare-MiLinkSource.ps1 -RemoveTraceFlags
 .EXAMPLE
 Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/infra/datacenter/scripts/Prepare-MiLinkSource.ps1' -OutFile C:\LabTools\Prepare-MiLinkSource.ps1 -UseBasicParsing
 C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.20.3.128/26
 #>
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Prepare')]
 param(
-    [Parameter(Mandatory)]
+    [Parameter(Mandatory, ParameterSetName = 'Prepare')]
     [ValidateScript({
         if ($_ -notmatch '^10\.(0|[1-9][0-9]{0,2})\.(0|[1-9][0-9]{0,2})\.128/26\z') {
             throw "MiSubnetPrefix must be 10.20.<1..255>.128/26 (or 10.<192..255>.<0..255>.128/26 for member indexes 256+). Got '$_'."
@@ -55,7 +64,10 @@ param(
         }
         $true
     })]
-    [string] $MiSubnetPrefix
+    [string] $MiSubnetPrefix,
+
+    [Parameter(Mandatory, ParameterSetName = 'RemoveTraceFlags')]
+    [switch] $RemoveTraceFlags
 )
 
 $ErrorActionPreference = 'Stop'
@@ -102,6 +114,67 @@ function Invoke-Sql {
 }
 
 try {
+    if ($PSCmdlet.ParameterSetName -eq 'RemoveTraceFlags' -or $RemoveTraceFlags) {
+        $serviceName = 'MSSQLSERVER'
+        $activeLinks = (Invoke-Sql -Query "SELECT COUNT(*) AS N FROM sys.availability_groups WHERE is_distributed = 1;").Rows[0].N
+        if ($activeLinks -gt 0) {
+            throw 'A distributed availability group (MI link) is still active on this SQL Server instance. Complete cutover and delete the link before removing -T1800 and -T9567.'
+        }
+
+        $instanceId = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL').$serviceName
+        $parametersKey = "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\$instanceId\MSSQLServer\Parameters"
+        $props = Get-ItemProperty -Path $parametersKey
+        $argNames = @($props.PSObject.Properties.Name | Where-Object { $_ -match '^SQLArg\d+$' } | Sort-Object { [int]($_ -replace '^SQLArg', '') })
+        $keptArgs = [System.Collections.Generic.List[string]]::new()
+        $removedArgs = [System.Collections.Generic.List[string]]::new()
+        foreach ($name in $argNames) {
+            $val = [string] $props.$name
+            if ($val -in @('-T1800', '-T9567')) {
+                $removedArgs.Add($val)
+            }
+            else {
+                $keptArgs.Add($val)
+            }
+        }
+        foreach ($name in $argNames) {
+            Remove-ItemProperty -Path $parametersKey -Name $name -ErrorAction SilentlyContinue
+        }
+        for ($i = 0; $i -lt $keptArgs.Count; $i++) {
+            New-ItemProperty -Path $parametersKey -Name "SQLArg$i" -Value $keptArgs[$i] -PropertyType String -Force | Out-Null
+        }
+        Write-LabLog "Registry: removed startup flags ($($removedArgs -join ', ')); kept $($keptArgs.Count) startup parameter(s)."
+
+        $agent = Get-Service -Name 'SQLSERVERAGENT' -ErrorAction SilentlyContinue
+        $agentWasRunning = $agent -and $agent.Status -eq 'Running'
+        Stop-Service -Name $serviceName -Force
+        Start-Service -Name $serviceName
+        if ($agentWasRunning) {
+            Start-Service -Name 'SQLSERVERAGENT'
+        }
+
+        for ($attempt = 1; $attempt -le 40; $attempt++) {
+            try {
+                Invoke-Sql -Query 'SELECT 1' | Out-Null
+                break
+            }
+            catch {
+                if ($attempt -eq 40) { throw 'SQL Server did not accept connections within 2 minutes after restart.' }
+                Start-Sleep -Seconds 3
+            }
+        }
+
+        $remaining = (Invoke-Sql -Query @"
+DECLARE @tf TABLE (TraceFlag int, Status int, Global int, Session int);
+INSERT @tf EXEC ('DBCC TRACESTATUS(-1) WITH NO_INFOMSGS');
+SELECT COUNT(*) AS N FROM @tf WHERE TraceFlag IN (1800, 9567) AND Global = 1;
+"@).Rows[0].N
+        if ($remaining -ne 0) {
+            throw 'Trace flags 1800 or 9567 are still active after restarting MSSQLSERVER.'
+        }
+        Write-LabLog 'Restarted MSSQLSERVER and verified with DBCC TRACESTATUS(-1) that trace flags 1800 and 9567 are off.'
+        return
+    }
+
     $ruleName = 'Allow MI link 5022 from the MI subnet'
     $rule = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
     if (-not $rule) {

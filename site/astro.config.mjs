@@ -159,7 +159,6 @@ export default defineConfig({
             { label: "C9: Optimize the DB with GitHub Copilot", link: "/coach/c09/" },
             { label: "C10: Package, hand over, review AI readiness", link: "/coach/c10/" },
             { label: "Lifelines", link: "/coach/lifelines/" },
-            { label: "Scoreboard and badges", link: "/coach/scoreboard/" },
             { label: "Curveballs", link: "/coach/curveballs/" },
             { label: "APEX demo script", link: "/coach/apex-demo/" },
             { label: "Automation map", link: "/coach/automation-map/" },

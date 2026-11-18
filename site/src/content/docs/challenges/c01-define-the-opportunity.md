@@ -21,9 +21,7 @@ Problem / Trigger  -->  Business Outcome (CAF category)  -->  Solution  -->  KPI
 
 **Objective.** Connect customer problems and triggers to prioritized business outcomes, map each outcome to a CAF category and a concrete solution, and define KPIs you can measure later in the hackathon.
 
-**Time and points.** Day 1, **09:00**, **45 min**, **Team**, **10 pts** (team). Everyone starts after the tech lead's kickoff. The team lead deployed the foundation before the event, so C1 needs no Azure access.
-
-The one-time evidence setup takes about 5 minutes and requirements 2 to 5 add up to 40, so keep to the times given. Do the folder setup while teammates read the canvas template.
+**Time and scope.** Day 1, **09:00**, **45 min**, **Team**. Everyone starts after the tech lead's kickoff. The team lead deployed the foundation before the event, so C1 needs no Azure access.
 
 ## Challenge
 
@@ -46,52 +44,26 @@ The one-time evidence setup takes about 5 minutes and requirements 2 to 5 add up
 
 :::note[Where to work]
 
-<span class="sl-badge">Dev container · repo root (bash)</span> — Work in the dev container of your own repo, and only there: it has the tools and the GitHub sign-in from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/) (or your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort). Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if needed; the terminal opens at the repo root. Work on one shared screen: one person types, everyone contributes. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer.
+<span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work on `vm-dev01` in the team/pod lead's clone (`C:\src\<your-repo>` on `main`) on one shared screen: one person types, everyone contributes. `Import-Kit.ps1` already pre-created `factory/evidence/c01/opportunity-canvas.md` in your repository.
 
 :::
 
 ### Where your evidence goes
 
-The team doesn't collect evidence in a common repository. You work in one private repo of your own (from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/) or [Student onboarding](/deploy/lead-setup/student-onboarding/), with the kit in `factory/` and the import merged into `main`). Your evidence lives in it, on `main`, under `factory/evidence/cNN/` (`c01` to `c10`), next to `factory/evidence/readiness/` from Step 3. Your coach reads each member's repo to score it. One rule says where to commit:
+You work in your single private repo on `vm-dev01` (`C:\src\<your-repo>` on `main`). `Import-Kit.ps1` pre-populated `factory/evidence/` with the working templates (`c01/opportunity-canvas.md`, `c03/triage.md`, `c04/decisions-and-register.md`, `c07/cutover-rollback-runbook.md`, `c10/handover-and-ai-review.md`).
 
-- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
-- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
+- **Team deliverables (C1, C4, C10):** The team (or breakout pod) writes the document together on the team/pod lead's screen, commits it once to `main` in the team/pod lead's repository (`C:\src\<your-repo>`), and shares it in the team channel for reference. Teammates do not need to copy-paste identical team files into their own repositories.
+- **Member deliverables (C3, C5, C6, C7, C8, C9):** Committed in each member's own repository (`C:\src\<your-repo>` on `main`).
 
-Why `factory/`: the repo's lint and format ignores cover it, so evidence files don't trip the pre-commit hooks, and the weekly upstream sync leaves it alone.
-
-Commit messages in your own repo must be conventional commits (`type: Subject`, with a type of `feat`, `fix`, `docs` or `chore`), or the commit hook rejects them. For example `docs: C1 opportunity canvas`. If the hook rejects a message, fix it and commit again. Commit evidence with plain `git` and push to `main`; no pull request is needed. Don't use `/apex-git-commit` for this: it skips some paths and refuses `main`. Never commit secrets, tenant IDs or subscription IDs.
-
-The kit clone at `C:\src\factory` on `vm-dev01-work` has no commit hook. Use the `app:` messages from the playbook for those task commits; use conventional commit types for commits in your own repo.
-
-**Team deliverables** (the C1 canvas, C4's team ADRs, the C10 package): the team writes one document together on one person's screen. Then the typist posts the final file in the team channel, and every teammate saves it unchanged under the same name in their own `factory/evidence/cNN/` and commits it. A team item is scored once per team, from the team lead's (or pod lead's, in a multi-pod cohort) copy, so the other copies must match it.
+Use a conventional commit message (`type: Subject`, with a type of `feat`, `fix`, `docs` or `chore`), for example `docs: C1 opportunity canvas`. Never commit secrets, tenant IDs or subscription IDs.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
-### Set up the evidence folders once (about 5 minutes)
-
-In the dev container terminal, at the repo root:
-
-```bash title="Dev container — repo root (bash)"
-git pull
-cp -rn factory/templates/team/evidence/. factory/evidence/
-cp factory/templates/team/README.md factory/evidence/README.md
-git add factory/evidence
-git commit -m "docs: add evidence folders"
-git push
-```
-
-The `-n` keeps anything you already created in Step 3 (such as `factory/evidence/readiness/`), and the command works whether or not `factory/evidence/` exists yet.
-
 ## Requirements
 
-1. **Copy the template.** <span class="sl-badge">Dev container · repo root</span> Copy `factory/templates/attendee/opportunity-canvas.md` to `factory/evidence/c01/opportunity-canvas.md`:
+1. **Open the pre-created canvas.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> Open `factory/evidence/c01/opportunity-canvas.md` in VS Code on `vm-dev01` (if missing, copy it from `factory/templates/attendee/opportunity-canvas.md`). HTML comments in the template can stay in place.
 
-   ```bash title="Dev container — repo root (bash)"
-   mkdir -p factory/evidence/c01
-   cp factory/templates/attendee/opportunity-canvas.md factory/evidence/c01/opportunity-canvas.md
-   ```
-
-2. **Map problems and triggers to ranked business outcomes (15 min).** <span class="sl-badge">Dev container · Shared screen</span> Rank the six outcomes from the customer story from 1 to 6. For each row in the table, fill in:
+2. **Map problems and triggers to ranked business outcomes (15 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> Rank the six outcomes from the customer story from 1 to 6. For each row in the table, fill in:
    - **Problem / Trigger:** the business or technical pain point that forces action now.
    - **Outcome (CAF category):** the kit's outcome name and its CAF motivation category: Reduce business risk, Accelerate innovation, or Enhance agility and efficiency.
    - **Voice:** who at the university cares most (Dana, Marcus, Priya or Tomás).
@@ -100,13 +72,15 @@ The `-n` keeps anything you already created in Step 3 (such as `factory/evidence
 
    Below the table, write one sentence on why your top two outcomes come first and one sentence on why your sixth outcome comes last.
 
-3. **Six dimensions (10 min).** <span class="sl-badge">Dev container · Shared screen</span> For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed target architecture where it applies.
+3. **Six dimensions (10 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed target architecture where it applies.
 
-4. **Target outcome statement (5 min).** <span class="sl-badge">Dev container · Shared screen</span> Fill in the **Target outcome** section with one sentence linking the customer trigger, the modernized solution, and the measurable business outcome that Dana can take to the board as the definition of "done" at the end of day two. Make sure every teammate can state it from memory.
+4. **Target outcome statement (5 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> Fill in the **Target outcome** section with one sentence linking the customer trigger, the modernized solution, and the measurable business outcome that Dana can take to the board as the definition of "done" at the end of day two. Make sure every teammate can state it from memory.
 
-5. **Open questions and commit (10 min).** <span class="sl-badge">Dev container · Every member</span> Record any trade-offs the team has not settled yet under **Open questions** (C4 resolves them in ADRs). Then the typist runs `git pull`, commits, and posts `opportunity-canvas.md` in the team channel. Every teammate saves the file unchanged as `factory/evidence/c01/opportunity-canvas.md` in their own repo and commits it:
+5. **Open questions and commit (10 min).** <span class="sl-badge note">vm-dev01 · Team/pod lead</span> Record any trade-offs the team has not settled yet under **Open questions** (C4 resolves them). Then the team/pod lead commits `opportunity-canvas.md` on `main` and shares it in the team channel:
 
-   ```bash title="Dev container — repo root (bash)"
+   ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
+   cd C:\src\<your-repo>
+   git pull --rebase
    git add factory/evidence/c01/opportunity-canvas.md
    git commit -m "docs: C1 opportunity canvas"
    git push
@@ -116,20 +90,19 @@ The `-n` keeps anything you already created in Step 3 (such as `factory/evidence
 
 ## Success criteria
 
-To complete this challenge, show your coach in your own repo:
+To complete this challenge, review with your coach in the team/pod lead's repo:
 
-- [ ] `factory/evidence/c01/opportunity-canvas.md`, committed on `main`, with all six outcomes ranked and each mapped to a problem/trigger, a CAF outcome category, a stakeholder voice, a solution, a KPI and a target (with no template placeholder comments left in place). Scored once per team from the team lead's (or pod lead's, in a multi-pod cohort) copy.
-- [ ] Each of the six dimensions has both a `Today:` and a `Target:` line, and no `<!-- ... -->` comment lines remain in the file.
+- [ ] `factory/evidence/c01/opportunity-canvas.md`, committed on `main` in the team/pod lead's repo and shared in the team channel, with all six outcomes ranked and each mapped to a problem/trigger, a CAF outcome category, a stakeholder voice, a solution, a KPI and a target.
+- [ ] Each of the six dimensions has both a `Today:` and a `Target:` line.
 - [ ] A one-sentence target outcome statement linking trigger, solution and measurable outcome that the whole team can repeat.
-- [ ] Every teammate's copy is committed on `main` of their own repo and matches the team lead's (or pod lead's).
-- [ ] Outcome check (unscored guidance): the KPI for your top-ranked outcome is one you will verify with evidence in C8, C9 or C10.
+- [ ] Outcome check: the KPI for your top-ranked outcome is one you will verify in C8, C9 or C10.
 
 Next, continue with [C2: Secure, AI-ready foundation](../c02-secure-ai-ready-foundation/).
 
 <details>
 <summary>We don't agree on the ranking order</summary>
 
-Time-box the disagreement: record both views under **Open questions** and move on. Rank by what Dana would fund first if she could fund only one outcome. C4's architecture decision records (ADRs) are where you lock specific technical trade-offs; C1 sets business priority and measurable outcomes.
+Time-box the disagreement: record both views under **Open questions** and move on. Rank by what Dana would fund first if she could fund only one outcome. C4's target-state decisions are where you lock specific technical trade-offs; C1 sets business priority and measurable outcomes.
 
 </details>
 
@@ -150,12 +123,9 @@ Application: code and framework. Data: storage and schema. Platform: compute and
 <details>
 <summary>If you need to start over</summary>
 
-- **Redo the canvas:** copy the template over your file again with `cp factory/templates/attendee/opportunity-canvas.md factory/evidence/c01/opportunity-canvas.md`. This replaces everything you wrote, so copy your text somewhere first if you want to keep any of it. If your team already agreed on a version, the typist posts the file in the team channel again and every teammate saves it unchanged.
-- **The evidence folder has the wrong layout** (you see `factory/evidence/evidence/`): move the folders up a level with `cp -rn factory/evidence/evidence/. factory/evidence/`, then remove `factory/evidence/evidence` with `rm -r`, and commit.
+- **Redo the canvas:** copy the template over your file again with `Copy-Item factory\templates\attendee\opportunity-canvas.md factory\evidence\c01\opportunity-canvas.md -Force`.
 
 </details>
-
-**Bonus.** None for C1.
 
 ## References
 

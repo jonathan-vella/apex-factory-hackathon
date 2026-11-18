@@ -5,7 +5,6 @@ const steps = [
     title: "Define the opportunity",
     scope: "Team",
     min: 45,
-    pts: 10,
     day: "Day 1",
     href: "/challenges/c01-define-the-opportunity/",
   },
@@ -14,7 +13,6 @@ const steps = [
     title: "Secure, AI-ready foundation",
     scope: "Member",
     min: 45,
-    pts: 15,
     day: "Day 1",
     href: "/challenges/c02-secure-ai-ready-foundation/",
   },
@@ -23,17 +21,14 @@ const steps = [
     title: "Assess the source",
     scope: "Member",
     min: 60,
-    pts: 15,
     day: "Day 1",
     href: "/challenges/c03-assess-the-source/",
   },
   {
     id: "C4",
     title: "Choose target states",
-    scope: "Team + member",
+    scope: "Team",
     min: 45,
-    pts: 25,
-    split: "15 team + 10 member",
     day: "Day 1",
     href: "/challenges/c04-choose-target-states/",
   },
@@ -42,7 +37,6 @@ const steps = [
     title: "Deploy the CoE archetype with APEX",
     scope: "Member",
     min: 90,
-    pts: 15,
     day: "Day 1",
     href: "/challenges/c05-deploy-the-coe-archetype/",
   },
@@ -51,7 +45,6 @@ const steps = [
     title: "Modernize with GitHub Copilot",
     scope: "Member",
     min: 180,
-    pts: 30,
     day: "Day 1–2",
     href: "/challenges/c06-modernize-with-ghcp/",
   },
@@ -60,7 +53,6 @@ const steps = [
     title: "Migrate and go live",
     scope: "Member",
     min: 120,
-    pts: 20,
     day: "Day 2",
     href: "/challenges/c07-migrate-and-go-live/",
   },
@@ -69,7 +61,6 @@ const steps = [
     title: "Validate the pattern",
     scope: "Member",
     min: 45,
-    pts: 10,
     day: "Day 2",
     href: "/challenges/c08-validate-the-pattern/",
   },
@@ -78,7 +69,6 @@ const steps = [
     title: "Optimize the DB with GitHub Copilot",
     scope: "Member",
     min: 60,
-    pts: 10,
     day: "Day 2",
     href: "/challenges/c09-optimize-the-db-with-ghcp/",
   },
@@ -87,7 +77,6 @@ const steps = [
     title: "Package, hand over, review AI readiness",
     scope: "Team",
     min: 60,
-    pts: 20,
     day: "Day 2",
     href: "/challenges/c10-package-hand-over-review-ai-readiness/",
   },
@@ -102,7 +91,7 @@ const phases = [
 
 <div class="jmap not-content">
   <p class="jmap__gate">
-    <span class="jmap__gate-label">Readiness</span>A check before day one, with no points.
+    <span class="jmap__gate-label">Readiness</span>A check before day one.
     <a href="/deploy/">See how to deploy</a>.
   </p>
   <p class="jmap__legend">
@@ -118,15 +107,11 @@ const phases = [
           {first && <span class="jmap__phase">{phase.label}</span>}
           <a href={s.href}>
             <span class="jmap__id">{s.id}</span>
-            <span class="jmap__title">
-              {s.title}
-              {s.split && <span class="jmap__note">{s.split} pts</span>}
-            </span>
+            <span class="jmap__title">{s.title}</span>
             <span class="jmap__meta">
               <span class="jmap__cell jmap__cell--day">{s.day}</span>
               <span class="jmap__cell jmap__cell--scope">{s.scope}</span>
               <span class="jmap__cell jmap__cell--num">{s.min} min</span>
-              <span class="jmap__cell jmap__cell--num">{s.pts} pts</span>
             </span>
           </a>
         </li>
@@ -299,8 +284,8 @@ const phases = [
   /* Wide enough for aligned columns */
   @container jmap (min-width: 46rem) {
     .jmap__step a {
-      grid-template-columns: 3rem minmax(0, 1fr) 4rem 7.5rem 4.25rem 3.75rem;
-      grid-template-areas: "id title day scope min pts";
+      grid-template-columns: 3rem minmax(0, 1fr) 4.5rem 6rem 4.5rem;
+      grid-template-areas: "id title day scope min";
       column-gap: 0.75rem;
     }
 
@@ -321,16 +306,9 @@ const phases = [
     }
 
     .jmap__cell--num {
+      grid-area: min;
       text-align: right;
       font-variant-numeric: tabular-nums;
-    }
-
-    .jmap__cell--num:nth-of-type(3) {
-      grid-area: min;
-    }
-
-    .jmap__cell--num:nth-of-type(4) {
-      grid-area: pts;
     }
   }
 </style>
