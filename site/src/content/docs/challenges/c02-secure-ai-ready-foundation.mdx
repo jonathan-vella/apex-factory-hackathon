@@ -42,14 +42,14 @@ That is why Azure Landing Zones are mandatory in the era of agentic AI. In this 
 
 Open `C:\src\<your-repo>` in VS Code on `vm-dev01` and use a PowerShell 7 (`pwsh`) terminal:
 
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> — Layer 1 baseline scan (`npm run validate:iac-security-baseline`) at the repo root (Requirement 1).
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> — Layer 2 Azure CLI policy checks and `Test-Connectivity.ps1` (Requirements 2 and 3).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (pwsh)</span> — Layer 1 baseline scan (`npm run validate:iac-security-baseline`) at the repo root (Requirement 1).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> — Layer 2 Azure CLI policy checks and `Test-Connectivity.ps1` (Requirements 2 and 3).
 
 :::
 
 ## Requirements
 
-1. **Layer 1: Try to make the AI coding agent bypass the APEX security baseline (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span>
+1. **Layer 1: Try to make the AI coding agent bypass the APEX security baseline (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (pwsh)</span>
 
    Open `.github/instructions/references/iac-security-baseline.md` at the root of `C:\src\<your-repo>` and read **Private Networking And DNS** and **Stricter than the ALZ Corp floor** (`publicNetworkAccess: 'Disabled'` for backend services, TLS 1.2 minimum, managed identity over keys, diagnostic settings).
 
@@ -87,7 +87,7 @@ Open `C:\src\<your-repo>` in VS Code on `vm-dev01` and use a PowerShell 7 (`pwsh
 
    Done when you have seen the scanner flag `registry.bicep` and `git status --short -- infra/bicep/university` is clean.
 
-2. **Layer 2: Try to make the AI coding agent bypass Azure Landing Zone `Deny` policies (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span>
+2. **Layer 2: Try to make the AI coding agent bypass Azure Landing Zone `Deny` policies (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span>
 
    The archetype is excluded from the imported pre-commit hook, so the manual scan and the agent's instructions are Layer 1 here. Neither prevents a developer or agent calling Azure directly. That is where the Azure Landing Zone (`mg-factory-corp`) takes over.
 
@@ -120,7 +120,7 @@ Open `C:\src\<your-repo>` in VS Code on `vm-dev01` and use a PowerShell 7 (`pwsh
 
    **If either test succeeds, stop and clean up immediately.** Delete only the exercise registry (`az acr delete -n "acrguard$($s.suffix)" --yes`) or NIC (`az network nic delete -g rg-spoke -n nic-guardrail-test`), then its public IP (`az network public-ip delete -g rg-spoke -n pip-guardrail-test`). Tell your coach the expected policy is missing or not yet effective; do not leave a public test resource or weaken another policy.
 
-3. **Layer 3: Check datacenter compliance and spoke connectivity (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span>
+3. **Layer 3: Check datacenter compliance and spoke connectivity (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span>
 
    `rg-datacenter` normally complies with ALZ-lite, so vending normally records **no exemptions needed**. Bastion's standalone public IP is not attached to a NIC and is never in the NIC public-IP policy's scope. Deny blocks new or changed non-compliant requests; it does not remove existing resources.
 

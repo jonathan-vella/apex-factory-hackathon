@@ -31,7 +31,7 @@ Everything in C8 runs on <span class="sl-badge note">vm-dev01 · Bastion</span>:
 
 - <span class="sl-badge tip">Browser on vm-dev01</span> / <span class="sl-badge tip">Azure portal</span> — Open the live web app pages, test uploads and notifications, and check Application Insights search results (Requirements 1, 2, 3 and 6).
 - <span class="sl-badge note">vm-dev01 · SSMS</span> — Run the row-count comparison query against the source and SQL MI (Requirement 1).
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> — Run the private Blob listing, the 20-request load burst, and `Test-Acceptance.ps1` writing directly to `factory/evidence/c08/acceptance.json` on `main` (Requirements 2, 4, 5 and 6).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> — Run the private Blob listing, the 20-request load burst, and `Test-Acceptance.ps1` writing directly to `factory/evidence/c08/acceptance.json` on `main` (Requirements 2, 4, 5 and 6).
 
 :::
 
@@ -82,7 +82,7 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
 
 3. **Notification round-trip.** <span class="sl-badge tip">Browser · DevTools</span> Open the browser's developer tools (`F12`) > **Network**, filter for `GetNotifications`, and leave it open. Edit a student (**Students > Edit**, change the first name, save). Within 5 seconds a toast must appear on screen, and the next `GetNotifications` request in the Network panel must show status `200` and a response with `success` set to `true` and a `count` of 1 or more. Then edit the student back.
 
-4. **Load check.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> Run a 20-request burst of concurrent page loads against the live app from `vm-dev01`:
+4. **Load check.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> Run a 20-request burst of concurrent page loads against the live app from `vm-dev01`:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
    1..20 | ForEach-Object -Parallel {
@@ -92,7 +92,7 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
 
    Every response must be `200`.
 
-5. **Automated security and acceptance check (`acceptance.json`).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> Run the read-only checker against your archetype's resource group, writing directly to `factory/evidence/c08/acceptance.json`:
+5. **Automated security and acceptance check (`acceptance.json`).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> Run the read-only checker against your archetype's resource group, writing directly to `factory/evidence/c08/acceptance.json`:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
    ./scripts/Test-Acceptance.ps1 -SubscriptionId $s.subscriptionId -ResourceGroup $rg -OutFile evidence/c08/acceptance.json
@@ -100,7 +100,7 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
 
    It reports PASS, FAIL or UNKNOWN for the pages, HTTPS redirect, HTTPS-only/minimum TLS 1.2, backend public-access and approved private-endpoint settings, and SQL MI's public data endpoint. `ACCEPT` requires **no FAIL and no UNKNOWN**; otherwise the verdict is `NOT ACCEPTED` and the exit code is 1.
 
-6. **Verify Application Insights telemetry and commit `acceptance.json`.** <span class="sl-badge tip">Azure portal</span> <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> In the portal open `appi-university-<suffix>` > **Investigate** > **Search (formerly Transaction search)**, set the time range to the **last hour**, and confirm requests and dependencies from your C8 checks appear. Then commit `factory/evidence/c08/acceptance.json` on `main` (live check outcomes are summarized once for the team in C10's `handover-and-ai-review.md`, rather than a per-member 22-row Markdown table):
+6. **Verify Application Insights telemetry and commit `acceptance.json`.** <span class="sl-badge tip">Azure portal</span> <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (pwsh)</span> In the portal open `appi-university-<suffix>` > **Investigate** > **Search (formerly Transaction search)**, set the time range to the **last hour**, and confirm requests and dependencies from your C8 checks appear. Then commit `factory/evidence/c08/acceptance.json` on `main` (live check outcomes are summarized once for the team in C10's `handover-and-ai-review.md`, rather than a per-member 22-row Markdown table):
 
    ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
    cd C:\src\<your-repo>

@@ -26,7 +26,7 @@ Modernizing one app is only worth it if the next team can repeat it and the cust
 
 :::note[Where to work]
 
-<span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work together on one shared screen in the team/pod lead's clone (`C:\src\<your-repo>` on `main` on `vm-dev01`). `Import-Kit.ps1` already pre-created `factory/evidence/c10/handover-and-ai-review.md` in your repository. Commit `reusable-asset/` and `handover-and-ai-review.md` once in the team/pod lead's repository and share the completed file in the team channel (teammates do not need to copy-paste `member-packs/` or duplicate files across every repository).
+<span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work together on one shared screen in the team/pod lead's clone (`C:\src\<your-repo>` on `main` on `vm-dev01`). `Import-Kit.ps1` already pre-created `factory/evidence/c10/handover-and-ai-review.md` in your repository. Commit `reusable-asset/` and `handover-and-ai-review.md` once in the team/pod lead's repository and share the completed file in the team channel (teammates do not need to copy-paste `member-packs/` or duplicate files across every repository).
 
 :::
 

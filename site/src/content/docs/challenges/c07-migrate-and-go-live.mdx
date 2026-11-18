@@ -199,7 +199,7 @@ $mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --qu
    ```
 
    The script verifies no distributed availability group (MI link) is active, removes only `-T1800` and `-T9567` from the SQL Server startup parameters in the registry while preserving all other startup flags, restarts `MSSQLSERVER`, and verifies with `DBCC TRACESTATUS(-1)` that neither trace flag is on. Done when it prints `Restarted MSSQLSERVER and verified with DBCC TRACESTATUS(-1) that trace flags 1800 and 9567 are off.`
-8. **Update the concise cutover runbook.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> Open the pre-created `factory/evidence/c07/cutover-rollback-runbook.md` in `C:\src\<your-repo>` on `vm-dev01`, tick the pre-cutover checklist, record your brief cutover summary and customer recovery notes, and commit and push on `main`:
+8. **Update the concise cutover runbook.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> Open the pre-created `factory/evidence/c07/cutover-rollback-runbook.md` in `C:\src\<your-repo>` on `vm-dev01`, tick the pre-cutover checklist, record your brief cutover summary and customer recovery notes, and commit and push on `main`:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
    cd C:\src\<your-repo>

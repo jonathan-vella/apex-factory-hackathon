@@ -29,7 +29,7 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 :::note[Where to work]
 
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — **Upgrade agent assessment and plan (Requirement 1) and triage table (Requirements 3 to 6)** on `main` in `C:\src\<your-repo>`. Because `.github/upgrades/` sits in your single clone on `main`, `assessment.md` and `plan.md` stay in place alongside `factory/evidence/c03/triage.md` (pre-created by `Import-Kit.ps1`).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — **Upgrade agent assessment and plan (Requirement 1) and triage table (Requirements 3 to 6)** on `main` in `C:\src\<your-repo>`. Because `.github/upgrades/` sits in your single clone on `main`, `assessment.md` and `plan.md` stay in place alongside `factory/evidence/c03/triage.md` (pre-created by `Import-Kit.ps1`).
 - <span class="sl-badge tip">Azure portal</span> — **Arc assessment (Requirement 2)** in your browser.
 - **Paste-ready prompts (optional help):** [Assess and plan](../../prompts/vscode/01-assess-and-plan/) for Requirement 1 and [Triage assessment findings](../../prompts/vscode/07-triage-assessment-findings/) for Requirements 3 to 6.
 
@@ -37,15 +37,15 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 ## Requirements
 
-1. **Assess and plan (about 25 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code)</span> Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks). Don't start task execution: that's C6. Done when `.github/upgrades/scenarios/dotnet-version-upgrade/assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
+1. **Assess and plan (about 25 min).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code)</span> Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks). Don't start task execution: that's C6. Done when `.github/upgrades/scenarios/dotnet-version-upgrade/assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
 
 2. **Review the Arc assessment.** <span class="sl-badge tip">Azure portal</span> In **Azure Arc** > **SQL Server instances**, open the instance on `vm-app01`, then **Migration** > **Assessments**. Select **Run assessment** if needed, open its readiness details and select **Azure SQL Managed Instance** as the target to review. This is the [current documented path](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment); older portal versions use **Database migration** > **Assess source instance** > **View report**. Done when both reports are open side by side and you have listed every finding.
 
-3. **Triage the findings in `factory/evidence/c03/triage.md`** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> from both assessments: classify each finding (`must-fix` / `defer` / `ignore` or blocker / accepted risk / fix) and state its impact on the target state.
+3. **Triage the findings in `factory/evidence/c03/triage.md`** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> from both assessments: classify each finding (`must-fix` / `defer` / `ignore` or blocker / accepted risk / fix) and state its impact on the target state.
 
-4. **Verify the trace-flag finding.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> The Arc assessment reports **"Trace flags not supported in Azure SQL Managed Instance"** (warning) for flags `1800` and `9567`. Check why the kit set them in **Enable startup trace flags** of the MI link preparation article under References, and confirm your `triage.md` row explains why they are needed during MI link seeding and when they are removed (after C7 cutover, with `Prepare-MiLinkSource.ps1 -RemoveTraceFlags`).
+4. **Verify the trace-flag finding.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> The Arc assessment reports **"Trace flags not supported in Azure SQL Managed Instance"** (warning) for flags `1800` and `9567`. Check why the kit set them in **Enable startup trace flags** of the MI link preparation article under References, and confirm your `triage.md` row explains why they are needed during MI link seeding and when they are removed (after C7 cutover, with `Prepare-MiLinkSource.ps1 -RemoveTraceFlags`).
 
-5. **Commit in place on `main`.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> Commit `.github/upgrades/` and `factory/evidence/c03/triage.md` directly on `main` in `C:\src\<your-repo>` (no file copying between folders needed):
+5. **Commit in place on `main`.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (pwsh)</span> Commit `.github/upgrades/` and `factory/evidence/c03/triage.md` directly on `main` in `C:\src\<your-repo>` (no file copying between folders needed):
 
    ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
    cd C:\src\<your-repo>
