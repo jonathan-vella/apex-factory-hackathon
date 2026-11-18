@@ -27,9 +27,15 @@ The kit keeps the **Azure Monitor OpenTelemetry Distro**, which its runtime vali
 
 **You decide.** Nothing about the target. You decide whether each agent task's output passes its check before you commit it.
 
-**Where to work.** Everything runs on `vm-dev01`, not in the dev container, in VS Code and PowerShell on the VM, in your clone of the kit at `C:\src\factory`, on your `vm-dev01-work` branch. You set the VM up in [Step 3: Datacenter and workstation](../../deploy/member-steps/#33-set-up-vm-dev01) and used it in C3, so you only reconnect: see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) if you need to connect again. The configuration checks in requirement 5 that only read Azure Resource Manager (the identity, app settings and role assignments) also work in any browser or with `az` on any computer. The image check needs `vm-dev01`, because the registry has no public access.
+:::note[Where to work]
 
-Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
+Everything runs on <span class="sl-badge note">vm-dev01 · Bastion</span> (not in the dev container; see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)):
+
+- <span class="sl-badge note">vm-dev01 · C:\src\factory (vm-dev01-work)</span> — VS Code and PowerShell 7 in your kit clone for the Upgrade agent tasks, gap checks, container publish (`dotnet publish /t:PublishContainer`) and `app:` commits. The private registry has no public access, so the image push requires `vm-dev01`.
+- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (main)</span> — Save `task-checks.md` and screenshots in `C:\src\<your-repo>\factory\evidence\c06\` on `main` (see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)).
+- Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
+
+:::
 
 Paste-ready prompts are in the [prompt library](../../prompts/): [Run a task](../../prompts/vscode/02-run-a-task/), [CVE scan](../../prompts/vscode/03-cve-scan/), [Troubleshoot](../../prompts/vscode/04-troubleshoot/) and [App Service check](../../prompts/vscode/05-app-service-check/). The playbook stays the source for the checks.
 
@@ -43,19 +49,19 @@ The only Azure resource change in C6 is the image push (requirement 4). Your sig
 
 ## Requirements
 
-1. **Switch to `vm-dev01`** as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (it's already set up, see [set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), then follow the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone. In VS Code, open Copilot Chat and set **Session Target** to **Local** (not Copilot) and the agent to **Upgrade**. Use one chat per agent task, build and run the app after every agent task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once. Done when the playbook's Step 0 **Check** line passes and either the picker lists **Upgrade** or `@upgrade` responds.
+1. **Switch to `vm-dev01`** <span class="sl-badge note">vm-dev01 · C:\src\factory (VS Code)</span> as described in [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01) (it's already set up, see [set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), then follow the [GitHub Copilot upgrade guide](../../guides/ghcp-upgrade/) and the modernization playbook at `.github/modernization/playbook.md` in your clone. In VS Code, open Copilot Chat and set **Session Target** to **Local** (not Copilot) and the agent to **Upgrade**. Use one chat per agent task, build and run the app after every agent task, then commit and `git push` to your work branch before the next. Read the [branch rules](../../guides/ghcp-upgrade/#save-your-work-and-keep-the-branches-straight) once. Done when the playbook's Step 0 **Check** line passes and either the picker lists **Upgrade** or `@upgrade` responds.
 
-2. **Run all seven agent tasks in order:** 01 .NET 10 and ASP.NET Core MVC; 02 SQL Managed Instance; 03 Blob; 04 Service Bus; 05 Key Vault; 06 OpenTelemetry; 07 CVE audit. Each agent task's check is in the playbook's Step 2 task checks table: don't skip a check to save time. Done when you have seven commits `app: task 0N <name>` on `vm-dev01-work`, each after a passing build and a local run.
+2. **Run all seven agent tasks in order:** <span class="sl-badge note">vm-dev01 · C:\src\factory (VS Code &amp; pwsh)</span> <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (main)</span> 01 .NET 10 and ASP.NET Core MVC; 02 SQL Managed Instance; 03 Blob; 04 Service Bus; 05 Key Vault; 06 OpenTelemetry; 07 CVE audit. Each agent task's check is in the playbook's Step 2 task checks table: don't skip a check to save time. Done when you have seven commits `app: task 0N <name>` on `vm-dev01-work`, each after a passing build and a local run.
 
    Record each task in `C:\src\<your-repo>\factory\evidence\c06\task-checks.md` on `main`: task, commit hash, build result, pages checked and playbook-check result, with redacted output or screenshots. Add `git -C C:\src\factory log --oneline` output. Commits alone cannot prove a past build and local run.
 
-3. **Close the gaps the agent tasks don't fully cover,** with playbook Step 3. If one of its two searches finds something, use the matching skill in `.github/skills/` (`aspnet-startup-migration`, `notification-service-di` or `trace-to-opentelemetry`) by asking in a new chat: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Done when both `git grep` searches in playbook Step 3 print nothing; run the app again, then commit and push `app: gaps` as the playbook directs.
+3. **Close the gaps the agent tasks don't fully cover,** <span class="sl-badge note">vm-dev01 · C:\src\factory (VS Code &amp; pwsh)</span> with playbook Step 3. If one of its two searches finds something, use the matching skill in `.github/skills/` (`aspnet-startup-migration`, `notification-service-di` or `trace-to-opentelemetry`) by asking in a new chat: `Use the <skill> skill. Scope: app/ContosoUniversity only.` Done when both `git grep` searches in playbook Step 3 print nothing; run the app again, then commit and push `app: gaps` as the playbook directs.
 
-4. **Package the app** with .NET SDK container publishing (no `Dockerfile`) and push it to your archetype's private registry, with playbook Step 4 (the `sdk-container-publish` skill explains it). Done when `az acr repository show-tags` lists `c6`.
+4. **Package the app** <span class="sl-badge note">vm-dev01 · C:\src\factory\app\ContosoUniversity (pwsh)</span> with .NET SDK container publishing (no `Dockerfile`) and push it to your archetype's private registry, with playbook Step 4 (the `sdk-container-publish` skill explains it). Done when `az acr repository show-tags` lists `c6`.
 
-5. **Check, don't set, the web app's App Service configuration:** its identity, its app settings, its Key Vault access, and that your image landed in the registry. Playbook Step 5 and the `app-service-configuration` skill have the commands. This vault uses Azure RBAC, not access policies, so ignore the vault's **Access policies** blade: the web app's access is a role assignment. Set up the names once, then run the checks:
+5. **Check, don't set, the web app's App Service configuration:** <span class="sl-badge note">vm-dev01 · PowerShell 7</span> its identity, its app settings, its Key Vault access, and that your image landed in the registry. Playbook Step 5 and the `app-service-configuration` skill have the commands. This vault uses Azure RBAC, not access policies, so ignore the vault's **Access policies** blade: the web app's access is a role assignment. Set up the names once, then run the checks:
 
-   ```powershell
+   ```powershell title="vm-dev01 — PowerShell 7"
    $rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
    $suffix = $rg -replace '^rg-university-', ''
    az webapp config appsettings list -g $rg -n "app-university-$suffix" --query "[].name" -o tsv
@@ -65,7 +71,9 @@ The only Azure resource change in C6 is the image push (requirement 4). Your sig
 
    Done when the app settings list has every key the app reads (playbook Step 5), the role list has **Key Vault Secrets User** on a scope that ends with `kv-university-<suffix>`, and `show-tags` from requirement 4 lists your image.
 
-   **Don't point the web app at your image yet.** The modernized app reads its database at startup, and the database isn't migrated until C7. Pointing it now only makes the app exit on every start.
+   :::caution[Don't point the web app at your image yet]
+   The modernized app reads its database at startup, and the database isn't migrated until C7. Pointing App Service at your image now only makes the app exit on every start.
+   :::
 
 ## Success criteria
 
@@ -80,7 +88,7 @@ To complete this challenge, show your coach:
 - [ ] The App Service identity, app settings and Key Vault access checked and recorded (the output of the `appsettings list` and `role assignment list` commands in requirement 5), not changed to point at your image.
 - [ ] Outcome check (unscored guidance): search the committed app and its configuration files for a database password or key, and record that none is left.
 
-Save your screenshots and notes as files in `factory/evidence/c06/` of your own repo, on `main`. On `vm-dev01`, that's `C:\src\<your-repo>\factory\evidence\c06\` (the plain clone of your own repo): run `git pull --rebase` first, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo). In the dev container, run `git pull` first. Commit with a conventional message (for example `docs: C6 evidence`) and run `git push`.
+Save your screenshots and notes in `factory/evidence/c06/` on `main` of your own repo (on `vm-dev01`, `C:\src\<your-repo>\factory\evidence\c06\`; see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes) and [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo)).
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 

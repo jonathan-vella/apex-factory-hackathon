@@ -44,7 +44,11 @@ The one-time evidence setup takes about 5 minutes and requirements 2 to 5 add up
 
 **You decide.** The priority rank (1 to 6) of the outcomes, why your top two come first and your sixth comes last, the specific target value for each KPI, the `Today:` and `Target:` summary across all six dimensions, and the one-sentence target outcome statement that defines "done" for Dana.
 
-**Where to work.** The dev container of your own repo, and only there: it has the tools and the GitHub sign-in you set up in [Step 1: Repo and preflight](../../deploy/set-up-your-repo/) (or in your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort). Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if it isn't already open in it. The terminal opens at the repo root, so you don't need to `cd`. Work on one shared screen: one person types, everyone contributes. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer.
+:::note[Where to work]
+
+<span class="sl-badge">Dev container · repo root (bash)</span> — Work in the dev container of your own repo, and only there: it has the tools and the GitHub sign-in from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/) (or your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort). Don't use a terminal outside the container. On event day, open VS Code on your repo and choose **Reopen in Container** if needed; the terminal opens at the repo root. Work on one shared screen: one person types, everyone contributes. To save a screenshot or a chat file from your laptop into `factory/evidence/c01/`, drag it into that folder in VS Code's Explorer.
+
+:::
 
 ### Where your evidence goes
 
@@ -67,7 +71,7 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 In the dev container terminal, at the repo root:
 
-```bash
+```bash title="Dev container — repo root (bash)"
 git pull
 cp -rn factory/templates/team/evidence/. factory/evidence/
 cp factory/templates/team/README.md factory/evidence/README.md
@@ -80,14 +84,14 @@ The `-n` keeps anything you already created in Step 3 (such as `factory/evidence
 
 ## Requirements
 
-1. **Copy the template.** In your own repo, copy `factory/templates/attendee/opportunity-canvas.md` to `factory/evidence/c01/opportunity-canvas.md`:
+1. **Copy the template.** <span class="sl-badge">Dev container · repo root</span> Copy `factory/templates/attendee/opportunity-canvas.md` to `factory/evidence/c01/opportunity-canvas.md`:
 
-   ```bash
+   ```bash title="Dev container — repo root (bash)"
    mkdir -p factory/evidence/c01
    cp factory/templates/attendee/opportunity-canvas.md factory/evidence/c01/opportunity-canvas.md
    ```
 
-2. **Map problems and triggers to ranked business outcomes (15 min).** Rank the six outcomes from the customer story from 1 to 6. For each row in the table, fill in:
+2. **Map problems and triggers to ranked business outcomes (15 min).** <span class="sl-badge">Dev container · Shared screen</span> Rank the six outcomes from the customer story from 1 to 6. For each row in the table, fill in:
    - **Problem / Trigger:** the business or technical pain point that forces action now.
    - **Outcome (CAF category):** the kit's outcome name and its CAF motivation category: Reduce business risk, Accelerate innovation, or Enhance agility and efficiency.
    - **Voice:** who at the university cares most (Dana, Marcus, Priya or Tomás).
@@ -96,13 +100,13 @@ The `-n` keeps anything you already created in Step 3 (such as `factory/evidence
 
    Below the table, write one sentence on why your top two outcomes come first and one sentence on why your sixth outcome comes last.
 
-3. **Six dimensions (10 min).** For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed target architecture where it applies.
+3. **Six dimensions (10 min).** <span class="sl-badge">Dev container · Shared screen</span> For each of application, data, platform, security, operations and cost, write two lines: `Today:` and `Target:`. Use the kit's fixed target architecture where it applies.
 
-4. **Target outcome statement (5 min).** Fill in the **Target outcome** section with one sentence linking the customer trigger, the modernized solution, and the measurable business outcome that Dana can take to the board as the definition of "done" at the end of day two. Make sure every teammate can state it from memory.
+4. **Target outcome statement (5 min).** <span class="sl-badge">Dev container · Shared screen</span> Fill in the **Target outcome** section with one sentence linking the customer trigger, the modernized solution, and the measurable business outcome that Dana can take to the board as the definition of "done" at the end of day two. Make sure every teammate can state it from memory.
 
-5. **Open questions and commit (10 min).** Record any trade-offs the team has not settled yet under **Open questions** (C4 resolves them in ADRs). Then the typist runs `git pull`, commits, and posts `opportunity-canvas.md` in the team channel. Every teammate saves the file unchanged as `factory/evidence/c01/opportunity-canvas.md` in their own repo and commits it:
+5. **Open questions and commit (10 min).** <span class="sl-badge">Dev container · Every member</span> Record any trade-offs the team has not settled yet under **Open questions** (C4 resolves them in ADRs). Then the typist runs `git pull`, commits, and posts `opportunity-canvas.md` in the team channel. Every teammate saves the file unchanged as `factory/evidence/c01/opportunity-canvas.md` in their own repo and commits it:
 
-   ```bash
+   ```bash title="Dev container — repo root (bash)"
    git add factory/evidence/c01/opportunity-canvas.md
    git commit -m "docs: C1 opportunity canvas"
    git push

@@ -56,20 +56,22 @@ The datacenter deployment turned on availability groups on `vm-app01`'s SQL Serv
 
 ### Where to work
 
-| Requirements | Where |
-| --- | --- |
-| 1 (prepare the source) | `vm-app01` (the legacy IIS and SQL Server VM), through Bastion, in Windows PowerShell as an administrator. |
-| 2, 3 (link, replica check) | The Azure portal (Azure Arc > SQL Server instances), in your browser. Run the replica spot-check queries in SSMS on `vm-dev01`. |
-| 4 (stop the writers, cut over) | `vm-app01` through Bastion, a check on `vm-dev01`, and the Azure portal's Monitor and cutover pane. |
-| 5, 6 (secret, user, App Service) | `vm-dev01`, in PowerShell and SSMS. It's inside the private network, so it reaches the managed instance and Key Vault. |
-| 7 (trace flags) | `vm-app01`, through Bastion. |
-| 8 (runbook) | Your own repo: on `vm-dev01` in `C:\src\<your-repo>` (the plain clone of your own repo), or in the dev container. See Evidence for where the file goes. |
+:::note[Where you work in C7]
 
-Connect to a VM through Bastion in the portal: `rg-datacenter` > the VM > **Connect** > **Bastion**, user `labadmin`. To paste into a Bastion session, use Ctrl+V and allow the browser's clipboard prompt if it asks. To open an Administrator PowerShell on `vm-app01`, select **Start**, type `powershell`, right-click **Windows PowerShell** and choose **Run as administrator**.
+C7 switches across four places. Follow the badge on each requirement and sub-step:
 
-`<n>` is your member index, the `memberIndex` value in your settings. In your dev container, from `factory/`, this prints the passwords you need (they come from the credentials file `.local/<subscription-id>/datacenter.json`, which the readiness check created) and the exact command for requirement 1 with your `<n>` filled in:
+- <span class="sl-badge">Dev container · factory/ (pwsh)</span> — Run once before you start to print your Bastion/SQL passwords and your exact Requirement 1 command.
+- <span class="sl-badge caution">vm-app01 · Bastion</span> — The legacy IIS and SQL Server VM (Requirements 1, 4.2, 4.3 and 7). Connect in the portal (`rg-datacenter` > `vm-app01` > **Connect** > **Bastion**, user `labadmin`). For Administrator Windows PowerShell, select **Start**, type `powershell`, right-click **Windows PowerShell** and choose **Run as administrator**. Use Ctrl+V to paste.
+- <span class="sl-badge tip">Azure portal</span> / <span class="sl-badge tip">Browser</span> — Start and monitor the MI link, cut over, and check the live web app (Requirements 2, 4.4–4.6 and 6).
+- <span class="sl-badge note">vm-dev01 · Bastion</span> — Your workstation inside the private network: SSMS and PowerShell 7 for replica validation, Key Vault secret, database user and App Service go-live (Requirements 3, 4.1, 4.6, 5, 6 and 8). Never stop or shut down `vm-dev01`.
 
-```powershell
+:::
+
+:::tip[Before you start: get your values once]
+
+`<n>` is your `memberIndex` from settings. Run the first block in your **dev container** (`factory/`) to print the passwords and your exact Requirement 1 command (keep passwords out of screenshots and evidence; indexes `1` to `255` resolve to `10.10.<n>.4` and `10.20.<n>.128/26`, and `256+` use the overflow pools):
+
+```powershell title="Dev container — factory/ (pwsh)"
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 $dc = Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json
 $b = [int][Math]::Floor($s.memberIndex / 256)
@@ -79,34 +81,30 @@ $sp2 = if ($b -eq 0) { 20 } else { 191 + $b }
 "labadmin password (Bastion):  $($dc.adminPassword)"
 "contosoapp password (source): $($dc.sqlAppPassword)"
 "Source SQL Server address:    10.$dc2.$o3.4"
-"Requirement 1 command:               C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.$sp2.$o3.128/26"
+"Requirement 1 command:        C:\LabTools\Prepare-MiLinkSource.ps1 -MiSubnetPrefix 10.$sp2.$o3.128/26"
 ```
 
-These are lab-only passwords: keep them out of your screenshots and evidence. For member indexes `1` to `255` this resolves to `10.10.<n>.4` and `10.20.<n>.128/26` (for example, member 3 uses `10.10.3.4` and `10.20.3.128/26`); for index `256` and higher it uses the overflow pools (for example, member 256 uses `10.128.0.4` and `10.192.0.128/26`).
+Then on **`vm-dev01`**, in PowerShell 7 (after `az login --use-device-code`), set the variables that Requirements 3, 5 and 6 use (`$mi` prints the standard host name, never an IP or `privatelink` name; copy the printed host name for SSMS):
 
-Never stop or shut down `vm-dev01`: it's your workstation for the whole event.
-
-On `vm-dev01`, in PowerShell 7, after `az login --use-device-code`, set up the names that requirements 3, 5 and 6 use:
-
-```powershell
+```powershell title="vm-dev01 — PowerShell 7"
 $rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
 $suffix = $rg -replace '^rg-university-', ''
 $mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --query fullyQualifiedDomainName --output tsv
 $mi
 ```
 
-`$mi` prints the managed instance's standard host name, for example `sqlmi-university-ab12cd.<something>.database.windows.net`. It's never an IP address or a `privatelink` name. Copy it: SSMS needs the host name itself, not the variable `$mi`.
-
-## Requirements
+:::
 
 **Portal documentation checked on:** 2026-10-30. These steps retain the kit's tested migration flow; the portal UI was not rerun for this review. The event owner must validate the current portal labels before each event and record that run's date, rather than treating this source-check date as a live test.
 
-1. **Prepare the source.** Run the kit's `Prepare-MiLinkSource.ps1` on `vm-app01`. It must run inside a Bastion session, because VM run commands stop working once the VM is Arc-enabled. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
+## Requirements
 
-   1. Connect to `vm-app01` through Bastion and open an Administrator Windows PowerShell (Where to run).
-   2. Download the script and run it with the command from the dev container, which has your `<n>` in it (when `<n>` is `256` or higher, use the exact `-MiSubnetPrefix` printed by the dev-container command above). If your event runs from a copy of the kit, your coach gives you that copy's URL instead of the one below.
+1. **Prepare the source.** <span class="sl-badge caution">vm-app01 · Admin PowerShell</span> Run the kit's `Prepare-MiLinkSource.ps1` on `vm-app01`. It must run inside a Bastion session, because VM run commands stop working once the VM is Arc-enabled. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
 
-      ```powershell
+   1. Connect to `vm-app01` through Bastion and open an Administrator Windows PowerShell.
+   2. Download the script and run it with the command printed by the dev container above, which has your `<n>` in it (when `<n>` is `256` or higher, use the exact `-MiSubnetPrefix` printed above). If your event runs from a copy of the kit, your coach gives you that copy's URL instead of the one below.
+
+      ```powershell title="vm-app01 — Administrator Windows PowerShell"
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       New-Item -ItemType Directory -Force C:\LabTools | Out-Null
       Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/infra/datacenter/scripts/Prepare-MiLinkSource.ps1' -OutFile C:\LabTools\Prepare-MiLinkSource.ps1 -UseBasicParsing
@@ -116,7 +114,7 @@ $mi
    The script prints one line per step with the time, and logs the same lines to `C:\LabTools\logs\Prepare-MiLinkSource.log`. You should see, in order: the firewall rule for TCP 5022; an `Instance:` line with availability groups `1`, trace flags on `2 of 2` and SYSTEM sysadmin `1`; the database master key created (or "exists"); the two root certificates `DigiCertPKI` and `MicrosoftPKI` imported (or "exist"); `ContosoUniversity` in the full recovery model; the full backup with checksum; and last, `The source is ready for MI link.`
 
    Done when the last line is `The source is ready for MI link.` If it stops with an `ERROR:` line, see **If link creation fails** in the hints.
-2. **Start the link.** In the Azure portal, start the MI link migration against your SQL Managed Instance.
+2. **Start the link.** <span class="sl-badge tip">Azure portal</span> Start the MI link migration against your SQL Managed Instance.
 
    1. Open **Azure Arc** > **SQL Server instances** and select the instance whose host machine is `vm-app01`. In the menu, under **Migration**, select **Database migration**. The pane has four tiles: **Assess source instance**, **Select target**, **Migrate data** and **Monitor and cutover**.
    2. **Select target**: on the **Create or select target** pane, choose **Yes, I have already created a target**. Pick your workload subscription, the resource group `rg-university-<suffix>` and the managed instance `sqlmi-university-<suffix>`, then select the target.
@@ -126,14 +124,14 @@ $mi
    6. Select **Start data migration** and note the time. Follow it in **Monitor migrations** (the **Monitor and cutover** pane): creating the link takes up to 10 minutes, then it seeds the database.
 
    Done when the status of `ContosoUniversity` is **Ready for cutover**. The **Lag** column shows two dashes, which Microsoft Learn describes as no lag.
-3. **Validate the read-only replica.** The replica must hold the same data as the source before you trust it. In SSMS on `vm-dev01`, open two connections:
+3. **Validate the read-only replica.** <span class="sl-badge note">vm-dev01 · SSMS</span> The replica must hold the same data as the source before you trust it. In SSMS on `vm-dev01`, open two connections:
 
    - **Source:** server name `10.10.<n>.4` (or the `Source SQL Server address` printed above when `<n>` is `256` or higher); **Authentication** SQL Server Authentication; **Login** `contosoapp` with the `contosoapp` password from the dev container. Select **Options** > **Connection Properties** and tick **Trust server certificate**, because the source's certificate is self-signed.
    - **Replica:** server name the host name that `$mi` printed (paste it); **Authentication** **Microsoft Entra MFA**; **User name** the account that deployed the archetype in C5.
 
    On each connection, open a new query on the `ContosoUniversity` database and run these, with no writers on the source (stop anything you started in C6):
 
-   ```sql
+   ```sql title="vm-dev01 — SSMS (run on both Source and Replica connections)"
    -- 1. Row counts of every table
    SELECT s.name + N'.' + t.name AS TableName, SUM(p.rows) AS [RowCount]
    FROM sys.tables AS t
@@ -154,14 +152,14 @@ $mi
    The two connections must give the same answer for every query, except `Updateability`: `READ_WRITE` on the source and `READ_ONLY` on the replica. The compatibility level is `110` on both, and the last query lists three objects on both. If a count differs, wait a minute (the replica catches up) and run it again. If it still differs, or something else looks wrong, abort and reseed: don't cut over on a replica you haven't checked.
 
    Done when the row counts, both fingerprints, the compatibility level and the three objects match on both connections.
-4. **Stop every writer to the source, then cut over.** The source stays writable even after cutover, so any write after your final lag reading is lost. Tell your coach you're about to stop the writers and wait for their go-ahead. Then do these steps in order.
+4. **Stop every writer to the source, then cut over.** <span class="sl-badge note">vm-dev01</span> <span class="sl-badge caution">vm-app01</span> <span class="sl-badge tip">Azure portal</span> The source stays writable even after cutover, so any write after your final lag reading is lost. Tell your coach you're about to stop the writers and wait for their go-ahead. Then do these steps in order.
 
    **Don't script the cutover.** Use the **Monitor and cutover** pane, not a command: `az sql mi link failover` run from the managed instance's side fails, because the managed instance is the secondary at that point, and failing over by hand on SQL Server skips the portal's checks. [The guide](../../guides/arc-mi-link/#why-the-cutover-isnt-scripted) has the detail; don't run those commands.
 
-   1. **Stop anything on `vm-dev01` that writes to the source.** Close the SSMS windows connected to `10.10.<n>.4`. Close the modernized app if you left it running from C6 (stop `dotnet run`, or the debug session, and close its terminal), and don't run `Reset-PerfKit.ps1`. `Start-Workload.ps1` only reads, but stop it too. Don't stop the VM itself.
-   2. **Stop the legacy app on `vm-app01`.** Connect through Bastion (above), open an Administrator Windows PowerShell, and stop the site and its application pool (IIS runs the site, and the pool is what keeps database connections open). Leave SQL Server running: the link needs it.
+   1. <span class="sl-badge note">vm-dev01</span> **Stop anything on `vm-dev01` that writes to the source.** Close the SSMS windows connected to `10.10.<n>.4`. Close the modernized app if you left it running from C6 (stop `dotnet run`, or the debug session, and close its terminal), and don't run `Reset-PerfKit.ps1`. `Start-Workload.ps1` only reads, but stop it too. Don't stop the VM itself.
+   2. <span class="sl-badge caution">vm-app01 · Admin PowerShell</span> **Stop the legacy app on `vm-app01`.** Connect through Bastion, open an Administrator Windows PowerShell, and stop the site and its application pool (IIS runs the site, and the pool is what keeps database connections open). Leave SQL Server running: the link needs it.
 
-      ```powershell
+      ```powershell title="vm-app01 — Administrator Windows PowerShell"
       Import-Module WebAdministration
       Stop-Website -Name ContosoUniversity
       Stop-WebAppPool -Name ContosoUniversity
@@ -170,9 +168,9 @@ $mi
       ```
 
       Both lines must print `Stopped`. From `vm-dev01`, `http://10.10.<n>.4/` must no longer load.
-   3. **Check nothing else is connected to the database.** Still on `vm-app01`, in the same PowerShell:
+   3. <span class="sl-badge caution">vm-app01 · Admin PowerShell</span> **Check nothing else is connected to the database.** Still on `vm-app01`, in the same PowerShell:
 
-      ```powershell
+      ```powershell title="vm-app01 — Administrator Windows PowerShell"
       $query = "SELECT session_id, login_name, host_name, program_name, status FROM sys.dm_exec_sessions WHERE is_user_process = 1 AND database_id = DB_ID('ContosoUniversity') AND session_id <> @@SPID"
       $conn = New-Object System.Data.SqlClient.SqlConnection 'Server=localhost;Database=master;Integrated Security=True;TrustServerCertificate=True'
       $conn.Open()
@@ -186,23 +184,25 @@ $mi
       ```
 
       An empty table and `Sessions: 0` is what you want. A row means a client is still connected: use `host_name` and `program_name` to find it (an SSMS window on `vm-dev01` is the usual one), close it, and run the check again.
-   4. **Watch the lag reach zero.** In the Azure portal, open the **Monitor and cutover** pane (**Database migration** > **Monitor migrations**). With no writers, the status of `ContosoUniversity` stays **Ready for cutover** and the **Lag** column shows two dashes, which means no lag, within a minute or two. If lag doesn't clear, or a writer keeps appearing, **postpone the cutover**: restart the site and pool (`Start-WebAppPool -Name ContosoUniversity; Start-Website -Name ContosoUniversity`), keep the link running, and agree a later window with your coach.
-   5. **Cut over at no lag.** Select `ContosoUniversity`, then **Cutover** (Microsoft Learn's name; some portal builds label the button **Complete cutover**, and it's the same action). Tick the box that confirms you've stopped all incoming traffic to the source, and leave the **forced failover** box clear: a planned failover waits for the lag to reach zero, and forcing it with lag above zero can lose writes. The portal removes the link when the cutover completes: it offers no option to keep it.
-   6. **Wait for it to finish.** It takes about 2 minutes. On **Monitor and cutover**, the migration for `ContosoUniversity` shows as completed and the link is gone. Then, in SSMS on the replica connection from requirement 3, run `SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability');`. It must return `READ_WRITE` (it said `READ_ONLY` in requirement 3).
+   4. <span class="sl-badge tip">Azure portal</span> **Watch the lag reach zero.** Open the **Monitor and cutover** pane (**Database migration** > **Monitor migrations**). With no writers, the status of `ContosoUniversity` stays **Ready for cutover** and the **Lag** column shows two dashes, which means no lag, within a minute or two. If lag doesn't clear, or a writer keeps appearing, **postpone the cutover**: restart the site and pool (`Start-WebAppPool -Name ContosoUniversity; Start-Website -Name ContosoUniversity`), keep the link running, and agree a later window with your coach.
+   5. <span class="sl-badge tip">Azure portal</span> **Cut over at no lag.** Select `ContosoUniversity`, then **Cutover** (Microsoft Learn's name; some portal builds label the button **Complete cutover**, and it's the same action). Tick the box that confirms you've stopped all incoming traffic to the source, and leave the **forced failover** box clear: a planned failover waits for the lag to reach zero, and forcing it with lag above zero can lose writes. The portal removes the link when the cutover completes: it offers no option to keep it.
+   6. <span class="sl-badge tip">Azure portal</span> <span class="sl-badge note">vm-dev01 · SSMS</span> **Wait for it to finish.** It takes about 2 minutes. On **Monitor and cutover**, the migration for `ContosoUniversity` shows as completed and the link is gone. Then, in SSMS on `vm-dev01` on the replica connection from requirement 3, run `SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability');`. It must return `READ_WRITE` (it said `READ_ONLY` in requirement 3).
 
    Done when the migration shows completed and the managed instance's database returns `READ_WRITE`. The managed instance is now the live database. Leave the legacy site on `vm-app01` stopped: restarting it would write to a source that's no longer authoritative.
-5. **Write the secret and create the database user.** After cutover, follow the first two go-live actions in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7). It is the single source for the Key Vault secret, the database user and its roles, and the checks. Run those actions on `vm-dev01`, in order, as the archetype's deployer.
-6. **Point the web app at your latest verified C6 image** and restart it. Follow the remaining go-live action and checks in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-5-app-service-configuration-c6-and-go-live-c7). Set `$tag` to the tag you actually published and checked, including any later gap-fix build; do not deploy an older `c6` image over it. The web app pulls from your private registry with its managed identity.
+5. **Write the secret and create the database user.** <span class="sl-badge note">vm-dev01 · PowerShell 7</span> <span class="sl-badge note">vm-dev01 · SSMS</span> After cutover, follow the first two go-live actions in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#c7-go-live-after-cutover) (the single source for the commands and checks), as the archetype's deployer:
+   - **Action 1** (<span class="sl-badge note">vm-dev01 · PowerShell 7</span>): write the `ConnectionStrings--DefaultConnection` secret to `kv-university-$suffix`.
+   - **Action 2** (<span class="sl-badge note">vm-dev01 · SSMS</span>): on the `ContosoUniversity` database on `$mi`, run `CREATE USER [id-university-<suffix>] FROM EXTERNAL PROVIDER` and grant the three database roles.
+6. **Point the web app at your latest verified C6 image** and restart it. <span class="sl-badge note">vm-dev01 · PowerShell 7</span> <span class="sl-badge tip">Browser</span> Run **Action 3** and the checks in [Step 5 of the modernization playbook](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#c7-go-live-after-cutover) in PowerShell 7 on `vm-dev01`. Set `$tag` to the tag you actually published and checked, including any later gap-fix build; do not deploy an older `c6` image over it. The web app pulls from your private registry with its managed identity.
 
-   Done when the playbook's checks pass and `https://app-university-<suffix>.azurewebsites.net/` loads the five pages with migrated data, an upload lands in Blob, a notification round-trips, and telemetry reaches Application Insights.
-7. **Follow up on C3's trace-flag decision:** remove `-T1800` and `-T9567` from the source now that the link is gone. On `vm-app01`, through Bastion:
+   Done when the playbook's checks pass and `https://app-university-<suffix>.azurewebsites.net/` loads the five pages with migrated data in your browser, an upload lands in Blob, a notification round-trips, and telemetry reaches Application Insights.
+7. **Follow up on C3's trace-flag decision:** remove `-T1800` and `-T9567` from the source now that the link is gone. <span class="sl-badge caution">vm-app01 · Bastion</span>
 
-   1. Open **SQL Server Configuration Manager**: press Win+R, type `SQLServerManager16.msc` and press Enter. Go to **SQL Server Services**, right-click the SQL Server service (`SQL Server (MSSQLSERVER)`) and open **Properties** > the **Startup Parameters** tab.
+   1. <span class="sl-badge caution">vm-app01 · SQL Server Configuration Manager</span> Press Win+R, type `SQLServerManager16.msc` and press Enter. Go to **SQL Server Services**, right-click the SQL Server service (`SQL Server (MSSQLSERVER)`) and open **Properties** > the **Startup Parameters** tab.
    2. In **Existing parameters**, select `-T1800` and choose **Remove**, then the same for `-T9567`. Choose **Apply**.
    3. Restart the SQL Server service, not the VM: right-click `SQL Server (MSSQLSERVER)` > **Restart**.
-   4. In an Administrator Windows PowerShell on `vm-app01`, check that the flags are gone. The list must not include `1800` or `9567`; no rows (`Flags: 0`) is the expected result:
+   4. <span class="sl-badge caution">vm-app01 · Admin PowerShell</span> Check that the flags are gone. The list must not include `1800` or `9567`; no rows (`Flags: 0`) is the expected result:
 
-      ```powershell
+      ```powershell title="vm-app01 — Administrator Windows PowerShell"
       $conn = New-Object System.Data.SqlClient.SqlConnection 'Server=localhost;Database=master;Integrated Security=True;TrustServerCertificate=True'
       $conn.Open()
       $cmd = $conn.CreateCommand()
@@ -214,16 +214,16 @@ $mi
       "Flags: $($table.Rows.Count)"
       ```
 
-   5. Save your result in your own C7 evidence and tell the team lead (or pod lead, in a multi-pod cohort). After all members report their results, the team lead (or pod lead) updates the canonical `factory/evidence/c04/deferred-work-register.md` on `main` and shares that unchanged copy with the team. Do not each edit a divergent team register.
+   5. <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> or <span class="sl-badge">Dev container</span> Save your result in your own C7 evidence and tell the team lead (or pod lead, in a multi-pod cohort). After all members report their results, the team lead (or pod lead) updates the canonical `factory/evidence/c04/deferred-work-register.md` on `main` and shares that unchanged copy with the team. Do not each edit a divergent team register.
 
    Done when the `DBCC TRACESTATUS` list has no `1800` or `9567`.
-8. **Write the cutover and rollback runbook** from what you actually did. In your own repo's dev container, run `mkdir -p factory/evidence/c07` and `cp factory/templates/attendee/cutover-rollback-runbook.md factory/evidence/c07/` to use your imported copy ([cutover and rollback runbook template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md)). On `vm-dev01`, use the plain clone at `C:\src\<your-repo>`. Write the six short sections from what you did, not from a plan. Done when all six sections hold your own notes and output.
+8. **Write the cutover and rollback runbook** from what you actually did. <span class="sl-badge">Dev container · repo root</span> or <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> Copy `factory/templates/attendee/cutover-rollback-runbook.md` to `factory/evidence/c07/` ([template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/cutover-rollback-runbook.md)), fill in the six short sections from what you did, and commit and push `factory/evidence/c07/` on `main` (see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)). Done when all six sections hold your own notes and output.
 
    **Rollback scope:** the event exercises a pre-cutover abort/reseed, not rollback after cutover. Document the pre-cutover abort path and name the customer procedure needed afterward: backup restore or planned `failback`, with data reconciliation and an agreed recovery window. Never restart the stale source as a shortcut after the managed instance has accepted writes.
 
 ## Success criteria
 
-To complete this challenge, show your coach. Save screenshots and output as files in `factory/evidence/c07/` of your own repo, on `main`, and redact tenant, subscription and object IDs first (and never include a password). In the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\c07\` (the plain clone of your own repo) and run `git pull --rebase` first. Commit with a conventional message (for example `docs: C7 evidence`) and run `git push`.
+To complete this challenge, show your coach in `factory/evidence/c07/` on `main` of your own repo (with tenant, subscription and object IDs redacted, and no passwords; see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)):
 
 - [ ] The output of requirement 1 ending in `The source is ready for MI link.`
 - [ ] The Azure portal's migration status: link created, seeded (**Ready for cutover**), and cutover completed. The portal removes the link when it completes the cutover, so a completed cutover on the **Monitor and cutover** pane is the evidence that the link is gone.
@@ -256,7 +256,7 @@ Work through these in order:
 
 In the Azure portal, **Monitor and cutover** > select the database > **Cancel migration** removes the link without a failover. An aborted link leaves a writable copy of the database on the MI, and the source is untouched (restart the legacy site if you stopped it). Delete the copy before starting a new seed, or the reseed fails. This deletes the copy on the managed instance only; the database on `vm-app01` isn't affected. On `vm-dev01`:
 
-```powershell
+```powershell title="vm-dev01 — PowerShell 7"
 az sql midb delete --resource-group $rg --managed-instance "sqlmi-university-$suffix" --name ContosoUniversity --yes
 ```
 
