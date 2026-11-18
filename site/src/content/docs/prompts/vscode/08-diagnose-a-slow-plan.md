@@ -26,6 +26,6 @@ Give me a candidate script to review, a rollback, and a before/after verificatio
 
 ## Check and save
 
-Review the proposal against the plan before applying it as C9 directs. Keep one reviewed script per fix and use C9's baseline and two checkpoints, not a separate workload run for every fix. Record per-call duration and reads, any behavior trade-off and the observed effect in `factory/evidence/c09/` in your own repo on `main`.
+Review the proposal against the plan before applying it as C9 directs. Keep one reviewed script per fix (`p1-*.sql` to `p5-*.sql`) and use C9's two workload runs (`baseline` and `after`), not a separate workload run for every fix. Record per-call duration and reads, any behavior trade-off and the observed effect in `factory/evidence/c09/` in `C:\src\<your-repo>` on `main`.
 
 Return to [C9](../../../challenges/c09-optimize-the-db-with-ghcp/) for the workload, capture commands and acceptance criteria.

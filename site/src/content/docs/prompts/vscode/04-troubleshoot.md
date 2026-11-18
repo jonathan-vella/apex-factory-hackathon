@@ -14,7 +14,7 @@ Try these in order. Step 1 diagnoses before changing anything; steps 2 and 3 can
 
 ## Before you send
 
-For **C6 requirements 2 and 3**, open `C:\src\factory` on `vm-dev01`, on your app work branch. Use plain **Agent** for diagnosis and gap fixes, harness **Local**, and a balanced execution model from the playbook's Models table. Return to **Upgrade** only to resume an actual agent task.
+For **C6 requirements 2 and 3**, open `C:\src\<your-repo>` on `vm-dev01`, on `main`. Use plain **Agent** for diagnosis and gap fixes, harness **Local**, and a balanced execution model from the playbook's Models table. Return to **Upgrade** only to resume an actual agent task.
 
 ## 1. Name the exact symptom, don't just say "it failed"
 
@@ -45,10 +45,10 @@ Use the <skill-name> skill. Scope: app/ContosoUniversity only.
 ## 3. Check you're not in the wrong scope
 
 ```powershell
-git status --short -- . ':!app' ':!.github/upgrades'
+git status --short -- app .github/upgrades
 ```
 
-Must print nothing. If it prints anything, the agent touched something outside its scope:
+Only `app/ContosoUniversity` and `.github/upgrades` should have changes during an Upgrade task. If the agent touched something outside its scope:
 
 ```text
 Restore everything outside app/ContosoUniversity and .github/upgrades to its last committed state, then re-run the task's validation.

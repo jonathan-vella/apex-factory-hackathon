@@ -17,9 +17,7 @@ acceptance bar. The playbook is the source of truth for the checks, so these pag
 
 **Validated on:** 2026-10-31 (documentation consistency review against the linked challenge pages and playbook). Runtime validation remains the baseline recorded in `versions.md`, not a new run of these prompts.
 
-Unless a page says otherwise, run the prompts on `vm-dev01`, in VS Code opened on `C:\src\factory`, on your
-`vm-dev01-work` branch (see [Switching to vm-dev01](../guides/ghcp-upgrade/#switching-to-vm-dev01)). The App Service
-check and the acceptance pack say where their commands can run.
+Unless a page says otherwise, run the prompts on `vm-dev01`, in VS Code opened on `C:\src\<your-repo>`, on `main` (see [Switching to vm-dev01](../guides/ghcp-upgrade/#switching-to-vm-dev01)). The App Service check and the acceptance pack say where their commands can run.
 
 ## The pages
 

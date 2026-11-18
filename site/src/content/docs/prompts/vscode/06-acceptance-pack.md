@@ -16,9 +16,7 @@ commands and where each one runs are in [C8](../../../challenges/c08-validate-th
 
 ## Where to run
 
-Browser checks run in any browser. The row counts and the blob listing run on `vm-dev01`, because the databases
-and storage are private-only. The load and security checks run in your dev container, from `factory/`. C8's
-**Where to run** table has the details.
+Everything in C8 runs on `vm-dev01`: browser checks in the VM's browser, row-count comparisons in SSMS, and the 20-request load burst and `Test-Acceptance.ps1` in PowerShell 7 (`C:\src\<your-repo>\factory`).
 
 ## If you want the agent to help with a failure
 
@@ -31,6 +29,4 @@ check itself.
 
 ## Check
 
-- Every C8 requirement has a result (pass, fail or not applicable) with evidence, in the
-  [acceptance and handover template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md).
-- `Test-Acceptance.ps1` ends `ACCEPT`, or each UNKNOWN is settled in the portal as C8 describes.
+- `Test-Acceptance.ps1` writes `factory/evidence/c08/acceptance.json` with `Verdict: ACCEPT` (no `FAIL` or `UNKNOWN`), and live check results are recorded in your team's C10 [handover and AI-readiness review template](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/handover-and-ai-review.md).

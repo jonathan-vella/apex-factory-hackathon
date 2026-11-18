@@ -12,7 +12,7 @@ Used before [C3, requirement 1](../../../challenges/c03-assess-the-source/#requi
 
 There is nothing to paste here. Your VM is set up once, in [Step 3: Datacenter and workstation](../../../deploy/member-steps/#33-set-up-vm-dev01), and the setup has one source. Don't repeat the steps from memory.
 
-- **The setup steps.** [Step 3.3](../../../deploy/member-steps/#33-set-up-vm-dev01) covers the sign-ins, git identity, `AZURE_TOKEN_CREDENTIALS`, the kit clone, the `member` remote, your `vm-dev01-work` branch, your plain clone for evidence, VS Code and the Upgrade agent. Its [Check your setup](../../../deploy/member-steps/#check-your-setup) list tells you whether the VM is ready.
+- **The setup steps.** [Step 3.3](../../../deploy/member-steps/#33-set-up-vm-dev01) (or [Student onboarding](../../../deploy/lead-setup/student-onboarding/)) covers running `Initialize-Workstation.ps1` on `vm-dev01` to sign in, set `AZURE_TOKEN_CREDENTIALS`, clone `C:\src\<your-repo>` on `main`, write `factory/.local/settings.json`, and configure VS Code and the Upgrade agent. Its [Check your setup](../../../deploy/member-steps/#check-your-setup) list tells you whether the VM is ready.
 - **The check before playbook Step 1 (Assess and plan).** [Step 0: Set up](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/.github/modernization/playbook.md#step-0-set-up) has the short checklist to run on `vm-dev01`, including the clean-tree check and the `git clean` commands.
 
 Run everything on `vm-dev01`, in PowerShell 7. When the check passes, continue to [Assess and plan](../01-assess-and-plan/).
