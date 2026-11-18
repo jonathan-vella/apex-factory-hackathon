@@ -15,29 +15,15 @@ import VmDev01Setup from "../../../../components/VmDev01Setup.astro";
 **Who:** **Every student** in a lead-provisioned event.
 **When:** Before Day 1 kickoff (allow **20 to 30 minutes** once your team lead sends your private Handoff Card).
 
-Your team lead has already deployed the shared Azure landing zone, your simulated datacenter (`vm-app01` and `vm-dev01`), Azure Arc, and your spoke network—and created your private student repository (`<org>/<your-repo>`, for example `<org>/<event>-student-01`). You do **not** create any GitHub repository, install local WSL/Docker/Dev Containers, or run any GitHub Actions pipeline. Every challenge (`C1` to `C10`) runs inside `vm-dev01` in a single clone (`C:\src\<your-repo>` on `main`). Complete the three onboarding steps below so your workstation and Copilot tools are ready before Day 1 starts at 08:30.
+Your team lead has already deployed the shared Azure landing zone, your simulated datacenter (`vm-app01` and `vm-dev01`), Azure Arc, and your spoke network. You do **not** install local WSL/Docker/Dev Containers or run any GitHub Actions pipeline. Every challenge (`C1` to `C10`) runs inside `vm-dev01` in a single clone (`C:\src\<your-repo>` on `main`). Complete the steps below on `vm-dev01` so your workstation, private GitHub repository, and Copilot tools are ready before Day 1 starts at 08:30.
 
 If anything blocks you, contact your **designated team lead** first.
 
-## 1. Share your GitHub username and accept your repository invitation
-
-<Steps>
-
-1. **Send your GitHub username** to your team lead if you haven't already, and receive your private **Handoff Card** (`member-<index>.md`). Keep the values on that card private—never paste subscription IDs, tenant IDs, or lab passwords into issues, commits, or public chats.
-
-2. **Accept your collaborator invitation.** Open the GitHub invitation email or go directly to:
-
-   ```text
-   https://github.com/<org>/<your-repo>/invitations
-   ```
-
-   Select **Accept invitation**. Until you accept, GitHub hides private repositories and `git clone` returns `404 Not Found`.
-
-</Steps>
-
-Done when `https://github.com/<org>/<your-repo>` opens in your browser and shows `factory/`, `app/ContosoUniversity/` and `infra/bicep/university/` on `main`.
-
 ## 2. Connect to `vm-dev01` through Bastion and set up your workspace
+
+When you run `Initialize-Workstation.ps1` on `vm-dev01`, it automatically installs Node.js 24 LTS and `azd` (if your VM was deployed before the single-clone update), signs you in to GitHub, Azure CLI, and `azd`, auto-detects your `MemberIndex`, workload subscription, and shared hub subscription from the VM's IP and peering (zero GUIDs to type), creates your private repository `<your-github-username>/apex-factory-m<nn>` from `jonathan-vella/apex-accelerator` (or clones your org-assigned repo if your team lead gave you a Handoff Card), imports the kit on `main`, and writes `factory/.local/settings.json` and `datacenter.json`.
+
+*(If your team lead pre-created an organization repository for you on a Handoff Card, accept your GitHub invitation at `https://github.com/<org>/<your-repo>/invitations` first and pass `-GitHubOwner '<org>' -RepoName '<your-repo>' -Suffix '<suffix>'` to `Initialize-Workstation.ps1`.)*
 
 <VmDev01Setup pathMode="lead-provisioned" />
 

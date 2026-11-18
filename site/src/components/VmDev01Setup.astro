@@ -16,7 +16,15 @@ $s.subscriptionId
 $s.suffix
 git remote get-url origin`;
 
-const step3GitHub = `gh auth login --web
+const stepBootstrapPathB = `New-Item -ItemType Directory -Force C:\\LabTools | Out-Null
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Initialize-Workstation.ps1' -OutFile C:\\LabTools\\Initialize-Workstation.ps1
+pwsh -NoProfile -File C:\\LabTools\\Initialize-Workstation.ps1`;
+
+const stepBootstrapPathA = `New-Item -ItemType Directory -Force C:\\LabTools | Out-Null
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Initialize-Workstation.ps1' -OutFile C:\\LabTools\\Initialize-Workstation.ps1
+pwsh -NoProfile -File C:\\LabTools\\Initialize-Workstation.ps1 -GitHubOwner '<your-org>' -RepoName '<your-repo>' -Suffix '<suffix>'`;
+
+const step3GitHub = `gh auth login --hostname github.com --git-protocol https --scopes repo,workflow --web
 gh auth setup-git
 $u = gh api user | ConvertFrom-Json
 git config --global user.name ($u.name ?? $u.login)
@@ -105,16 +113,14 @@ const step7Code = `code C:\\src\\<your-repo>`;
       {isPathB ? (
         <>
           <p>
-            <strong>[On your laptop — Handoff Card]</strong> Open your private Handoff Card (
-            <code>member-&lt;index&gt;.md</code>) so you have your student repo URL (
-            <code>https://github.com/&lt;org&gt;/&lt;your-repo&gt;.git</code>),{" "}
-            <code>&lt;tenant-id&gt;</code>, <code>&lt;workload-subscription-id&gt;</code>,{" "}
-            <code>&lt;suffix&gt;</code>, and the one-line <code>Initialize-Settings.ps1</code>{" "}
-            command ready. For the standard disposable lab, the <code>labadmin</code> password is in{" "}
+            <strong>[On your laptop — lab password]</strong> Have your <code>vm-dev01</code>{" "}
+            <code>labadmin</code> password ready from{" "}
             <a href="https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/datacenter/README.md#credentials">
               infra/datacenter/README.md
             </a>{" "}
-            (or provided by your team lead).
+            (or from your team lead / Handoff Card). You do not need to look up any subscription or
+            tenant GUIDs—<code>Initialize-Workstation.ps1</code> auto-detects them on{" "}
+            <code>vm-dev01</code>.
           </p>
         </>
       ) : (
@@ -123,18 +129,21 @@ const step7Code = `code C:\\src\\<your-repo>`;
             <strong>
               [In Azure Cloud Shell — <code>~/src/&lt;your-repo&gt;/factory</code>]
             </strong>{" "}
-            Download your readiness artifact and print your <code>vm-dev01</code> password, workload
-            subscription ID, Step 1 suffix, and repo URL:
+            Download your readiness artifact and print your <code>vm-dev01</code> password, Step 1
+            suffix, and repo URL:
           </p>
           <Code code={step1PathA} lang="powershell" />
           <p>
             <code>Get-PipelineEvidence.ps1</code> saves{" "}
             <code>factory/evidence/readiness/test-datacenter.txt</code> and writes{" "}
             <code>.local/&lt;subscription-id&gt;/datacenter.json</code>. Commit and push{" "}
-            <code>factory/evidence/readiness/test-datacenter.txt</code> from Cloud Shell (`git add
-            evidence/readiness/test-datacenter.txt && git commit -m "docs: add readiness test
-            output" && git push`), and keep the <code>labadmin</code> password, subscription ID,{" "}
-            <code>$s.suffix</code>, and repo URL privately for the steps below.
+            <code>factory/evidence/readiness/test-datacenter.txt</code> from Cloud Shell (
+            <code>
+              git add evidence/readiness/test-datacenter.txt &amp;&amp; git commit -m &quot;docs:
+              add readiness test output&quot; &amp;&amp; git push
+            </code>
+            ), and keep the <code>labadmin</code> password, <code>$s.suffix</code>, and repo name
+            for step 3.
           </p>
         </>
       )}
@@ -158,75 +167,44 @@ const step7Code = `code C:\\src\\<your-repo>`;
         <strong>
           [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>)]
         </strong>{" "}
-        Sign in to GitHub and configure your git author identity (never use Windows PowerShell 5.1)
-        so Git and Copilot on the VM can authenticate and push to your private repo:
+        Run <code>Initialize-Workstation.ps1</code> to bootstrap <code>vm-dev01</code> in one
+        command. It installs Node.js 24 LTS and <code>azd</code> if your VM was deployed before the
+        single-clone update, signs you in to GitHub (<code>repo,workflow</code> scopes), Azure CLI,
+        and <code>azd</code>, sets <code>AZURE_TOKEN_CREDENTIALS=AzureCliCredential</code>,
+        auto-detects your <code>MemberIndex</code>, workload subscription, and shared hub
+        subscription from the VM&apos;s private IP and hub peering, creates (or clones) your private
+        GitHub repository at <code>C:\src\&lt;your-repo&gt;</code> on <code>main</code> with the kit
+        imported, writes <code>factory/.local/settings.json</code> and <code>datacenter.json</code>,
+        and opens VS Code:
       </p>
-      <Code code={step3GitHub} lang="powershell" />
-      <p>
-        Choose <strong>GitHub.com</strong>, <strong>HTTPS</strong> and <strong>Yes</strong> to
-        authenticate Git, then enter the one-time code at{" "}
-        <code>https://github.com/login/device</code> in your laptop browser.
-      </p>
-    </li>
-
-    <li>
-      <p>
-        <strong>
-          [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>)]
-        </strong>{" "}
-        Sign in to Azure as yourself and set <code>AZURE_TOKEN_CREDENTIALS=AzureCliCredential</code>{" "}
-        so local app runs use <em>your</em> Entra data roles instead of the VM&apos;s policy-added
-        system identity (which has no data permissions):
-      </p>
-      <Code code={isPathB ? step4AzurePathB : step4AzurePathA} lang="powershell" />
-      <p>
-        Enter the code at <code>https://microsoft.com/devicelogin</code> on your laptop (or run{" "}
-        <code>az login</code> inside Bastion if device code is blocked) and confirm the subscription
-        name matches your workload subscription. Open VS Code only <em>after</em> setting{" "}
-        <code>AZURE_TOKEN_CREDENTIALS</code>, and never set that variable on App Service.
-      </p>
-    </li>
-
-    <li>
-      <p>
-        <strong>
-          [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>)]
-        </strong>{" "}
-        Clone your private GitHub repository into <code>C:\src\&lt;your-repo&gt;</code> on{" "}
-        <code>main</code>:
-      </p>
-      <Code code={step5Clone} lang="powershell" />
-    </li>
-
-    <li>
-      <p>
-        <strong>
-          [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>), in{" "}
-          <code>C:\src\&lt;your-repo&gt;\factory</code>]
-        </strong>{" "}
-        Write your local git-ignored settings (<code>.local/settings.json</code> and{" "}
-        <code>.local/&lt;subscription-id&gt;/datacenter.json</code>) on <code>vm-dev01</code>,
-        passing your existing <code>-Suffix</code> and <code>-WriteLabCredentials</code> so your
-        archetype suffix never drifts:
-      </p>
-      <Code code={isPathB ? step6SettingsPathB : step6SettingsPathA} lang="powershell" />
-    </li>
-
-    <li>
-      <p>
-        <strong>
-          [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>), then VS Code]
-        </strong>{" "}
-        Open VS Code at the root of <code>C:\src\&lt;your-repo&gt;</code> and sign in to GitHub
-        Copilot—opening the repo root ensures Copilot discovers <code>.github/agents/</code>,{" "}
-        <code>.github/skills/</code>, <code>.github/modernization/playbook.md</code>,{" "}
-        <code>app/ContosoUniversity/</code> and <code>infra/bicep/university/</code>:
-      </p>
-      <Code code={step7Code} lang="powershell" />
-      <p>
-        Trust the workspace authors when prompted, then choose the <strong>Accounts</strong> icon
-        &gt; <strong>Sign in with GitHub to use GitHub Copilot</strong>.
-      </p>
+      <Code code={isPathB ? stepBootstrapPathB : stepBootstrapPathA} lang="powershell" />
+      {isPathB && (
+        <p>
+          <em>
+            By default this creates a private repository{" "}
+            <code>&lt;your-github-username&gt;/apex-factory-m&lt;nn&gt;</code> from{" "}
+            <code>jonathan-vella/apex-accelerator</code>. If your team lead pre-created an
+            organization repository on a Handoff Card, append{" "}
+            <code>
+              -GitHubOwner &apos;&lt;org&gt;&apos; -RepoName &apos;&lt;your-repo&gt;&apos; -Suffix
+              &apos;&lt;suffix&gt;&apos;
+            </code>
+            .
+          </em>
+        </p>
+      )}
+      <details>
+        <summary>What Initialize-Workstation.ps1 runs under the hood (manual reference)</summary>
+        <p>
+          If you ever need to run or inspect the individual sign-in, clone, and settings steps by
+          hand in PowerShell 7 (<code>pwsh</code>) on <code>vm-dev01</code>:
+        </p>
+        <Code code={step3GitHub} lang="powershell" />
+        <Code code={isPathB ? step4AzurePathB : step4AzurePathA} lang="powershell" />
+        <Code code={step5Clone} lang="powershell" />
+        <Code code={isPathB ? step6SettingsPathB : step6SettingsPathA} lang="powershell" />
+        <Code code={step7Code} lang="powershell" />
+      </details>
     </li>
 
     <li>
@@ -234,8 +212,11 @@ const step7Code = `code C:\\src\\<your-repo>`;
         <strong>
           [On <code>vm-dev01</code> — VS Code]
         </strong>{" "}
-        Configure the Upgrade agent for local execution next to the app: in{" "}
-        <strong>Extensions</strong>, enable <strong>GitHub Copilot upgrade</strong> and disable{" "}
+        Trust the workspace authors when prompted, sign in to GitHub Copilot (
+        <strong>Accounts</strong> icon &gt;{" "}
+        <strong>Sign in with GitHub to use GitHub Copilot</strong>), and configure the Upgrade agent
+        for local execution next to the app: in <strong>Extensions</strong>, enable{" "}
+        <strong>GitHub Copilot upgrade</strong> and disable{" "}
         <strong>GitHub Copilot modernization</strong> (for Workspace) if installed. In Copilot Chat,
         set <strong>Session Target</strong> to <strong>Local</strong>, press <code>F1</code> &gt;{" "}
         <strong>MCP: List Servers</strong> &gt; <strong>Upgrade</strong> &gt;{" "}

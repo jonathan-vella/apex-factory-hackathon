@@ -70,6 +70,17 @@ Time boxes are pacing, not hard stops. Coaches flex on the day. Members' gates a
 
 Before day one, your team completes Steps 1 to 4 in [Deploy](../deploy/): each member's datacenter (`vm-app01` onboarded to Azure Arc as `Connected`) and `vm-dev01` workstation must be ready before the team lead runs `vending` at Step 4.
 
+:::tip[One-command `vm-dev01` bootstrap (including pre-existing VMs)]
+When you connect to `vm-dev01` via Bastion, run `Initialize-Workstation.ps1` in PowerShell 7 (`pwsh`) to install Node.js 24 LTS and `azd` (if your VM was provisioned before the single-clone update), sign in to GitHub/Azure/`azd`, auto-detect your member index and subscriptions, create or clone your single private repository (`C:\src\<your-repo>` on `main`), and write `factory/.local/settings.json`:
+
+```powershell title="vm-dev01 — PowerShell 7 (pwsh)"
+New-Item -ItemType Directory -Force C:\LabTools | Out-Null
+Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Initialize-Workstation.ps1' -OutFile C:\LabTools\Initialize-Workstation.ps1
+pwsh -NoProfile -File C:\LabTools\Initialize-Workstation.ps1
+```
+
+:::
+
 ## Track your progress
 
 On a challenge page, tick **Done** on each requirement as you finish it and tick the **Success criteria** checkboxes as you complete each check. The bar shows requirements completed and jumps to each one. Ticks stay in this browser only; they aren't shared, and clearing site data or changing browsers starts from zero. **Reset**, then **Confirm reset** within four seconds, clears this page's ticks.

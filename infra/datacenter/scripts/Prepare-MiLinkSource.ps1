@@ -113,6 +113,29 @@ function Invoke-Sql {
     }
 }
 
+function Select-SqlStartupArgument {
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyCollection()]
+        [string[]] $Arguments
+    )
+    $kept = [System.Collections.Generic.List[string]]::new()
+    $removed = [System.Collections.Generic.List[string]]::new()
+    foreach ($arg in $Arguments) {
+        $val = [string] $arg
+        if ($val -in @('-T1800', '-T9567')) {
+            $removed.Add($val)
+        }
+        else {
+            $kept.Add($val)
+        }
+    }
+    return [pscustomobject]@{
+        KeptArgs    = @($kept)
+        RemovedArgs = @($removed)
+    }
+}
+
 try {
     if ($PSCmdlet.ParameterSetName -eq 'RemoveTraceFlags' -or $RemoveTraceFlags) {
         $serviceName = 'MSSQLSERVER'
@@ -125,17 +148,10 @@ try {
         $parametersKey = "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\$instanceId\MSSQLServer\Parameters"
         $props = Get-ItemProperty -Path $parametersKey
         $argNames = @($props.PSObject.Properties.Name | Where-Object { $_ -match '^SQLArg\d+$' } | Sort-Object { [int]($_ -replace '^SQLArg', '') })
-        $keptArgs = [System.Collections.Generic.List[string]]::new()
-        $removedArgs = [System.Collections.Generic.List[string]]::new()
-        foreach ($name in $argNames) {
-            $val = [string] $props.$name
-            if ($val -in @('-T1800', '-T9567')) {
-                $removedArgs.Add($val)
-            }
-            else {
-                $keptArgs.Add($val)
-            }
-        }
+        $currentArgs = @($argNames | ForEach-Object { [string] $props.$_ })
+        $filtered = Select-SqlStartupArgument -Arguments $currentArgs
+        $keptArgs = @($filtered.KeptArgs)
+        $removedArgs = @($filtered.RemovedArgs)
         foreach ($name in $argNames) {
             Remove-ItemProperty -Path $parametersKey -Name $name -ErrorAction SilentlyContinue
         }

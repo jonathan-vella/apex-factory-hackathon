@@ -201,7 +201,8 @@ function Set-SyncProtectionExclusion {
     }
 
     if ($PSCmdlet.ShouldProcess($Path, "Add '$ProtectedPath' to EXCLUDE_PATHS")) {
-        $newLines = @($lines[0..$endIndex]) + "$indent$ProtectedPath" + @($lines[($endIndex + 1)..($lines.Count - 1)])
+        $tail = if ($endIndex + 1 -lt $lines.Count) { @($lines[($endIndex + 1)..($lines.Count - 1)]) } else { @() }
+        $newLines = @($lines[0..$endIndex]) + "$indent$ProtectedPath" + $tail
         Set-Content -Path $Path -Value ($newLines -join $newline) -NoNewline
         Write-Host "Added '$ProtectedPath' to EXCLUDE_PATHS in $SyncWorkflowRelativePath."
     }

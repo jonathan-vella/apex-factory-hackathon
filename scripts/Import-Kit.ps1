@@ -89,7 +89,8 @@ function Add-SyncExclusion {
     $missing = @($Entries | Where-Object { $_ -notin $present })
     if (-not $missing) { return }
 
-    $newLines = @($lines[0..$end]) + @($missing | ForEach-Object { "$indent$_" }) + @($lines[($end + 1)..($lines.Count - 1)])
+    $tail = if ($end + 1 -lt $lines.Count) { @($lines[($end + 1)..($lines.Count - 1)]) } else { @() }
+    $newLines = @($lines[0..$end]) + @($missing | ForEach-Object { "$indent$_" }) + $tail
     Set-Content -Path $Path -Value ($newLines -join $newline) -NoNewline
     Write-Host "Added $($missing -join ', ') to EXCLUDE_PATHS in weekly-upstream-sync.yml."
 }

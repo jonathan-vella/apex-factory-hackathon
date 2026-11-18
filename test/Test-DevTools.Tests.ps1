@@ -96,10 +96,12 @@ Assert-True ($text -match 'aka\.ms/azd-windows-amd64\.msi') 'Install-DevTools.ps
 Assert-True ($text -match 'ExtractToDirectory') 'Install-DevTools.ps1 must extract the PowerShell zip archive.'
 Assert-True ($text -match 'PowerShell 7 \(x64\)\.lnk') 'Install-DevTools.ps1 must create the PowerShell 7 Start Menu shortcut.'
 
+# Test-DevVm.ps1 must stay backwards-compatible with pre-existing VMs (deployed before node/azd were added to Install-DevTools.ps1)
+# so Test-Datacenter.ps1 passes 46/46 checks before a student runs Initialize-Workstation.ps1.
 $testDevVmPath = Join-Path $repoRoot 'infra/datacenter/scripts/Test-DevVm.ps1'
 $testDevVmText = Get-Content -Raw $testDevVmPath
-Assert-True ($testDevVmText -match "Test-Tool -Name 'node'") 'Test-DevVm.ps1 must check that node is installed.'
-Assert-True ($testDevVmText -match "Test-Tool -Name 'azd'") 'Test-DevVm.ps1 must check that azd is installed.'
+Assert-True ($testDevVmText -notmatch "Test-Tool -Name 'node'") 'Test-DevVm.ps1 must not fail pre-existing VMs before Initialize-Workstation.ps1 installs node.'
+Assert-True ($testDevVmText -notmatch "Test-Tool -Name 'azd'") 'Test-DevVm.ps1 must not fail pre-existing VMs before Initialize-Workstation.ps1 installs azd.'
 
 Write-Output "PASS: $passed Install-DevTools checks (no Azure or network calls)."
 exit 0
