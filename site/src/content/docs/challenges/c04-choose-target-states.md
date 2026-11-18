@@ -23,7 +23,11 @@ C3 told you what the source looks like. C4 turns that into decisions the team st
 
 **You decide.** The platform ADR's alternative is yours. The other ADRs give alternatives as a starting point: explain why you reject them and the consequence you accept. Also decide which C3 findings you defer, who owns them and when they get done.
 
-**Where to work.** Your own repo's dev container (from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/), or your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort), in a bash terminal at the repo root (type `exit` if the prompt starts with `PS`). No Azure access is needed. The team (or breakout pod) writes together on a shared screen, then every teammate saves the final file under the same name in their own `factory/evidence/c04/`.
+:::note[Where to work]
+
+<span class="sl-badge">Dev container · repo root (bash)</span> — Open your own repo's dev container (from [Step 1: Repo and preflight](../../deploy/set-up-your-repo/), or your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort), in a bash terminal at the repo root (type `exit` if the prompt starts with `PS`). No Azure access is needed. The team (or breakout pod) writes the team files together on one shared screen, then every teammate saves them under the same names in their own `factory/evidence/c04/` alongside their own `adr-app.md` and `adr-data.md`.
+
+:::
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
@@ -31,7 +35,7 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 Run `git pull`, then copy the templates ([ADR](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/adr.md), [deferred-work register](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/deferred-work-register.md)) from `factory/templates/attendee/`. This gives you four ADR files and the register, each with prompts to fill in:
 
-```bash
+```bash title="Dev container — repo root (bash)"
 git pull
 mkdir -p factory/evidence/c04
 for name in adr-platform adr-migration adr-app adr-data; do cp factory/templates/attendee/adr.md "factory/evidence/c04/$name.md"; done
@@ -40,21 +44,21 @@ cp factory/templates/attendee/deferred-work-register.md factory/evidence/c04/
 
 ## Requirements
 
-1. **Platform ADR (team, about 10 min).** Write `adr-platform.md`: the shape of the CoE archetype and why it fits C1's opportunity.
+1. **Platform ADR (team, about 10 min).** <span class="sl-badge">Dev container · Shared screen</span> Write `adr-platform.md`: the shape of the CoE archetype and why it fits C1's opportunity.
 
-2. **Migration-method ADR (team, about 10 min).** Write `adr-migration.md`. The decision is the one the kit fixes: the Arc SQL migration assessment plus the MI link, online, with a planned cutover. Record an offline backup and restore as the alternative. Its consequence is a long outage while the backup restores, where the link needs only a short stop at cutover.
+2. **Migration-method ADR (team, about 10 min).** <span class="sl-badge">Dev container · Shared screen</span> Write `adr-migration.md`. The decision is the one the kit fixes: the Arc SQL migration assessment plus the MI link, online, with a planned cutover. Record an offline backup and restore as the alternative. Its consequence is a long outage while the backup restores, where the link needs only a short stop at cutover.
 
-3. **App ADR (each member, about 5 min).** In your own repo, write `adr-app.md` for the app target state: .NET 10, ASP.NET Core MVC, GitHub Copilot's Upgrade agent. The alternative can be keeping .NET Framework 4.8 on a VM, or a manual rewrite.
+3. **App ADR (each member, about 5 min).** <span class="sl-badge">Dev container · Member</span> In your own repo, write `adr-app.md` for the app target state: .NET 10, ASP.NET Core MVC, GitHub Copilot's Upgrade agent. The alternative can be keeping .NET Framework 4.8 on a VM, or a manual rewrite.
 
-4. **Data ADR (each member, about 5 min).** In your own repo, write `adr-data.md`: SQL Managed Instance with Microsoft Entra authentication only; SQL Server on an Azure VM is the alternative. If you think C3 found a real blocker, show your coach and record it in the ADR and register. A customer might need the VM alternative, but the event path stays on SQL MI.
+4. **Data ADR (each member, about 5 min).** <span class="sl-badge">Dev container · Member</span> In your own repo, write `adr-data.md`: SQL Managed Instance with Microsoft Entra authentication only; SQL Server on an Azure VM is the alternative. If you think C3 found a real blocker, show your coach and record it in the ADR and register. A customer might need the VM alternative, but the event path stays on SQL MI.
 
-5. **Deferred-work register (team, about 10 min).** Assemble `deferred-work-register.md`. One teammate types it from everyone's `triage.md`. It holds:
+5. **Deferred-work register (team, about 10 min).** <span class="sl-badge">Dev container · Shared screen</span> Assemble `deferred-work-register.md`. One teammate types it from everyone's `triage.md`. It holds:
    - every C3 finding you are deferring, including the trace-flag removal after cutover, with one row per member because each member has their own `vm-app01`;
    - one datacenter entry per member from C2, even when no exemption is needed. Record the production target, a named teammate as owner and a timeline. If an exemption exists, read its reason, owner and target date from the description and replace "GitHub Actions pipeline" with the accountable teammate. Map the policy assignment to finding and its target date to timeline; the target is to meet the policy and retire the exemption.
 
    Every row has an owner, a target and a timeline.
 
-6. **Commit (about 5 min).** Commit and push everything to `main` of your own repo. Every teammate saves the final team files under the same names as their teammates.
+6. **Commit (about 5 min).** <span class="sl-badge">Dev container · Every member</span> Commit (`docs: C4 target-state decisions`) and push everything to `main` of your own repo (see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)). Every teammate saves the final team files under the same names as their teammates.
 
 ## Success criteria
 
@@ -65,8 +69,6 @@ To complete this challenge, show your coach in your own repo's `factory/evidence
 - [ ] The deferred-work register with every deferred C3 finding present, and the trace-flag removal step listed for each member.
 - [ ] The team files match your teammates' copies.
 - [ ] Outcome check (unscored guidance): your ADRs tie back to the top-ranked outcome from C1, and Dana could read them without asking you a question.
-
-Evidence rule: in the dev container, run `git pull` first. On `vm-dev01`, use `C:\src\<your-repo>\factory\evidence\c04\` (the plain clone of your own repo) and run `git pull --rebase` first. Commit with a conventional message, for example `docs: C4 target-state decisions`, and run `git push`.
 
 <details>
 <summary>How detailed does an ADR need to be?</summary>

@@ -25,14 +25,16 @@ If cutover is unfinished, finish C7 before the browser/data checks. Meanwhile yo
 
 **You decide.** Whether each check passes, fails or doesn't apply, and what evidence shows it. A FAIL means a setting is wrong; these settings come from the archetype's infrastructure code, so ask your coach before you change a resource by hand.
 
-**Where to work.** The acceptance pack is your filled-in `acceptance-handover.md` together with the evidence files beside it.
+:::note[Where to work]
 
-| Requirements | Where |
-| --- | --- |
-| 1 (pages), 3 (browser flows) | A browser, on any computer. Use `vm-dev01` if the web app's page times out from your own computer. |
-| 1 (row counts), 2 (blob listing) | `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)): SSMS and PowerShell there. The databases and storage are private-only. |
-| 4, 5 (load and security checks) | The dev container of your own repo, from `factory/`. |
-| 6 (record) | Both. Evidence made on `vm-dev01` goes in `C:\src\<your-repo>\factory\evidence\c08\` (the plain clone of your own repo) on `main`; run `git pull --rebase` first. Evidence made in the dev container goes in `factory/evidence/c08/` on `main`; run `git pull` first. |
+C8 uses three places; follow the badge on each requirement:
+
+- <span class="sl-badge tip">Browser</span> / <span class="sl-badge tip">Azure portal</span> — Open the live web app pages, test uploads and notifications, and capture Application Insights search results (Requirements 1, 2, 3 and 6). Use `vm-dev01`'s browser if the web app times out from your laptop.
+- <span class="sl-badge note">vm-dev01 · Bastion</span> — SSMS and PowerShell 7 inside the private network for row-count queries and private Blob listings (Requirements 1 and 2, [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)).
+- <span class="sl-badge">Dev container · factory/ (pwsh)</span> — Run the parallel load check and `Test-Acceptance.ps1` (Requirements 4 and 5).
+- **Evidence (Requirement 6):** save files in `factory/evidence/c08/` on `main` (see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)).
+
+:::
 
 If a check fails and you want help diagnosing it, there's a prompt for that in the [prompt library](../../prompts/vscode/06-acceptance-pack/). The checks themselves are on this page.
 
@@ -41,14 +43,9 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 <details>
 <summary>Values from the dev container</summary>
 
-In the dev container, open `pwsh` and set up the values the checks use:
+In the dev container, open `pwsh` in `factory/` and set up the values the checks use:
 
-```bash
-pwsh
-cd factory
-```
-
-```powershell
+```powershell title="Dev container — factory/ (pwsh)"
 $s = Get-Content .local/settings.json | ConvertFrom-Json
 az account set --subscription $s.subscriptionId
 $rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
@@ -62,7 +59,7 @@ The output is your archetype's resource group, the web app's host name, your mem
 
 Requirement 1 also needs the source database's password. It's in the dev container too, so print it here and type it on the VM yourself (the VM has no `.local` folder):
 
-```powershell
+```powershell title="Dev container — factory/ (pwsh)"
 (Get-Content ".local/$($s.subscriptionId)/datacenter.json" | ConvertFrom-Json).sqlAppPassword
 ```
 
@@ -71,9 +68,9 @@ Requirement 1 also needs the source database's password. It's in the dev contain
 <details>
 <summary>Values on vm-dev01</summary>
 
-On the VM, in PowerShell, set the same values once per window. Replace `<n>` with your member index:
+On the VM, in PowerShell 7, set the same values once per window. Replace `<n>` with your member index:
 
-```powershell
+```powershell title="vm-dev01 — PowerShell 7"
 az login --use-device-code
 az account show --query name --output tsv   # your workload subscription
 $n = <n>
@@ -91,9 +88,9 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
 
 ## Requirements
 
-1. **Smoke checks.** Open `https://<your web app host name>/` in a browser, then each of **Students**, **Courses**, **Instructors** and **Departments** from the menu. Every page must load with no error page, and the four list pages must show rows. Then confirm the data is the migrated data: on `vm-dev01`, open SSMS and run the query below twice. First connect to the source: **Server name** `10.10.<n>.4`, **Authentication** **SQL Server Authentication**, **Login** `contosoapp`, **Password** the `sqlAppPassword` you printed in the dev container, and tick **Trust server certificate**. Then connect to your SQL Managed Instance: paste `$mi` into **Server name**, set **Authentication** to **Microsoft Entra MFA**, and sign in with the account that deployed the archetype. Select the `ContosoUniversity` database in both (the database list in SSMS's toolbar). The counts must match, and the source stays running after cutover, so both queries work. Screenshot both results:
+1. **Smoke checks.** <span class="sl-badge tip">Browser</span> <span class="sl-badge note">vm-dev01 · SSMS</span> Open `https://<your web app host name>/` in a browser, then each of **Students**, **Courses**, **Instructors** and **Departments** from the menu. Every page must load with no error page, and the four list pages must show rows. Then confirm the data is the migrated data: on `vm-dev01`, open SSMS and run the query below twice. First connect to the source: **Server name** `10.10.<n>.4`, **Authentication** **SQL Server Authentication**, **Login** `contosoapp`, **Password** the `sqlAppPassword` you printed in the dev container, and tick **Trust server certificate**. Then connect to your SQL Managed Instance: paste `$mi` into **Server name**, set **Authentication** to **Microsoft Entra MFA**, and sign in with the account that deployed the archetype. Select the `ContosoUniversity` database in both (the database list in SSMS's toolbar). The counts must match, and the source stays running after cutover, so both queries work. Screenshot both results:
 
-   ```sql
+   ```sql title="vm-dev01 — SSMS (ContosoUniversity on source and SQL MI)"
    SELECT
      (SELECT COUNT(*) FROM Person WHERE Discriminator = 'Student') AS Students,
      (SELECT COUNT(*) FROM Person WHERE Discriminator = 'Instructor') AS Instructors,
@@ -102,15 +99,15 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
      (SELECT COUNT(*) FROM Enrollment) AS Enrollments;
    ```
 
-2. **Upload round-trip.** Use a throwaway course so you never touch the seeded data: on **Courses > Create New**, enter a course ID that isn't used (`9901`), a title, credits and a department, choose a small PNG (any PNG under 5 MB, a screenshot works) as the teaching material, and save. The image must show on the course's page (**Details**). Then check it landed in Blob. The storage account is private-only, so the portal's blob browser won't work from your own computer: on `vm-dev01`, in PowerShell, with the values set above, run `az storage blob list --account-name "stuniversity$suffix" --container-name teaching-materials --auth-mode login --output table` and see the new blob. Open **Courses > Edit** on the throwaway course, choose a different image and save, and list again: the blob must have changed. The app has no separate "delete image" control, so to remove the image, delete the course: **Courses > Delete** on the throwaway course only, then list once more and confirm its blob is gone. Never delete a seeded course: it changes the counts requirement 1 compared and the data C9's workload reads.
+2. **Upload round-trip.** <span class="sl-badge tip">Browser</span> <span class="sl-badge note">vm-dev01 · PowerShell 7</span> Use a throwaway course so you never touch the seeded data: on **Courses > Create New**, enter a course ID that isn't used (`9901`), a title, credits and a department, choose a small PNG (any PNG under 5 MB, a screenshot works) as the teaching material, and save. The image must show on the course's page (**Details**). Then check it landed in Blob. The storage account is private-only, so the portal's blob browser won't work from your own computer: on `vm-dev01`, in PowerShell 7, with the values set above, run `az storage blob list --account-name "stuniversity$suffix" --container-name teaching-materials --auth-mode login --output table` and see the new blob. Open **Courses > Edit** on the throwaway course, choose a different image and save, and list again: the blob must have changed. The app has no separate "delete image" control, so to remove the image, delete the course: **Courses > Delete** on the throwaway course only, then list once more and confirm its blob is gone. Never delete a seeded course: it changes the counts requirement 1 compared and the data C9's workload reads.
 
    Last, on **Courses > Create New**, try a text file (switch the dialog to "All files") and then an image larger than 5 MB; both must be rejected with a message and no course created. Your modernized app may check only the extension, or the content too. A 6 MB dummy `.png` can test size: in PowerShell on the computer you browse from, run `[IO.File]::WriteAllBytes("$HOME\big.png", [byte[]]::new(6MB))`. If it is rejected for its type, use a real photo over 5 MB. Public storage access is disabled, so a working upload proves the app reaches it privately.
 
-3. **Notification round-trip.** Open the browser's developer tools (`F12`) > **Network**, filter for `GetNotifications`, and leave it open. The page asks `/Notifications/GetNotifications` every 5 seconds. Edit a student (**Students > Edit**, change the first name, save). Within 5 seconds a toast must appear on screen, and the next `GetNotifications` request in the Network panel must show status `200` and a response with `success` set to `true` and a `count` of 1 or more. Then edit the student back. Don't open the `/Notifications/GetNotifications` address in another tab yourself: each call takes the queued messages, so the page would never show the toast. Service Bus has public access disabled, so a working toast proves the app reaches it privately.
+3. **Notification round-trip.** <span class="sl-badge tip">Browser · DevTools</span> Open the browser's developer tools (`F12`) > **Network**, filter for `GetNotifications`, and leave it open. The page asks `/Notifications/GetNotifications` every 5 seconds. Edit a student (**Students > Edit**, change the first name, save). Within 5 seconds a toast must appear on screen, and the next `GetNotifications` request in the Network panel must show status `200` and a response with `success` set to `true` and a `count` of 1 or more. Then edit the student back. Don't open the `/Notifications/GetNotifications` address in another tab yourself: each call takes the queued messages, so the page would never show the toast. Service Bus has public access disabled, so a working toast proves the app reaches it privately.
 
-4. **Load check.** A light burst of concurrent page loads against the live app. In the dev container:
+4. **Load check.** <span class="sl-badge">Dev container · factory/ (pwsh)</span> Run a light burst of concurrent page loads against the live app:
 
-   ```powershell
+   ```powershell title="Dev container — factory/ (pwsh)"
    1..20 | ForEach-Object -Parallel {
        (Invoke-WebRequest "https://$using:app/Courses" -SkipHttpErrorCheck -TimeoutSec 60).StatusCode
    } -ThrottleLimit 10 | Group-Object | Select-Object Name, Count
@@ -118,21 +115,20 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
 
    Every response must be `200`. It isn't C9's performance work, so keep it light.
 
-5. **Security check.** In the dev container, from `factory/`, run the read-only checker against your archetype's resource group. It never changes anything:
+5. **Security check.** <span class="sl-badge">Dev container · factory/ (pwsh)</span> Run the read-only checker against your archetype's resource group. It never changes anything:
 
-   ```powershell
+   ```powershell title="Dev container — factory/ (pwsh)"
    ./scripts/Test-Acceptance.ps1 -SubscriptionId $s.subscriptionId -ResourceGroup $rg -OutFile .local/acceptance.json
    ```
 
    It reports PASS, FAIL or UNKNOWN for the pages, HTTPS redirect, HTTPS-only/minimum TLS 1.2, backend public-access and approved private-endpoint settings, and SQL MI's public data endpoint. `ACCEPT` requires **no FAIL and no UNKNOWN**; otherwise the verdict is `NOT ACCEPTED` and the exit code is 1. Ask your coach before changing a resource. For UNKNOWN, collect the portal evidence described below, resolve the script's read/scope problem with your coach, then rerun it. An explanation or screenshot **does not change the script's verdict**; keep `NOT ACCEPTED` until a new run actually passes. The checker does not replace requirements 1 to 3 or prove data correctness. Policy Compliance and Defender Recommendations are optional corroboration and may lag.
 
-6. **Record every result.** First capture the telemetry: in the portal open `appi-university-<suffix>` > **Investigate** > **Search (formerly Transaction search)**, set the time range to the **last hour** or a custom range from the start of C8, and screenshot the requests and dependencies from your checks. Then record every result against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`).
+6. **Record every result.** <span class="sl-badge tip">Azure portal</span> <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> <span class="sl-badge">Dev container</span> First capture the telemetry: in the portal open `appi-university-<suffix>` > **Investigate** > **Search (formerly Transaction search)**, set the time range to the **last hour** or a custom range from the start of C8, and screenshot the requests and dependencies from your checks. Then record every result against the acceptance pack: pass, fail, or not applicable, with the evidence for each (screenshots, the count query results, the Network panel's response, `acceptance.json`).
 
    **Search label validated on:** 2026-10-31 against [Microsoft Learn](https://learn.microsoft.com/azure/azure-monitor/app/failures-performance-transactions); documentation only, not a new portal or telemetry check.
 
-   1. On `vm-dev01`, save the SSMS count screenshots and the blob listing in `C:\src\<your-repo>\factory\evidence\c08\`. Run `git pull --rebase` there, commit (a conventional message, for example `docs: C8 vm evidence`) and `git push`, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
-   2. In the dev container, in your own repo, run `git pull`, then copy `factory/templates/attendee/acceptance-handover.md` to `factory/evidence/c08/` and fill it in. Copy `factory/.local/acceptance.json` and your browser screenshots there too.
-   3. Commit (for example `docs: C8 acceptance pack`) and push `main`.
+   1. <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> Save the SSMS count screenshots and the blob listing in `C:\src\<your-repo>\factory\evidence\c08\`, then `git pull --rebase`, commit (`docs: C8 vm evidence`) and `git push` (see [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo)).
+   2. <span class="sl-badge">Dev container · repo root</span> Run `git pull`, copy `factory/templates/attendee/acceptance-handover.md`, `factory/.local/acceptance.json` and your browser screenshots to `factory/evidence/c08/`, fill in the pack, commit (`docs: C8 acceptance pack`) and push `main`.
 
 ## Success criteria
 

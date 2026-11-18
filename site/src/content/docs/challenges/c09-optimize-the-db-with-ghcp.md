@@ -29,22 +29,25 @@ A migrated database can still be slow. The perf kit planted five performance iss
 
 **You decide.** How to fix each one, and what the numbers show.
 
-**Where to work.** Everything runs on `vm-dev01`, through Bastion (see [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)), in PowerShell 7 and SSMS on the VM. Run the scripts from the kit clone at `C:\src\factory`, but save C9 evidence only in your own repo's clone, `C:\src\<your-repo>\factory\evidence\c09\`, on `main` (run `git pull --rebase` there first). C9 evidence isn't collected from `vm-dev01-work`; that branch holds the kit's app work. Use your own identity: it's the one with access to the managed instance. Sign in with the account you used for `azd` in C5: it's the managed instance's Microsoft Entra admin, so it can change the database. Never stop the VM during C9.
+:::note[Where to work]
 
-**Query Store** is SQL Server's built-in record of every query's duration, reads and plans. You'll read it in SSMS, which shows it in reports.
+Everything runs on <span class="sl-badge note">vm-dev01 · Bastion</span> ([Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01)):
+
+- <span class="sl-badge note">vm-dev01 · C:\src\factory (pwsh)</span> — Run `./db/perf-kit/Start-Workload.ps1` (Requirements 1 and 4).
+- <span class="sl-badge note">vm-dev01 · SSMS</span> — Read **Query Store** reports, execute your fix scripts and run `Get-QueryStoreSnapshot.sql` against `ContosoUniversity` on `$mi` (Requirements 2, 3 and 4). Sign in with the Microsoft Entra account you used for `azd` in C5.
+- <span class="sl-badge note">vm-dev01 · VS Code (@mssql)</span> — Connect the **MSSQL extension** to `ContosoUniversity` on `$mi` and use `@mssql` in Copilot Chat (or [Diagnose a slow plan](../../prompts/vscode/08-diagnose-a-slow-plan/)) to diagnose P1–P5 (Requirement 3).
+- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (main)</span> — Save fix scripts, CSV snapshots and your summary in `C:\src\<your-repo>\factory\evidence\c09\` on `main` (never on `vm-dev01-work`; see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)). Never stop the VM during C9.
+
+:::
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
-Use [Diagnose a slow plan](../../prompts/vscode/08-diagnose-a-slow-plan/) for a neutral, evidence-led Copilot prompt. It does not contain the fixes.
-
-In VS Code, connect the **MSSQL extension** to **ContosoUniversity** on your managed instance using your Microsoft Entra identity. Start database-aware Copilot prompts with **`@mssql`** so they use that connection; verify the selected database before running any proposed SQL.
-
 <details>
-<summary>Set up once per PowerShell window</summary>
+<summary>Set up once per PowerShell window on vm-dev01</summary>
 
 Replace `<your-repo>` and `<n>` (your member index; the dev container prints it with `$s.memberIndex`, from `factory/.local/settings.json`):
 
-```powershell
+```powershell title="vm-dev01 — PowerShell 7 (C:\src\factory)"
 cd C:\src\factory
 az login --use-device-code
 az account show --query name --output tsv   # your workload subscription; if it's wrong: az account set --subscription <name>
@@ -57,7 +60,7 @@ $ev = 'C:\src\<your-repo>\factory\evidence\c09'
 New-Item -ItemType Directory -Force $ev | Out-Null
 ```
 
-`$mi` is your SQL Managed Instance's host name. If it's empty, copy it from the portal instead: the managed instance's **Overview** > **Host**. Use the standard host name, not an IP address or a `privatelink` name. `$ev` is your evidence folder: the fix scripts and the numbers go there as you go. Save it in your plain clone at `C:\src\<your-repo>` (set up as in [set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), and run `git pull --rebase` there first, as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
+`$mi` is your SQL Managed Instance's host name (if empty, copy it from the portal's **Overview** > **Host**; never use an IP or `privatelink` name). `$ev` is your evidence folder in `C:\src\<your-repo>` on `main`.
 
 </details>
 
@@ -79,33 +82,33 @@ Start each run at least five minutes after the previous one finished, so two run
 
 ## Requirements
 
-1. **Run the baseline.** Use the same duration and concurrency for every run in this challenge, so the numbers are comparable:
+1. **Run the baseline.** <span class="sl-badge note">vm-dev01 · C:\src\factory (pwsh)</span> Use the same duration and concurrency for every run in this challenge, so the numbers are comparable:
 
-   ```powershell
+   ```powershell title="vm-dev01 — PowerShell 7 (C:\src\factory)"
    ./db/perf-kit/Start-Workload.ps1 -Server $mi -Authentication ActiveDirectoryInteractive -DurationMinutes 5 -Concurrency 8
    ```
 
    Sign in as yourself in the browser prompt that opens on the VM: use the same account and approve MFA. Note the `until HH:mm UTC` time it prints at the start (the run started 5 minutes earlier) and the `Finished at HH:mm UTC` line at the end. Before the fixes, one query can take a couple of minutes on SQL MI, so the run can finish a minute or two after its set time: use `Finished at` for your window. Don't run `Reset-PerfKit.ps1` at any point in C9, unless you decide to start over (see the end of this page): it clears Query Store and puts the problems back. Don't use the app, and don't run other queries on the tables, during a run, so the numbers are the workload's.
 
-2. **Find the worst queries in Query Store.** Query Store flushes to disk every minute, so you can start looking while the baseline runs. In SSMS, in the Connect dialog paste `$mi` (the host name you printed) into **Server name**, set **Authentication** to **Microsoft Entra MFA**, and select **Connect**, signing in with the account you used for `azd`. Then in Object Explorer open **Databases > ContosoUniversity > Query Store > Top Resource Consuming Queries**. Use the **Configure** button to set the metric and the time range:
+2. **Find the worst queries in Query Store.** <span class="sl-badge note">vm-dev01 · SSMS</span> Query Store flushes to disk every minute, so you can start looking while the baseline runs. In SSMS, in the Connect dialog paste `$mi` (the host name you printed) into **Server name**, set **Authentication** to **Microsoft Entra MFA**, and select **Connect**, signing in with the account you used for `azd`. Then in Object Explorer open **Databases > ContosoUniversity > Query Store > Top Resource Consuming Queries**. Use the **Configure** button to set the metric and the time range:
    - Metric **Duration (ms)**, statistic **Total**: the queries that cost the most time overall.
    - Metric **Execution Count**: the queries that run most often.
    - Time range: **Custom**, covering your run, with the time zone set to **UTC**: the run prints UTC times, and the VM's clock may not be UTC.
 
    Select a bar to see its plans in the lower pane and its query text. Make a short list of the worst offenders: query ID, what it does, and why you think it's slow. (**Query Store > Tracked Queries** shows one query over time.) Don't use **Force Plan**: it pins the slow plan, which hides the problem rather than fixing it.
 
-3. **Diagnose and fix all five planted issues** (P1 to P5 above). Use GitHub Copilot in **VS Code** to diagnose each plan, not just write the fix: paste the query text and plan warnings or XML into Copilot Chat. The kit's SSMS install has no **AI Assistance** workload; do not spend the time box looking for its Copilot button. In SSMS, right-click the plan > **Show Execution Plan XML**; warnings show as a yellow triangle. Apply the fixes in two checkpoints:
+3. **Diagnose and fix all five planted issues** (P1 to P5 above). <span class="sl-badge note">vm-dev01 · VS Code (@mssql)</span> <span class="sl-badge note">vm-dev01 · SSMS</span> Use GitHub Copilot in **VS Code** to diagnose each plan, not just write the fix: paste the query text and plan warnings or XML into Copilot Chat. The kit's SSMS install has no **AI Assistance** workload; do not spend the time box looking for its Copilot button. In SSMS, right-click the plan > **Show Execution Plan XML**; warnings show as a yellow triangle. Apply the fixes in two checkpoints:
    - **Checkpoint 1:** P5, P1, P2 and P3.
    - **Checkpoint 2:** P4, last: raising the compatibility level can change how P4's view runs, so measuring P4 afterward shows whether the rewrite still matters.
 
    Change each object in place (`ALTER` the same procedure, view or function, with the same name and parameter names): the workload calls `dbo.usp_SearchStudents`, `dbo.usp_GetStudentEnrollments` and `dbo.vw_EnrollmentStatistics` by name, so a copy such as `usp_SearchStudents_v2` leaves the "after" run unchanged. Each fix is done when the same input returns the same rows as before, or when you state in your summary what changed in behavior (P2 can't keep `LIKE '%term%'` results identical if you change it to a prefix search). Save each fix as its own script (`p1-<name>.sql` to `p5-<name>.sql`) in `$ev`, and run it in SSMS against `ContosoUniversity`.
 
-4. **Capture the numbers after each run.** The baseline run is requirement 1. After each fix checkpoint, repeat requirement 1's command, unchanged. After every run, wait a minute for Query Store to flush, then:
+4. **Capture the numbers after each run.** <span class="sl-badge note">vm-dev01 · C:\src\factory (pwsh)</span> <span class="sl-badge note">vm-dev01 · SSMS</span> The baseline run is requirement 1. After each fix checkpoint, repeat requirement 1's command, unchanged. After every run, wait a minute for Query Store to flush, then:
    - Capture the **Top Resource Consuming Queries** report as a screenshot, with the run's time range.
    - Open the snapshot script `C:\src\factory\db\perf-kit\Get-QueryStoreSnapshot.sql` in SSMS, connected to `ContosoUniversity`, and edit the three `DECLARE` lines at the top: `@Label` (`baseline`, `after-checkpoint-1`, `after-checkpoint-2`) and the UTC window `@FromUtc` and `@ToUtc`: from the five-minute mark at or before the run's start to the five-minute mark at or after `Finished at`. A run from 09:03 to 09:08 gets 09:00 to 09:10, written `'2026-10-14T09:00:00+00:00'`. Today's UTC date is `Get-Date -AsUTC -Format yyyy-MM-dd` in PowerShell.
    - Run it. It returns four result grids. Its last grid gives, per query and plan, executions, average duration and CPU in milliseconds and average logical reads, weighted by execution count. Save grid 1 (the label and window) and grid 4 (the per-query numbers): right-click the grid > **Save Results As...** > CSV, into `$ev`, named with its label. Grid 3 should show executions only in your run's intervals: if not, your window includes other activity.
 
-5. **Summarize and push.** Write one line per fix: what it changed, and how much the query's average duration (and reads) moved between the baseline and the checkpoint that contains it. Say so when a fix shows no change of its own, and why. Then in `C:\src\<your-repo>`, run `git pull --rebase`, commit the folder with a conventional message (for example `docs: C9 query tuning evidence`) and push `main`, as in the guide.
+5. **Summarize and push.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> Write one line per fix: what it changed, and how much the query's average duration (and reads) moved between the baseline and the checkpoint that contains it. Say so when a fix shows no change of its own, and why. Then in `C:\src\<your-repo>`, run `git pull --rebase`, commit the folder with a conventional message (for example `docs: C9 query tuning evidence`) and push `main`, as in [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes).
 
 ## Success criteria
 
@@ -122,7 +125,7 @@ To complete this challenge, show your coach in `factory/evidence/c09/` of your o
 
 If C7 is unfinished, the source has the same planted issues. `-MemberIndex $n` automatically resolves the source IP for any member index (`10.10.<n>.4` for `1` to `255`, or `10.(127 + floor(n/256)).(n%256).4` for `256` and higher). The workload already knows the documented default lab password, so for a standard deployment run:
 
-```powershell
+```powershell title="vm-dev01 — PowerShell 7 (C:\src\factory)"
 ./db/perf-kit/Start-Workload.ps1 -MemberIndex $n -DurationMinutes 5 -Concurrency 8
 ```
 
@@ -160,7 +163,7 @@ Check the compatibility level first: `SELECT name, compatibility_level FROM sys.
 
 Only start over if an object or the data is broken (for example you dropped the view), because it deletes your baseline. Save your evidence in `$ev` first. Then, on `vm-dev01` in `C:\src\factory`, run the reset against the managed instance (for the standard source deployment use `-MemberIndex $n` instead; only a custom password needs the first hint's secure prompt and `-SqlPassword`):
 
-```powershell
+```powershell title="vm-dev01 — PowerShell 7 (C:\src\factory)"
 ./db/perf-kit/Reset-PerfKit.ps1 -Server $mi -Authentication ActiveDirectoryInteractive
 ```
 

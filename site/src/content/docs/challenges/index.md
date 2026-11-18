@@ -22,6 +22,17 @@ Contoso University is a fictional public university. Its student enrollment app 
 - **Hints are folded away.** Open them when you are stuck. Where a challenge leaves a choice to you (C1, C4 and C10), there is no single right answer, and your coach looks at your reasoning.
 - **Evidence goes in your own repo.** Commit it under `factory/evidence/` as you finish each challenge, not at the end of the day.
 
+:::note[Where to run commands]
+
+Every requirement and command block on a challenge page shows a badge or header naming where it runs:
+
+- <span class="sl-badge">Dev container</span> — VS Code on your laptop, reopened in your own repo's container (`/workspaces/<your-repo>` or `/workspaces/<your-repo>/factory`).
+- <span class="sl-badge note">vm-dev01</span> — Your Windows 11 workstation via Azure Bastion (`C:\src\factory` on `vm-dev01-work` for app and DB scripts; `C:\src\<your-repo>` on `main` for evidence; SSMS).
+- <span class="sl-badge caution">vm-app01 · Bastion</span> — The legacy IIS and SQL Server VM via Azure Bastion (used only in C7).
+- <span class="sl-badge tip">Azure portal</span> / <span class="sl-badge tip">Browser</span> — In your browser.
+
+:::
+
 ## Ground rules
 
 - Work as a team. The team lead is also a member. For team documents, one person types and the others check.
