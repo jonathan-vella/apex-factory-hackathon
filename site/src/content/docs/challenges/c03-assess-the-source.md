@@ -13,11 +13,11 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 **Objective.** Be able to triage migration assessment findings and tell an expected, self-inflicted finding from a real blocker.
 
-**Time and points.** Day 1, **10:30**, **60 min** (pacing), **Member**, **15 pts** (member). If the Upgrade agent runs are slow, do the Arc review (requirement 2) while they run. Your VM is already set up ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), so none of the 60 minutes goes on setup.
+**Time and scope.** Day 1, **10:30**, **60 min** (pacing), **Member**. If the Upgrade agent runs are slow, do the Arc review (requirement 2) while they run. Your VM is already set up ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)), so none of the 60 minutes goes on setup.
 
 ## Challenge
 
-**Starting point.** The first Arc migration assessment from [Step 3: Datacenter and workstation](../../deploy/member-steps/#32-run-the-first-arc-sql-assessment-and-check-hybrid-benefit), and a ready `vm-dev01` ([set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01)). Both datacenter VMs must be running: in your dev container (with `$s` loaded from `factory/.local/settings.json`), `az vm list -g rg-datacenter -d -o table` shows their power state, and `az vm start -g rg-datacenter -n vm-app01 --subscription $s.subscriptionId`, then the same with `-n vm-dev01`, starts them if you stopped them.
+**Starting point.** The first Arc migration assessment from [Step 3: Datacenter and workstation](../../deploy/member-steps/#32-run-the-first-arc-sql-assessment-and-check-hybrid-benefit), and your single clone (`C:\src\<your-repo>` on `main`) on `vm-dev01`. Both datacenter VMs must be running (`az vm list -g rg-datacenter -d -o table`).
 
 **Fixed by the kit.** Your subscription was vended at T-1, so `vm-dev01` already uses the hub's DNS. The kit set the trace flags `1800` and `9567` on the source on purpose.
 
@@ -29,38 +29,39 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 :::note[Where to work]
 
-- <span class="sl-badge note">vm-dev01 · C:\src\factory (VS Code)</span> — **Upgrade agent assessment and plan (Requirement 1)** on your `vm-dev01-work` branch. Reconnect via [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01), open PowerShell 7 and run `code C:\src\factory`. Don't use the dev container: the Local harness must run next to the app. The prompt and gates are in Step 1 of `C:\src\factory\.github\modernization\playbook.md`.
+- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — **Upgrade agent assessment and plan (Requirement 1) and triage table (Requirements 3 to 6)** on `main` in `C:\src\<your-repo>`. Because `.github/upgrades/` sits in your single clone on `main`, `assessment.md` and `plan.md` stay in place alongside `factory/evidence/c03/triage.md` (pre-created by `Import-Kit.ps1`).
 - <span class="sl-badge tip">Azure portal</span> — **Arc assessment (Requirement 2)** in your browser.
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (main)</span> — **Triage record (Requirements 3 to 6)** in `C:\src\<your-repo>\factory\evidence\c03\`. Copy `assessment.md`, `assessment.json` and `plan.md` there as in [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo), write `triage.md` in the same folder, then commit and push (see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)).
 - **Paste-ready prompts (optional help):** [Assess and plan](../../prompts/vscode/01-assess-and-plan/) for Requirement 1 and [Triage assessment findings](../../prompts/vscode/07-triage-assessment-findings/) for Requirements 3 to 6.
 
 :::
 
 ## Requirements
 
-1. **Assess and plan (about 25 min).** <span class="sl-badge note">vm-dev01 · C:\src\factory (VS Code)</span> Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks), and commit and push `app: assess and plan` as the playbook's Step 1 says. This is the plan approval for the whole run; don't start task execution: that's C6. Done when `assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
-
-   The kit clone at `C:\src\factory` on `vm-dev01-work` has no commit hook. Use the playbook's `app:` messages there; use conventional commit types for commits in your own repo.
+1. **Assess and plan (about 25 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code)</span> Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks). Don't start task execution: that's C6. Done when `.github/upgrades/scenarios/dotnet-version-upgrade/assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
 
 2. **Review the Arc assessment.** <span class="sl-badge tip">Azure portal</span> In **Azure Arc** > **SQL Server instances**, open the instance on `vm-app01`, then **Migration** > **Assessments**. Select **Run assessment** if needed, open its readiness details and select **Azure SQL Managed Instance** as the target to review. This is the [current documented path](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment); older portal versions use **Database migration** > **Assess source instance** > **View report**. Done when both reports are open side by side and you have listed every finding.
 
-3. **Triage every finding** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> from both assessments: blocker, accepted risk, or fix, and what it means for the target state. Done when every finding on your list has a triage and a one-line impact (you write them into the table in requirement 6).
+3. **Triage the findings in `factory/evidence/c03/triage.md`** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> from both assessments: classify each finding (`must-fix` / `defer` / `ignore` or blocker / accepted risk / fix) and state its impact on the target state.
 
-4. **Work through the trace-flag finding by hand,** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> not just by ticking it. A trace flag is a SQL Server startup switch. The assessment reports **"Trace flags not supported in Azure SQL Managed Instance"** (warning) for flags `1800` and `9567`. Find out why the kit set them in the section **Enable startup trace flags** of the MI link preparation article under References, then decide what to do about the finding. Record your reason, its impact on the target state, and when the flags should be removed. Use this format: "Decision: …; reason and source: …; target impact: …; removal condition: …". Done when your triage row for it holds the reason, the impact and the decision.
+4. **Verify the trace-flag finding.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> The Arc assessment reports **"Trace flags not supported in Azure SQL Managed Instance"** (warning) for flags `1800` and `9567`. Check why the kit set them in **Enable startup trace flags** of the MI link preparation article under References, and confirm your `triage.md` row explains why they are needed during MI link seeding and when they are removed (after C7 cutover, with `Prepare-MiLinkSource.ps1 -RemoveTraceFlags`).
 
-5. **Tell expected findings from real blockers.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> A self-inflicted, expected finding (like the trace flags) has a known cause and a known removal step. A real blocker would force the workload onto SQL Server on an Azure VM instead of SQL MI, for example a feature SQL MI doesn't support at all that the application uses. Done when your triage table marks which findings are which, with a reason for each blocker.
+5. **Commit in place on `main`.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> Commit `.github/upgrades/` and `factory/evidence/c03/triage.md` directly on `main` in `C:\src\<your-repo>` (no file copying between folders needed):
 
-6. **Write the triage table** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> to `C:\src\<your-repo>\factory\evidence\c03\triage.md`, with the columns finding, source, triage and impact, then commit and push it (see [Copy your evidence to your repo](../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo)). Deferrals from it go into the deferred-work register in C4. Done when `triage.md` is on `main` in your own repo.
+   ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
+   cd C:\src\<your-repo>
+   git pull --rebase
+   git add .github/upgrades factory/evidence/c03/triage.md
+   git commit -m "docs: C3 assessment, plan and triage"
+   git push
+   ```
 
 ## Success criteria
 
-To complete this challenge, show your coach in your own repo:
+To complete this challenge, review with your coach in `C:\src\<your-repo>` on `main`:
 
-- [ ] The Upgrade agent's `assessment.md` and `assessment.json`, reviewed in the dashboard if available or directly as files, and its `plan.md`. No task has started.
-- [ ] A triage table (`triage.md`): finding, source, triage (blocker / accepted risk / fix), and target-state impact.
-- [ ] The trace-flag finding specifically called out with its reason, impact and decision.
-- [ ] Nothing in `app/` changed yet.
-- [ ] Outcome check (unscored guidance): your triage table lets Priya see in one place which findings block the move and which can wait.
+- [ ] `.github/upgrades/scenarios/dotnet-version-upgrade/assessment.md`, `assessment.json`, and `plan.md` committed in place on `main`, with no task started yet and nothing in `app/` changed.
+- [ ] `factory/evidence/c03/triage.md` committed on `main`, covering the DB and app findings and calling out why trace flags `1800` and `9567` stay until C7 cutover completes.
+- [ ] Outcome check: your triage table lets Priya see in one place which findings are handled in C6/C7 and which are deferred.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
@@ -74,18 +75,16 @@ Ask: does this finding describe something the kit deliberately set up on the sou
 <details>
 <summary>The Upgrade agent won't produce an assessment</summary>
 
-Check the harness is **Local** (not the Copilot harness) and the agent picker shows **Upgrade**. If the tools report unavailable, reload the VS Code window and start a new chat. If **GitHub Copilot modernization** is enabled for the workspace, or the Upgrade server has no model access, follow step 9 of [Switching to vm-dev01](../../guides/ghcp-upgrade/#switching-to-vm-dev01).
+Check the harness is **Local** (not the Copilot harness) and the agent picker shows **Upgrade**. If the tools report unavailable, reload the VS Code window and start a new chat. If **GitHub Copilot modernization** is enabled for the workspace, or the Upgrade server has no model access, follow step 8 of [Step 3.3](../../deploy/member-steps/#33-set-up-vm-dev01).
 
 </details>
 
 <details>
 <summary>If you need to start over</summary>
 
-Re-run either assessment: they only read the source, so there is no state to reset. To redo the Upgrade agent's assess and plan from scratch, remove its leftovers first with the `git clean` commands in the guide's [Check your setup](../../guides/ghcp-upgrade/#check-your-setup), then start a new chat. Correct `triage.md` in place rather than starting a new file.
+Re-run either assessment: they only read the source, so there is no state to reset. To redo the Upgrade agent's assess and plan from scratch, remove its leftovers first with `git clean -fdx -- app .github/upgrades`, then start a new chat. Correct `triage.md` in place rather than starting a new file.
 
 </details>
-
-**Bonus.** Up to 5 pts for taking another Arc assessment finding beyond the base triage classification: explain its cause, cite the source you checked, give your reasoning and target-state impact with the same rigor as the trace-flag row. Merely listing another finding already required by the base work is not bonus evidence.
 
 ## References
 

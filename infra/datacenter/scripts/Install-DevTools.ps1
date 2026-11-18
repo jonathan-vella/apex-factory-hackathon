@@ -3,9 +3,9 @@
 Installs the developer tools on vm-dev01, machine-wide and silently.
 .DESCRIPTION
 Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM. Creates C:\src, then installs VS Code
-(system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone), the .NET 10
-SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI from the vendors' official download
-locations. Tools that are already installed are skipped. Finally it clones the kit (public repo) to
+(system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone), Node.js 24 LTS,
+the Azure Developer CLI (azd), the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI
+from the vendors' official download locations. Tools that are already installed are skipped. Finally it clones the kit (public repo) to
 C:\src\factory if it isn't there yet, as a sparse checkout (non-cone patterns) that leaves out coach/,
 facilitator/, docs/, site/, test/ and the repo's documentation and lint tooling files. Everything the
 attendees use stays: app/, db/, scripts/, infra/, archetype/, templates/, .github/, README.md, LICENSE and
@@ -35,6 +35,8 @@ $logFile = Join-Path $logDir 'Install-DevTools.log'
 $downloadDir = 'C:\LabTools\downloads'
 $pwshDir = 'C:\Program Files\PowerShell\7'
 $bicepDir = 'C:\Program Files\Bicep'
+$nodeDir = 'C:\Program Files\nodejs'
+$azdDir = 'C:\Program Files\Azure Dev CLI'
 $nugetDir = 'C:\Program Files\NuGet'
 
 function Write-LabLog {
@@ -141,6 +143,24 @@ try {
         Write-LabLog 'Bicep installed.'
     }
     Add-MachinePath -Directory $bicepDir
+
+    if (-not (Test-Path (Join-Path $nodeDir 'node.exe'))) {
+        $nodeReleases = Invoke-RestMethod -Uri 'https://nodejs.org/dist/index.json' -UseBasicParsing
+        $node24 = $nodeReleases | Where-Object { $_.version -match '^v24\.' -and $_.lts } | Select-Object -First 1
+        if (-not $node24) {
+            throw 'No Node.js 24 LTS release found in https://nodejs.org/dist/index.json.'
+        }
+        $nodeMsiUrl = "https://nodejs.org/dist/$($node24.version)/node-$($node24.version)-x64.msi"
+        $file = Get-Download -Url $nodeMsiUrl -FileName "node-$($node24.version)-x64.msi"
+        Install-Msi -Name "Node.js $($node24.version)" -Path $file
+    }
+    Add-MachinePath -Directory $nodeDir
+
+    if (-not (Test-Path (Join-Path $azdDir 'azd.exe'))) {
+        $file = Get-Download -Url 'https://aka.ms/azd-windows-amd64.msi' -FileName 'azd-windows-amd64.msi'
+        Install-Msi -Name 'Azure Developer CLI (azd)' -Path $file -Properties @('ALLUSERS=1')
+    }
+    Add-MachinePath -Directory $azdDir
 
     if (-not (Test-Path 'C:\Program Files\dotnet\sdk\10.*')) {
         $file = Get-Download -Url 'https://aka.ms/dotnet/10.0/dotnet-sdk-win-x64.exe' -FileName 'dotnet-sdk-10-win-x64.exe'

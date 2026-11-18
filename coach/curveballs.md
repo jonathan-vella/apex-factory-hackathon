@@ -1,6 +1,6 @@
 # Curveballs (coach)
 
-The coach controls both exercises. Announce the trigger, give teams only the information below, and record the evidence in the normal challenge rubric. Curveballs do not change the base points on the challenge pages; eligible bonus evidence still uses the shared 30-point ceiling.
+The coach controls both exercises. Announce the trigger and give teams only the information below.
 
 ## Day 1: a deny policy lands on the existing foundation
 
@@ -20,11 +20,9 @@ az policy assignment create `
 
 The parameters and scope are examples for the default `mg-factory` prefix. If the event owner chose another prefix, substitute that prefix; do not use a tenant-specific ID in the assignment. The team lead runs the command under the coach's direction, because they hold the rights to assign policy at the management group.
 
-**Team task:** the coach asks the team lead to try creating any small resource, for example a storage account, in a region outside the approved list (such as westeurope) in a vended subscription. Capture the denial message and its location, explain why the golden path is compliant, and keep the selected approved region instead of weakening or bypassing the policy. Capture the policy assignment and resulting decision in **the team lead's C2 evidence only**.
+**Team task:** the coach asks the team lead to try creating any small resource, for example a storage account, in a region outside the approved list (such as westeurope) in a vended subscription. Observe the denial message and its location, explain why the golden path is compliant, and keep the selected approved region instead of weakening or bypassing the policy.
 
-**Evidence and points:** this team-lead exercise changes nobody's points. Other members are not marked down for not having it; each still supplies their normal C2 Layer 2 evidence. It earns no bonus. The C2 bonus is the `DeployIfNotExists` central DNS test on the C2 page, under the shared bonus cap.
-
-**Reverse after sign-off:** remove only `curveball-allowed-locations` from the same `mg-factory-corp` scope as soon as the evidence is signed off, and in any case before C5 starts at 13:45 (confirm at the 16:30 check-out that it's gone):
+**Reverse after review:** remove only `curveball-allowed-locations` from the same `mg-factory-corp` scope as soon as the exercise is complete, and in any case before C5 starts at 13:45 (confirm at the 16:30 check-out that it's gone):
 
 ```powershell
 az policy assignment delete `
@@ -48,6 +46,4 @@ Confirm that the assignment is gone. Do not remove the baseline `alzl-allowed-lo
 4. Before recreating the link, delete only the MI-side `ContosoUniversity` copy using the supported `az sql midb delete` flow. Verify the copy is gone, then document the reseed and revalidation plan. Do not repoint the app to the standalone MI copy.
 5. Re-plan the cutover only after the read-only replica and lag checks pass. For a planned cutover, follow the validated Arc portal path in the [MI link spike](../docs/archive/spikes/B07-arc-mi-link/README.md). The equivalent T-SQL `ALTER AVAILABILITY GROUP [<DAG>] FAILOVER` runs on SQL Server itself when applicable; it is not the MI-side CLI command above.
 
-**Evidence and points:** retain the failed go/no-go result, the Arc portal cancellation state, the unchanged source check and the MI-copy cleanup/reseed plan. This demonstrates C7's rollback evidence. The staged abort is part of the event and earns no bonus: the C7 reseed-after-abort bonus (up to 5) is only for a real, unplanned abort. The C7 base evidence is scored under the rubric and no additional base points are created: the rows that need a completed cutover (live pages, contained user) score only if that member finishes the cutover afterwards.
-
-**Reverse after sign-off:** if the team recreated a link for the exercise, finish only after a valid replica and go/no-go; otherwise leave the source as the app's target and include the deferred reseed/cutover plan in the handover. The coach must confirm no test-only writable MI copy remains before cleanup.
+**Reverse after review:** if the team recreated a link for the exercise, finish only after a valid replica and go/no-go; otherwise leave the source as the app's target and include the deferred reseed/cutover plan in the handover. The coach must confirm no test-only writable MI copy remains before cleanup.

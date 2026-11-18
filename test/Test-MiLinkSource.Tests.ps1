@@ -73,11 +73,26 @@ $help = $ast.GetHelpContent()
 Assert-True (-not [string]::IsNullOrWhiteSpace($help.Synopsis)) 'The script has no .SYNOPSIS.'
 Assert-True (-not [string]::IsNullOrWhiteSpace($help.Description)) 'The script has no .DESCRIPTION.'
 Assert-True ($help.Parameters.ContainsKey('MISUBNETPREFIX')) 'The help has no .PARAMETER MiSubnetPrefix.'
+Assert-True ($help.Parameters.ContainsKey('REMOVETRACEFLAGS')) 'The help has no .PARAMETER RemoveTraceFlags.'
 Assert-True ($help.Examples.Count -ge 1) 'The help has no .EXAMPLE.'
+
+$removeParam = $ast.ParamBlock.Parameters | Where-Object { $_.Name.VariablePath.UserPath -eq 'RemoveTraceFlags' }
+Assert-True ($null -ne $removeParam) 'The script has no RemoveTraceFlags parameter.'
+$removeAttr = $removeParam.Attributes | Where-Object { $_.TypeName.Name -eq 'Parameter' }
+$removeSet = $removeAttr.NamedArguments | Where-Object { $_.ArgumentName -eq 'ParameterSetName' } | Select-Object -First 1
+Assert-True ($null -ne $removeSet -and $removeSet.Argument.Value -eq 'RemoveTraceFlags') 'RemoveTraceFlags must belong to the RemoveTraceFlags parameter set.'
+
+$selectFn = $ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Select-SqlStartupArgument' }, $true) | Select-Object -First 1
+Assert-True ($null -ne $selectFn) 'Prepare-MiLinkSource.ps1 must define Select-SqlStartupArgument.'
+. ([scriptblock]::Create($selectFn.Extent.Text))
+$filtered = Select-SqlStartupArgument -Arguments @('-dF:\SQLData\master.mdf', '-T1800', '-eF:\SQLLog\ERRORLOG', '-T9567', '-lF:\SQLLog\mastlog.ldf')
+Assert-True (($filtered.KeptArgs -join '|') -eq '-dF:\SQLData\master.mdf|-eF:\SQLLog\ERRORLOG|-lF:\SQLLog\mastlog.ldf') "Select-SqlStartupArgument must preserve non-trace-flag arguments in order: $($filtered.KeptArgs -join ', ')"
+Assert-True (($filtered.RemovedArgs -join '|') -eq '-T1800|-T9567') "Select-SqlStartupArgument must report removed trace flags: $($filtered.RemovedArgs -join ', ')"
 
 $text = Get-Content -Raw $scriptPath
 Assert-True ($text.Contains("'C:\LabTools\logs'")) 'The script must log to C:\LabTools\logs.'
 Assert-True ($text -match 'Get-NetFirewallRule -DisplayName' -and $text -match 'sys\.symmetric_keys' -and $text -match 'sys\.certificates') 'The script must check before it creates the rule, the master key and the certificates, so a second run changes nothing.'
+Assert-True ($text -match 'is_distributed\s*=\s*1' -and $text -match 'DBCC TRACESTATUS\(-1\)') 'The script must verify no distributed AG is active and check DBCC TRACESTATUS(-1) when removing trace flags.'
 Assert-True ($text -notmatch 'Invoke-AzRestMethod|Connect-AzAccount|\baz\s+(login|account|resource)') 'The script must not call Azure.'
 
 # The datacenter's run-command registrations must not pick this script up: it runs by hand, in a Bastion session.

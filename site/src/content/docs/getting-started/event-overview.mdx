@@ -25,7 +25,7 @@ In **Path A (Self-service teams)**, the dates count back from day one and the st
 3. **[Step 3: Datacenter and workstation (T-3)](../../deploy/member-steps/) (Everyone):** every member (including the team lead) runs the `member` stage to deploy their datacenter, run `Test-Datacenter.ps1` while both VMs are running, and onboard `vm-app01` to Azure Arc. The test runs before Arc because Arc turns off VM run commands. You then run the first Arc SQL migration assessment in the portal, set up `vm-dev01` with VS Code and GitHub Copilot, and commit `factory/evidence/readiness/`.
 4. **[Step 4: Vending (T-1)](../../deploy/vending/) (Team lead + Everyone):** every member makes sure both datacenter VMs are running. The team lead runs the `vending` stage, which automatically checks that each member's datacenter VNet and Arc-connected `vm-app01` are ready, vends each spoke into the foundation, restarts the VMs, records the datacenter policy exemptions, and runs the connectivity probes.
 
-T-14 and T-3 are the readiness milestones for members. At T-1, vending stops at the first member whose datacenter or Arc connection is not ready: earlier members are vended but not restarted, exempted or probed, and later members are not vended. Fix the cause and re-run vending for all members; it is safe to repeat. If phase 2 fails while restarting VMs, fix the cause and re-run for all members. If phase 3 names members whose exemptions or connectivity probes failed, re-run for those named indexes only. Raise blockers with your team lead early. The readiness check is a prerequisite, not a scored challenge.
+T-14 and T-3 are the readiness milestones for members. At T-1, vending stops at the first member whose datacenter or Arc connection is not ready: earlier members are vended but not restarted, exempted or probed, and later members are not vended. Fix the cause and re-run vending for all members; it is safe to repeat. If phase 2 fails while restarting VMs, fix the cause and re-run for all members. If phase 3 names members whose exemptions or connectivity probes failed, re-run for those named indexes only. Raise blockers with your team lead early. The readiness check is a prerequisite, not a challenge.
 
 <span id="day-one"></span>
 
@@ -67,14 +67,14 @@ Members then assess the source in [C3](../../challenges/c03-assess-the-source/),
 | 14:00–15:00 | C9: Optimize the database with GitHub Copilot |
 | 15:00–15:15 | Break |
 | 15:15–16:15 | C10: Package, hand over and review AI readiness |
-| 16:15–17:00 | Showcase, scoring and close |
+| 16:15–17:00 | Showcase and close |
 
 The MI link starts at 08:30 through **requirements 1 and 2** of [C7](../../challenges/c07-migrate-and-go-live/), so seeding overlaps the end of C6. C6 finishes, then C7, [C8](../../challenges/c08-validate-the-pattern/), [C9: Optimize the DB with GitHub Copilot](../../challenges/c09-optimize-the-db-with-ghcp/) and [C10](../../challenges/c10-package-hand-over-review-ai-readiness/) finish the event before the team showcase.
 
 <Diagram
   name="diagram-12-working-locations-go-live"
-  alt="Where you work during the event. Your laptop's VS Code dev container holds your private repo with the imported kit, starts the platform pipeline in GitHub Actions and deploys the archetype with azd provision. The private workstation vm-dev01, reached through Bastion, holds the app work on the vm-dev01-work branch and the Upgrade agent, and runs the modernized app against the source SQL Server. The Azure application platform runs the container image built with .NET SDK container publishing. Evidence is committed to main in your private GitHub repo."
-  caption="Where you work: the dev container, the private dev VM and App Service."
+  alt="Where you work during the event. Azure Cloud Shell dispatches the pre-event platform pipeline and T+2 teardown. The private workstation vm-dev01, reached through Bastion, holds your single clone C:\src\<your-repo> on main for all 10 challenges (C1 to C10), deploys the archetype with azd provision, runs the Upgrade agent and local app against the source SQL Server, and pushes your container image to ACR. App Service runs the modernized container image in Azure."
+  caption="Where you work: Azure Cloud Shell for pipeline dispatch, vm-dev01 for all challenges (C1–C10), and App Service in Azure."
 />
 
 ## Time boxes are pacing, not hard stops

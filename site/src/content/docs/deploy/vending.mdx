@@ -32,7 +32,7 @@ Step 4 moves each workload subscription under `mg-factory-corp`, applies Deny po
 
 Before the team lead starts the `vending` stage, every member (including the team lead) must have `vm-app01` and `vm-dev01` running so the pipeline can restart them and run the in-VM connectivity probes.
 
-From `factory/` in your dev container:
+From [Azure Cloud Shell](https://shell.azure.com) (or `C:\src\<your-repo>\factory` on `vm-dev01`):
 
 ```powershell
 $s = Get-Content .local/settings.json | ConvertFrom-Json
@@ -68,9 +68,10 @@ When the run is green, post "vended" in your team's private channel along with t
 
 ## 4.3 Save the shared services subscription ID (Members)
 
-**Who:** Team members (`2..n`) only—the team lead already saved `sharedSubscriptionId` in Step 1.4. Once the team lead confirms that Step 4 is green and shares the shared services subscription ID in your private team channel, each team member saves it in `factory/.local/settings.json` from `factory/` in their laptop Dev Container:
+**Who:** Team members (`2..n`) only—the team lead already saved `sharedSubscriptionId` in Step 1.4. Once the team lead confirms that Step 4 is green and shares the shared services subscription ID in your private team channel, each team member saves it in `C:\src\<your-repo>\factory\.local\settings.json` on `vm-dev01`:
 
 ```powershell
+cd C:\src\<your-repo>\factory
 ./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
 ```
 

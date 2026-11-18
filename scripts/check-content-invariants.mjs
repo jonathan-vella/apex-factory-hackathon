@@ -5,32 +5,13 @@ import { fileURLToPath } from "node:url";
 
 const defaultRoot = fileURLToPath(new URL("..", import.meta.url));
 const textExtensions = new Set([".astro", ".md", ".mdx", ".yml", ".yaml"]);
-// The challenge order, scope, time, points and objective live in site/src/data/challenges.json.
+// The challenge order, scope, time and objective live in site/src/data/challenges.json.
 const challengeData = JSON.parse(
   readFileSync(new URL("../site/src/data/challenges.json", import.meta.url), "utf8"),
 ).challenges;
-const challengeContract = challengeData.map((c) => [
-  c.id,
-  c.file,
-  c.minutes,
-  c.teamPoints + c.memberPoints,
-  c.teamPoints,
-  c.memberPoints,
-]);
+const challengeContract = challengeData.map((c) => [c.id, c.file, c.minutes]);
 const expectedChallengeCount = 10;
 const expectedMinutes = 750;
-const expectedPoints = 170;
-const expectedTeamPoints = 45;
-const expectedMemberPoints = 125;
-const evidenceRule = [
-  "- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.",
-  "- **`vm-dev01`:** evidence goes in `C:\\src\\<your-repo>\\factory\\evidence\\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.",
-];
-const evidenceRulePages = [
-  "site/src/content/docs/deploy/member-steps.mdx",
-  "site/src/content/docs/challenges/c01-define-the-opportunity.md",
-  "site/src/content/docs/guides/ghcp-upgrade.md",
-];
 
 async function collectFiles(path) {
   let entries;
@@ -82,31 +63,6 @@ async function checkTemplateCopies(root) {
     }
     if (!copy.equals(await readFile(join(attendee, name)))) {
       failures.push(`templates/team/templates/${name}: differs from templates/attendee/${name}`);
-    }
-  }
-  return failures;
-}
-
-// One evidence rule, worded the same on every page that states it, so the copies cannot drift.
-async function checkEvidenceRule(root) {
-  const failures = [];
-  for (const page of evidenceRulePages) {
-    let text;
-    try {
-      text = await readFile(join(root, page), "utf8");
-    } catch (error) {
-      if (error.code !== "ENOENT") throw error;
-      try {
-        text = await readFile(join(root, page.replace(/\.md$/, ".mdx")), "utf8");
-      } catch (mdxError) {
-        if (mdxError.code === "ENOENT") continue;
-        throw mdxError;
-      }
-    }
-    const lines = text.split(/\r?\n/);
-    for (const bullet of evidenceRule) {
-      if (!lines.includes(bullet))
-        failures.push(`${page}: missing the evidence rule bullet: ${bullet}`);
     }
   }
   return failures;
@@ -222,8 +178,7 @@ export async function runChecks(root = defaultRoot) {
   }
 
   let totalMinutes = 0;
-  let totalPoints = 0;
-  for (const [, fileName, minutes, points] of challengeContract) {
+  for (const [, fileName, minutes] of challengeContract) {
     const path = join(root, "site/src/content/docs/challenges", fileName);
     let text;
     try {
@@ -235,13 +190,9 @@ export async function runChecks(root = defaultRoot) {
       continue;
     }
 
-    const infoPattern = new RegExp(
-      `\\*\\*${minutes}\\s+min\\*\\*[\\s\\S]*?\\*\\*${points}\\s+pts\\*\\*`,
-    );
+    const infoPattern = new RegExp(`\\*\\*${minutes}\\s+min\\*\\*`);
     if (!infoPattern.test(text)) {
-      failures.push(
-        `site/src/content/docs/challenges/${fileName}: expected ${minutes} min and ${points} pts`,
-      );
+      failures.push(`site/src/content/docs/challenges/${fileName}: expected ${minutes} min`);
     }
 
     const challenge = challengeData.find((c) => c.file === fileName);
@@ -259,7 +210,6 @@ export async function runChecks(root = defaultRoot) {
       `[${challenge.id}: ${challenge.title}](./${slug}/)`,
       challenge.scope,
       `${challenge.minutes} min`,
-      String(challenge.teamPoints + challenge.memberPoints),
       challenge.outcome,
     ];
     const cells = row
@@ -275,7 +225,6 @@ export async function runChecks(root = defaultRoot) {
     }
 
     totalMinutes += minutes;
-    totalPoints += points;
   }
 
   if (challengeContract.length !== expectedChallengeCount) {
@@ -288,111 +237,21 @@ export async function runChecks(root = defaultRoot) {
       `challenge contract: expected ${expectedMinutes} total minutes, found ${totalMinutes}`,
     );
   }
-  if (totalPoints !== expectedPoints) {
-    failures.push(
-      `challenge contract: expected ${expectedPoints} base points, found ${totalPoints}`,
-    );
-  }
 
-  failures.push(...(await checkTemplateCopies(root)), ...(await checkEvidenceRule(root)));
+  failures.push(...(await checkTemplateCopies(root)));
 
-  let rubricTeamPoints = 0;
-  let rubricMemberPoints = 0;
-  const rubricPath = join(root, "facilitator/scoring-rubric.md");
-  let rubricText;
-  try {
-    rubricText = await readFile(rubricPath, "utf8");
-  } catch (error) {
-    if (error.code === "ENOENT") {
-      failures.push("facilitator/scoring-rubric.md: required scoring rubric is missing");
-    } else {
-      throw error;
-    }
-  }
-
-  if (rubricText !== undefined) {
-    for (const [challengeId, , , , expectedTeam, expectedMember] of challengeContract) {
-      const heading = new RegExp(`^### ${challengeId} — [^\\r\\n]+$`, "m");
-      const headingMatch = heading.exec(rubricText);
-      if (!headingMatch) {
-        failures.push(`facilitator/scoring-rubric.md: missing ${challengeId} evidence table`);
-        continue;
-      }
-
-      const bodyStart = headingMatch.index + headingMatch[0].length;
-      const rest = rubricText.slice(bodyStart);
-      const nextHeading = /^(?:### C\d+ — |## )/m.exec(rest);
-      const section = nextHeading ? rest.slice(0, nextHeading.index) : rest;
-      let sectionTeamPoints = 0;
-      let sectionMemberPoints = 0;
-      let totalRow;
-      let evidenceRows = 0;
-
-      for (const line of section.split(/\r?\n/)) {
-        const row =
-          /^\|\s*(\*\*[^|]+\*\*|[^|]+?)\s*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|$/.exec(
-            line,
-          );
-        if (!row) continue;
-        const label = row[1].trim().replace(/^\*\*|\*\*$/g, "");
-        const teamPoints = Number(row[2]);
-        const memberPoints = Number(row[3]);
-        if (label === "Total") {
-          totalRow = { teamPoints, memberPoints };
-        } else if (label !== "Evidence item") {
-          sectionTeamPoints += teamPoints;
-          sectionMemberPoints += memberPoints;
-          evidenceRows += 1;
-        }
-      }
-
-      if (evidenceRows === 0 || !totalRow) {
-        failures.push(
-          `facilitator/scoring-rubric.md: ${challengeId} has no evidence rows or total row`,
-        );
-        continue;
-      }
-      if (
-        sectionTeamPoints !== totalRow.teamPoints ||
-        sectionMemberPoints !== totalRow.memberPoints
-      ) {
-        failures.push(
-          `facilitator/scoring-rubric.md: ${challengeId} evidence rows sum to ${sectionTeamPoints} team and ${sectionMemberPoints} member points, but its total row says ${totalRow.teamPoints} team and ${totalRow.memberPoints} member`,
-        );
-      }
-      if (sectionTeamPoints !== expectedTeam || sectionMemberPoints !== expectedMember) {
-        failures.push(
-          `facilitator/scoring-rubric.md: ${challengeId} must match the challenge contract (${expectedTeam} team, ${expectedMember} member points), found ${sectionTeamPoints} team and ${sectionMemberPoints} member`,
-        );
-      }
-      rubricTeamPoints += sectionTeamPoints;
-      rubricMemberPoints += sectionMemberPoints;
-    }
-
-    if (
-      rubricTeamPoints !== expectedTeamPoints ||
-      rubricMemberPoints !== expectedMemberPoints ||
-      rubricTeamPoints + rubricMemberPoints !== expectedPoints
-    ) {
-      failures.push(
-        `rubric contract: expected ${expectedTeamPoints} team and ${expectedMemberPoints} member points (${expectedPoints} total), found ${rubricTeamPoints} team and ${rubricMemberPoints} member points`,
-      );
-    }
-  }
-
-  return { failures, totalMinutes, totalPoints, rubricTeamPoints, rubricMemberPoints };
+  return { failures, totalMinutes };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const { failures, totalMinutes, totalPoints, rubricTeamPoints, rubricMemberPoints } =
-    await runChecks();
+  const { failures, totalMinutes } = await runChecks();
   if (failures.length > 0) {
     console.error("Content invariant checks failed:");
     for (const failure of failures) console.error(`- ${failure}`);
     process.exitCode = 1;
   } else {
     console.log(
-      `Content invariants passed: ${challengeContract.length} challenges, ${totalMinutes} minutes, ${totalPoints} base points. Rubric totals passed: ${rubricTeamPoints} team, ${rubricMemberPoints} member.`,
+      `Content invariants passed: ${challengeContract.length} challenges, ${totalMinutes} minutes.`,
     );
   }
 }

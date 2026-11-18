@@ -11,11 +11,11 @@ sidebar:
 
 **When:** [C3](../../challenges/c03-assess-the-source/), [C6](../../challenges/c06-modernize-with-ghcp/), [C7](../../challenges/c07-migrate-and-go-live/), [C8](../../challenges/c08-validate-the-pattern/) and [C9](../../challenges/c09-optimize-the-db-with-ghcp/).
 
-**Before you start:** finish setting up `vm-dev01` in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01) (Path A) or [Student onboarding §4](../../deploy/lead-setup/student-onboarding/#4-sign-in-and-configure-vm-dev01-through-bastion) (Path B). This guide explains the agent workflow and branch rules; the challenges set the acceptance bar.
+**Before you start:** finish setting up `vm-dev01` in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01) (Path A) or [Student onboarding §2](../../deploy/lead-setup/student-onboarding/#2-connect-to-vm-dev01-through-bastion-and-set-up-your-workspace) (Path B). This guide explains the agent workflow and single-clone layout; the challenges set the acceptance bar.
 
 ## Switching to vm-dev01
 
-The setup lives in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01) for Path A and [Student onboarding §4](../../deploy/lead-setup/student-onboarding/#4-sign-in-and-configure-vm-dev01-through-bastion) for Path B, covering Bastion, sign-ins, the two local folders on `vm-dev01` and the Local harness. If you are reconnecting, use [Coming back later](../../deploy/member-steps/#coming-back-later); do not repeat clone or branch creation.
+The setup lives in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01) for Path A and [Student onboarding §2](../../deploy/lead-setup/student-onboarding/#2-connect-to-vm-dev01-through-bastion-and-set-up-your-workspace) for Path B, covering Bastion, sign-ins, your single clone (`C:\src\<your-repo>` on `main`) and the Local harness. If you are reconnecting, use [Coming back later](../../deploy/member-steps/#coming-back-later); do not repeat the clone.
 
 ### Check your setup
 
@@ -25,66 +25,52 @@ Use [Check your setup in Step 3](../../deploy/member-steps/#check-your-setup) fo
 
 Use [Coming back later in Step 3](../../deploy/member-steps/#coming-back-later). Never stop `vm-dev01` during the event.
 
-## Save your work and keep the branches straight
+## Save your work in your single clone on `main`
 
-You have **one private repo of your own on GitHub** (created in Step 1 in Path A, or assigned on your Handoff Card in Path B—never create a second GitHub repo). Your dev container holds one clone of it, and on `vm-dev01` it has a second local clone (`C:\src\<your-repo>`) for evidence alongside the VM's pre-cloned kit folder (`C:\src\factory`), which pushes your app branch (`vm-dev01-work`) to that same GitHub repo via the `member` remote. Keep this table in mind; most confusion comes from mixing them up.
+You have **one private repo of your own on GitHub** (created in Step 1 in Path A, or assigned on your Handoff Card in Path B—never create a second GitHub repo), cloned once on `vm-dev01` at `C:\src\<your-repo>` on `main`. `Import-Kit.ps1` placed `app/ContosoUniversity`, `.github/modernization/`, `.github/skills/`, `infra/bicep/university/`, and `factory/` side by side in that single repository.
 
-| Where | Repo | Branch | What's there |
-| --- | --- | --- | --- |
-| Your dev container (readiness check, C1, C2, C4, C5, C10; C8 in part) | Your own repo | `main` | The accelerator, plus the kit in `factory/` |
-| `vm-dev01`, `C:\src\factory` (C3, C6, C7, C9) | The public kit (`origin`), connected to your repo (`member`) | `vm-dev01-work` | The kit at the repo root: the app and your changes |
-| `vm-dev01`, `C:\src\<your-repo>` (C3, C6, C7, C9; C8 in part) | Your own repo | `main` | Evidence only, in `factory\evidence\` |
+| Path inside `C:\src\<your-repo>` on `main` | What lives there |
+| --- | --- |
+| `app/ContosoUniversity/` and `.github/upgrades/` | Contoso University source code and Upgrade agent assessment/plan/task artifacts (C3, C6) |
+| `agent-output/university/` and `infra/bicep/university/` | CoE archetype Bicep and `07-*.md` As-Built documentation (C5) |
+| `factory/evidence/` | Working challenge deliverables (`c01` through `c10`, pre-populated by `Import-Kit.ps1`) |
 
-After each task, commit and push to your branch. Because your initial `vm-dev01` setup ([Step 3.3](../../deploy/member-steps/#33-set-up-vm-dev01) / [Student onboarding §4](../../deploy/lead-setup/student-onboarding/#4-sign-in-and-configure-vm-dev01-through-bastion)) set the upstream with `git push -u member vm-dev01-work`, a plain `git push` goes to `member/vm-dev01-work`:
+After each Upgrade agent task in C6, commit and push on `main` from `C:\src\<your-repo>`:
 
 ```powershell
-cd C:\src\factory
-git add -A
-git commit -m "app: task 0N <name>"
+cd C:\src\<your-repo>
+git add app/ContosoUniversity .github/upgrades
+git commit -m "feat(app): task 0N <name>"
 git push
 ```
 
-`0N` is the task's number and `<name>` its short name, as in `.github/upgrades/scenarios/dotnet-version-upgrade/tasks.md`. For example, task `01-aspnetcore-net10` is `app: task 01 aspnetcore-net10`.
+`0N` is the task's number and `<name>` its short name, as in `.github/upgrades/scenarios/dotnet-version-upgrade/tasks.md`. For example, task `01-aspnetcore-net10` is `feat(app): task 01 aspnetcore-net10`.
 
-Your own repo now has the `vm-dev01-work` branch next to `main`. The two branches have nothing in common (different folder layout), and that's expected.
+:::note[Reverting only `app` and `.github/upgrades` if you need to restart C6]
 
-:::caution[Don't mix up the branches]
+Because C1–C5 commits live on the same `main` branch in `C:\src\<your-repo>`, **never run `git reset --hard` or `git push --force`** if you want to restart the seven C6 tasks from your C3 baseline commit (`<c3-commit-sha>`). Instead, restore only `app` and `.github/upgrades`:
 
-- **Stay on `vm-dev01-work`** in `C:\src\factory`. Check with `git branch -vv` before you commit. Don't commit on `main` there.
-- **Don't run `git pull` in `C:\src\factory`** after the one-time refresh during initial `vm-dev01` setup ([Step 3.3](../../deploy/member-steps/#33-set-up-vm-dev01) / [Student onboarding §4](../../deploy/lead-setup/student-onboarding/#4-sign-in-and-configure-vm-dev01-through-bastion)). Pulling the public kit's `main` into your work branch causes conflicts. If a coach tells you to, they'll give the exact command. (Evidence is different: you do pull in `C:\src\<your-repo>`, see below.)
-- **Never push to `origin`.** It's the public kit and the push is refused. Push with a plain `git push`, or `git push member vm-dev01-work`.
-- **Never merge `vm-dev01-work` into your repo's `main`, or open a pull request from it.** It would put the kit at the repo root next to the accelerator and break the dev container setup. GitHub shows a "Compare & pull request" banner for the branch: ignore it. Don't delete the branch either.
-- **If `git push` says "no upstream branch"**, run `git push -u member vm-dev01-work`. **If it says permission denied** for the public kit repo, you pushed to `origin`: run `git branch -vv`, then `git push -u member vm-dev01-work`.
-- **If a coach moves you to another branch**, keep working and pushing on that branch with the coach's commands. Your earlier `vm-dev01-work` branch stays as a backup. Don't switch back to it.
+```powershell
+cd C:\src\<your-repo>
+git restore --source=<c3-commit-sha> --worktree --staged -- app .github/upgrades
+git clean -fdx -- app .github/upgrades
+```
 
 :::
 
-### Copy your evidence to your repo
+### Working artifacts in `factory/evidence/`
 
-Your assessors read written evidence on `main` in your own repo; C6 also uses the app work branch for task commits. Each member keeps evidence in their own repo; there's no shared team repo. One rule applies everywhere:
-
-- **Dev container:** evidence goes in `factory/evidence/` on `main`; run `git pull` first.
-- **`vm-dev01`:** evidence goes in `C:\src\<your-repo>\factory\evidence\...` (the plain clone of your own repo) on `main`; run `git pull --rebase` first.
-
-For a team document, one person types, then every teammate saves the final file under the same name in their own `factory/evidence/cNN/`.
-
-After a challenge, on the VM, copy its files into the plain clone and push. This example is C3. For another challenge, replace `c03` and the files you copy:
+`Import-Kit.ps1` pre-populates `factory/evidence/` with the working templates (`c01/opportunity-canvas.md`, `c03/triage.md`, `c04/decisions-and-register.md`, `c07/cutover-rollback-runbook.md`, `c10/handover-and-ai-review.md`). Because `.github/upgrades/scenarios/dotnet-version-upgrade/` already sits at the root of `C:\src\<your-repo>` on `main`, you do not need to copy `assessment.md` or `plan.md` into `factory/evidence/c03/`—commit them in place alongside `factory/evidence/c03/triage.md`:
 
 ```powershell
 cd C:\src\<your-repo>
 git pull --rebase
-$dest = "factory\evidence\c03"
-New-Item -ItemType Directory -Force $dest | Out-Null
-$plan = "C:\src\factory\.github\upgrades\scenarios\dotnet-version-upgrade"
-Copy-Item "$plan\assessment.md", "$plan\assessment.json", "$plan\plan.md" $dest
-git add $dest
-git commit -m "docs: C3 assessment and plan"
+git add .github/upgrades factory/evidence/c03/triage.md
+git commit -m "docs: C3 assessment, plan and triage"
 git push
 ```
 
-For [C6](../../challenges/c06-modernize-with-ghcp/), [C7](../../challenges/c07-migrate-and-go-live/) and [C9](../../challenges/c09-optimize-the-db-with-ghcp/), put your screenshots, notes and fix scripts in the same kind of folder (`factory\evidence\c06`, `c07`, `c09`), then run the same `git add`, `git commit` and `git push`. Screenshots and exported reports go in the same folder.
-
-Use a conventional commit message (`type: Subject`, for example `docs: C3 assessment`); the dev container's commit hook rejects anything else. Push to `main`; no pull request is needed. If the push is rejected because `main` moved, run `git pull --rebase` in `C:\src\<your-repo>` and push again. In your dev container, run `git pull` before you commit evidence there, or its next push is rejected. Don't commit tenant IDs, subscription IDs or secrets. Never merge `vm-dev01-work` into `main`.
+Team deliverables (`C1`, `C4`, `C10`) are committed once in the team/pod lead's repository (`C:\src\<your-repo>` on `main`) and shared in the team channel for reference. Don't commit tenant IDs, subscription IDs or secrets.
 
 ## Assess and plan
 

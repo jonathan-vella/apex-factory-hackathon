@@ -28,7 +28,7 @@ instances > the instance under `vm-app01` > **Migration** > **Assessments**; sel
 Here are the findings from the Arc SQL migration assessment: <paste the findings>. List every distinct finding with its severity, then for each one propose a triage: blocker, accepted risk, or fix, and its impact on the target state. Don't change anything — this is analysis only.
 ```
 
-Keep the results in `C:\src\<your-repo>\factory\evidence\c03\triage.md` in your plain clone on `main`; run `git pull --rebase` there first. Do not save evidence beneath `C:\src\factory` on the app work branch. See [Copy your evidence to your repo](../../../guides/ghcp-upgrade/#copy-your-evidence-to-your-repo).
+Keep the results in `C:\src\<your-repo>\factory\evidence\c03\triage.md` on `main`. See [Working artifacts in factory/evidence/](../../../guides/ghcp-upgrade/#working-artifacts-in-factoryevidence).
 
 ## The trace-flag finding, specifically
 

@@ -39,6 +39,7 @@ deliverables
 deployer
 deployers
 dev
+[Dd]istro
 DNS
 dotfiles
 Entra
@@ -98,6 +99,8 @@ teardown
 triaged
 UDR
 UDRs
+vCore
+vCores
 vCPU
 vCPUs
 vending's

@@ -8,7 +8,7 @@ If a coach is reviewing readiness evidence at kickoff on day one (or helping a t
 
 ## How readiness is verified
 
-1. **Automated check in Step 4 (`vending` at T-1):** for each member in `roster.json`, `Invoke-PipelineVending.ps1` verifies that `vnet-datacenter` exists in `rg-datacenter` and that the Azure Arc machine `vm-app01` has `properties.status == 'Connected'`. Because the `member` stage only runs `Connect-DatacenterArc.ps1` after `Test-Datacenter.ps1` passes all 46 checks, an Arc `Connected` status proves the datacenter deployed and passed the pre-Arc validation.
+1. **Automated check in Step 4 (`vending` at T-1):** for each member in `roster.json`, `Invoke-PipelineVending.ps1` verifies that `vnet-datacenter` exists in `rg-datacenter` and that the Azure Arc machine `vm-app01` has `properties.status == 'Connected'`. Because the `member` stage only runs `Connect-DatacenterArc.ps1` after `Test-Datacenter.ps1` passes all checks, an Arc `Connected` status proves the datacenter deployed and passed the pre-Arc validation.
 2. **Evidence in `factory/evidence/readiness/`:** each member commits their readiness artifacts to `main` in their own repository during Step 3.
 3. **Vending failures:** if phase 1 stops at the first unready member, earlier members are vended but not restarted, exempted or probed, and later members are not vended. Fix the cause and rerun `vending` for all members; it is safe to repeat. If phase 2 fails while restarting VMs, fix the cause and rerun for all members. If phase 3 names members whose exemptions or connectivity probes failed, rerun only for those named indexes.
 4. **Datacenter redeploy:** a datacenter redeployed after vending requires vending again (see Recovery).

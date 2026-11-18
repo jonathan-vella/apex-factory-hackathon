@@ -2,24 +2,26 @@
 
 <#
 .SYNOPSIS
-Imports the kit's runnable folders into a member's own apex-accelerator repo, under factory/.
+Imports the kit's runnable folders into a member's own apex-accelerator repo, under factory/ and the repo root.
 .DESCRIPTION
 Downloads this kit at -Ref from GitHub (the tarball REST API; no git clone, no auth needed for the
 public repo; it needs api.github.com and codeload.github.com through the firewall) and copies scripts/,
 infra/, archetype/, app/, db/, templates/, .github/modernization/ and .github/skills/
-into <Destination>/factory/. It then imports the archetype's APEX project into the repo root by
+into <Destination>/factory/, pre-populates factory/evidence/ with the challenge working templates, and copies
+app/ContosoUniversity, .github/modernization/, .github/skills/* and .github/instructions/contoso-university.instructions.md
+into the repo root so the entire hackathon runs in a single clone on main. It then imports the archetype's APEX project into the repo root by
 running factory/archetype/Import-Archetype.ps1 at the same -Ref (skip with -SkipArchetype).
 factory/.gitignore keeps factory/.local/ (your subscription IDs) out of git. It also installs the platform pipeline's
-workflows and actions in the repo's .github/ (they run the kit from factory/; set up with Initialize-PlatformPipeline.ps1). It also keeps factory/ out of the repo's
-ESLint, Prettier and markdownlint checks (a nested factory/eslint.config.mjs and factory/.markdownlint-cli2.jsonc, plus a
-factory/ line in .prettierignore) and adds factory/ and .prettierignore to the weekly upstream sync's EXCLUDE_PATHS, so
-neither the pre-commit hooks nor the sync touch the kit. With the archetype, it also excludes infra/bicep/university from the
+workflows and actions in the repo's .github/ (they run the kit from factory/; set up with Initialize-PlatformPipeline.ps1). It also keeps factory/ and app/ out of the repo's
+ESLint, Prettier and markdownlint checks (a nested factory/eslint.config.mjs and factory/.markdownlint-cli2.jsonc, plus
+entries in .prettierignore) and adds factory/, app/, .github/modernization/, .github/skills/, .github/instructions/contoso-university.instructions.md
+and .prettierignore to the weekly upstream sync's EXCLUDE_PATHS, so neither the pre-commit hooks nor the sync touch the kit. With the archetype and app, it also excludes infra/bicep/university/**, app/** and .github/upgrades/** from the
 template's iac-security-baseline hook (a lefthook.yml exclude, kept out of the sync), because the archetype's two accepted
 lab findings (Key Vault purge protection off, the public web app) would otherwise block every commit that touches it; other
 Bicep and Terraform stay checked.
 Refuses to overwrite an existing factory/ folder unless -Force. -Force replaces only the imported kit
-folders: factory/.local (your settings, suffix and datacenter credentials) and your archetype work in the
-repo root are kept, unless you also pass -ReplaceArchetype. The site, docs, backlog and coach
+folders: factory/.local (your settings, suffix and datacenter credentials), your archetype work in the
+repo root (unless -ReplaceArchetype), and your app work in app/ContosoUniversity (unless -ReplaceApp) are kept. The site, docs, backlog and coach
 material are not imported.
 .PARAMETER Ref
 The kit's git ref: a branch or commit. Defaults to main.
@@ -30,10 +32,12 @@ Import-Archetype.ps1. The VMs' scripts are not affected: Deploy-Datacenter.ps1 h
 .PARAMETER Destination
 The apex-accelerator repo root to import into. Defaults to the current directory's git root.
 .PARAMETER Force
-Replace the kit folders in an existing factory/ folder. Keeps factory/.local and your archetype work.
+Replace the kit folders in an existing factory/ folder. Keeps factory/.local, your archetype work, and your app work.
 .PARAMETER ReplaceArchetype
 With an existing archetype in the repo root (agent-output/university, infra/bicep/university), overwrite
 it with the kit's copy. This loses any changes you made to it.
+.PARAMETER ReplaceApp
+With an existing app/ContosoUniversity in the repo root, overwrite it with the kit's copy. This loses any changes you made to it.
 .PARAMETER SkipArchetype
 Import factory/ only; don't run the archetype import.
 .EXAMPLE
@@ -51,6 +55,7 @@ param(
     [string] $KitRepository = 'jonathan-vella/apex-factory-hackathon',
     [switch] $Force,
     [switch] $ReplaceArchetype,
+    [switch] $ReplaceApp,
     [switch] $SkipArchetype
 )
 
@@ -84,31 +89,42 @@ function Add-SyncExclusion {
     $missing = @($Entries | Where-Object { $_ -notin $present })
     if (-not $missing) { return }
 
-    $newLines = @($lines[0..$end]) + @($missing | ForEach-Object { "$indent$_" }) + @($lines[($end + 1)..($lines.Count - 1)])
+    $tail = if ($end + 1 -lt $lines.Count) { @($lines[($end + 1)..($lines.Count - 1)]) } else { @() }
+    $newLines = @($lines[0..$end]) + @($missing | ForEach-Object { "$indent$_" }) + $tail
     Set-Content -Path $Path -Value ($newLines -join $newline) -NoNewline
     Write-Host "Added $($missing -join ', ') to EXCLUDE_PATHS in weekly-upstream-sync.yml."
 }
 
 function Add-HookExclusion {
     # The imported CoE archetype carries two accepted lab findings that the template's iac-security-baseline
-    # pre-commit hook rejects (Key Vault purge protection off, public web app). Keep the archetype out of that
+    # pre-commit hook rejects (Key Vault purge protection off, public web app). Keep the archetype and app out of that
     # hook's trigger glob, idempotently; any other Bicep or Terraform stays checked.
-    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string]$Exclude)
+    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string[]]$Exclude)
 
-    if (-not (Test-Path $Path)) { Write-Warning "lefthook.yml was not found. Commits that touch $Exclude may fail the iac-security-baseline hook; use LEFTHOOK_EXCLUDE=iac-security-baseline for those commits."; return }
+    if (-not (Test-Path $Path)) { Write-Warning "lefthook.yml was not found. Commits that touch $($Exclude -join ', ') may fail the iac-security-baseline hook; use LEFTHOOK_EXCLUDE=iac-security-baseline for those commits."; return }
     $raw = Get-Content -Path $Path -Raw
     $newline = if ($raw -match "`r`n") { "`r`n" } else { "`n" }
     $text = $raw -replace "`r`n", "`n"
     $pattern = '(?m)^(?<indent>[ \t]+)iac-security-baseline:\n(?<body>(?:\k<indent>[ \t]+[^\n]*\n|[ \t]*\n)*)'
     $match = [regex]::Match($text, $pattern)
     if (-not $match.Success) { Write-Warning "lefthook.yml has no iac-security-baseline command. Nothing to exclude."; return }
-    if ($match.Groups['body'].Value -match "(?m)^\s+exclude:") { return }
-    $glob = [regex]::Match($match.Groups['body'].Value, '(?m)^(?<pad>[ \t]+)glob:[^\n]*\n')
-    if (-not $glob.Success) { Write-Warning "The iac-security-baseline command in lefthook.yml has no glob line. Nothing to exclude."; return }
-    $insertAt = $match.Groups['body'].Index + $glob.Index + $glob.Length
-    $text = $text.Insert($insertAt, "$($glob.Groups['pad'].Value)exclude: `"$Exclude`"`n")
+    $excludeValue = '{' + ($Exclude -join ',') + '}'
+    $existingExclude = [regex]::Match($match.Groups['body'].Value, '(?m)^(?<pad>[ \t]+)exclude:\s*(?<val>[^\n]*)\n')
+    if ($existingExclude.Success) {
+        $currentVal = $existingExclude.Groups['val'].Value.Trim().Trim('"', "'")
+        $missing = @($Exclude | Where-Object { $currentVal -notlike "*$_*" })
+        if (-not $missing) { return }
+        $replaceStart = $match.Groups['body'].Index + $existingExclude.Index
+        $text = $text.Remove($replaceStart, $existingExclude.Length).Insert($replaceStart, "$($existingExclude.Groups['pad'].Value)exclude: `"$excludeValue`"`n")
+    }
+    else {
+        $glob = [regex]::Match($match.Groups['body'].Value, '(?m)^(?<pad>[ \t]+)glob:[^\n]*\n')
+        if (-not $glob.Success) { Write-Warning "The iac-security-baseline command in lefthook.yml has no glob line. Nothing to exclude."; return }
+        $insertAt = $match.Groups['body'].Index + $glob.Index + $glob.Length
+        $text = $text.Insert($insertAt, "$($glob.Groups['pad'].Value)exclude: `"$excludeValue`"`n")
+    }
     Set-Content -Path $Path -Value $text.Replace("`n", $newline) -NoNewline
-    Write-Information "Excluded $Exclude from the iac-security-baseline hook in lefthook.yml." -InformationAction Continue
+    Write-Information "Excluded $($Exclude -join ', ') from the iac-security-baseline hook in lefthook.yml." -InformationAction Continue
 }
 
 if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
@@ -192,18 +208,111 @@ export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }]
         Set-Content -Path (Join-Path $factory '.markdownlint-cli2.jsonc') -Value "{`n  `"config`": {`n$markdownRules`n  }`n}`n" -NoNewline
 
         $prettierIgnore = Join-Path $Destination '.prettierignore'
+        $kitPrettierEntries = @('factory/', 'app/', '.github/modernization/', '.github/skills/', '.github/instructions/contoso-university.instructions.md')
         if (-not (Test-Path $prettierIgnore)) {
-            Write-Warning "No .prettierignore at '$Destination'. Add 'factory/' to it yourself, or the pre-commit hooks will format-check the kit."
+            Write-Warning "No .prettierignore at '$Destination'. Add 'factory/' and 'app/' to it yourself, or the pre-commit hooks will format-check the kit."
         }
-        elseif (-not ((Get-Content -Path $prettierIgnore -Raw) -match '(?m)^factory/\s*$')) {
+        else {
             $existing = Get-Content -Path $prettierIgnore -Raw
-            $lead = if ($existing.EndsWith("`n")) { '' } else { "`n" }
-            Add-Content -Path $prettierIgnore -Value "${lead}`n# Imported kit (Import-Kit.ps1)`nfactory/`n" -NoNewline
+            $missingPrettier = @($kitPrettierEntries | Where-Object { $existing -notmatch "(?m)^$([regex]::Escape($_))\s*$" })
+            if ($missingPrettier) {
+                $lead = if ($existing.EndsWith("`n")) { '' } else { "`n" }
+                Add-Content -Path $prettierIgnore -Value "${lead}`n# Imported kit (Import-Kit.ps1)`n$($missingPrettier -join "`n")`n" -NoNewline
+            }
+        }
+
+        # Pre-populate factory/evidence/ with the challenge folder structure and streamlined working templates,
+        # preserving any existing files that students have already edited.
+        $teamEvidenceSource = Join-Path $factory 'templates/team/evidence'
+        $evidenceTarget = Join-Path $factory 'evidence'
+        if (Test-Path $teamEvidenceSource) {
+            New-Item -ItemType Directory -Path $evidenceTarget -Force | Out-Null
+            foreach ($evFile in Get-ChildItem -Path $teamEvidenceSource -Recurse -File) {
+                $relPath = [IO.Path]::GetRelativePath($teamEvidenceSource, $evFile.FullName)
+                $destEvFile = Join-Path $evidenceTarget $relPath
+                if (-not (Test-Path $destEvFile)) {
+                    New-Item -ItemType Directory -Path (Split-Path $destEvFile -Parent) -Force | Out-Null
+                    Copy-Item -Path $evFile.FullName -Destination $destEvFile -Force
+                }
+            }
+        }
+        $teamRootReadme = Join-Path $factory 'templates/team/README.md'
+        $evidenceRootReadme = Join-Path $evidenceTarget 'README.md'
+        if ((Test-Path $teamRootReadme) -and -not (Test-Path $evidenceRootReadme)) {
+            Copy-Item -Path $teamRootReadme -Destination $evidenceRootReadme -Force
+        }
+        $starterTemplates = @(
+            @{ Source = 'opportunity-canvas.md'; Target = 'c01/opportunity-canvas.md' }
+            @{ Source = 'triage.md'; Target = 'c03/triage.md' }
+            @{ Source = 'decisions-and-register.md'; Target = 'c04/decisions-and-register.md' }
+            @{ Source = 'cutover-rollback-runbook.md'; Target = 'c07/cutover-rollback-runbook.md' }
+            @{ Source = 'handover-and-ai-review.md'; Target = 'c10/handover-and-ai-review.md' }
+        )
+        foreach ($tpl in $starterTemplates) {
+            $tplSource = Join-Path $factory "templates/attendee/$($tpl.Source)"
+            $tplDest = Join-Path $evidenceTarget $tpl.Target
+            if ((Test-Path $tplSource) -and -not (Test-Path $tplDest)) {
+                New-Item -ItemType Directory -Path (Split-Path $tplDest -Parent) -Force | Out-Null
+                Copy-Item -Path $tplSource -Destination $tplDest -Force
+            }
+        }
+
+        # Copy app/ContosoUniversity, .github/modernization/, .github/skills/* and Contoso University instructions
+        # into the destination root so the entire hackathon runs in a single clone on main.
+        $rootAppTarget = Join-Path $Destination 'app/ContosoUniversity'
+        if ((Test-Path $rootAppTarget) -and -not $ReplaceApp) {
+            Write-Warning "Kept your existing app/ContosoUniversity. Pass -ReplaceApp to overwrite it with the kit's copy and lose your changes."
+        }
+        else {
+            if (Test-Path $rootAppTarget) { Remove-Item -Path $rootAppTarget -Recurse -Force }
+            New-Item -ItemType Directory -Path (Split-Path $rootAppTarget -Parent) -Force | Out-Null
+            Copy-Item -Path (Join-Path $kitRoot 'app/ContosoUniversity') -Destination $rootAppTarget -Recurse -Force
+        }
+
+        $rootModTarget = Join-Path $Destination '.github/modernization'
+        if (Test-Path $rootModTarget) { Remove-Item -Path $rootModTarget -Recurse -Force }
+        New-Item -ItemType Directory -Path (Split-Path $rootModTarget -Parent) -Force | Out-Null
+        Copy-Item -Path (Join-Path $kitRoot '.github/modernization') -Destination $rootModTarget -Recurse -Force
+
+        $rootSkillsTarget = Join-Path $Destination '.github/skills'
+        New-Item -ItemType Directory -Path $rootSkillsTarget -Force | Out-Null
+        foreach ($skillDir in Get-ChildItem -Path (Join-Path $kitRoot '.github/skills') -Directory) {
+            $destSkillDir = Join-Path $rootSkillsTarget $skillDir.Name
+            if (Test-Path $destSkillDir) { Remove-Item -Path $destSkillDir -Recurse -Force }
+            Copy-Item -Path $skillDir.FullName -Destination $destSkillDir -Recurse -Force
+        }
+
+        $instructionsSource = Join-Path $kitRoot '.github/copilot-instructions.md'
+        if (Test-Path $instructionsSource) {
+            $instructionsDir = Join-Path $Destination '.github/instructions'
+            New-Item -ItemType Directory -Path $instructionsDir -Force | Out-Null
+            $rawInstructions = Get-Content -Path $instructionsSource -Raw
+            $scopedInstructions = "---`napplyTo: `"app/ContosoUniversity/**`"`n---`n`n$rawInstructions"
+            Set-Content -Path (Join-Path $instructionsDir 'contoso-university.instructions.md') -Value $scopedInstructions -NoNewline
+        }
+
+        $gitAttributesPath = Join-Path $Destination '.gitattributes'
+        if (Test-Path $gitAttributesPath) {
+            $attrRaw = Get-Content -Path $gitAttributesPath -Raw
+            if ($attrRaw -notmatch '(?m)^\*\.bicepparam\s+text\s+eol=lf\s*$') {
+                $attrLead = if ($attrRaw.EndsWith("`n")) { '' } else { "`n" }
+                Add-Content -Path $gitAttributesPath -Value "${attrLead}*.bicepparam text eol=lf`n" -NoNewline
+            }
+        }
+        else {
+            Set-Content -Path $gitAttributesPath -Value "*.bicepparam text eol=lf`n" -NoNewline
         }
 
         # The weekly upstream sync removes everything upstream doesn't have, except EXCLUDE_PATHS: without
-        # factory/ there, it deletes the kit; without .prettierignore, it reverts the line added above.
-        Add-SyncExclusion -Path (Join-Path $Destination '.github/workflows/weekly-upstream-sync.yml') -Entries @('factory/', '.prettierignore')
+        # factory/ and the root app/modernization paths there, it deletes them; without .prettierignore, it reverts the lines added above.
+        Add-SyncExclusion -Path (Join-Path $Destination '.github/workflows/weekly-upstream-sync.yml') -Entries @(
+            'factory/',
+            'app/',
+            '.github/modernization/',
+            '.github/skills/',
+            '.github/instructions/contoso-university.instructions.md',
+            '.prettierignore'
+        )
 
         # The platform pipeline's workflows must sit in the repo root .github/, not in factory/. They run the kit's
         # scripts from factory/ (KIT_DIR), and the sync and Prettier must leave them alone.
@@ -251,8 +360,8 @@ export default [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs"], processor: skip }]
         }
 
         # Runs on a fresh import and on a re-run alike, since the hook is repo config and not part of the archetype copy.
-        if ((Test-Path (Join-Path $Destination 'infra/bicep/university')) -and $PSCmdlet.ShouldProcess((Join-Path $Destination 'lefthook.yml'), 'Exclude the archetype from the iac-security-baseline hook')) {
-            Add-HookExclusion -Path (Join-Path $Destination 'lefthook.yml') -Exclude 'infra/bicep/university/**'
+        if ((Test-Path (Join-Path $Destination 'infra/bicep/university')) -and $PSCmdlet.ShouldProcess((Join-Path $Destination 'lefthook.yml'), 'Exclude the archetype and app from the iac-security-baseline hook')) {
+            Add-HookExclusion -Path (Join-Path $Destination 'lefthook.yml') -Exclude @('infra/bicep/university/**', 'app/**', '.github/upgrades/**')
             Add-SyncExclusion -Path (Join-Path $Destination '.github/workflows/weekly-upstream-sync.yml') -Entries @('lefthook.yml')
         }
     }

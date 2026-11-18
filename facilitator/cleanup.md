@@ -4,12 +4,10 @@ Run cleanup after the showcase, normally on T+2 (the day after the two-day event
 
 ## Before you delete anything
 
-Member cleanup deletes `rg-datacenter`, which removes `vm-dev01` and its `C:\src\factory` clone. Team cleanup deletes `rg-hub` and the shared policy artifacts. Neither can be undone. Don't start until every item below is true for every member:
+Member cleanup deletes `rg-datacenter`, which removes `vm-dev01` and its `C:\src\<your-repo>` clone. Team cleanup deletes `rg-hub` and the shared policy artifacts. Neither can be undone. Don't start until every item below is true for every member:
 
-- Scores are signed off in the [scoreboard](../coach/scoreboard.md) and no evidence question is open.
-- The member's work branch on `vm-dev01` (`vm-dev01-work`, or the branch a coach applied) is pushed to the member's own repo with `git push`. Check `git branch -vv` on `vm-dev01` and that the commits are on GitHub.
-- Written evidence is pushed to `main` under `factory/evidence/cNN/`, including the C6 task-check log, C9 fix scripts/results and screenshots, as in [Copy your evidence to your repo](../site/src/content/docs/guides/ghcp-upgrade.md#copy-your-evidence-to-your-repo). The actual C6 task commits stay on the pushed `vm-dev01-work` branch; do not merge it into `main`.
-- Each member has noted their `.local/settings.json` values (workload subscription, member index, suffix, location), or the person running cleanup has them. The stage reads the roster and the member index from the repo's settings, but a coach repair needs them by hand, and they're lost if the dev container is rebuilt without the file.
+- All commits on `main` in `C:\src\<your-repo>` on `vm-dev01` (app modernization tasks, archetype outputs, C9 fix scripts and `factory/evidence/` deliverables) are pushed to the member's own repo on GitHub (`git status` is clean).
+- Each member has noted their `.local/settings.json` values (workload subscription, member index, suffix, location), or the person running cleanup has them. The stage reads the roster and the member index from the repo's settings, but a coach repair needs them by hand.
 - The event report has the costs and the owner follow-ups.
 - The event owner has decided what happens to `id-sqlmi-directory` and its tenant-wide Graph grant (see Post-event access), and a named person has a date to run `Remove-PlatformPipeline.ps1`.
 The members' GitHub repos aren't touched by cleanup. Decide with the partner how long to keep them.

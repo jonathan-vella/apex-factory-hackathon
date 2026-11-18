@@ -22,33 +22,13 @@ test("a team template that differs from, or is missing next to, its attendee tem
   }
 });
 
-test("an evidence rule page without the two bullets is blocked", async () => {
-  const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
-  try {
-    await mkdir(join(root, "site/src/content/docs/guides"), { recursive: true });
-    await writeFile(
-      join(root, "site/src/content/docs/guides/ghcp-upgrade.md"),
-      "- **Dev container:** evidence goes in `factory/evidence/` on `main`. Run `git pull` first.\n",
-    );
-    const result = await runChecks(root);
-    assert.match(result.failures.join("\n"), /ghcp-upgrade\.md: missing the evidence rule bullet/);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
-});
-
-test("the scoring contract has ten challenges and no C0", async () => {
+test("the challenge contract has ten challenges and no C0", async () => {
   const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
   try {
     await mkdir(join(root, "facilitator"), { recursive: true });
-    await writeFile(join(root, "facilitator/scoring-rubric.md"), "# Scoring rubric\n");
     const result = await runChecks(root);
     const text = result.failures.join("\n");
-    assert.match(text, /scoring-rubric\.md: missing C1 evidence table/);
-    assert.match(text, /scoring-rubric\.md: missing C10 evidence table/);
-    assert.doesNotMatch(text, /missing C0 evidence table/);
     assert.doesNotMatch(text, /c00-ready-to-hack/);
-    assert.match(text, /expected 170 base points/);
     assert.match(text, /expected 750 total minutes/);
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -77,7 +57,7 @@ test("a challenges overview row that differs from challenges.json is blocked", a
     );
     await writeFile(
       join(root, "site/src/content/docs/challenges/index.md"),
-      "| Day 1 | [C1: Define the opportunity](./c01-define-the-opportunity/) | Team | 50 min | 10 | All six, in order |\n",
+      "| Day 1 | [C1: Define the opportunity](./c01-define-the-opportunity/) | Team | 50 min | All six, in order |\n",
     );
     const result = await runChecks(root);
     assert.match(result.failures.join("\n"), /index\.md: the C1 row must read/);

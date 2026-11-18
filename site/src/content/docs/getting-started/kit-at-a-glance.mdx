@@ -15,10 +15,10 @@ This page is the big picture. When you're ready to work, start with [Requirement
 
 | Where | What you do there |
 |---|---|
-| Dev container | VS Code on your laptop, in your own repo. You trigger deployments with GitHub Actions (in Path A) and run C1, C2, C4, C5 with APEX and `azd`, and C10 here. C8 uses both the dev container and `vm-dev01`. [Set up your repo](../../deploy/set-up-your-repo/) (Path A) or [Student onboarding](/deploy/lead-setup/student-onboarding/) (Path B) sets it up. |
-| `vm-dev01` | Your workstation through Bastion, next to the private network. From C3 the app work happens here; never stop it during the event. [Switch to the workstation](../../guides/ghcp-upgrade/#switching-to-vm-dev01). |
-| Browser and Azure portal | The Arc assessment, MI link, Bastion and C8 smoke checks. Follow [the readiness assessment](../../deploy/member-steps/#32-run-the-first-arc-sql-assessment-and-check-hybrid-benefit) and [C7 migration](../../challenges/c07-migrate-and-go-live/). |
-| Your own repo | [Written evidence](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) goes in `factory/evidence/` on `main`; run `git pull` first. On the VM, use the plain clone and `git pull --rebase`. |
+| `vm-dev01` | Your single workstation through Bastion, next to the private network. You run 100% of `C1` to `C10` here in a single clone (`C:\src\<your-repo>` on `main`), including APEX and `azd` in C5 and the Upgrade agent in C3 and C6. Never stop it during the event. [Set up `vm-dev01`](../../deploy/member-steps/#33-set-up-vm-dev01) (Path A) or [Student onboarding](/deploy/lead-setup/student-onboarding/) (Path B). |
+| Azure Cloud Shell | Browser shell (`https://shell.azure.com`) used before `vm-dev01` exists at T-3 to import the kit and dispatch `platform.yml` in Path A (or by the team lead in Path B), and at T+2 to run `teardown`. |
+| Browser and Azure portal | The Arc assessment, MI link, Bastion and C8 live checks. Follow [the readiness assessment](../../deploy/member-steps/#32-run-the-first-arc-sql-assessment-and-check-hybrid-benefit) and [C7 migration](../../challenges/c07-migrate-and-go-live/). |
+| Your own repo (`C:\src\<your-repo>` on `main`) | [Working artifacts](../../challenges/c01-define-the-opportunity/#where-your-evidence-goes) live in `factory/evidence/` on `main`, alongside `app/ContosoUniversity` and `infra/bicep/university` in the same repo. |
 
 Each challenge page has a **Where to run** block that says which one to use.
 

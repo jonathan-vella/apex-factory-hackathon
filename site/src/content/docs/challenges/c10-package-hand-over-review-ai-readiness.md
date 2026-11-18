@@ -1,12 +1,12 @@
 ---
 title: "C10: Package, hand over, review AI readiness"
-description: Close out the engagement as a team with a reusable asset, a handover and an honest AI-readiness review.
+description: Close out the engagement as a team with a reusable asset, a concise handover summary and an honest AI-readiness review.
 next: false
 ---
 
 ## Background
 
-Modernizing one app is only worth it if the next team can repeat it and the customer can run what you built. C10 closes the engagement: you package something reusable, hand over, and record honestly how much of the work needed a human.
+Modernizing one app is only worth it if the next team can repeat it and the customer can run what you built. C10 closes the engagement: you package something reusable, record the team's handover and AI-readiness review in one concise document, and deliver your 5-minute showcase.
 
 **Business context.** Dana, the CIO, has to tell the board what the university can do next and what it can't yet. C10 hands over what the team built and says how ready the university is to run AI on it.
 
@@ -14,87 +14,72 @@ Modernizing one app is only worth it if the next team can repeat it and the cust
 
 **Objective.** Be able to package a reusable asset, complete a handover, and assess how ready a customer is to run GitHub Copilot's agents unattended.
 
-**Time and points.** Day 2, **15:15**, **60 min**, **Team**, **20 pts** (team).
+**Time and scope.** Day 2, **15:15**, **60 min**, **Team**.
 
 ## Challenge
 
-**Starting point.** The source material lives in each member's own repo: the `factory/evidence/cNN/` folders for C1 to C9, including every member's [C8 acceptance pack](../c08-validate-the-pattern/). Use [C1's outcomes](../c01-define-the-opportunity/) and [C9's fix scripts](../c09-optimize-the-db-with-ghcp/) in the final package. Ask every teammate to share their C8 pack (`factory/evidence/c08/acceptance-handover.md` and its `acceptance.json`) on one screen or in your team chat. Save each as `factory/evidence/c10/member-packs/member-<n>.md` and `member-<n>-acceptance.json`, where `<n>` is that member's index.
+**Starting point.** Each member's completed C8 `acceptance.json` and live check results, plus C9's five `.sql` fix scripts and Query Store `baseline` vs `after` improvement.
 
-**Fixed by the kit.** The three attendee templates and the scoring rule: the team lead's (or pod lead's, in a multi-pod cohort) copy is the one coaches score.
+**Fixed by the kit.** The pre-created `factory/evidence/c10/handover-and-ai-review.md` template in the team/pod lead's repository.
 
-**You decide.** Which asset to package, who the engagement is handed to and how they operate it, and where Copilot's agents needed a human.
+**You decide.** Which asset to package into `factory/evidence/c10/reusable-asset/`, where Copilot's agents needed a human during the two days, and your talking points for the 5-minute team showcase.
 
 :::note[Where to work]
 
-<span class="sl-badge">Dev container · repo root (bash)</span> — Open your own repo in its dev container (from [Set up your repo](../../deploy/set-up-your-repo/), or your pre-created student repository from [Student onboarding](/deploy/lead-setup/student-onboarding/) in a lead-provisioned cohort). No `vm-dev01` or Azure access is needed. Run `git pull` first.
-
-One person, ideally the team lead (or pod lead), owns the package in their repo at `factory/evidence/c10/` and types the final files on one screen; don't open each other's repos. Split the work so nobody waits: one person on the handover (Requirement 2), one on the gap register and checklist (Requirements 3 and 4), and the others on the asset (Requirement 1) and the showcase (Requirement 5), then swap to review. When the files are final, every teammate saves the same files under the same names in their own `factory/evidence/c10/`, commits (`docs: C10 package`) and pushes `main` (see [Where your evidence goes](../c01-define-the-opportunity/#where-your-evidence-goes)).
+<span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work together on one shared screen in the team/pod lead's clone (`C:\src\<your-repo>` on `main` on `vm-dev01`). `Import-Kit.ps1` already pre-created `factory/evidence/c10/handover-and-ai-review.md` in your repository. Commit `reusable-asset/` and `handover-and-ai-review.md` once in the team/pod lead's repository and share the completed file in the team channel (teammates do not need to copy-paste `member-packs/` or duplicate files across every repository).
 
 :::
 
-### Set up the files
-
-Copy the imported templates in your own repo's dev container:
-
-```bash title="Dev container — repo root (bash)"
-mkdir -p factory/evidence/c10
-cp factory/templates/attendee/acceptance-handover.md factory/evidence/c10/
-cp factory/templates/attendee/ai-readiness-gap-register.md factory/evidence/c10/
-cp factory/templates/attendee/factory-kit-checklist.md factory/evidence/c10/
-```
-
-The [gap register](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/ai-readiness-gap-register.md) and [factory-kit checklist](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/factory-kit-checklist.md) are also readable on GitHub.
-
 ## Requirements
 
-1. **Reusable asset (about 15 min).** <span class="sl-badge">Dev container · repo root</span> Package one reusable asset from the engagement: the archetype adaptation, the modernization playbook run, or the perf kit fixes. Another team must be able to pick it up without you in the room. Copy the files into `factory/evidence/c10/reusable-asset/`, for example the adapted archetype folder from a member's own repo, or the five fix scripts from `factory/evidence/c09/`. Add a short README that says what a new team must supply and how to run it.
+1. **Package one reusable asset (`factory/evidence/c10/reusable-asset/`, 20 min).** <span class="sl-badge note">vm-dev01 · Team/pod lead</span> Package one reusable asset from the engagement—the adapted archetype Bicep (`infra/bicep/university/`), the modernization playbook and `.github/upgrades/scenarios/dotnet-version-upgrade/plan.md`, or the five C9 `.sql` fix scripts (`factory/evidence/c09/*.sql`)—into `factory/evidence/c10/reusable-asset/` in the team/pod lead's repository, along with a short `README.md` explaining what inputs the next delivery team supplies and how to run it.
 
-   For a playbook run, copy the exact relevant files from the app branch without merging it into `main`. In your dev container's bash terminal, run `git fetch origin vm-dev01-work`, then `git ls-tree -r --name-only origin/vm-dev01-work -- .github/upgrades` to find the files. Create `factory/evidence/c10/reusable-asset/` and extract each selected file with `git show origin/vm-dev01-work:<exact-file-path> > factory/evidence/c10/reusable-asset/<file-name>`. Include the playbook and explain which checks were performed; inspect/redact every exported file before committing it.
+2. **Complete `factory/evidence/c10/handover-and-ai-review.md` (25 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> Open the pre-created `factory/evidence/c10/handover-and-ai-review.md` in the team/pod lead's repository (if missing, copy `factory/templates/attendee/handover-and-ai-review.md` to `factory/evidence/c10/handover-and-ai-review.md`) and fill in its four sections:
+   - **Member acceptance and optimization summary (C8 & C9):** one row per member recording their C8 `acceptance.json` verdict (`ACCEPT`), their C8 live checks (smoke pages, Blob upload, Service Bus toast, 20-request burst, App Insights), and their C9 Query Store CPU/duration improvement (`baseline` vs `after`).
+   - **Reusable factory asset:** what `factory/evidence/c10/reusable-asset/` packages and how the next engagement runs it.
+   - **AI-readiness gap register:** where a human had to step in during C1–C9 (including any coach support or lifeline used), why the agent could not complete it alone, and the next step for customer engagements.
+   - **Showcase talking points (5 minutes):** business outcomes met from C1, the most valuable GitHub Copilot workflow, one guardrail that caught a mistake, and remaining deferred items handed to operations.
 
-2. **Acceptance and handover (about 15 min).** <span class="sl-badge">Dev container · repo root</span> Copy `factory/templates/attendee/acceptance-handover.md` ([template on GitHub](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/templates/attendee/acceptance-handover.md)) to `factory/evidence/c10/acceptance-handover.md` and complete it for the whole engagement. In its handover summary, name every member and link their pack in `factory/evidence/c10/member-packs/`. Say who the engagement is handed to and how they operate it.
+3. **Commit in the team/pod lead's repository and deliver the showcase (15 min).** <span class="sl-badge note">vm-dev01 · Team/pod lead</span> Commit `factory/evidence/c10/` (after confirming no tenant, subscription, or object IDs appear) on `main` in the team/pod lead's repository, share `handover-and-ai-review.md` in the team channel, and present your 5-minute showcase at 16:15:
 
-3. **AI-readiness gap register (about 10 min).** <span class="sl-badge">Dev container · repo root</span> Copy `factory/templates/attendee/ai-readiness-gap-register.md` to `factory/evidence/c10/` and fill it in honestly: where GitHub Copilot's agents needed a human, each time a coach unblocked you (including any checkpoint a coach gave you), and what that implies for running this unattended at a customer. Ordinary hints and discussion need no separate entry. Delete the template's example rows.
-
-4. **Factory-kit checklist (about 5 min).** <span class="sl-badge">Dev container · repo root</span> Copy `factory/templates/attendee/factory-kit-checklist.md` to `factory/evidence/c10/` and run through it as a final sanity pass across the team's deliverables.
-
-5. **Showcase preparation (about 15 min).** <span class="sl-badge">Dev container · repo root</span> Write `factory/evidence/c10/showcase.md`: what was modernized, what's deferred, how it serves C1's top outcome, and the most useful thing Copilot did. **Deliver it in the 16:15 showcase slot**, after this preparation time box. A two-minute verbal showcase with one screen still counts.
+   ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
+   cd C:\src\<your-repo>
+   git pull --rebase
+   git add factory/evidence/c10
+   git commit -m "docs: C10 reusable asset, handover and AI-readiness review"
+   git push
+   ```
 
 ## Success criteria
 
-To complete this challenge, show your coach in `factory/evidence/c10/` on `main`:
+To complete this challenge, review with your coach in the team/pod lead's repo:
 
-- [ ] The packaged reusable asset in `reusable-asset/`, referenced from the handover document.
-- [ ] The completed `acceptance-handover.md`, covering every team member.
-- [ ] The AI-readiness gap register, with an entry each time a coach unblocked the team (including a supplied checkpoint), or a credible non-use entry explaining the human reviews that were still needed.
-- [ ] The factory-kit checklist, with all items addressed.
-- [ ] The showcase outline (`showcase.md`), delivered to your coach.
-- [ ] Every teammate's copies match the team lead's (or pod lead's, in a multi-pod cohort) copy.
-- [ ] Outcome check (unscored guidance): every gap in your register has an owner and a next step, so Dana can say what comes after the handover.
+- [ ] `factory/evidence/c10/reusable-asset/` committed on `main` in the team/pod lead's repo with a short `README.md`.
+- [ ] `factory/evidence/c10/handover-and-ai-review.md` committed on `main` in the team/pod lead's repo (and shared in the team channel), covering every member's C8 and C9 results, the AI-readiness gap register, and the showcase talking points.
+- [ ] 5-minute team showcase delivered at 16:15.
 
 For technical blockers, check [Troubleshooting](../../reference/troubleshooting/) before asking your coach.
 
 <details>
 <summary>What makes an asset "reusable"?</summary>
 
-Someone outside the team should be able to run it without first asking you a question. If your packaging still assumes tribal knowledge from the two days, it isn't done yet.
+Someone outside the team should be able to run it without first asking you a question. If your packaging still assumes tribal knowledge from the two days, add the missing inputs or commands to `reusable-asset/README.md`.
 
 </details>
 
 <details>
-<summary>We didn't use any coach support. Is the gap register empty then?</summary>
+<summary>We didn't use any coach support. Is the AI-readiness gap register empty then?</summary>
 
-No. The register should also note where a human review step (not coach support) was still essential, even though nothing broke. Look back over the challenges for the points where the kit deliberately keeps a person in charge, and record them as the current state of AI readiness, not as gaps to close. Ask your coach if you want a nudge.
+No. Record where a human review gate was still essential (for example, reviewing `azd provision --preview` in C5, verifying local app runs after each Upgrade task in C6, or confirming zero replication lag before C7 cutover) and what that means for running agents unattended at a customer.
 
 </details>
 
 <details>
 <summary>If you need to start over</summary>
 
-C10 produces documents only, so there is no deployed state to reset. To redo a document, delete it from `factory/evidence/c10/` and copy its template again from `factory/templates/attendee/`. If teammates' copies drift apart, one person's final files win: everyone saves those over their own.
+C10 produces documents only, so there is no deployed state to reset. Edit `factory/evidence/c10/handover-and-ai-review.md` in place and commit on `main`.
 
 </details>
-
-**Bonus.** Up to 10 pts for a showcase that includes a live demo of the modernized app against SQL Managed Instance, not just slides. Bonus points from all challenges share one cap of 30 points per team.
 
 ## References
 

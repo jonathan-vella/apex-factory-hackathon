@@ -23,7 +23,7 @@ Only then do they select **Cutover** (some portal builds label the button **Comp
 
 ## Day 2 curveball
 
-The exercise in **Curveballs** in the Coach sidebar fails the replica go/no-go for **one member per team**, picked by the coach, so the rest of the team keeps its pace. Don't corrupt the source database. That member records the failed check, marks no-go, cancels the migration, deletes the MI copy, writes the reseed plan (cap 15 minutes) and restarts the link. They use the new seeding wait for the runbook and finish C7, C8 and C9 after their cutover; rows that need a completed cutover (live pages, contained user) score only once they finish it.
+The exercise in **Curveballs** in the Coach sidebar fails the replica go/no-go for **one member per team**, picked by the coach, so the rest of the team keeps its pace. Don't corrupt the source database. That member records the failed check, marks no-go, cancels the migration, deletes the MI copy, writes the reseed plan (cap 15 minutes) and restarts the link. They use the new seeding wait for the runbook and finish C7, C8 and C9 after their cutover.
 
 ## Expected evidence
 
@@ -31,44 +31,35 @@ The exercise in **Curveballs** in the Coach sidebar fails the replica go/no-go f
 
 - Arc portal migration status: link created, seeded (status **Ready for cutover**), replica validated, cutover complete. The portal removes the link on cutover.
 - The maintenance-window output from `vm-app01`: site and pool `Stopped`, `Sessions: 0`, and the lag at no lag (two dashes) just before the cutover.
-- The live app at `https://app-university-<suffix>.azurewebsites.net/` showing the migrated data on all five pages.
+- The live app at `https://app-university-<suffix>.azurewebsites.net/` returning HTTP 200 (full acceptance checks follow in C8).
 - The contained database user created with a plain `CREATE USER [<identity-name>] FROM EXTERNAL PROVIDER;` (no `WITH SID`, no `TYPE = E` — both are SQL MI-unsupported syntax from on-premises habits) and granted `db_datareader`, `db_datawriter`, `db_ddladmin`.
-- The source's trace flags (`-T1800`, `-T9567`) removed after cutover (empty `DBCC TRACESTATUS` output).
-- The cutover and rollback runbook, filled in from what actually happened. Post-cutover rollback is not exercised: record pre-cutover abort/reseed and name the customer backup-restore or planned-failback procedure with data reconciliation. Never send new MI writes back to the stale source by simply restarting IIS.
+- The source's trace flags (`-T1800`, `-T9567`) removed after cutover (`C:\LabTools\Prepare-MiLinkSource.ps1 -RemoveTraceFlags`).
+- The concise cutover and rollback runbook (`factory/evidence/c07/cutover-rollback-runbook.md`), filled in from what actually happened. Post-cutover rollback is not exercised: record pre-cutover abort/reseed and name the customer backup-restore or planned-failback procedure with data reconciliation. Never send new MI writes back to the stale source by simply restarting IIS.
 
 ## Model answer
 
 The steps use the attendee page's requirement numbers.
 
-1. Requirement 1: on `vm-app01`, through Bastion, run `Prepare-MiLinkSource.ps1` until it prints `The source is ready for MI link.`
+1. Requirement 1: on `vm-app01`, through Bastion, run `Prepare-MiLinkSource.ps1 -MiSubnetPrefix ...` until it prints `The source is ready for MI link.`
 2. Requirement 2: Arc portal > SQL Server on `vm-app01` > **Migration** > **Database migration** > **Migrate data** > **Migrate using real-time replication (online)**; wait for seeding to finish and the status to show **Ready for cutover**.
-3. Requirement 3: validate: row counts per table match source vs. replica; spot-check a few `Students`/`Courses`/`Enrollment` rows.
-4. Requirement 4: go/no-go: stop the app's writes to the source (the source stays technically writable, so this is a procedural stop, not a technical one). Confirm the **Lag** column shows two dashes. Cut over via **Monitor and cutover > Cutover** (some portal builds label it **Complete cutover**), ticking the box that confirms traffic is stopped and leaving forced failover unticked (it's for when lag isn't truly zero — ticking it with lag 0 adds risk for no benefit).
+3. Requirement 3: validate: row counts per table match source vs. replica; spot-check `Department` and `Course` checksums.
+4. Requirement 4: go/no-go: stop the app's writes to the source (the source stays technically writable, so this is a procedural stop, not a technical one). Confirm the **Lag** column shows two dashes. Cut over via **Monitor and cutover > Cutover** (some portal builds label it **Complete cutover**), ticking the box that confirms traffic is stopped and leaving forced failover unticked.
 5. Requirement 5: after cutover, write the Key Vault secret `ConnectionStrings--DefaultConnection` with a normal managed instance connection string using `Authentication=Active Directory Default`, no user name or password. Create the contained user and grant roles.
-6. Requirement 6: point the web app's container config at the C6 image; restart; confirm the five pages, an upload round-trip, a notification round-trip, and Application Insights telemetry. If a coach gave the member the known-good image (or L5) for this step, record it in the scoreboard: it caps C7 at 10 of 20 member points (see the [lifelines](lifelines.md) and the rubric).
-7. Requirement 7: remove `-T1800 -T9567` from the source SQL Server's startup parameters (SQL Server Configuration Manager > the SQL Server service > Properties > **Startup Parameters**) and restart the SQL Server service (not the VM) to apply.
-8. Requirement 8: fill in the cutover/rollback runbook template with the actual sequence, including anything that needed a retry.
+6. Requirement 6: point the web app's container config at the C6 image; restart; confirm `https://app-university-<suffix>.azurewebsites.net/` returns HTTP 200.
+7. Requirement 7: run `C:\LabTools\Prepare-MiLinkSource.ps1 -RemoveTraceFlags` on `vm-app01` in Administrator Windows PowerShell, which removes `-T1800` and `-T9567`, restarts `MSSQLSERVER`, and verifies with `DBCC TRACESTATUS(-1)` that both flags are off.
+8. Requirement 8: fill in `factory/evidence/c07/cutover-rollback-runbook.md` and commit on `main`.
 
 ## Business outcome check
 
-The outcome is safe, repeatable change. Read the runbook as Marcus would: it states when the stop starts, how long it lasted and how to roll back. The under-an-hour figure is an illustrative target, so record what the team saw and don't fail them on it. This supports the scoring row on the cutover and rollback runbook. It earns no points of its own.
+The outcome is safe, repeatable change. Read `cutover-rollback-runbook.md` as Marcus would: it states when the stop starts, how long it lasted and how to recover.
 
 ## Common mistakes
 
 - Ticking "forced failover" by habit — this is only for when you can't confirm zero lag. With a validated, zero-lag replica, it adds risk without a benefit.
-- Running `az sql mi link failover --failover-type Planned` from the CLI, expecting it to behave like the portal's cutover — this fails with `DistributedAvailabilityGroupFailoverInvalidInstanceRole`, since the MI is the secondary. The equivalent CLI-adjacent path, if ever needed outside the portal, is `ALTER AVAILABILITY GROUP [<DAG>] FAILOVER` run against SQL Server itself (2022 CU13+) — not from the MI side, and not needed for this kit's validated flow at all.
+- Running `az sql mi link failover --failover-type Planned` from the CLI, expecting it to behave like the portal's cutover — this fails with `DistributedAvailabilityGroupFailoverInvalidInstanceRole`, since the MI is the secondary.
 - Creating the contained user before cutover completes — it fails, because the replica is read-only until then. This is expected; retry after cutover, not a sign of a broken link.
 - Using `CREATE USER ... WITH SID = ...` or `TYPE = E` syntax carried over from on-premises Windows-auth habits — SQL MI's contained user syntax is simpler; the extra clauses cause an error.
-- Forgetting to remove the trace flags from the source after cutover — small, but it's a deferred-work register item from C3/C4 that needs closing here.
-
-## Partial credit
-
-- Migration and go-live complete, trace-flag removal forgotten: partial credit, have the member close it out before C8.
-- Cutover complete but the runbook written generically instead of from what actually happened (no mention of lag check, no mention of the forced-failover decision): partial credit, ask for a rewrite with specifics.
-
-## Bonus
-
-A real, unplanned abort-and-reseed, with the cleanup of the leftover writable copy documented, is worth up to 5 bonus points. The curveball's staged abort earns no bonus: it's part of the event. Don't manufacture a fault for anyone just to claim the bonus.
+- Forgetting to run `Prepare-MiLinkSource.ps1 -RemoveTraceFlags` on the source after cutover.
 
 ## Reset
 

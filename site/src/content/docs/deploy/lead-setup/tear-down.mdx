@@ -7,10 +7,10 @@ prev:
 next: false
 ---
 
-**Who:** **Students** confirm their branches and evidence are pushed; the **Team lead** runs the cohort `teardown` workflow; the **Lead repo admin** removes the single pipeline identity.
-**When:** **T+2**, after coach scoring sign-off and the event owner's approval to tear down.
+**Who:** **Students** confirm their commits on `main` are pushed; the **Team lead** runs the cohort `teardown` workflow; the **Lead repo admin** removes the single pipeline identity.
+**When:** **T+2**, after the event owner's approval to tear down.
 
-In **Path B (Lead-provisioned cohort)**, student repositories (`<event>-student-*`) have **no** `Member` pipeline, `gh-lab` environment, or Azure OIDC identity. **Students do not run any `teardown` workflow and do not run `Remove-PlatformPipeline.ps1`.** Once students push their final commits from `vm-dev01` and their Dev Container or Codespace, the team lead tears down every student subscription and the shared foundation from `<event>-lead`.
+In **Path B (Lead-provisioned cohort)**, student repositories (`<event>-student-*`) have **no** `Member` pipeline, `gh-lab` environment, or Azure OIDC identity. **Students do not run any `teardown` workflow and do not run `Remove-PlatformPipeline.ps1`.** Once students push their final commits on `main` from `vm-dev01`, the team lead tears down every student subscription and the shared foundation from `<event>-lead` in [Azure Cloud Shell](https://shell.azure.com).
 
 See [Cost](/reference/cost/) for when datacenter, SQL Managed Instance, and hub firewall charges stop.
 
@@ -18,9 +18,7 @@ See [Cost](/reference/cost/) for when datacenter, SQL Managed Instance, and hub 
 
 Confirm every item below before dispatching `teardown` in `<event>-lead`:
 
-- [ ] Coaches have signed off all challenge scores and evidence; no scoring review remains open.
-- [ ] Every student has pushed their `vm-dev01-work` branch (`git push member vm-dev01-work` in `C:\src\factory` on `vm-dev01`) and verified the commits on GitHub—teardown deletes `vm-dev01`.
-- [ ] Every student has committed and pushed all `factory/evidence/cNN/` deliverables and C9 scripts/results to `main` on `<org>/<event>-student-<nn>`.
+- [ ] Every student has committed and pushed all work on `main` (`app/ContosoUniversity`, `agent-output/university/`, C9 scripts, and `factory/evidence/` deliverables) from `C:\src\<your-repo>` on `vm-dev01` and verified the commits on GitHub—teardown deletes `vm-dev01`.
 - [ ] The team lead has a private local backup of `<event>-lead/factory/.local/roster.json` and `.local/settings.json` for post-teardown verification (never committed to git).
 - [ ] The event owner has approved teardown and confirmed whether `rg-management` (`id-sqlmi-directory`) should also be deleted (`include-management=true`) or kept for another event in the same tenant.
 
@@ -100,6 +98,6 @@ This single command removes `id-factory-pipeline`'s role assignments across Tena
 
 2. **Revoke temporary human privilege elevations.** Only after `Remove-PlatformPipeline.ps1` and the verification loop succeed, remove temporary human **Owner** assignments at Tenant Root, Global Administrator access elevation, and Privileged Role Administrator PIM activations.
 
-3. **Archive or lock down student repositories per partner retention policy.** Student repositories (`<org>/<event>-student-*`) and `<org>/<event>-student-template` remain in GitHub with each student's `main` evidence and `vm-dev01-work` code branch preserved. Depending on your partner retention policy:
+3. **Archive or lock down student repositories per partner retention policy.** Student repositories (`<org>/<event>-student-*`) and `<org>/<event>-student-template` remain in GitHub with each student's `main` commits preserved. Depending on your partner retention policy:
    - Archive `<event>-student-*` repositories (`gh repo archive <org>/<repo>`) so evidence remains read-only for post-event review, **or**
    - Downgrade external Write (`push`) collaborators to Read (`pull`) or remove outside collaborator access once attendees have exported any personal notes they are permitted to keep.

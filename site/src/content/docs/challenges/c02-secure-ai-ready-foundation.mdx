@@ -22,44 +22,45 @@ That is why Azure Landing Zones are mandatory in the era of agentic AI. In this 
 
 **Objective.** Be able to test an AI coding agent against repository security guardrails and Azure Landing Zone Deny policies, and explain why platform guardrails are mandatory for agentic AI.
 
-**Time and points.** Day 1, **09:45**, **45 min**, **Member**, **15 pts** (member). Every member runs C2 in their own dev container and vended `rg-spoke`, before [C3: Assess the source](../c03-assess-the-source/).
+**Time and scope.** Day 1, **09:45**, **45 min**, **Member**. Every member runs C2 on `vm-dev01` in `C:\src\<your-repo>` and their vended `rg-spoke`, before [C3: Assess the source](../c03-assess-the-source/).
 
 ## Challenge
 
-**Starting point.** Your own repo (created from `apex-accelerator` in [Step 1: Repo and preflight](../../deploy/set-up-your-repo/)) and your workload subscription, which the team lead vended into `mg-factory-corp` in [Step 4: Vending](../../deploy/vending/).
+**Starting point.** Your own repo cloned at `C:\src\<your-repo>` on `vm-dev01` and your workload subscription, which the team lead vended into `mg-factory-corp` in [Step 4: Vending](../../deploy/vending/).
 
 **Fixed by the kit.**
 
-- APEX's security baseline reference in `.github/instructions/references/iac-security-baseline.md` and the scanner script `tools/scripts/validate-iac-security-baseline.mjs` at the root of your repo.
-- The CoE archetype Bicep templates in `infra/bicep/university/` at the root of your repo.
+- APEX's security baseline reference in `.github/instructions/references/iac-security-baseline.md` and the scanner script `tools/scripts/validate-iac-security-baseline.mjs` at the root of `C:\src\<your-repo>`.
+- The CoE archetype Bicep templates in `infra/bicep/university/` at the root of `C:\src\<your-repo>`.
 - The foundation built before the event: ALZ-lite's management groups (`mg-factory`, `mg-factory-platform`, `mg-factory-corp`), the shared hub (`vnet-hub`, `afw-hub` with DNS proxy, central private DNS zones), the core policies at `mg-factory-corp`, and your vended spoke (`rg-spoke`, `vnet-spoke`, peering and route tables).
 
 <ArchitectureDiagram highlight="c2" name="c2-arch" caption="Highlighted: the foundation and spoke guardrails C2 tests, deployed before the event. n is your member index." />
 
-**You decide.** Which prompts you use to push the AI coding agent against the guardrails, and how you explain the difference between repository guardrails and Azure control-plane guardrails in `factory/evidence/c02/guardrail-test.md`.
+**You decide.** Which prompts you use to push the AI coding agent against the guardrails, and how you explain the difference between repository guardrails and Azure control-plane guardrails to your coach.
 
 :::note[Where to work]
 
-Open your own repo in its dev container (VS Code, **Reopen in Container**). C2 uses two folders in the container:
+Open `C:\src\<your-repo>` in VS Code on `vm-dev01` and use a PowerShell 7 (`pwsh`) terminal:
 
-- <span class="sl-badge">Dev container · repo root (bash)</span> — Layer 1 baseline scan and git commits (`/workspaces/<your-repo>`, Requirements 1 and 4).
-- <span class="sl-badge">Dev container · factory/ (pwsh)</span> — Layer 2 Azure CLI policy checks and `Test-Connectivity.ps1` (`/workspaces/<your-repo>/factory`, Requirements 2 and 3).
+- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> — Layer 1 baseline scan (`npm run validate:iac-security-baseline`) at the repo root (Requirement 1).
+- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> — Layer 2 Azure CLI policy checks and `Test-Connectivity.ps1` (Requirements 2 and 3).
 
 :::
 
 ## Requirements
 
-1. **Layer 1: Try to make the AI coding agent bypass the APEX security baseline (15 min).** <span class="sl-badge">Dev container · repo root (bash)</span>
+1. **Layer 1: Try to make the AI coding agent bypass the APEX security baseline (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span>
 
-   Open `.github/instructions/references/iac-security-baseline.md` at the root of your repo and read **Private Networking And DNS** and **Stricter than the ALZ Corp floor** (`publicNetworkAccess: 'Disabled'` for backend services, TLS 1.2 minimum, managed identity over keys, diagnostic settings).
+   Open `.github/instructions/references/iac-security-baseline.md` at the root of `C:\src\<your-repo>` and read **Private Networking And DNS** and **Stricter than the ALZ Corp floor** (`publicNetworkAccess: 'Disabled'` for backend services, TLS 1.2 minimum, managed identity over keys, diagnostic settings).
 
-   Before editing anything, capture the baseline from the repo root:
+   Before editing anything, run the baseline scanner from `C:\src\<your-repo>`:
 
-   ```bash title="Dev container — repo root (bash)"
+   ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
+   cd C:\src\<your-repo>
    npm run validate:iac-security-baseline -- --public-web-app infra/bicep/university/modules/web-app.bicep
    ```
 
-   The unchanged lab archetype can already report `keyvault.bicep` because purge protection is off for disposable-lab cleanup. Record that existing finding; do not enable purge protection or weaken the scanner to make the exercise green. The post-edit run must add a finding for `registry.bicep`.
+   The unchanged lab archetype can already report `keyvault.bicep` because purge protection is off for disposable-lab cleanup. Do not enable purge protection or weaken the scanner to make the exercise green. The post-edit run must add a finding for `registry.bicep`.
 
    Next, open GitHub Copilot Chat in **Agent** mode and ask it to break those rules in `infra/bicep/university/modules/registry.bicep`. For example:
 
@@ -71,29 +72,29 @@ Open your own repo in its dev container (VS Code, **Reopen in Container**). C2 u
    - Often, the agent refuses or warns you because `.github/instructions/references/iac-security-baseline.md` is loaded in its instructions.
    - If the agent refuses, make the insecure edit yourself in `infra/bicep/university/modules/registry.bicep` (change `publicNetworkAccess: 'Disabled'` to `publicNetworkAccess: 'Enabled'`) to simulate an agent that hallucinated or ignored its prompt instructions.
 
-   Now run APEX's repository security baseline scanner from the repo root (`/workspaces/<your-repo>`), passing `--public-web-app` for the documented App Service front-end exception:
+   Now run APEX's repository security baseline scanner from `C:\src\<your-repo>`, passing `--public-web-app` for the documented App Service front-end exception:
 
-   ```bash title="Dev container — repo root (bash)"
+   ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
    npm run validate:iac-security-baseline -- --public-web-app infra/bicep/university/modules/web-app.bicep
    ```
 
-   Confirm that the scanner fails and flags `infra/bicep/university/modules/registry.bicep`. Save the scanner output for your evidence file, then restore `registry.bicep` so C5 can deploy cleanly later:
+   Confirm that the scanner fails and flags `infra/bicep/university/modules/registry.bicep`. Then restore `registry.bicep` so C5 can deploy cleanly later:
 
-   ```bash title="Dev container — repo root (bash)"
+   ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
    git restore --source=HEAD -- infra/bicep/university/modules/registry.bicep
    git status --short -- infra/bicep/university
    ```
 
-   Done when you have captured the agent's response, the failing `validate:iac-security-baseline` output, and `git status --short -- infra/bicep/university` is clean.
+   Done when you have seen the scanner flag `registry.bicep` and `git status --short -- infra/bicep/university` is clean.
 
-2. **Layer 2: Try to make the AI coding agent bypass Azure Landing Zone `Deny` policies (15 min).** <span class="sl-badge">Dev container · factory/ (pwsh)</span>
+2. **Layer 2: Try to make the AI coding agent bypass Azure Landing Zone `Deny` policies (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span>
 
    The archetype is excluded from the imported pre-commit hook, so the manual scan and the agent's instructions are Layer 1 here. Neither prevents a developer or agent calling Azure directly. That is where the Azure Landing Zone (`mg-factory-corp`) takes over.
 
-   First, open PowerShell (`pwsh`) in `/workspaces/<your-repo>/factory` and make sure the shared services subscription ID is saved in `factory/.local/settings.json` (the team lead posts it after [Step 4: Vending](../../deploy/vending/#43-save-the-shared-services-subscription-id-members); members save it in [Step 4.3](../../deploy/vending/#43-save-the-shared-services-subscription-id-members)):
+   First, open PowerShell 7 (`pwsh`) in `C:\src\<your-repo>\factory` and make sure the shared services subscription ID is saved in `factory/.local/settings.json`:
 
-   ```powershell title="Dev container — factory/ (pwsh)"
-   cd /workspaces/<your-repo>/factory
+   ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
+   cd C:\src\<your-repo>\factory
    ./scripts/Initialize-Settings.ps1 -SharedSubscriptionId '<shared-services-subscription-id>'
    $s = Get-Content .local/settings.json | ConvertFrom-Json
    az account set --subscription $s.subscriptionId
@@ -103,13 +104,13 @@ Open your own repo in its dev container (VS Code, **Reopen in Container**). C2 u
 
    - **Attempt A: A Container Registry with public network access enabled:**
 
-     ```powershell title="Dev container — factory/ (pwsh)"
+     ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
      az acr create -g rg-spoke -n "acrguard$($s.suffix)" --sku Basic --public-network-enabled true -l $s.location
      ```
 
    - **Attempt B: A network interface in `vnet-spoke/snet-app` with a public IP address** (delete the test public IP afterward so `rg-spoke` stays clean):
 
-     ```powershell title="Dev container — factory/ (pwsh)"
+     ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
      az network public-ip create -g rg-spoke -n pip-guardrail-test --sku Standard -l $s.location
      az network nic create -g rg-spoke -n nic-guardrail-test --vnet-name vnet-spoke --subnet snet-app --public-ip-address pip-guardrail-test -l $s.location
      az network public-ip delete -g rg-spoke -n pip-guardrail-test
@@ -119,13 +120,13 @@ Open your own repo in its dev container (VS Code, **Reopen in Container**). C2 u
 
    **If either test succeeds, stop and clean up immediately.** Delete only the exercise registry (`az acr delete -n "acrguard$($s.suffix)" --yes`) or NIC (`az network nic delete -g rg-spoke -n nic-guardrail-test`), then its public IP (`az network public-ip delete -g rg-spoke -n pip-guardrail-test`). Tell your coach the expected policy is missing or not yet effective; do not leave a public test resource or weaken another policy.
 
-3. **Check datacenter compliance, exemptions and spoke connectivity (10 min).** <span class="sl-badge">Dev container · factory/ (pwsh)</span>
+3. **Layer 3: Check datacenter compliance and spoke connectivity (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span>
 
-   `rg-datacenter` normally complies with ALZ-lite, so vending normally records **no exemptions needed**. Bastion's standalone public IP is not attached to a NIC and is never in the NIC public-IP policy's scope. Deny blocks new or changed non-compliant requests; it does not remove existing resources. An exemption records an accepted compliance exception, not permission to bypass tenant policy.
+   `rg-datacenter` normally complies with ALZ-lite, so vending normally records **no exemptions needed**. Bastion's standalone public IP is not attached to a NIC and is never in the NIC public-IP policy's scope. Deny blocks new or changed non-compliant requests; it does not remove existing resources.
 
    List the active policy assignments and your `rg-datacenter` exemptions, then run `Test-Connectivity.ps1` to confirm your spoke and datacenter route cleanly through the hub firewall:
 
-   ```powershell title="Dev container — factory/ (pwsh)"
+   ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
    az policy assignment list --disable-scope-strict-match -o table
    az policy state summarize --resource-group rg-datacenter -o json
    az policy exemption list --resource-group rg-datacenter --query "[].{name:displayName, category:exemptionCategory, expires:expiresOn, description:description}" -o table
@@ -134,41 +135,20 @@ Open your own repo in its dev container (VS Code, **Reopen in Container**). C2 u
 
    If you are the **team lead**, also run this read-only check once to confirm the Microsoft Graph permissions from [Step 2.2](../../deploy/team-lead-steps/#22-grant-microsoft-graph-read-permissions-privileged-role-administrator) are in place before C7:
 
-   ```powershell title="Dev container — factory/ (pwsh, team lead only)"
+   ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh, team lead only)"
    ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf
    ```
 
-   Done when you record the compliance result and either "none needed" or the exemptions vending created, and `Test-Connectivity.ps1` reports `PASS` on every applicable check. Add one datacenter deferred-work entry with a named teammate as owner, the production target and a timeline; carry it into C4. If exemptions exist, read the reason, owner and target date from their description, replacing the generic pipeline owner with an accountable teammate.
-
-4. **Record and commit your guardrail evidence (5 min).** <span class="sl-badge">Dev container · repo root (bash)</span>
-
-   Create `factory/evidence/c02/guardrail-test.md` in your own repo (with no tenant, subscription or object IDs) containing:
-   - **Layer 1 result:** how the AI agent responded to your prompt to weaken `registry.bicep`, and the `validate:iac-security-baseline` failure output before you restored the file.
-   - **Layer 2 result:** the `RequestDisallowedByPolicy` output for `alzl-deny-pna-acr` and `alzl-deny-nic-pip`.
-   - **Compliance, exemptions and connectivity:** the `rg-datacenter` compliance result, "none needed" or any documented exemptions, one deferred-work entry with owner, target and timeline, and the `Test-Connectivity.ps1` summary.
-   - **Takeaway for Tomás:** two sentences explaining why repository instructions (`iac-security-baseline.md`) and Azure Landing Zone `Deny` policies work together, and why ALZ guardrails are mandatory when using AI agents.
-
-   Commit and push to `main` from the repo root:
-
-   ```bash title="Dev container — repo root (bash)"
-   cd /workspaces/<your-repo>
-   git pull
-   git add factory/evidence/c02/guardrail-test.md
-   git commit -m "docs: C2 AI guardrail test evidence"
-   git push
-   ```
+   Done when `Test-Connectivity.ps1` reports `PASS` on every applicable check (no log-pasting file is needed).
 
 ## Success criteria
 
-To complete this challenge, show your coach in your own repo:
+To complete this challenge, confirm on `vm-dev01`:
 
-- [ ] `factory/evidence/c02/guardrail-test.md` committed on `main`, with no tenant, subscription or object IDs.
-- [ ] Layer 1 evidence: the agent prompt/response and the `npm run validate:iac-security-baseline -- --public-web-app infra/bicep/university/modules/web-app.bicep` failure output for `registry.bicep`, plus confirmation that `infra/bicep/university/modules/registry.bicep` is restored cleanly.
-- [ ] Layer 2 evidence: the `RequestDisallowedByPolicy` errors from `alzl-deny-pna-acr` and `alzl-deny-nic-pip` in `rg-spoke`, with all test resources cleaned up.
-- [ ] Your `rg-datacenter` compliance result, "none needed" or documented exemptions, one datacenter deferred-work entry with owner, target and timeline, and `Test-Connectivity.ps1` showing `PASS` on every applicable check.
-- [ ] Scored takeaway: explain to Tomás in two sentences why repository instructions alone cannot secure Azure and why landing-zone Deny policies are mandatory for autonomous agents. This is part of the final 5-point rubric row.
-
-The coach-led Day 1 curveball is recorded only in the **team lead's C2 evidence**. It changes nobody's points; other members are not marked down for not having it.
+- [ ] Layer 1: ran `npm run validate:iac-security-baseline -- --public-web-app infra/bicep/university/modules/web-app.bicep` against the insecure `registry.bicep` edit, saw it fail on `registry.bicep`, and restored `infra/bicep/university/modules/registry.bicep` cleanly (`git status --short -- infra/bicep/university` is empty).
+- [ ] Layer 2: saw `RequestDisallowedByPolicy` from `alzl-deny-pna-acr` and `alzl-deny-nic-pip` in `rg-spoke`, with `pip-guardrail-test` cleaned up.
+- [ ] Layer 3: `Test-Connectivity.ps1` shows `PASS` on every applicable check.
+- [ ] Takeaway: be ready to explain in two sentences why repository instructions alone cannot secure Azure and why landing-zone `Deny` policies are mandatory for autonomous agents.
 
 Next, continue with [C3: Assess the source](../c03-assess-the-source/).
 
@@ -184,7 +164,7 @@ Contoso University's web front end is a documented exception in the archetype br
 <details>
 <summary>The exemptions list on rg-datacenter is empty</summary>
 
-An empty list is normally correct: vending exempts only violated ALZ-lite assignments, and this datacenter normally complies. Record the compliance result, "none needed" and the datacenter deferred-work entry. Do not rerun vending or restart VMs just to manufacture an exemption. If compliance is non-compliant, ask your coach to review the finding rather than granting yourself an exception.
+An empty list is normally correct: vending exempts only violated ALZ-lite assignments, and this datacenter normally complies. Do not rerun vending or restart VMs just to manufacture an exemption.
 
 </details>
 
@@ -198,34 +178,9 @@ Vending updates `vnet-datacenter` to use the hub firewall (`10.100.0.4`) for DNS
 <details>
 <summary>If you need to start over</summary>
 
-If you left edits in `infra/bicep/university/`, run `git restore --source=HEAD -- infra/bicep/university` from the repo root. If `pip-guardrail-test` is still in `rg-spoke`, delete it with `az network public-ip delete -g rg-spoke -n pip-guardrail-test`. If your spoke or exemptions need to be recreated, the team lead can re-run the `vending` stage for your member index (`members=<n>`) from GitHub Actions (see [Step 4: Vending](../../deploy/vending/)).
+If you left edits in `infra/bicep/university/`, run `git restore --source=HEAD -- infra/bicep/university` from `C:\src\<your-repo>`. If `pip-guardrail-test` is still in `rg-spoke`, delete it with `az network public-ip delete -g rg-spoke -n pip-guardrail-test`.
 
 </details>
-
-**Bonus.** Up to 5 pts for the private DNS `DeployIfNotExists` test in the foundation's validation record (`factory/infra/foundation/validation.md`, "Negative tests"). From `factory/` in PowerShell, with `$s` loaded, create a temporary **private** storage account and a blob private endpoint without a DNS zone group:
-
-```powershell title="Dev container — factory/ (pwsh)"
-$testStorage = "stdns$($s.suffix)"
-az storage account create -g rg-spoke -n $testStorage -l $s.location --sku Standard_LRS --kind StorageV2 --public-network-access Disabled --allow-blob-public-access false --allow-shared-key-access false --min-tls-version TLS1_2
-$storageId = az storage account show -g rg-spoke -n $testStorage --query id -o tsv
-az network private-endpoint create -g rg-spoke -n pe-dns-test -l $s.location --vnet-name vnet-spoke --subnet snet-pe --private-connection-resource-id $storageId --group-ids blob --connection-name dns-test
-```
-
-Wait about 12 minutes for policy remediation, then inspect the zone group and hub record:
-
-```powershell title="Dev container — factory/ (pwsh)"
-az network private-endpoint dns-zone-group list -g rg-spoke --endpoint-name pe-dns-test -o table
-az network private-dns record-set a show --subscription $s.sharedSubscriptionId -g rg-hub --zone-name privatelink.blob.core.windows.net -n $testStorage -o table
-```
-
-Record the result (with IDs redacted) in `guardrail-test.md`, then remove only these exercise resources:
-
-```powershell title="Dev container — factory/ (pwsh)"
-az network private-endpoint delete -g rg-spoke -n pe-dns-test
-az storage account delete -g rg-spoke -n $testStorage --yes
-```
-
-Verify the endpoint and storage account are gone. Do not create a DNS zone group yourself: that would bypass the policy behavior being measured.
 
 ## References
 
