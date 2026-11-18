@@ -47,6 +47,9 @@ each value separately. Never write these values to a tracked file.
   to run the `vending` stage for their subscription. This skill never creates the spoke.
 - `azd auth status` shows the user is signed in. azd keeps its own sign-in, separate from `az login`. If it is not
   signed in, run `azd auth login --use-device-code`, and stop to tell the user if sign-in fails.
+- Remind the user that both `az login` and `azd auth login` must complete with Multi-Factor Authentication (MFA)
+  when the tenant enforces MFA on Azure write or delete operations, otherwise `azd provision` fails with
+  `RequestDisallowedByPolicy`.
 - `az account show --subscription <subscription-id> --query user.type -o tsv` prints `user`. The SQL Managed
   Instance's Entra admin is the signed-in user, and `preflight.ps1` rejects a service principal.
 
@@ -62,10 +65,21 @@ member's deployment is this check, the read-only `preflight.ps1` and `azd provis
    `agent-output/university/tmp/`, which is gitignored. Never commit it and never write it to the tracked
    `04-governance-*` files.
 2. Compare the discovery's Deny-effect findings with the packaged `04-governance-constraints.json` and
-   `04-policy-property-map.json`, matched by policy definition ID and resource type.
-3. If the member's tenant has a **new Deny-effect policy on a resource type this archetype deploys** that the packaged
-   set doesn't account for, **stop and tell the user**. Name the policy and the resource type. Don't continue on a
-   plan or Bicep that no longer matches what passed review.
+   `04-policy-property-map.json`, matched by policy definition ID and resource type:
+   - **Caller-identity (`requestContext().identity`) policies:** Treat Deny policies whose rule `if` condition tests
+     only `requestContext().identity` (such as **Multi Factor Authentication Enforcement - Write** and **- Delete**,
+     with no resource `field`, `type` or ARM/Bicep property condition) as caller sign-in requirements rather than new
+     Deny blockers on deployed resource types. No Bicep change can satisfy or violate them. Tell the user to ensure
+     both `az login` and `azd auth login` completed with MFA.
+   - **Unreadable ancestor management groups (`PARTIAL`):** Vending grants members `Reader` on the kit management
+     groups (`mg-factory` and `mg-factory-corp`), not on Tenant Root or parent management groups above `mg-factory`.
+     Do not stop on `discovery_status: "PARTIAL"` when the unresolved items come solely from unreadable ancestor
+     management-group scopes above `mg-factory` (HTTP `403` on `policyAssignments/read` or `policyDefinitions/read`)
+     or from caller-identity policies.
+3. If the member's tenant has any **other** new Deny-effect policy on a resource type this archetype deploys (including
+   mixed rules that combine `requestContext()` with resource properties), or a `PARTIAL` status from any other cause,
+   **stop and tell the user**. Name the policy (or failing scope) and the resource type. Don't continue on a plan or
+   Bicep that no longer matches what passed review.
 4. Otherwise continue. Don't re-stamp, re-emit or hand-edit any hash or signature field (`l1m_ref.sha256`,
    `tree_hash`, `supporting_inputs` or `cache_inputs.artifact_sha` in any `challenge-findings-*.json`). They stay
    exactly as packaged.
@@ -74,16 +88,20 @@ This check is part of the skill. The contract stays three inputs.
 
 ## Set the azd environment and preview
 
-1. From `infra/bicep/university/`, run `azd env new <suffix>`.
-2. Set the azd environment values from the three inputs: tenant ID, subscription ID, suffix. Set no others by hand.
+1. From `infra/bicep/university/`, run `azd env new <suffix>` (or `azd env select <suffix>` if it already exists).
+2. Set the azd environment values from the three inputs (`azd env set AZURE_TENANT_ID <tenant-id>`,
+   `azd env set AZURE_SUBSCRIPTION_ID <subscription-id>`, `azd env set SUFFIX <suffix>`). Set no others by hand. Note
+   that `azd env set` writes `.azure/<env>/.env` on disk and does not export variables into the current shell's `$env:`.
 3. Derive the hub's region the way `preflight.ps1` does: the spoke VNet's `Connected` peering points at the hub, and
    the hub VNet's `location` is the region. Run `azd env set AZURE_LOCATION <that region>`. azd needs this core value
    before it will run provisioning on a fresh environment.
-4. Run `./scripts/preflight.ps1` **in the same shell session**, right after step 3. It is read-only. It validates the
-   prerequisites against the live subscription and sets `AZURE_LOCATION`, `LOG_ANALYTICS_WORKSPACE_ID`,
-   `SQLMI_DIRECTORY_IDENTITY_ID`, `DEPLOYER_OBJECT_ID` and `DEPLOYER_UPN` as process environment variables for the
-   next command. This step is required: `azd provision --preview` compiles `main.bicepparam`'s
-   `readEnvironmentVariable()` calls before the `preprovision` hook runs, so skipping it fails with `BCP427`.
+4. Run `./scripts/preflight.ps1 -TenantId <tenant-id> -SubscriptionId <subscription-id> -Suffix <suffix>` **in the
+   same shell session**, right after step 3. It is read-only. It validates the prerequisites against the live
+   subscription and sets `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`, `SUFFIX`, `AZURE_LOCATION`,
+   `LOG_ANALYTICS_WORKSPACE_ID`, `SQLMI_DIRECTORY_IDENTITY_ID`, `DEPLOYER_OBJECT_ID` and `DEPLOYER_UPN` as process
+   environment variables for the next command. This step is required: `azd provision --preview` compiles
+   `main.bicepparam`'s `readEnvironmentVariable()` calls before the `preprovision` hook runs, so skipping it fails
+   with `BCP427`.
 5. Run `azd provision --preview` **in that same shell session** and show the user the full output. Tell the user the
    preview lists only resource types azd has display names for. It omits the SQL Managed Instance, the UAMI, role
    assignments, diagnostic settings and the maintenance schedule, even though they are in the template and will be

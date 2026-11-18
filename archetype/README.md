@@ -86,17 +86,22 @@ repo and continue from there.
 
    Or copy the three paths by hand if you'd rather not run a script from the kit repo.
 3. Run the `/apex-adapt-archetype` skill in VS Code's **built-in agent mode** (not `01-Orchestrator`,
-   which would route on to APEX Deploy), after signing in to azd with `azd auth login
-   --use-device-code` (azd keeps its own sign-in, separate from `az login`). It's self-contained:
+   which would route on to APEX Deploy), after signing in to both `az` and `azd` (`azd auth login
+   --use-device-code`; `azd` keeps its own sign-in, separate from `az login`). Complete both sign-ins
+   with MFA if your tenant enforces MFA on Azure writes and deletes (`RequestDisallowedByPolicy`
+   otherwise). It's self-contained:
    it reads the tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks
    you to confirm them (it asks for them if the file is missing), checks that a spoke is already
    vended (your team lead runs the `vending` stage at T-1; if it isn't, ask them to run it), runs a lightweight governance check
    (live Deny-effect discovery, compared against the packaged policy set by policy definition and
-   resource type, stopping only on a genuinely new deny; never overwriting the tracked
+   resource type, stopping only on a genuinely new resource-property deny while tolerating
+   caller-identity `requestContext().identity` MFA policies and unreadable ancestor management
+   groups above `mg-factory`; never overwriting the tracked
    `04-governance-*` files or running drift routing/Step 4-5 re-emission), creates the `azd`
    environment, sets the three inputs, sets `AZURE_LOCATION` from the hub's region (a core azd
-   value azd needs before it will provision at all), runs `./scripts/preflight.ps1` in the same
-   shell session to derive the other required values, then stops at `azd provision --preview`.
+   value azd needs before it will provision at all), runs `./scripts/preflight.ps1` with the three
+   inputs in the same shell session to derive the other required values, then stops at
+   `azd provision --preview`.
    The preview only lists resource types azd has display names for: expect it to omit the SQL
    Managed Instance, the UAMI, role assignments, diagnostic settings and the maintenance schedule
    even though they're all in the template and will be created. It never runs `azd provision`,
@@ -254,10 +259,11 @@ This redaction, verified against this package with the real validators:
   by design** -- this is exactly the mechanism that forces `/apex-adapt-archetype` to re-run live
   discovery in the member's tenant before Deploy. The L1 matrix (20 rows) still passes: redaction
   doesn't corrupt the policy-compliance content, only the subscription/tenant identifiers.
-- `validate-iac-handoff.mjs` (no `--skip-tree-hash`): **one error**,
-  `governance_attestation.l1m_ref.sha256` mismatch (it hashes the now-redacted
-  `04-policy-property-map.json`). `tree_hash` over `infra/bicep/university/` is untouched by
-  redaction and passes.
+- `validate-iac-handoff.mjs` (no `--skip-tree-hash`): `governance_attestation.l1m_ref.sha256`
+  mismatches the redacted `04-policy-property-map.json`, and `tree_hash` over
+  `infra/bicep/university/` reflects `apex-factory-coe` `db65758` until the handoff is re-emitted
+  after the kit fixes in `scripts/preflight.ps1` and `infra/bicep/university/README.md` ([#230](https://github.com/jonathan-vella/apex-factory-hackathon/issues/230),
+  [#231](https://github.com/jonathan-vella/apex-factory-hackathon/issues/231)).
 - `validate-challenger-findings.mjs --verify-cache`: **already fails on the unmodified source**
   (41 errors, intermediate `-pass*`/base sidecar files going stale as later passes revised the
   underlying documents -- normal APEX multi-pass history, not a redaction effect). Redaction adds

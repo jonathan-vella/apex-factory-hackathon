@@ -420,6 +420,7 @@ else {
 
     $managementGroupResourceRoles = @()
     $managedIdentityRoles = @()
+    $managedIdentityPrincipals = @()
     $memberOwnerRoles = [System.Collections.Generic.List[object]]::new()
     $memberReaderRoles = [System.Collections.Generic.List[object]]::new()
     $diagnosticPrincipals = @($policyAssignments |
@@ -477,6 +478,17 @@ else {
                     Add-CleanupPlan "Delete the vending-created Owner assignment for a member in workload subscription $workloadSubscription."
                 }
             }
+        }
+    }
+    if ($managementGroupNames -contains $rootGroupName) {
+        $rootScope = "/providers/Microsoft.Management/managementGroups/$rootGroupName"
+        foreach ($role in @(Get-RoleAssignmentsAtScope -TargetScope $rootScope | Where-Object {
+            $_.scope -eq $rootScope -and $_.roleDefinitionName -eq 'Reader' -and (
+                $_.description -eq $vendingOwnerDescription -or $_.principalId -in $managedIdentityPrincipals
+            )
+        })) {
+            [void] $memberReaderRoles.Add($role)
+            Add-CleanupPlan "Delete the vending-created Reader assignment for a member on management group $rootGroupName."
         }
     }
 

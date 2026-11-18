@@ -27,7 +27,7 @@ Open the repo in VS Code's dev container. APEX's `.gitattributes` forces LF line
 
 ## Sign in to azd
 
-`azd` is the Azure Developer CLI, preinstalled in the dev container ([overview](https://learn.microsoft.com/azure/developer/azure-developer-cli/overview)). It keeps its own sign-in, separate from `az login`. In the dev container terminal, run `azd auth login --use-device-code` and follow the prompt, unless `azd` already tells you that you're signed in.
+`azd` is the Azure Developer CLI, preinstalled in the dev container ([overview](https://learn.microsoft.com/azure/developer/azure-developer-cli/overview)). It keeps its own sign-in, separate from `az login`. In the dev container terminal, run `azd auth login --use-device-code` and follow the prompt, unless `azd` already tells you that you're signed in. Complete both `az login` and `azd auth login` with MFA so tenant-level MFA enforcement policies do not reject deployment writes with `RequestDisallowedByPolicy`.
 
 ## Adapt and preview
 

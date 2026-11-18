@@ -15,9 +15,10 @@ log-management) and prints what it found. Then it:
   firewall, snet-sqlmi sends the datacenter range, snet-servers sends the spoke range and keeps internet
   egress on the NAT gateway;
 - adds rule collection group rcg-member-n to afwp-hub;
-- gives the member Owner on the workload subscription, Reader on the shared services subscription (so
-  Test-Connectivity.ps1 and the archetype preflight can read the hub with their own sign-in) and Managed
-  Identity Operator on id-sqlmi-directory (all three only if -MemberPrincipalId is set), adds a monthly
+- gives the member Owner on the workload subscription, Reader on <MgPrefix> (inherited by <MgPrefix>-corp and
+  <MgPrefix>-platform) and on the shared services subscription (so governance discovery, Test-Connectivity.ps1
+  and the archetype preflight can read kit management-group policies and the hub with their own sign-in), and
+  Managed Identity Operator on id-sqlmi-directory (all four only if -MemberPrincipalId is set), adds a monthly
   budget with an alert at 80%, and sets Defender for Cloud to Foundational CSPM only (unless -SkipDefender).
 The platform lead runs it for every member, because it writes to the shared services subscription;
 members get only the Reader and Managed Identity Operator grants above. It needs Owner at the Tenant Root management group. Run it after the
@@ -36,9 +37,9 @@ Prefix of the kit's management groups, as passed to Deploy-AlzLite.ps1.
 .PARAMETER ParentManagementGroupId
 The management group the kit's groups sit under, as passed to Deploy-AlzLite.ps1. Empty means Tenant Root. The script also accepts a service principal or managed identity (a pipeline).
 .PARAMETER MemberPrincipalId
-Object ID of the member (user or group), who gets Owner on the workload subscription, Reader on the shared
-services subscription and Managed Identity Operator on id-sqlmi-directory, so the archetype can attach it
-to their SQL Managed Instance. Optional.
+Object ID of the member (user or group), who gets Owner on the workload subscription, Reader on <MgPrefix>
+and the shared services subscription, and Managed Identity Operator on id-sqlmi-directory, so the archetype
+can inspect kit management-group policies and attach the identity to their SQL Managed Instance. Optional.
 .PARAMETER BudgetAmount
 Monthly budget on the workload subscription, in the billing currency.
 .PARAMETER BudgetEmail
@@ -229,15 +230,21 @@ $miNsg = Get-OptionalResource -Arguments @('network', 'nsg', 'show', '--subscrip
 $miRouteTable = Get-OptionalResource -Arguments @('network', 'route-table', 'show', '--subscription', $WorkloadSubscriptionId, '-g', 'rg-spoke', '-n', 'rt-sqlmi')
 $miNetworkExists = [bool] ($miNsg -and $miRouteTable)
 
-# A member who already holds a direct Owner assignment of their own keeps it: ARM rejects a second Owner assignment, and
-# Remove-FactoryEnvironment.ps1 deletes only the ones carrying this description.
+# A member who already holds a direct Owner or MG Reader assignment of their own keeps it: ARM rejects a second
+# identical assignment with a different GUID, and Remove-FactoryEnvironment.ps1 deletes only the ones carrying this description.
 $ownerDescription = 'Created by Deploy-Vending.ps1 (Partner Modernization Factory)'
 $assignMemberOwner = [bool] $MemberPrincipalId
+$assignMemberMgReader = [bool] $MemberPrincipalId
 if ($MemberPrincipalId) {
     $workloadScope = "/subscriptions/$WorkloadSubscriptionId"
     $ownApplied = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $workloadScope, '--role', 'Owner', '--only-show-errors') |
             Where-Object { $_.principalId -eq $MemberPrincipalId -and $_.scope -eq $workloadScope -and $_.description -ne $ownerDescription })
     if ($ownApplied.Count -gt 0) { $assignMemberOwner = $false }
+
+    $kitMgScope = "/providers/Microsoft.Management/managementGroups/$MgPrefix"
+    $mgReaderApplied = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $kitMgScope, '--role', 'Reader', '--only-show-errors') |
+            Where-Object { $_.principalId -eq $MemberPrincipalId -and $_.scope -eq $kitMgScope -and $_.description -ne $ownerDescription })
+    if ($mgReaderApplied.Count -gt 0) { $assignMemberMgReader = $false }
 }
 # A budget's start date can't change: keep the existing one on re-runs.
 $budgetUri = "https://management.azure.com/subscriptions/$WorkloadSubscriptionId/providers/Microsoft.Consumption/budgets/${budgetName}?api-version=2024-08-01"
@@ -259,6 +266,7 @@ Vending member $MemberIndex to ${Location}:
   Firewall rules     rcg-member-$MemberIndex in afwp-hub
   Owner              $(if (-not $MemberPrincipalId) { 'skipped (no -MemberPrincipalId)' } elseif ($assignMemberOwner) { $MemberPrincipalId } else { 'kept as it is: the member already holds a direct Owner assignment' })
   Hub Reader         $(if ($MemberPrincipalId) { 'the member, on the shared services subscription' } else { 'skipped (no -MemberPrincipalId)' })
+  MG Reader          $(if (-not $MemberPrincipalId) { 'skipped (no -MemberPrincipalId)' } elseif ($assignMemberMgReader) { "the member, on $MgPrefix" } else { 'kept as it is: the member already holds a direct Reader assignment' })
   Budget             $BudgetAmount a month from $budgetStart, alert at 80% to $BudgetEmail
   Defender for Cloud $(if ($SkipDefender) { 'left as it is (-SkipDefender)' } else { 'Foundational CSPM only on the workload subscription' })
 Cost: no hourly cost. Peering traffic is billed per GB, and the hub's firewall processes it.
@@ -287,6 +295,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "vending-$([guid]:
         connectDatacenter = @{ value = $connectDatacenter }
         miNetworkExists = @{ value = $miNetworkExists }
         assignMemberOwner = @{ value = $assignMemberOwner }
+        assignMemberMgReader = @{ value = $assignMemberMgReader }
         setDefenderFoundationalOnly = @{ value = -not $SkipDefender.IsPresent }
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false
