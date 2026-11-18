@@ -39,7 +39,7 @@ param dnsZoneResourceGroupId string
 @description('Resource ID of log-management.')
 param logAnalyticsWorkspaceId string
 
-@description('Object ID of the member, who gets Owner on the workload subscription, Reader on the shared services subscription and Managed Identity Operator on id-sqlmi-directory. Empty: skipped.')
+@description('Object ID of the member, who gets Owner on the workload subscription, Reader on the kit management groups and shared services subscription, and Managed Identity Operator on id-sqlmi-directory. Empty: skipped.')
 param memberPrincipalId string = ''
 
 @description('Monthly budget on the workload subscription, in the billing currency.')
@@ -63,6 +63,9 @@ param miNetworkExists bool = false
 
 @description('Assign Owner to the member. Deploy-Vending.ps1 sets it false when the member already holds a direct Owner assignment.')
 param assignMemberOwner bool = true
+
+@description('Assign Reader on the kit root management group to the member. Deploy-Vending.ps1 sets it false when the member already holds a direct Reader assignment there.')
+param assignMemberMgReader bool = true
 var hubVnetParts = split(hubVnetId, '/')
 var hubResourceGroup = hubVnetParts[4]
 var hubVnetName = hubVnetParts[8]
@@ -133,6 +136,14 @@ module sqlMiIdentityOperator 'modules/sqlmi-identity-operator.bicep' = if (!empt
 module hubReader 'modules/hub-reader.bicep' = if (!empty(memberPrincipalId)) {
   scope: subscription(sharedSubscriptionId)
   name: 'vending-hub-reader-${memberIndex}'
+  params: {
+    memberPrincipalId: memberPrincipalId
+  }
+}
+
+module mgReader 'modules/mg-reader.bicep' = if (!empty(memberPrincipalId) && assignMemberMgReader) {
+  scope: managementGroup(mgPrefix)
+  name: 'vending-mg-reader-${memberIndex}'
   params: {
     memberPrincipalId: memberPrincipalId
   }

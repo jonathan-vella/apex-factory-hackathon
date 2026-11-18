@@ -197,15 +197,26 @@ function global:az {
         $passed++
     }
 
-    # The member's Reader grant on the hub shows in the summary only when a principal is passed.
+    # The member's Reader grants on the hub and kit MG show in the summary only when a principal is passed.
     foreach ($principal in '', '33333333-3333-3333-3333-333333333333') {
         $extra = if ($principal) { " -MemberPrincipalId '$principal'" } else { '' }
         $run = Invoke-Child -Variables @{ v = $vendingScript } -Script "$vendingStub`n& `$v -WorkloadSubscriptionId '11111111-1111-1111-1111-111111111111' -SharedSubscriptionId `$hubSub -MemberIndex 1 -BudgetEmail 'lead@example.test' -WhatIf$extra *>&1"
         Assert-True ($run.ExitCode -eq 0) "Vending what-if failed (principal='$principal'): $($run.Output)"
-        $expected = if ($principal) { 'Hub Reader\s+the member' } else { 'Hub Reader\s+skipped' }
-        Assert-True ($run.Output -match $expected) "The vending summary should show the hub Reader grant as '$expected' (principal='$principal'): $($run.Output)"
+        $expectedHub = if ($principal) { 'Hub Reader\s+the member' } else { 'Hub Reader\s+skipped' }
+        $expectedMg = if ($principal) { 'MG Reader\s+the member, on mg-factory' } else { 'MG Reader\s+skipped' }
+        Assert-True ($run.Output -match $expectedHub) "The vending summary should show the hub Reader grant as '$expectedHub' (principal='$principal'): $($run.Output)"
+        Assert-True ($run.Output -match $expectedMg) "The vending summary should show the MG Reader grant as '$expectedMg' (principal='$principal'): $($run.Output)"
         $passed++
     }
+
+    # A pre-existing non-vending direct Reader assignment on mg-factory is preserved without re-creating it.
+    $existingMgReaderStub = $vendingStub -replace [regex]::Escape('if ($command -like ''role assignment list*'') { return ''[{"roleDefinitionName":"Owner"}]'' }'), @'
+if ($command -like 'role assignment list*managementGroups/mg-factory*--role Reader*') { return '[{"principalId":"33333333-3333-3333-3333-333333333333","scope":"/providers/Microsoft.Management/managementGroups/mg-factory","roleDefinitionName":"Reader","description":"Manual pre-grant"}]' }
+    if ($command -like 'role assignment list*') { return '[{"roleDefinitionName":"Owner"}]' }
+'@
+    $run = Invoke-Child -Variables @{ v = $vendingScript } -Script "$existingMgReaderStub`n& `$v -WorkloadSubscriptionId '11111111-1111-1111-1111-111111111111' -SharedSubscriptionId `$hubSub -MemberIndex 1 -MemberPrincipalId '33333333-3333-3333-3333-333333333333' -BudgetEmail 'lead@example.test' -WhatIf *>&1"
+    Assert-True ($run.ExitCode -eq 0 -and $run.Output -match 'MG Reader\s+kept as it is') "Existing MG Reader should be kept as is: $($run.Output)"
+    $passed++
 
     # Deploy-Vending SNAT array handling: 0, 1 (singleton!), 516 (member 21 skips parent afwp-hub update), and 518 (member 256 appends 2 prefixes cleanly).
     $snatCases = @(
@@ -311,6 +322,92 @@ Write-Output $text
     else {
         Write-Output 'SKIP: the SqlServer module is not installed; the perf kit password tests did not run.'
     }
+
+    # Archetype preflight: matches caller's own rcg-member-n rules past rcg-member-1 (#230) and falls back to .azure/<env>/.env (#231).
+    $uniRoot = Join-Path $work 'uni'
+    New-Item -ItemType Directory -Path (Join-Path $uniRoot 'scripts') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $uniRoot '.azure/ab12cd') -Force | Out-Null
+    Copy-Item (Join-Path $repoRoot 'archetype/infra/bicep/university/scripts/preflight.ps1') (Join-Path $uniRoot 'scripts/preflight.ps1')
+    Set-Content -Path (Join-Path $uniRoot '.azure/config.json') -Value '{"version":1,"defaultEnvironment":"ab12cd"}' -Encoding utf8NoBOM
+    Set-Content -Path (Join-Path $uniRoot '.azure/ab12cd/.env') -Value @"
+AZURE_TENANT_ID="11111111-1111-1111-1111-111111111111"
+AZURE_SUBSCRIPTION_ID="55555555-5555-5555-5555-555555555555"
+SUFFIX="ab12cd"
+"@ -Encoding utf8NoBOM
+    $uniPreflight = Join-Path $uniRoot 'scripts/preflight.ps1'
+    $uniStub = @'
+Remove-Item Env:AZURE_TENANT_ID, Env:AZURE_SUBSCRIPTION_ID, Env:SUFFIX, Env:AZURE_LOCATION -ErrorAction SilentlyContinue
+$hubSub = '22222222-2222-2222-2222-222222222222'
+$workSub = '55555555-5555-5555-5555-555555555555'
+function New-MemberGroupJson {
+    param([int]$Idx)
+    $src = "10.20.$Idx.0/26"
+    return @{
+        name = "rcg-member-$Idx"
+        properties = @{
+            ruleCollections = @(
+                @{
+                    name = "app-member-$Idx"
+                    rules = @(
+                        @{ name = 'app-to-mcr'; ruleType = 'ApplicationRule'; sourceAddresses = @($src); targetFqdns = @('mcr.microsoft.com', '*.data.mcr.microsoft.com'); protocols = @(@{ protocolType = 'Https'; port = 443 }) }
+                        @{ name = 'app-to-azure-monitor'; ruleType = 'ApplicationRule'; sourceAddresses = @($src); targetFqdns = @('*.in.applicationinsights.azure.com', 'dc.applicationinsights.azure.com', 'dc.applicationinsights.microsoft.com', 'dc.services.visualstudio.com', 'live.applicationinsights.azure.com', 'rt.applicationinsights.microsoft.com', 'rt.services.visualstudio.com', '*.livediagnostics.monitor.azure.com'); protocols = @(@{ protocolType = 'Https'; port = 443 }) }
+                        @{ name = 'app-to-entra-id'; ruleType = 'NetworkRule'; sourceAddresses = @($src); destinationAddresses = @('AzureActiveDirectory'); destinationPorts = @('443'); ipProtocols = @('TCP') }
+                    )
+                }
+            )
+        }
+    }
+}
+function global:Invoke-RestMethod {
+    param($Uri, $Headers, $Method)
+    $dnsZones = @('Configure Container registries to use private DNS zones|privatelink.azurecr.io', 'Configure a private DNS Zone ID for blob groupID|privatelink.blob.core.windows.net', 'Configure Service Bus namespaces to use private DNS zones|privatelink.servicebus.windows.net', 'Configure Azure Key Vaults to use private DNS zones|privatelink.vaultcore.azure.net') | ForEach-Object {
+        $parts = $_ -split '\|'
+        @{ properties = @{ displayName = "ALZ-lite: $($parts[0])"; enforcementMode = 'Default'; parameters = @{ privateDnsZoneId = @{ value = "/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/privateDnsZones/$($parts[1])" } } } }
+    }
+    $diags = @('Application Insights', 'Service Bus Namespaces', 'Blob Services', 'Container registries', 'App Service', 'Key vaults', 'SQL managed instances') | ForEach-Object {
+        @{ properties = @{ displayName = "ALZ-lite: Enable logging for $_ to Log Analytics"; enforcementMode = 'Default'; parameters = @{ logAnalytics = @{ value = "/subscriptions/$hubSub/resourceGroups/rg-management/providers/Microsoft.OperationalInsights/workspaces/log-management" } } } }
+    }
+    return (@{ value = @($dnsZones + $diags) } | ConvertTo-Json -Depth 10 | ConvertFrom-Json)
+}
+function global:az {
+    $global:LASTEXITCODE = 0
+    $cmd = $args -join ' '
+    if ($cmd -like 'account show*') { return "{`"id`":`"$workSub`",`"name`":`"Member Workload`",`"tenantId`":`"11111111-1111-1111-1111-111111111111`",`"user`":{`"type`":`"user`"}}" }
+    if ($cmd -like 'network vnet show*--resource-group rg-spoke*') {
+        return (@{
+            subnets = @(
+                @{ name = 'snet-app'; addressPrefix = $callerPrefix; delegations = @(@{ serviceName = 'Microsoft.Web/serverFarms' }) }
+                @{ name = 'snet-pe'; addressPrefix = '10.20.5.64/26'; delegations = @() }
+                @{ name = 'snet-sqlmi'; id = "/subscriptions/$workSub/resourceGroups/rg-spoke/providers/Microsoft.Network/virtualNetworks/vnet-spoke/subnets/snet-sqlmi"; addressPrefix = '10.20.5.128/26'; delegations = @(@{ serviceName = 'Microsoft.Sql/managedInstances' }) }
+            )
+            virtualNetworkPeerings = @(@{ peeringState = 'Connected'; remoteVirtualNetwork = @{ id = "/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub" } })
+        } | ConvertTo-Json -Depth 8 -Compress)
+    }
+    if ($cmd -like 'sql virtual-cluster list*') { return '[]' }
+    if ($cmd -like 'network vnet show*--ids*') { return '{"location":"swedencentral"}' }
+    if ($cmd -like 'monitor log-analytics workspace show*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-management/providers/Microsoft.OperationalInsights/workspaces/log-management`",`"location`":`"swedencentral`"}" }
+    if ($cmd -like 'rest*Microsoft.Consumption/budgets*') { return '{"properties":{"notifications":{"Actual_GreaterThan_80_Percent":{"contactEmails":["lead@example.test"]}}}}' }
+    if ($cmd -like 'network firewall policy list*') { return "[{`"name`":`"afwp-hub`",`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/firewallPolicies/afwp-hub`"}]" }
+    if ($cmd -like 'rest*ruleCollectionGroups*') { return (@{ value = @((New-MemberGroupJson 1), (New-MemberGroupJson 5)) } | ConvertTo-Json -Depth 12 -Compress) }
+    if ($cmd -like 'ad signed-in-user show*') { return '{"id":"33333333-3333-3333-3333-333333333333","userPrincipalName":"member5@example.test"}' }
+    if ($cmd -like 'rest*Microsoft.Authorization/permissions*') { return '{"value":[{"actions":["*"],"notActions":[]}]}' }
+    if ($cmd -like '*check-name*' -or $cmd -like '*checkNameAvailability*') { return '{"nameAvailable":true}' }
+    if ($cmd -like 'account get-access-token*') { return '{"accessToken":"stub-token"}' }
+    if ($cmd -like 'identity show*id-sqlmi-directory*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-management/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-sqlmi-directory`"}" }
+    $global:LASTEXITCODE = 1
+    return "unhandled: $cmd"
+}
+$res = & $p
+Write-Output "ENV_CHECK:$env:AZURE_TENANT_ID|$env:AZURE_SUBSCRIPTION_ID|$env:SUFFIX|$env:AZURE_LOCATION|$($res.DeployerUpn)"
+'@
+    $run = Invoke-Child -Variables @{ p = $uniPreflight; callerPrefix = '10.20.5.0/26' } -Script $uniStub
+    Assert-True ($run.ExitCode -eq 0) "Archetype preflight should pass for member 5 with .azure/.env fallback: $($run.Output)"
+    Assert-True ($run.Output -match 'ENV_CHECK:11111111-1111-1111-1111-111111111111\|55555555-5555-5555-5555-555555555555\|ab12cd\|swedencentral\|member5@example\.test') "Preflight should export resolved azd env and derived vars: $($run.Output)"
+    $passed++
+
+    $runMissing = Invoke-Child -Variables @{ p = $uniPreflight; callerPrefix = '10.20.3.0/26' } -Script $uniStub
+    Assert-True ($runMissing.ExitCode -ne 0 -and $runMissing.Output -match "hub firewall rule 'app-to-mcr' is missing or does not cover snet-app") "Archetype preflight must still fail closed when caller's rule is absent: $($runMissing.Output)"
+    $passed++
 
     Write-Output "PASS: $passed helper scenarios (no Azure calls)."
 }

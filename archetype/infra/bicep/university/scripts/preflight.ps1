@@ -12,13 +12,13 @@
     environment variables.
 
 .PARAMETER TenantId
-    Entra tenant ID. Defaults to the AZURE_TENANT_ID environment variable.
+    Entra tenant ID. Defaults to AZURE_TENANT_ID in the process environment or the active azd environment.
 
 .PARAMETER SubscriptionId
-    Workload subscription ID. Defaults to the AZURE_SUBSCRIPTION_ID environment variable.
+    Workload subscription ID. Defaults to AZURE_SUBSCRIPTION_ID in the process environment or the active azd environment.
 
 .PARAMETER Suffix
-    Member-chosen uniqueness suffix, 4-6 lowercase letters or digits. Defaults to the SUFFIX environment variable.
+    Member-chosen uniqueness suffix, 4-6 lowercase letters or digits. Defaults to SUFFIX in the process environment or the active azd environment.
 
 .EXAMPLE
     ./preflight.ps1 -TenantId $env:AZURE_TENANT_ID -SubscriptionId $env:AZURE_SUBSCRIPTION_ID -Suffix ab12cd
@@ -28,13 +28,10 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateNotNullOrEmpty()]
     [string]$TenantId = $env:AZURE_TENANT_ID,
 
-    [ValidateNotNullOrEmpty()]
     [string]$SubscriptionId = $env:AZURE_SUBSCRIPTION_ID,
 
-    [ValidateNotNullOrEmpty()]
     [string]$Suffix = $env:SUFFIX
 )
 
@@ -140,6 +137,45 @@ function Test-RuleSource {
     return (@($Rule.sourceAddresses) -contains $Prefix)
 }
 
+function Resolve-PreflightInput {
+    # Falls back to the active azd environment (.azure/<env>/.env or azd env get-value) when not set in $env:.
+    param(
+        [AllowEmptyString()][string]$Value,
+        [Parameter(Mandatory)][string]$EnvName
+    )
+    if (-not [string]::IsNullOrWhiteSpace($Value)) { return $Value.Trim() }
+    $azdRoot = Split-Path $PSScriptRoot -Parent
+    $configPath = Join-Path $azdRoot '.azure' 'config.json'
+    if (Test-Path -LiteralPath $configPath) {
+        try {
+            $config = Get-Content -LiteralPath $configPath -Raw | ConvertFrom-Json
+            $defaultEnv = if ($null -ne $config -and $config.PSObject.Properties['defaultEnvironment']) { [string]$config.defaultEnvironment } else { '' }
+            if (-not [string]::IsNullOrWhiteSpace($defaultEnv)) {
+                $dotEnvPath = Join-Path $azdRoot '.azure' $defaultEnv '.env'
+                if (Test-Path -LiteralPath $dotEnvPath) {
+                    foreach ($line in Get-Content -LiteralPath $dotEnvPath) {
+                        if ($line -match "^\s*$([regex]::Escape($EnvName))\s*=\s*(.*)\s*$") {
+                            $raw = $Matches[1].Trim()
+                            if ($raw.Length -ge 2 -and (($raw.StartsWith('"') -and $raw.EndsWith('"')) -or ($raw.StartsWith("'") -and $raw.EndsWith("'")))) {
+                                $raw = $raw.Substring(1, $raw.Length - 2)
+                            }
+                            if (-not [string]::IsNullOrWhiteSpace($raw)) { return $raw }
+                        }
+                    }
+                }
+            }
+        }
+        catch {
+            Write-Verbose "Could not read .azure environment config: $($_.Exception.Message)"
+        }
+    }
+    if (Get-Command azd -ErrorAction SilentlyContinue) {
+        $fromAzd = (& azd env get-value $EnvName 2>$null | Out-String).Trim()
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($fromAzd)) { return $fromAzd }
+    }
+    Stop-Preflight "missing required input '$EnvName'. Pass the parameter, set `$env:$EnvName, or run 'azd env set $EnvName <value>'."
+}
+
 function Invoke-UniversityPreflight {
     [CmdletBinding()]
     param()
@@ -147,6 +183,9 @@ function Invoke-UniversityPreflight {
     Write-Host "Preflight for '$ProjectName' (read-only)"
 
     # 1. Inputs and names
+    $TenantId = Resolve-PreflightInput -Value $TenantId -EnvName 'AZURE_TENANT_ID'
+    $SubscriptionId = Resolve-PreflightInput -Value $SubscriptionId -EnvName 'AZURE_SUBSCRIPTION_ID'
+    $Suffix = Resolve-PreflightInput -Value $Suffix -EnvName 'SUFFIX'
     if ($Suffix -cnotmatch '^[a-z0-9]{4,6}$') {
         Stop-Preflight "SUFFIX '$Suffix' must be 4-6 lowercase letters or digits."
     }
@@ -226,8 +265,10 @@ function Invoke-UniversityPreflight {
         @{ Name = 'app-to-entra-id'; Type = 'NetworkRule'; Fqdns = @() }
     )
     foreach ($requirement in $requirements) {
-        $rule = $rules | Where-Object { $_.name -eq $requirement.Name -and $_.ruleType -eq $requirement.Type } | Select-Object -First 1
-        $ok = $null -ne $rule -and (Test-RuleSource -Rule $rule -Prefix $appPrefix)
+        $rule = $rules |
+            Where-Object { $_.name -eq $requirement.Name -and $_.ruleType -eq $requirement.Type -and (Test-RuleSource -Rule $_ -Prefix $appPrefix) } |
+            Select-Object -First 1
+        $ok = $null -ne $rule
         if ($ok -and $requirement.Type -eq 'ApplicationRule') {
             $targets = @($rule.targetFqdns)
             $ok = (@($requirement.Fqdns | Where-Object { $targets -notcontains $_ }).Count -eq 0) -and (@($rule.protocols | Where-Object { $_.protocolType -eq 'Https' -and [int]$_.port -eq 443 }).Count -gt 0)
@@ -363,6 +404,9 @@ function Invoke-UniversityPreflight {
         DeployerObjectId        = $deployerObjectId
         DeployerUpn             = $deployerUpn
     }
+    $env:AZURE_TENANT_ID = $TenantId
+    $env:AZURE_SUBSCRIPTION_ID = $SubscriptionId
+    $env:SUFFIX = $Suffix
     $env:AZURE_LOCATION = $result.Location
     $env:LOG_ANALYTICS_WORKSPACE_ID = $result.LogAnalyticsWorkspaceId
     $env:SQLMI_DIRECTORY_IDENTITY_ID = $result.SqlMiDirectoryIdentityId

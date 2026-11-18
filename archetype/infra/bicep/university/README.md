@@ -27,9 +27,18 @@ azd env set AZURE_TENANT_ID <tenant-id>
 azd env set AZURE_SUBSCRIPTION_ID <subscription-id>
 azd env set SUFFIX <suffix>
 azd env set AZURE_LOCATION swedencentral
+./scripts/preflight.ps1
 azd provision --preview
 azd provision
 ```
+
+`scripts/preflight.ps1` reads inputs from explicit parameters, process environment variables or the active `.azure/<env>/.env`
+file, and exports the derived values into the current PowerShell session so `azd provision --preview` can compile
+`main.bicepparam` before hooks run.
+
+If your tenant assigns Multi-Factor Authentication enforcement policies at the tenant root management group
+(`requestContext().identity`), sign in with MFA for both `az login` and `azd auth login` before provisioning; a token
+without an MFA claim is rejected on write and delete with `RequestDisallowedByPolicy`.
 
 Nothing in this folder contains a tenant, subscription or object ID. Values come from the azd environment through
 `readEnvironmentVariable()` in `main.bicepparam`.
