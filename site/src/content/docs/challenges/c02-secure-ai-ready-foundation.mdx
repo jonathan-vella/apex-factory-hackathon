@@ -100,7 +100,7 @@ Open `C:\src\<your-repo>` in VS Code on `vm-dev01` and use a PowerShell 7 (`pwsh
    az account set --subscription $s.subscriptionId
    ```
 
-   Now ask Copilot in Agent mode (or run the commands yourself in that terminal) to deploy two insecure resources directly into your vended `rg-spoke`:
+   Now ask Copilot in Agent mode (or run the commands yourself in that terminal) to test these insecure resources directly in your vended `rg-spoke`, one attempt at a time:
 
    - **Attempt A: A Container Registry with public network access enabled:**
 
@@ -108,17 +108,29 @@ Open `C:\src\<your-repo>` in VS Code on `vm-dev01` and use a PowerShell 7 (`pwsh
      az acr create -g rg-spoke -n "acrguard$($s.suffix)" --sku Basic --public-network-enabled true -l $s.location
      ```
 
-   - **Attempt B: A network interface in `vnet-spoke/snet-app` with a public IP address** (delete the test public IP afterward so `rg-spoke` stays clean):
+     If creation succeeds, **stop immediately; do not run Attempt B**. Delete only the exercise registry with `az acr delete -n "acrguard$($s.suffix)" --yes` and tell your coach the expected policy is missing or not yet effective. Continue to Attempt B only after the expected policy denial; for another error, stop and investigate with your coach.
+
+   - **Attempt B: A network interface in `vnet-spoke/snet-app` with a public IP address.** Create the standalone test public IP first:
 
      ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
      az network public-ip create -g rg-spoke -n pip-guardrail-test --sku Standard -l $s.location
+     ```
+
+     If the public IP creation fails, stop and investigate with your coach; don't attempt the NIC. Otherwise try the NIC:
+
+     ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
      az network nic create -g rg-spoke -n nic-guardrail-test --vnet-name vnet-spoke --subnet snet-app --public-ip-address pip-guardrail-test -l $s.location
+     ```
+
+     If NIC creation succeeds, **stop immediately**, delete the exercise NIC with `az network nic delete -g rg-spoke -n nic-guardrail-test`, then delete its public IP as below. Tell your coach the expected policy is missing or not yet effective. If the NIC fails, delete the standalone test public IP as well; if the failure is not the expected policy denial, stop and investigate with your coach:
+
+     ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
      az network public-ip delete -g rg-spoke -n pip-guardrail-test
      ```
 
    Both the registry creation and the NIC creation fail with `RequestDisallowedByPolicy`. Note which policy assignments stopped them (`alzl-deny-pna-acr` and `alzl-deny-nic-pip`) and why `pip-guardrail-test` had to be deleted (the policy denies attaching a public IP to a NIC, not creating the standalone public IP resource).
 
-   **If either test succeeds, stop and clean up immediately.** Delete only the exercise registry (`az acr delete -n "acrguard$($s.suffix)" --yes`) or NIC (`az network nic delete -g rg-spoke -n nic-guardrail-test`), then its public IP (`az network public-ip delete -g rg-spoke -n pip-guardrail-test`). Tell your coach the expected policy is missing or not yet effective; do not leave a public test resource or weaken another policy.
+   Do not leave a public test resource or weaken another policy.
 
 3. **Layer 3: Check datacenter compliance and spoke connectivity (15 min).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span>
 

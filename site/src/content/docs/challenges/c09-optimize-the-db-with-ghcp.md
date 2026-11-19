@@ -113,7 +113,7 @@ You run the 5-minute workload **twice**: once for `baseline` and once `after` ap
 
 ## Success criteria
 
-To complete this challenge, review with your coach in `factory/evidence/c09/` on `main`:
+To complete this challenge, check the following in `factory/evidence/c09/` on `main`:
 
 - [ ] All five `.sql` fix scripts (`p1-*.sql` to `p5-*.sql`) committed in `factory/evidence/c09/` on `main`.
 - [ ] Query Store `baseline` vs `after` comparison showing the duration/CPU and logical-read improvements across the tuned queries.

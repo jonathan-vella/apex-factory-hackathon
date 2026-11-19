@@ -58,7 +58,7 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 ## Success criteria
 
-To complete this challenge, review with your coach in the team/pod lead's repo:
+To complete this challenge, check the following in the team/pod lead's repo:
 
 - [ ] `factory/evidence/c04/decisions-and-register.md` committed on `main` in the team/pod lead's repo and shared in the team channel.
 - [ ] All four rows (**Platform**, **Migration method**, **Application**, **Data**) state the chosen target, an alternative considered, the reasoning tied to C1/C3, and the consequence/trade-off.

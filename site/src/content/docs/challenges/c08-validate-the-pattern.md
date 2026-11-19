@@ -76,9 +76,13 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
      (SELECT COUNT(*) FROM Enrollment) AS Enrollments;
    ```
 
-2. **Upload round-trip.** <span class="sl-badge tip">Browser</span> <span class="sl-badge note">vm-dev01 · PowerShell 7</span> Use a throwaway course so you never touch the seeded data: on **Courses > Create New**, enter a course ID that isn't used (`9901`), a title, credits and a department, choose a small PNG (under 5 MB) as the teaching material, and save. The image must show on the course's page (**Details**). Then on `vm-dev01`, run `az storage blob list --account-name "stuniversity$suffix" --container-name teaching-materials --auth-mode login --output table` and see the new blob. Open **Courses > Edit** on the throwaway course, choose a different image and save, and list again: the blob must have changed. Delete the throwaway course (**Courses > Delete** on `9901` only), then list once more and confirm its blob is gone. Never delete a seeded course.
+2. **Upload round-trip.** <span class="sl-badge tip">Browser</span> <span class="sl-badge note">vm-dev01 · PowerShell 7</span> Use a throwaway course so you never touch the seeded data:
 
-   Last, on **Courses > Create New**, try a text file and then an image larger than 5 MB (`[IO.File]::WriteAllBytes("$HOME\big.png", [byte[]]::new(6MB))`); both must be rejected with a message and no course created.
+   1. **Create:** on **Courses > Create New**, enter an unused course ID (`9901`), a title, credits and a department, choose a small PNG (under 5 MB) as the teaching material, and save. The image must show on the course's **Details** page. On `vm-dev01`, run `az storage blob list --account-name "stuniversity$suffix" --container-name teaching-materials --auth-mode login --output table` and see the new blob.
+   2. **Replace:** open **Courses > Edit** on the throwaway course, choose a different image and save. Run the same blob listing again; the blob must have changed.
+   3. **Delete:** delete the throwaway course (**Courses > Delete** on `9901` only), list once more and confirm its blob is gone. Never delete a seeded course.
+   4. **Reject a text file:** on **Courses > Create New**, try a text file. It must be rejected with a message and no course created.
+   5. **Reject an oversized image:** on **Courses > Create New**, try an image larger than 5 MB (create one with `[IO.File]::WriteAllBytes("$HOME\big.png", [byte[]]::new(6MB))`). It must be rejected with a message and no course created.
 
 3. **Notification round-trip.** <span class="sl-badge tip">Browser · DevTools</span> Open the browser's developer tools (`F12`) > **Network**, filter for `GetNotifications`, and leave it open. Edit a student (**Students > Edit**, change the first name, save). Within 5 seconds a toast must appear on screen, and the next `GetNotifications` request in the Network panel must show status `200` and a response with `success` set to `true` and a `count` of 1 or more. Then edit the student back.
 
@@ -112,10 +116,10 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
 
 ## Success criteria
 
-To complete this challenge, review with your coach on `vm-dev01`:
+To complete this challenge, check your work on `vm-dev01`:
 
 - [ ] `factory/evidence/c08/acceptance.json` committed on `main` in `C:\src\<your-repo>` showing **`Verdict: ACCEPT`**, with no FAIL or UNKNOWN, and public network access off for every backend.
-- [ ] Live checks verified on `vm-dev01` (matching source/MI row counts, throwaway course upload/replace/delete and >5 MB rejection, notification toast within 5 seconds, 20/20 HTTP 200 load burst, and requests/dependencies visible in Application Insights), ready to record in your team's C10 handover summary.
+- [ ] Live checks verified on `vm-dev01` (matching source/MI row counts, throwaway course upload/replace/delete, text-file and >5 MB rejection, notification toast within 5 seconds, 20/20 HTTP 200 load burst, and requests/dependencies visible in Application Insights), ready to record in your team's C10 handover summary.
 - [ ] Outcome check: show Tomás the `acceptance.json` result proving no data service accepts public traffic.
 
 <details>

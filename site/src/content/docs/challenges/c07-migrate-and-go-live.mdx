@@ -43,10 +43,10 @@ Requirements 5 and 6 depend on which identity does what. The web app's own ident
 **Starting point.**
 
 - [C5's deployed SQL Managed Instance](../c05-deploy-the-coe-archetype/), with its directory read access granted at [Step 2.2 (T-7)](../../deploy/team-lead-steps/#22-grant-microsoft-graph-read-permissions-privileged-role-administrator). At **Day 2 08:30**, the team lead loads `$s` from `.local/settings.json` in `factory/` and runs `./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -WhatIf` with the coach. Expected: all three permissions already granted. This read-only check needs Reader on the shared subscription; missing grants go back to the Privileged Role Administrator before members proceed.
-- [C6's modernized, packaged app](../c06-modernize-with-ghcp/), using your latest verified image tag (initially `c6`), not yet pointed at App Service.
+- [C6's modernized, packaged app](../c06-modernize-with-ghcp/) may still be in progress when you start the link. Finish C6 before replica validation and cutover, using your latest verified image tag (initially `c6`), not yet pointed at App Service.
 - `vm-app01` running, with its Azure Arc entry **Connected**. C3 had you start it; run `az vm start` for it if it's stopped. The portal shows the instance only while the machine is connected.
 
-Start the link at 08:30 on Day 2, as in the [event agenda](../../getting-started/event-overview/#day-two), before you finish C6, so it's already seeded when you reach requirement 3: requirements 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. After the lag check in requirement 4.4, make the go/no-go decision with your coach. A no-go means restart the source site and pool, keep the link running, and postpone the cutover to a later window. If you must cancel the link and reseed, plan another 20 to 30 minutes to validate again and agree a second window.
+Start the link at 08:30 on Day 2, as in the [event agenda](../../getting-started/event-overview/#day-two), before you finish C6: requirements 1 and 2 take about 20 minutes, and creating the link takes up to 10 more. Continue unfinished C6 while the link is being created and seeds; finish C6 and wait for **Ready for cutover** before requirement 3's replica validation or cutover. Those 10 minutes of waiting overlap C6 and don't count toward C7's 120. After the lag check in requirement 4.4, make the go/no-go decision with your coach. A no-go means restart the source site and pool, keep the link running, and postpone the cutover to a later window. If you must cancel the link and reseed, plan another 20 to 30 minutes to validate again and agree a second window.
 
 **You decide.** Whether the validated replica is good enough to cut over (go or no-go, with your coach), and what you write in your runbook.
 
@@ -97,7 +97,7 @@ $mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --qu
 1. **Prepare the source.** <span class="sl-badge caution">vm-app01 · Admin PowerShell</span> Run the kit's `Prepare-MiLinkSource.ps1` on `vm-app01`. It must run inside a Bastion session, because VM run commands stop working once the VM is Arc-enabled. Safe to run again: it adds what's missing, resets the firewall rule's source address and takes a new full backup.
 
    1. Connect to `vm-app01` through Bastion and open an Administrator Windows PowerShell.
-   2. Download the script and run it with the command printed by the dev container above, which has your `<n>` in it (when `<n>` is `256` or higher, use the exact `-MiSubnetPrefix` printed above). If your event runs from a copy of the kit, your coach gives you that copy's URL instead of the one below.
+   2. Download the script and run it with the command printed on `vm-dev01` above, which has your `<n>` in it (when `<n>` is `256` or higher, use the exact `-MiSubnetPrefix` printed above). If your event runs from a copy of the kit, your coach gives you that copy's URL instead of the one below.
 
       ```powershell title="vm-app01 — Administrator Windows PowerShell"
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -118,10 +118,10 @@ $mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --qu
    5. Select **Next: Review + create**. Read each warning. A warning that leaves **Start data migration** available doesn't block you; one that blocks it, or that mentions the network, certificates or backups, means stop and see **If link creation fails**.
    6. Select **Start data migration** and note the time. Follow it in **Monitor migrations** (the **Monitor and cutover** pane): creating the link takes up to 10 minutes, then it seeds the database.
 
-   Done when the status of `ContosoUniversity` is **Ready for cutover**. The **Lag** column shows two dashes, which Microsoft Learn describes as no lag.
-3. **Validate the read-only replica.** <span class="sl-badge note">vm-dev01 · SSMS</span> The replica must hold the same data as the source before you trust it. In SSMS on `vm-dev01`, open two connections:
+   Continue C6 while creation and seeding run. Done when the status of `ContosoUniversity` is **Ready for cutover**. The **Lag** column shows two dashes, which Microsoft Learn describes as no lag.
+3. **Validate the read-only replica.** <span class="sl-badge note">vm-dev01 · SSMS</span> Finish C6 and confirm the link is **Ready for cutover** before starting this validation. The replica must hold the same data as the source before you trust it. In SSMS on `vm-dev01`, open two connections:
 
-   - **Source:** server name `10.10.<n>.4` (or the `Source SQL Server address` printed above when `<n>` is `256` or higher); **Authentication** SQL Server Authentication; **Login** `contosoapp` with the `contosoapp` password from the dev container. Select **Options** > **Connection Properties** and tick **Trust server certificate**, because the source's certificate is self-signed.
+   - **Source:** server name `10.10.<n>.4` (or the `Source SQL Server address` printed above when `<n>` is `256` or higher); **Authentication** SQL Server Authentication; **Login** `contosoapp` with the password printed on `vm-dev01` above. Select **Options** > **Connection Properties** and tick **Trust server certificate**, because the source's certificate is self-signed.
    - **Replica:** server name the host name that `$mi` printed (paste it); **Authentication** **Microsoft Entra MFA**; **User name** the account that deployed the archetype in C5.
 
    On each connection, open a new query on the `ContosoUniversity` database and run these, with no writers on the source (stop anything you started in C6):
@@ -180,7 +180,7 @@ $mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --qu
 
       An empty table and `Sessions: 0` is what you want. A row means a client is still connected: use `host_name` and `program_name` to find it (an SSMS window on `vm-dev01` is the usual one), close it, and run the check again.
    4. <span class="sl-badge tip">Azure portal</span> **Watch the lag reach zero.** Open the **Monitor and cutover** pane (**Database migration** > **Monitor migrations**). With no writers, the status of `ContosoUniversity` stays **Ready for cutover** and the **Lag** column shows two dashes, which means no lag, within a minute or two. If lag doesn't clear, or a writer keeps appearing, **postpone the cutover**: restart the site and pool (`Start-WebAppPool -Name ContosoUniversity; Start-Website -Name ContosoUniversity`), keep the link running, and agree a later window with your coach.
-   5. <span class="sl-badge tip">Azure portal</span> **Cut over at no lag.** Select `ContosoUniversity`, then **Cutover** (Microsoft Learn's name; some portal builds label the button **Complete cutover**, and it's the same action). Tick the box that confirms you've stopped all incoming traffic to the source, and leave the **forced failover** box clear: a planned failover waits for the lag to reach zero, and forcing it with lag above zero can lose writes. The portal removes the link when the cutover completes: it offers no option to keep it.
+   5. <span class="sl-badge tip">Azure portal</span> **Cut over at no lag.** Make the go/no-go decision with your coach after the lag check; proceed only on a go. On a no-go, restart the site and pool, keep the link running and postpone cutover as above. Select `ContosoUniversity`, then **Cutover** (Microsoft Learn's name; some portal builds label the button **Complete cutover**, and it's the same action). Tick the box that confirms you've stopped all incoming traffic to the source, and leave the **forced failover** box clear: a planned failover waits for the lag to reach zero, and forcing it with lag above zero can lose writes. The portal removes the link when the cutover completes: it offers no option to keep it.
    6. <span class="sl-badge tip">Azure portal</span> <span class="sl-badge note">vm-dev01 · SSMS</span> **Wait for it to finish.** It takes about 2 minutes. On **Monitor and cutover**, the migration for `ContosoUniversity` shows as completed and the link is gone. Then, in SSMS on `vm-dev01` on the replica connection from requirement 3, run `SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability');`. It must return `READ_WRITE` (it said `READ_ONLY` in requirement 3).
 
    Done when the migration shows completed and the managed instance's database returns `READ_WRITE`. The managed instance is now the live database. Leave the legacy site on `vm-app01` stopped: restarting it would write to a source that's no longer authoritative.
@@ -213,7 +213,7 @@ $mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --qu
 
 ## Success criteria
 
-To complete this challenge, review with your coach on `vm-dev01`:
+To complete this challenge, check your work on `vm-dev01`. Keep the coach's go/no-go decision in requirement 4:
 
 - [ ] `Prepare-MiLinkSource.ps1 -MiSubnetPrefix ...` completed with `The source is ready for MI link.`
 - [ ] The MI link seeded (**Ready for cutover**), replica comparison queries matched, source writers stopped with `Sessions: 0`, and planned cutover completed with `Updateability` reading `READ_WRITE` on SQL MI.

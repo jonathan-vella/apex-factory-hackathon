@@ -90,7 +90,7 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 ## Success criteria
 
-To complete this challenge, review with your coach in the team/pod lead's repo:
+To complete this challenge, check the following in the team/pod lead's repo:
 
 - [ ] `factory/evidence/c01/opportunity-canvas.md`, committed on `main` in the team/pod lead's repo and shared in the team channel, with all six outcomes ranked and each mapped to a problem/trigger, a CAF outcome category, a stakeholder voice, a solution, a KPI and a target.
 - [ ] Each of the six dimensions has both a `Today:` and a `Target:` line.

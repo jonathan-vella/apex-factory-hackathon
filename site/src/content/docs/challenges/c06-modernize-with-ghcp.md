@@ -57,7 +57,7 @@ The only Azure resource change in C6 is the image push (requirement 4). Your sig
 
 4. **Package the app** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\app\ContosoUniversity (pwsh)</span> with .NET SDK container publishing (no `Dockerfile`) and push it to your archetype's private registry, with playbook Step 4 (the `sdk-container-publish` skill explains it). Done when `az acr repository show-tags` lists `c6`.
 
-5. **Check, don't set, the web app's App Service configuration:** <span class="sl-badge note">vm-dev01 · PowerShell 7</span> its identity, its app settings, its Key Vault access, and that your image landed in the registry. Playbook Step 5 and the `app-service-configuration` skill have the commands. This vault uses Azure RBAC, not access policies, so ignore the vault's **Access policies** blade: the web app's access is a role assignment. Set up the names once, then run the checks:
+5. **Check, don't set, the web app's App Service configuration:** <span class="sl-badge note">vm-dev01 · PowerShell 7</span> its identity, its app settings and its Key Vault access. Use the image tag result from requirement 4; don't rerun the `show-tags` command in playbook Step 5. Playbook Step 5 and the `app-service-configuration` skill have the other commands. This vault uses Azure RBAC, not access policies, so ignore the vault's **Access policies** blade: the web app's access is a role assignment. Set up the names once, then run the checks:
 
    ```powershell title="vm-dev01 — PowerShell 7"
    $rg = az group list --query "[?starts_with(name,'rg-university-')].name | [0]" --output tsv
@@ -75,12 +75,12 @@ The only Azure resource change in C6 is the image push (requirement 4). Your sig
 
 ## Success criteria
 
-To complete this challenge, review with your coach on `vm-dev01`:
+To complete this challenge, check your work on `vm-dev01`:
 
 - [ ] Seven agent task commits (`feat(app): task 0N <name>`), each preceded by a passing build and a local run, pushed on `main` in `C:\src\<your-repo>`.
 - [ ] The app running on `vm-dev01` against the source database, with uploads landing in Blob, a notification toast appearing within 5 seconds of an edit, and telemetry reaching Application Insights.
 - [ ] `dotnet list app/ContosoUniversity package --vulnerable --include-transitive` reporting nothing, or a documented remediation.
-- [ ] The image tag in your registry (`az acr repository show-tags`).
+- [ ] The image tag in your registry, confirmed by the `az acr repository show-tags` result from requirement 4.
 - [ ] The App Service identity, app settings and Key Vault access checked (not changed to point at your image yet).
 - [ ] Outcome check: search the committed app and its configuration files for a database password or key, and confirm none is left.
 

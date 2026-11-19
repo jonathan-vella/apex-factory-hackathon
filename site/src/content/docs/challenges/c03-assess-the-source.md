@@ -25,8 +25,6 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 **Terms.** The **harness** is where the Upgrade agent runs (**Local** means on `vm-dev01`). A **scenario** is the agent's workflow (`dotnet-version-upgrade`). A **gate** is a point where the agent stops so you can review before it continues (the playbook's Step 1 shows each one). The **dashboard** is an optional visual view of the Upgrade session, not a required embedded VS Code tab. [Learn's dashboard reference](https://learn.microsoft.com/dotnet/core/porting/github-copilot-upgrade/dashboard) describes a side panel in the Copilot app and browser access in other clients. If it is unavailable in your VS Code session, review the files named below.
 
-**Validated baseline:** GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, as recorded in `versions.md`. Documentation reviewed **2026-10-31**, not a new runtime test. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`; review `assessment.md` and `assessment.json` for the assessment. The owner retests current versions before the dry run.
-
 :::note[Where to work]
 
 - <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — **Upgrade agent assessment and plan (Requirement 1) and triage table (Requirements 3 to 6)** on `main` in `C:\src\<your-repo>`. Because `.github/upgrades/` sits in your single clone on `main`, `assessment.md` and `plan.md` stay in place alongside `factory/evidence/c03/triage.md` (pre-created by `Import-Kit.ps1`).
@@ -57,7 +55,7 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 ## Success criteria
 
-To complete this challenge, review with your coach in `C:\src\<your-repo>` on `main`:
+To complete this challenge, check your work in `C:\src\<your-repo>` on `main`:
 
 - [ ] `.github/upgrades/scenarios/dotnet-version-upgrade/assessment.md`, `assessment.json`, and `plan.md` committed in place on `main`, with no task started yet and nothing in `app/` changed.
 - [ ] `factory/evidence/c03/triage.md` committed on `main`, covering the DB and app findings and calling out why trace flags `1800` and `9567` stay until C7 cutover completes.
@@ -76,6 +74,13 @@ Ask: does this finding describe something the kit deliberately set up on the sou
 <summary>The Upgrade agent won't produce an assessment</summary>
 
 Check the harness is **Local** (not the Copilot harness) and the agent picker shows **Upgrade**. If the tools report unavailable, reload the VS Code window and start a new chat. If **GitHub Copilot modernization** is enabled for the workspace, or the Upgrade server has no model access, follow step 8 of [Step 3.3](../../deploy/member-steps/#33-set-up-vm-dev01).
+
+</details>
+
+<details>
+<summary>The Upgrade dashboard doesn't open</summary>
+
+The validated baseline is GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, as recorded in `versions.md`. Documentation reviewed **2026-10-31**, not a new runtime test; the owner retests current versions before the dry run. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`; review `assessment.md` and `assessment.json` for the assessment.
 
 </details>
 
