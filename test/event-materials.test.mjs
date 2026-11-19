@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { readFile, stat } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { createEventDrafts } from "../site/src/scripts/event-materials.js";
 
 const obsoleteSetup = /\bWSL\b|Docker Desktop|dev[- ]containers?\b|Codespaces|vm-dev01-work/i;
@@ -82,34 +82,22 @@ test("blank event details remain visible placeholders", () => {
       new URL("../site/src/content/docs/getting-started/event-materials.mdx", import.meta.url),
       "utf8",
     );
-    const links = [...page.matchAll(/href="\/downloads\/([^"]+)"/g)];
-    assert.equal(links.length, 10);
-    for (const [, filename] of links) {
+    const links = [...page.matchAll(/href="\/downloads\/([^"]+)"/g)].map(([, filename]) => filename);
+    const expectedFiles = [
+      "Partner-Modernization-Factory-Know-Before-You-Go.pptx",
+      "Partner-Modernization-Factory-Event-Deck.pptx",
+    ];
+    assert.deepEqual(links, expectedFiles);
+    for (const filename of links) {
       const file = new URL(`../site/public/downloads/${filename}`, import.meta.url);
       assert.ok((await stat(file)).size > 0, `${filename} must not be empty`);
     }
+    const storedFiles = await readdir(new URL("../site/public/downloads/", import.meta.url));
+    assert.deepEqual(storedFiles.sort(), [...expectedFiles].sort());
+    assert.match(page, /\(6 slides\)/);
+    assert.match(page, /\(9 slides\)/);
     assert.doesNotMatch(page, /need an update|outdated details|1\.100|24 November 2026/);
     assert.match(page, /remain placeholders/);
-    const description = await readFile(
-      new URL("../site/public/downloads/description.txt", import.meta.url),
-      "utf8",
-    );
-    assert.match(description, /classification to Public/);
-    assert.doesNotMatch(description, /carries the same Microsoft Confidential/);
-
-    for (const txtFile of [
-      "email about hackathon.txt",
-      "invite - know before you go.txt",
-      "invite - hackathon.txt",
-    ]) {
-      const content = await readFile(
-        new URL(`../site/public/downloads/${txtFile}`, import.meta.url),
-        "utf8",
-      );
-      assert.match(content, /https:\/\/factory\.apexops\.pro\/deploy\/lead-setup\/student-onboarding\//);
-      assert.doesNotMatch(content, /VS Code 1\.100|three-page|25-minute|\bUbuntu\b|\b20\d{2}\b/);
-      assert.doesNotMatch(content, obsoleteSetup);
-    }
   });
 
 test("lead-provisioned setupMode tailors all three drafts to Path B student onboarding", () => {
