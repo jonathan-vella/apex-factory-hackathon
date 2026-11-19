@@ -57,11 +57,7 @@ Do not start `vending` until every slot in the batch shows `Connected`.
    - `Reader` on the shared services subscription, and
    - `Managed Identity Operator` on `id-sqlmi-directory` in `rg-management`.
 
-   If you updated any `memberPrincipalId`, `budgetEmail`, or slot entry in `.local/roster.json` since Step 1, sync the lead pipeline's environment secrets before dispatching `vending`:
-
-   ```powershell
-   ./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json
-   ```
+   Before dispatching, have the group owner [sync the reader group](https://github.com/jonathan-vella/apex-factory-hackathon/tree/main/infra/foundation#prepare-and-sync-the-reader-group) from the full private roster. The sync publishes the roster and verification to the lead pipeline. If a workload subscription changed, update the pipeline allowlist first with `Initialize-PlatformPipeline.ps1`.
 
 2. **Dispatch the `vending` stage.**
    - **Up to 50 members:**
@@ -95,7 +91,7 @@ Do not start `vending` until every slot in the batch shows `Connected`.
 
 :::note[Assigning or swapping an attendee after vending]
 
-If an attendee is assigned or swapped after initial vending, update `memberPrincipalId` and `githubUsername` for their slot in `.local/roster.json`, re-run `./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json`, run `gh workflow run platform.yml -f stage=vending -f members=<index>`, and re-run `Initialize-CohortRepos.ps1` for `-MemberIndex <index>`. Because both scripts add permissions idempotently without revoking prior users, **explicitly remove the departing attendee's access**: delete their vending-created Azure role assignments (`Owner` on the workload subscription, `Reader` on shared services, and `Managed Identity Operator` on `id-sqlmi-directory`, or remove them from the slot's Entra group while preserving unrelated pre-existing roles) and remove their collaborator entry under `<org>/<event>-student-<nn>` > **Settings** > **Collaborators**.
+If an attendee is assigned or swapped after initial vending, update `memberPrincipalId` and `githubUsername` for their slot in `.local/roster.json`, [sync the reader group](https://github.com/jonathan-vella/apex-factory-hackathon/tree/main/infra/foundation#prepare-and-sync-the-reader-group) from the full roster, run `gh workflow run platform.yml -f stage=vending -f members=<index>`, and re-run `Initialize-CohortRepos.ps1` for `-MemberIndex <index>`. Group sync removes inherited kit Reader access for departing direct members, but not their separate grants. **Explicitly remove the departing attendee's access**: delete their vending-created Azure role assignments (`Owner` on the workload subscription, `Reader` on shared services, and `Managed Identity Operator` on `id-sqlmi-directory`, or remove them from the slot's Entra group while preserving unrelated pre-existing roles) and remove their collaborator entry under `<org>/<event>-student-<nn>` > **Settings** > **Collaborators**.
 
 :::
 

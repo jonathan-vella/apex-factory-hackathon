@@ -51,6 +51,8 @@ param(
     [string] $SharedSubscriptionId,
     [string] $ClientId = '',
     [string] $TenantId = '',
+    [string] $ReaderGroupId = '',
+    [string] $ReaderRosterVerification = '',
     [Parameter(Mandatory)]
     [string] $MgPrefix,
     [string] $ParentManagementGroupId = '',
@@ -62,7 +64,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
+. (Join-Path $PSScriptRoot 'FactoryRoster.ps1')
 $roster = @($RosterJson | ConvertFrom-Json)
+$verifiedGroups = @(Get-FactoryVerifiedGroupIndex -Members $roster -TenantId $TenantId -GroupId $ReaderGroupId `
+    -MgPrefix $MgPrefix -VerificationJson $ReaderRosterVerification)
 $summary = [System.Collections.Generic.List[string]]::new()
 $allowed = $AllowedSubscriptionId
 $denied = $DeniedSubscriptionId
@@ -116,9 +121,10 @@ foreach ($index in $MemberIndex) {
         $vending = @{
             WorkloadSubscriptionId = $workload; SharedSubscriptionId = $SharedSubscriptionId; MemberIndex = $index
             MgPrefix = $MgPrefix; ParentManagementGroupId = $ParentManagementGroupId; Location = $Location; BudgetEmail = [string] $member.budgetEmail
+            ReaderGroupId = $ReaderGroupId; MemberPrincipalId = [string] $member.memberPrincipalId
+            PipelineVerifiedNestedGroup = $index -in $verifiedGroups
         }
         if (-not $vending.BudgetEmail) { throw "The roster has no budget email for member $index." }
-        if ($member.memberPrincipalId) { $vending['MemberPrincipalId'] = [string] $member.memberPrincipalId }
         & (Join-Path $PSScriptRoot 'Deploy-Vending.ps1') @vending
         $vended.Add([pscustomobject]@{ Index = $index; Workload = $workload })
     }

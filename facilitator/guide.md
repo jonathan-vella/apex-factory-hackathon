@@ -44,7 +44,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - Get the tenant owner's approval for the Owner-at-Tenant-Root pipeline identity (the team lead's pipeline holds Owner at Tenant Root while it exists). Name the person who runs `scripts/Remove-PlatformPipeline.ps1` after the teardown stage, and the date (see [platform pipeline](platform-pipeline.md), "Accepted risk").
 - Use a dedicated non-production tenant and dedicated, empty subscriptions. ALZ-lite and vending turn off paid Defender for Cloud plans subscription-wide, so don't point them at subscriptions that hold other workloads.
 - Confirm the team lead has booked the Privileged Role Administrator for T-7. The role holder needs Reader on `rg-management` (or the shared services subscription), PowerShell 7 and the Azure CLI. Name a backup person.
-- If a member is swapped or added after T-14, also re-run `Initialize-PlatformPipeline.ps1 -RosterPath <roster file>` in the team lead's repo: the pipeline reads its members only from the roster secret it stores.
+- If a member is swapped or added after T-14, update the private roster and have the group owner [sync the reader group](../infra/foundation/README.md#prepare-and-sync-the-reader-group) before vending. If a workload subscription changes, re-run pipeline setup to update its allowlist first.
 - Tell attendees that certifications follow the event: infra roles hold AZ-104, GH-300 and DP-300 within six months after it, and no exam is a gate for attending (see the [learning path](../site/src/content/docs/guides/learning-path.md)).
 
 ### Step 1 (T-14): team leads and members
@@ -62,6 +62,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 ### Step 2 (T-7): team lead and Privileged Role Administrator
 
 - The team lead deploys ALZ-lite for the team: run 1 of the platform pipeline, the `foundation` stage in the lead's repo ([Step 2: Foundation and Graph grant](../site/src/content/docs/deploy/team-lead-steps.mdx)). It takes about 15 to 25 minutes and creates `id-sqlmi-directory`. The firewall bills about $1.30 an hour from here until cleanup.
+- Before dispatch, have an authorized Entra operator [bootstrap the reader group](../infra/foundation/README.md#prepare-and-sync-the-reader-group). Before Step 4, the designated group owner syncs the complete roster. GitHub Actions gets no Graph permissions for this task.
 - Right after it, the Privileged Role Administrator runs `scripts/Grant-SqlMiDirectoryRead.ps1` for the team. Check it with `-WhatIf`: it prints that the three permissions are already granted.
 
 ### Step 3 (T-3): everyone (members and team lead)
@@ -75,7 +76,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 ### Step 4 (T-1): everyone starts VMs, team lead vends
 
 - Every member's `vm-app01` and `vm-dev01` must be running (started by each member in Path A, or across the cohort by the team lead in Path B). Then the team lead runs [Step 4: Vending](../site/src/content/docs/deploy/vending.mdx), the `vending` stage in the lead's repo (in batches such as `-f members=1-50` when `n > 60` so each job stays under 360 minutes). For each member in `roster.json`, `Invoke-PipelineVending.ps1` verifies that `vnet-datacenter` exists and `vm-app01` is `Connected` in Azure Arc, vends the spoke, restarts both VMs, records the datacenter exemptions and runs the connectivity probes. A coach repairs a failed run by hand only with the commands in [deploy with scripts](../coach/deploy-with-scripts.md).
-- Vending comes after each member's Step 3 datacenter and `vm-dev01` preparation on purpose. In Path B the team lead prepares the VMs first; students sign in and complete their workspace onboarding after vending. Vending changes the datacenter's DNS servers to the hub firewall, and nothing before it tests that. The hard dependencies are only these: ALZ-lite and each member's Arc-connected datacenter before vending, and `Test-Datacenter.ps1` before Arc. The datacenter still exists before the subscription moves under the Corp group, so the exemptions lesson stays.
+- Vending comes after each member's Step 3 datacenter and `vm-dev01` preparation on purpose. In Path B the team lead prepares the VMs first; students sign in and complete their workspace onboarding after vending. Vending needs ALZ-lite, the verified reader roster, and each member's Arc-connected datacenter. Run `Test-Datacenter.ps1` before Arc. The datacenter still exists before the subscription moves under the Corp group, so the exemptions lesson stays.
 - A restart ends a member's Bastion session, so tell members first. A member whose datacenter is redeployed after vending is vended again.
 - Post "vended" with each member's name and the shared services subscription ID in the team channel so members can save `sharedSubscriptionId` with `Initialize-Settings.ps1 -SharedSubscriptionId`.
 

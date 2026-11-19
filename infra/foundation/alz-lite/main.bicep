@@ -17,6 +17,9 @@ param mgPrefix string = 'mg-factory'
 @maxLength(36)
 param sharedSubscriptionId string
 
+@description('Entra reader group object ID. Empty is supported only for a first preview.')
+param readerGroupId string = ''
+
 @description('Regions allowed at mg-factory-corp besides location and global, for example the fallback region.')
 param additionalAllowedLocations array = []
 
@@ -71,6 +74,17 @@ resource corpMg 'Microsoft.Management/managementGroups@2023-04-01' = {
 resource sharedPlacement 'Microsoft.Management/managementGroups/subscriptions@2023-04-01' = {
   parent: platformMg
   name: sharedSubscriptionId
+}
+
+module readerGroup 'modules/reader-group.bicep' = if (!empty(readerGroupId)) {
+  scope: managementGroup(mgPrefix)
+  name: 'alz-lite-reader-group'
+  params: {
+    readerGroupId: readerGroupId
+  }
+  dependsOn: [
+    rootMg
+  ]
 }
 
 module shared 'modules/shared-services.bicep' = {

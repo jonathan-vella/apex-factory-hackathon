@@ -182,30 +182,10 @@ if ($MemberIndex -eq 0) {
 
 # The team's members: one workload subscription each. A roster file lists them all (JSON or CSV, with the roster's
 # column names); without one, the settings hold a single member.
-function Import-Roster {
-    param([string] $Path)
-    $raw = Get-Content -Raw -Path $Path
-    $rows = if ($Path -match '\.csv$') { @($raw | ConvertFrom-Csv) } else { @($raw | ConvertFrom-Json) }
-    foreach ($row in $rows) {
-        $pick = {
-            param($Names)
-            foreach ($name in $Names) {
-                $property = $row.PSObject.Properties | Where-Object { $_.Name -ieq $name } | Select-Object -First 1
-                if ($property -and "$($property.Value)".Trim()) { return "$($property.Value)".Trim() }
-            }
-            return ''
-        }
-        [pscustomobject]@{
-            index = [int] (& $pick @('index', 'Member index'))
-            subscriptionId = (& $pick @('subscriptionId', 'Workload subscription ID'))
-            memberPrincipalId = (& $pick @('memberPrincipalId', 'Entra object ID'))
-            budgetEmail = (& $pick @('budgetEmail', 'Budget email'))
-        }
-    }
-}
+. (Join-Path $PSScriptRoot 'FactoryRoster.ps1')
 
 $members = if ($RosterPath) {
-    @(Import-Roster -Path $RosterPath)
+    @(Import-FactoryRoster -Path $RosterPath)
 }
 else {
     $WorkloadSubscriptionId = Read-Value $WorkloadSubscriptionId 'Workload subscription ID'
@@ -403,9 +383,7 @@ if (-not $SkipGitHub) {
         }
         # Every member's subscription, index and, for vending, object ID and budget address. The workflows read it
         # inside a gated job: a secret can't feed a job matrix.
-        $roster = ConvertTo-Json -Compress -InputObject @($members | ForEach-Object {
-                @{ index = $_.index; subscriptionId = $_.subscriptionId; memberPrincipalId = $_.memberPrincipalId; budgetEmail = $_.budgetEmail }
-            })
+        $roster = ConvertTo-FactoryRosterJson -Members $members
         # Identifiers are secrets, not variables: a public repo's workflow logs print variables, and secrets are masked.
         $secrets = [ordered]@{
             AZURE_TENANT_ID = $TenantId

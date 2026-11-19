@@ -71,7 +71,7 @@ member's deployment is this check, the read-only `preflight.ps1` and `azd provis
      with no resource `field`, `type` or ARM/Bicep property condition) as caller sign-in requirements rather than new
      Deny blockers on deployed resource types. No Bicep change can satisfy or violate them. Tell the user to ensure
      both `az login` and `azd auth login` completed with MFA.
-   - **Unreadable ancestor management groups (`PARTIAL`):** Vending grants members `Reader` on the kit management
+   - **Unreadable ancestor management groups (`PARTIAL`):** The foundation reader group grants members `Reader` on the kit management
      groups (`mg-factory` and `mg-factory-corp`), not on Tenant Root or parent management groups above `mg-factory`.
      Do not stop on `discovery_status: "PARTIAL"` when the unresolved items come solely from unreadable ancestor
      management-group scopes above `mg-factory` (HTTP `403` on `policyAssignments/read` or `policyDefinitions/read`)

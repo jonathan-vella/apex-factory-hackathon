@@ -102,7 +102,8 @@ The DeployIfNotExists assignments have system-assigned identities. The private D
 | `MemberIndex` | `1` | `n >= 1`: for `1..255`, spoke `10.20.n.0/24` and datacenter `10.10.n.0/24`; for `256+`, `10.(191 + floor(n/256)).(n%256).0/24` and `10.(127 + floor(n/256)).(n%256).0/24` |
 | `Location` | `swedencentral` | |
 | `MgPrefix` | `mg-factory` | As passed to ALZ-lite |
-| `MemberPrincipalId` | empty | The member's object ID, who gets Owner on the workload subscription, Reader on `<MgPrefix>` (inherited by `<MgPrefix>-corp` and `<MgPrefix>-platform`) and the shared services subscription, and Managed Identity Operator on `id-sqlmi-directory`. Skipped when empty |
+| `MemberPrincipalId` | empty | The member's object ID, who gets workload Owner, direct shared-services Reader, and Managed Identity Operator on `id-sqlmi-directory`. When supplied, vending requires their kit management-group Reader access to come from the foundation group |
+| `ReaderGroupId` | empty | The foundation reader group's Entra object ID. Required for foundation apply and for vending with a member principal |
 | `BudgetAmount` | `500` | A month, in the billing currency |
 | `BudgetEmail` | — | Alert at 80% of actual cost |
 | `SkipDefender` | off | Leave the subscription's Defender for Cloud plans as they are (see [Defender for Cloud](#defender-for-cloud)) |
@@ -121,11 +122,35 @@ What it deploys:
 | `nsg-sqlmi`, `rt-sqlmi` | Created once, empty: a PUT without the rules and routes that SQL MI's network intent policy adds would remove them (B08 validation), so re-runs leave both alone. The kit's rules and route are child resources. `nsg-sqlmi`: MI link rules from the B07 report, inbound TCP 5022 and 11000–11999 from `10.10.n.4`, outbound TCP 5022 to `10.10.n.4`; diagnostics to `log-management` |
 | `rg-datacenter` | Peering `peer-datacenter-to-hub`; `rt-servers` on `snet-servers`; `vnet-datacenter` DNS set to `afw-hub` (after the peering) |
 | `rg-hub` | Peerings `peer-hub-to-spoke-n` and `peer-hub-to-datacenter-n`; rule collection group `rcg-member-n` in `afwp-hub` |
-| `<MgPrefix>` | Reader for the member (if `-MemberPrincipalId` is set, unless they already hold a direct Reader assignment there) |
+| `<MgPrefix>` | One Reader assignment to `<MgPrefix>-readers`, deployed by foundation |
 | Shared services subscription | Reader for the member (if `-MemberPrincipalId` is set) |
 | Workload subscription | Owner for the member; budget `budget-factory-workload`; Defender for Cloud on Foundational CSPM only (unless `-SkipDefender`) |
 
-The platform lead runs vending for every member, one at a time (each run updates `afwp-hub`). It needs Owner at Tenant Root, because it writes to both subscriptions and the cross-subscription peerings need rights on both VNets. When `-MemberPrincipalId` is passed, vending grants the member Reader on `<MgPrefix>` (covering `<MgPrefix>-corp` and `<MgPrefix>-platform`, so live governance discovery in `/apex-adapt-archetype` can read policies at kit management-group scopes without granting Tenant Root access), Reader on the shared services subscription, and Managed Identity Operator on `id-sqlmi-directory`. Shared-subscription Reader lets the member's own sign-in read the hub for `Test-Connectivity.ps1` and the C5 preflight: the hub VNet, `afw-hub`, `afwp-hub` and its rules, the private DNS zone links, `log-management` and `id-sqlmi-directory`. The preflight lists firewall policies across the subscription, so the assignment is on the subscription, not on `rg-hub` and `rg-management`. Policies assigned above `<MgPrefix>` (for example at Tenant Root) remain outside the member's management-group scope and may report `PARTIAL` during live governance discovery.
+The platform lead runs vending serially because each run updates `afwp-hub`. Workload Owner, direct shared-subscription Reader and Managed Identity Operator on `id-sqlmi-directory` are unchanged. The foundation reader group grants control-plane Reader at `<MgPrefix>` and every current or future descendant subscription, including other members' workloads. It grants no data access or rights at Tenant Root. Use only a dedicated lab hierarchy. `/apex-adapt-archetype` can discover policies at kit scopes, but policies above `<MgPrefix>` may still report `PARTIAL`.
+
+### Prepare and sync the reader group
+
+The team lead or an authorized Entra operator runs these commands interactively from the kit. Install `Microsoft.Graph.Authentication` first. Use an approved delegated Graph client in the event tenant (`-GraphClientId` if required); activate the least privileged eligible PIM role only if the tenant requires it. Bootstrap uses delegated `Group.ReadWrite.All`. Sync uses a group owner's delegated `GroupMember.ReadWrite.All` and `Directory.Read.All` to validate roster object types. Azure Owner alone doesn't grant Graph access. GitHub Actions receives no new Graph permissions.
+
+```powershell
+# Before Step 2 foundation; Bootstrap can create the group with no members yet.
+./scripts/Sync-FactoryReaderGroup.ps1 -Mode Bootstrap -TenantId '<tenant-id>' -MgPrefix mg-factory -OwnerId '<lead-object-id>' -Repository 'owner/lead-repo' -WhatIf
+# Repeat without -WhatIf after reviewing the target.
+
+# Before Step 4, or before an all run; use the complete private roster even when vending a subset.
+./scripts/Sync-FactoryReaderGroup.ps1 -Mode Sync -TenantId '<tenant-id>' -MgPrefix mg-factory -RosterPath .local/roster.json -Repository 'owner/lead-repo' -WhatIf
+# Repeat without -WhatIf to reconcile membership and publish the verified roster.
+```
+
+Use the actual kit prefix in both commands. The GitHub publisher needs access to the lead repo's `gh-lab` environment. Bootstrap publishes `READER_GROUP_ID`; sync publishes `ROSTER_JSON` and `READER_ROSTER_VERIFICATION` only after membership is verified. For a one-member lab without a roster file, supply `-MemberIndex`, `-WorkloadSubscriptionId`, `-MemberPrincipalId` and `-BudgetEmail` to Sync. If workload subscriptions change, first update the pipeline allowlist with `Initialize-PlatformPipeline.ps1`. Run Sync again after roster or group changes; it removes direct members absent from the roster, but does not revoke anyone's separately assigned Azure roles. Use nested security groups only for dedicated roster slots whose membership the lead controls.
+
+For an existing lab, first sync the group and redeploy foundation. Verify with a rostered non-admin test user who has no direct Reader at `<MgPrefix>` (use a member of the nested group too, if applicable). Then preview and separately approve migration:
+
+```powershell
+./scripts/Remove-FactoryEnvironment.ps1 -Scope LegacyReader -MgPrefix mg-factory -ReaderGroupId '<reader-group-id>' -VerificationPrincipalId '<test-user-object-id>' -WhatIf
+```
+
+After review, repeat without `-WhatIf`. This removes only deterministic vending-marked Reader assignments at the exact kit scope, including grants to former members, not manual Reader grants or the new group binding. Removing the old module from incremental Bicep does not remove existing assignments.
 
 **SQL MI directory identity (event prep, once per team).** ALZ-lite creates `id-sqlmi-directory` in `rg-management`. Every member's SQL Managed Instance uses it as its primary identity, so `CREATE USER ... FROM EXTERNAL PROVIDER` can look up Microsoft Entra principals, such as the web app's identity in C7. A Privileged Role Administrator grants it Microsoft Graph read permissions once per team (see [Event prep: SQL MI directory identity](#event-prep-sql-mi-directory-identity); [Managed identities in Microsoft Entra for Azure SQL](https://learn.microsoft.com/azure/azure-sql/database/authentication-azure-ad-user-assigned-managed-identity)). Without it, creating the web app's database user fails with "Server identity does not have Azure Active Directory Readers permission" (B09 validation, 2026-10-07).
 
@@ -224,7 +249,7 @@ The grant belongs to the identity. Re-running ALZ-lite keeps the identity and it
 ```powershell
 $s = Get-Content (Join-Path '.local' 'settings.json') | ConvertFrom-Json
 ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -WhatIf
-./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location
+./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -ReaderGroupId '<reader-group-id>'
 ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId $s.sharedSubscriptionId   # once per team, Privileged Role Administrator
 ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId $s.subscriptionId -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex $s.memberIndex -BudgetEmail '<email>'
 ./scripts/New-DatacenterExemptions.ps1 -SubscriptionId $s.subscriptionId -Owner '<owner name>'

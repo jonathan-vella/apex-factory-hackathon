@@ -65,12 +65,12 @@ The deploy takes up to 60 minutes, unattended. Keep the terminal open and the co
 
 The team lead needs Owner at the configured parent management group (Tenant Root when no parent is set), access to the shared services subscription in `.local/settings.json`, and the roster values captured for every member.
 
-1. At T-7, deploy the foundation. It takes about 15 to 25 minutes, mostly Azure Firewall, and bills about $1.30 an hour until the event is cleaned up:
+1. At T-7, [bootstrap the reader group](../infra/foundation/README.md#prepare-and-sync-the-reader-group), obtain its object ID privately, then deploy the foundation. It takes about 15 to 25 minutes, mostly Azure Firewall, and bills about $1.30 an hour until the event is cleaned up:
 
    ```powershell
    az account set --subscription $s.sharedSubscriptionId
-   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg -WhatIf
-   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg
+   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg -ReaderGroupId '<reader-group-id>' -WhatIf
+   ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $s.sharedSubscriptionId -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg -ReaderGroupId '<reader-group-id>'
    ```
 
 2. Right after it, a Privileged Role Administrator grants the SQL MI identity its Graph read, once per team, from their own computer and signed in as themselves:
@@ -81,10 +81,10 @@ The team lead needs Owner at the configured parent management group (Tenant Root
 
 3. The team lead does their own datacenter as a member, above.
 
-4. At T-1, vend each member one after another, after confirming their Step 3 datacenter and Arc connection are complete. Each run updates the same firewall policy (`afwp-hub`, up to 90 RCGs per policy; `vnet-hub` supports up to 650 peerings / 325 members), and takes 4 to 5 minutes (in Actions, cohorts larger than ~60 members batch `stage=vending` with `-f members=1-50`, `-f members=51-100`):
+4. At T-1, [sync the full reader roster](../infra/foundation/README.md#prepare-and-sync-the-reader-group), then vend each member serially after confirming their Step 3 datacenter and Arc connection are complete. For a nested security group, add `-NestedReaderGroup` and sign in to the event tenant as an authorized group owner with a process-scoped delegated `Connect-MgGraph` session and `GroupMember.Read.All`. Each run updates the same firewall policy and takes 4 to 5 minutes:
 
    ```powershell
-   ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -BudgetEmail '<member-email>' -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg
+   ./scripts/Deploy-Vending.ps1 -WorkloadSubscriptionId '<member-subscription-id>' -SharedSubscriptionId $s.sharedSubscriptionId -MemberIndex <member-index> -MemberPrincipalId '<member-object-id>' -ReaderGroupId '<reader-group-id>' -BudgetEmail '<member-email>' -Location $s.location -MgPrefix $mgPrefix -ParentManagementGroupId $parentMg
    ```
 
 5. For every member, restart both VMs, record the exemptions, then run the probes. Tell the member first: a restart ends their Bastion session.

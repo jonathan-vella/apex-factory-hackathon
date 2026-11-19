@@ -188,6 +188,12 @@ Invoke-Check -Name 'GitHub environment' -Fix 'Run ./scripts/Initialize-PlatformP
     foreach ($repoVar in 'MEMBER_INDEXES', 'PIPELINE_PROFILE') { if ($repoVar -notin $repoVars) { $missing += "$repoVar (repository variable)" } }
     if ($missing) { throw "Missing: $($missing -join ', ')." }
     Add-Result -Check 'GitHub environment' -Status PASS -Reason "Branch policy ($($branches -join ', ')), variables and secrets are set."
+    if (-not $memberProfile -and 'READER_GROUP_ID' -notin $secrets) {
+        Add-Result -Check 'Foundation reader group' -Status WARN -Reason 'Initial what-if can run without the reader group; foundation apply cannot.' -Fix 'Run Sync-FactoryReaderGroup.ps1 in Bootstrap mode before foundation.'
+    }
+    elseif (-not $memberProfile -and 'READER_ROSTER_VERIFICATION' -notin $secrets) {
+        Add-Result -Check 'Reader group roster' -Status WARN -Reason 'Vending requires verified reader group membership for the full roster.' -Fix 'Run Sync-FactoryReaderGroup.ps1 in Sync mode before vending.'
+    }
     if ([bool] ($state.protection_rules | Where-Object { $_.type -eq 'required_reviewers' })) {
         Add-Result -Check 'Reviewer gate' -Status PASS -Reason 'A required reviewer approves every run.'
     }

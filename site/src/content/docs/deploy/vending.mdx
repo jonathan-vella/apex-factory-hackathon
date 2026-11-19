@@ -46,7 +46,7 @@ After starting the VMs, allow **about 10 minutes** and check **Azure Arc > Machi
 
 ## 4.2 Run the vending stage (Team lead)
 
-From `factory/` in the team lead's repository, start the `vending` stage:
+Before dispatching `vending`, the designated Entra group owner [syncs the reader group](https://github.com/jonathan-vella/apex-factory-hackathon/tree/main/infra/foundation#prepare-and-sync-the-reader-group) from the full private roster. The stage rejects missing or stale roster verification, even when vending only a batch. From `factory/` in the team lead's repository, start the stage:
 
 ```bash
 gh workflow run platform.yml -f stage=vending

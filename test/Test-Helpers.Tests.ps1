@@ -167,12 +167,25 @@ function global:az {
     $vendingScript = Join-Path $repoRoot 'scripts/Deploy-Vending.ps1'
     $vendingStub = @'
 $hubSub = '22222222-2222-2222-2222-222222222222'
+$readerGroup = '44444444-4444-4444-4444-444444444444'
+. (Join-Path (Split-Path $v -Parent) 'FactoryReaderAccess.ps1')
+$kitScope = '/providers/Microsoft.Management/managementGroups/mg-factory'
+$kitBinding = @{
+    name = Get-FactoryAssignmentName -Scope $kitScope -PrincipalId $readerGroup
+    principalId = $readerGroup; principalType = 'Group'; description = $factoryReaderMarker
+    scope = $kitScope; roleDefinitionId = "/providers/Microsoft.Authorization/roleDefinitions/$factoryReaderRole"
+}
 function global:az {
     $global:LASTEXITCODE = 0
     $command = $args -join ' '
     if ($command -like 'account show*') { return '{"tenantId":"tenant-1"}' }
     if ($command -like 'ad signed-in-user show*') { return '{"id":"user-1"}' }
+    if ($command -like 'role assignment list*managementGroups/mg-factory*') { return ConvertTo-Json -InputObject @($kitBinding) -Compress }
     if ($command -like 'role assignment list*') { return '[{"roleDefinitionName":"Owner"}]' }
+    if ($command -like 'rest*assignedTo*') {
+        if ($env:TEST_MISSING_READER) { return '{"value":[]}' }
+        return (@{ value = @(@{ name = $kitBinding.name; properties = $kitBinding }) } | ConvertTo-Json -Depth 4 -Compress)
+    }
     if ($command -like 'network vnet show*vnet-hub*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/virtualNetworks/vnet-hub`"}" }
     if ($command -like 'resource show*afw-hub*') { return "{`"properties`":{`"ipConfigurations`":[{`"properties`":{`"privateIPAddress`":`"10.0.0.4`"}}],`"firewallPolicy`":{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-hub/providers/Microsoft.Network/firewallPolicies/afwp-hub`"}}}" }
     if ($command -like 'resource show*log-management*') { return "{`"id`":`"/subscriptions/$hubSub/resourceGroups/rg-management/providers/Microsoft.OperationalInsights/workspaces/log-management`"}" }
@@ -197,25 +210,20 @@ function global:az {
         $passed++
     }
 
-    # The member's Reader grants on the hub and kit MG show in the summary only when a principal is passed.
+    # Vending retains direct hub Reader and verifies, but does not create, the kit-level assignment.
     foreach ($principal in '', '33333333-3333-3333-3333-333333333333') {
-        $extra = if ($principal) { " -MemberPrincipalId '$principal'" } else { '' }
+        $extra = if ($principal) { " -MemberPrincipalId '$principal' -ReaderGroupId `$readerGroup" } else { '' }
         $run = Invoke-Child -Variables @{ v = $vendingScript } -Script "$vendingStub`n& `$v -WorkloadSubscriptionId '11111111-1111-1111-1111-111111111111' -SharedSubscriptionId `$hubSub -MemberIndex 1 -BudgetEmail 'lead@example.test' -WhatIf$extra *>&1"
         Assert-True ($run.ExitCode -eq 0) "Vending what-if failed (principal='$principal'): $($run.Output)"
         $expectedHub = if ($principal) { 'Hub Reader\s+the member' } else { 'Hub Reader\s+skipped' }
-        $expectedMg = if ($principal) { 'MG Reader\s+the member, on mg-factory' } else { 'MG Reader\s+skipped' }
+        $expectedMg = if ($principal) { 'MG Reader\s+verified via the foundation reader group' } else { 'MG Reader\s+not checked' }
         Assert-True ($run.Output -match $expectedHub) "The vending summary should show the hub Reader grant as '$expectedHub' (principal='$principal'): $($run.Output)"
         Assert-True ($run.Output -match $expectedMg) "The vending summary should show the MG Reader grant as '$expectedMg' (principal='$principal'): $($run.Output)"
         $passed++
     }
 
-    # A pre-existing non-vending direct Reader assignment on mg-factory is preserved without re-creating it.
-    $existingMgReaderStub = $vendingStub -replace [regex]::Escape('if ($command -like ''role assignment list*'') { return ''[{"roleDefinitionName":"Owner"}]'' }'), @'
-if ($command -like 'role assignment list*managementGroups/mg-factory*--role Reader*') { return '[{"principalId":"33333333-3333-3333-3333-333333333333","scope":"/providers/Microsoft.Management/managementGroups/mg-factory","roleDefinitionName":"Reader","description":"Manual pre-grant"}]' }
-    if ($command -like 'role assignment list*') { return '[{"roleDefinitionName":"Owner"}]' }
-'@
-    $run = Invoke-Child -Variables @{ v = $vendingScript } -Script "$existingMgReaderStub`n& `$v -WorkloadSubscriptionId '11111111-1111-1111-1111-111111111111' -SharedSubscriptionId `$hubSub -MemberIndex 1 -MemberPrincipalId '33333333-3333-3333-3333-333333333333' -BudgetEmail 'lead@example.test' -WhatIf *>&1"
-    Assert-True ($run.ExitCode -eq 0 -and $run.Output -match 'MG Reader\s+kept as it is') "Existing MG Reader should be kept as is: $($run.Output)"
+    $run = Invoke-Child -Variables @{ v = $vendingScript } -Script "$vendingStub`n`$env:TEST_MISSING_READER = 'true'; & `$v -WorkloadSubscriptionId '11111111-1111-1111-1111-111111111111' -SharedSubscriptionId `$hubSub -MemberIndex 1 -MemberPrincipalId '33333333-3333-3333-3333-333333333333' -ReaderGroupId `$readerGroup -BudgetEmail 'lead@example.test' -WhatIf *>&1"
+    Assert-True ($run.Output -match 'does not resolve to the kit reader-group assignment' -and $run.Output -notmatch 'Vending member') "An existing binding without member access must block vending: $($run.Output)"
     $passed++
 
     # Deploy-Vending SNAT array handling: 0, 1 (singleton!), 516 (member 21 skips parent afwp-hub update), and 518 (member 256 appends 2 prefixes cleanly).
