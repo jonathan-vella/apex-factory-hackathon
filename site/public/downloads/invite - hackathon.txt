@@ -19,12 +19,13 @@ Day 1 includes the kickoff, customer-outcome and assessment activities, target-s
 
 Please arrive with your pre-event setup complete (Path A Deploy Steps 1–4, or Path B Student onboarding):
 
-- Your private GitHub repository (self-created in Path A, or accepted from your team lead's invitation in Path B) and Copilot-enabled dev container are ready.
+- Your private GitHub repository is open on vm-dev01 and you have verified Copilot Chat there.
 - Your Azure access is in place, including unconditional Owner on your own workload subscription.
 - Your datacenter is deployed and tested, vm-app01 is connected to Azure Arc, vm-dev01 is set up, and your team lead has completed vending.
 - Both datacenter VMs are running when you arrive. Keep vm-dev01 running throughout the event.
 
-Bring your laptop and any questions about the setup or event. Please read the Hackathon and What You Need orientation deck sent with the invitation email, and the guides:
+Bring your laptop and any questions about the setup or event. Read the Event overview and the setup guides:
+https://factory.apexops.pro/getting-started/event-overview/
 
 - Requirements: https://factory.apexops.pro/getting-started/requirements/
 - Roles: https://factory.apexops.pro/getting-started/roles/

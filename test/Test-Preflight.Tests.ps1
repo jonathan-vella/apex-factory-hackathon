@@ -148,7 +148,10 @@ foreach ($scenario in $scenarios) {
         $failures = @($data.Checks | Where-Object Status -EQ 'FAIL')
         if ($data.FailureCount -ne $failures.Count) { throw "$scenario JSON failure count mismatch." }
         if (($data.Verdict -eq 'GO') -ne ($expected -eq 0)) { throw "$scenario JSON verdict mismatch." }
-        if (@($data.Checks | Where-Object Status -EQ 'MANUAL').Count -ne 5) { throw "$scenario manual checks missing." }
+        $manualChecks = @($data.Checks | Where-Object Status -EQ 'MANUAL' | ForEach-Object Check)
+        if (Compare-Object @('MFA', 'GitHub Copilot', 'GitHub repositories', 'Azure Hybrid Benefit') $manualChecks) {
+            throw "$scenario has unexpected manual checks: $($manualChecks -join ', ')."
+        }
         if ($failures | Where-Object { -not $_.Fix }) { throw "$scenario FAIL is missing a remedy." }
         $commands = Get-Content -LiteralPath $calls
         if ($commands -match 'quota|account set|deployment| create ') { throw "$scenario attempted an out-of-scope command." }

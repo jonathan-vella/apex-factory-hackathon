@@ -3,6 +3,8 @@ import test from "node:test";
 import { readFile, stat } from "node:fs/promises";
 import { createEventDrafts } from "../site/src/scripts/event-materials.js";
 
+const obsoleteSetup = /\bWSL\b|Docker Desktop|dev[- ]containers?\b|Codespaces|vm-dev01-work/i;
+
 test("event drafts retain placeholders and the documented preparation sequence", () => {
   const drafts = createEventDrafts();
   assert.deepEqual(
@@ -15,6 +17,9 @@ test("event drafts retain placeholders and the documented preparation sequence",
   const preparation = email.split("Preparation happens in stages:")[1].split("\n")[0];
   assert.deepEqual(preparation.match(/\bT-(?:14|7|3|1)\b/g), ["T-14", "T-7", "T-3", "T-1"]);
   assert.match(email, /No coach is on duty during pre-event setup/);
+  assert.match(email, /Start setup in Azure Cloud Shell/);
+  assert.match(email, /connect to vm-dev01 through Azure Bastion/);
+  for (const { text } of drafts) assert.doesNotMatch(text, obsoleteSetup);
   assert.doesNotMatch(drafts.map(({ text }) => text).join("\n"), /attached PDF|three-page/i);
 });
 
@@ -103,6 +108,7 @@ test("blank event details remain visible placeholders", () => {
       );
       assert.match(content, /https:\/\/factory\.apexops\.pro\/deploy\/lead-setup\/student-onboarding\//);
       assert.doesNotMatch(content, /VS Code 1\.100|three-page|25-minute|\bUbuntu\b|\b20\d{2}\b/);
+      assert.doesNotMatch(content, obsoleteSetup);
     }
   });
 
@@ -130,12 +136,13 @@ test("lead-provisioned setupMode tailors all three drafts to Path B student onbo
     assert.ok(draft.text.includes("https://factory.apexops.pro/getting-started/roles/"));
     assert.doesNotMatch(draft.text, /\[[^\]]+\]/);
     assert.doesNotMatch(draft.text, /VS Code 1\.100|three-page|25-minute|\bUbuntu\b|\b20\d{2}\b/);
+    assert.doesNotMatch(draft.text, obsoleteSetup);
   }
   assert.match(email.text, /GitHub username/);
   assert.match(email.text, /repository invitation/);
-  assert.match(email.text, /GitHub Codespaces/);
+  assert.match(email.text, /connect to vm-dev01 through Azure Bastion/);
   assert.match(email.text, /do not need to create a repository from a template or run the T-14 to T-1 deployment pipelines yourself/);
   assert.match(briefing.text, /attendees do not run the T-14 to T-1 pipelines themselves/);
-  assert.match(hackathon.text, /dev container or GitHub Codespaces/);
+  assert.match(hackathon.text, /opened your repo and verified Copilot Chat/);
   assert.match(hackathon.text, /Keep vm-dev01 running throughout the event/);
 });

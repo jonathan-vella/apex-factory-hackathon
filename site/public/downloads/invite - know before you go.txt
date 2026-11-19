@@ -19,7 +19,8 @@ We’ll cover:
 - Preparation milestones: T-14, T-7, T-3 and T-1
 - Questions and next steps
 
-Before the briefing, please read the Hackathon and What You Need orientation deck (attached to the invitation email), Requirements and Roles:
+Before the briefing, please read the Event overview, Requirements and Roles:
+https://factory.apexops.pro/getting-started/event-overview/
 
 - Requirements: https://factory.apexops.pro/getting-started/requirements/
 - Roles: https://factory.apexops.pro/getting-started/roles/

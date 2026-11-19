@@ -19,8 +19,8 @@ Complete this step first. It gives you a private repository with the kit on `mai
 
 ## How you work
 
-- **One repo of your own.** A single private GitHub repo created from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template—you use this same repository throughout the event on `main` (without creating a second GitHub repo or a separate `vm-dev01-work` branch). It brings the **APEX agents**, Copilot custom agents that appear in Copilot Chat's agent picker.
-- **Azure Cloud Shell for pre-event pipeline setup.** Because `vm-dev01` is deployed in Step 3 (`T-3`), you run Step 1's one-time import and pipeline setup in [Azure Cloud Shell](https://shell.azure.com) (PowerShell) in your browser—no local WSL 2, Docker Desktop, or Dev Container needed.
+- **One repo of your own.** Create a private GitHub repo from the [`apex-accelerator`](https://github.com/jonathan-vella/apex-accelerator) template and use it throughout the event. Use `main` for challenge work. The template supplies the **APEX agents**, which appear in Copilot Chat's agent picker.
+- **Azure Cloud Shell for Step 1.** Import the kit and set up the pipeline in [Azure Cloud Shell](https://shell.azure.com) (PowerShell) in your browser. You get your `vm-dev01` workstation in Step 3 (`T-3`).
 - **One import.** A single command (`Import-Kit.ps1`) copies the kit into `factory/`, pre-populates `factory/evidence/`, and places `app/ContosoUniversity`, `.github/modernization/`, `.github/skills/`, and the CoE archetype (`infra/bicep/university/`) at the repo root.
 - **One workstation (`vm-dev01`) for all challenges.** Once `vm-dev01` is deployed in [Step 3: Datacenter and workstation](../member-steps/#33-set-up-vm-dev01), you clone your repo to `C:\src\<your-repo>` on `main` and run 100% of `C1` to `C10` there.
 - **Working artifacts** live in `factory/evidence/` on `main`. Team deliverables (`C1`, `C4`, `C10`) are committed once in the team/pod lead's repo.
@@ -240,7 +240,7 @@ The `whatif` stage checks your subscription and registers missing Azure resource
 | # | Check | How to verify | Preflight row |
 | --- | --- | --- | --- |
 | 1 | Copilot seat and organization policy | Confirm your GitHub account has an active Copilot seat and your organization allows Copilot Chat, custom agents (`01-Orchestrator`, `08-As-Built`, `Upgrade`), and MCP servers (verified on `vm-dev01` in Step 3.3). | GitHub Copilot |
-| 2 | Azure Cloud Shell works | You can run `az version`, `pwsh --version`, and `gh --version` in [Azure Cloud Shell](https://shell.azure.com). | APEX |
+| 2 | Azure Cloud Shell works | You can run `az version`, `pwsh --version`, and `gh --version` in [Azure Cloud Shell](https://shell.azure.com). | Not a MANUAL row |
 | 3 | One subscription per member | Confirm with your team lead that no other member uses yours. | Not a MANUAL row |
 | 4 | Your roles match your kit role | Team lead: Owner at Tenant Root, Owner on the shared services subscription, and Owner on their own workload subscription. Members: Owner on your own workload subscription. Tenant Root Owner must be in place for pipeline setup by T-14. | Not a MANUAL row |
 | 5 | MFA is registered | Sign in to the Azure portal and confirm your MFA method works. | MFA |

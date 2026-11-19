@@ -63,7 +63,7 @@ repo and continue from there.
 2. Import this folder into that repo. Members normally don't run this by hand:
    `scripts/Import-Kit.ps1` (see the site's [Set up your repo](https://factory.apexops.pro/deploy/set-up-your-repo/) page) imports the kit into `factory/` and
    then runs this script for them. To redo only the archetype import, run this from your repo root
-   (inside the dev container):
+   on `vm-dev01`:
 
    ```powershell
    ./factory/archetype/Import-Archetype.ps1
@@ -137,7 +137,7 @@ hand-patched scripts are now APEX output. A deploy through `07b` wasn't run on t
 
 ### Fallback (no agent, no azd)
 
-Run it from the `factory/` folder of your repo (in the dev container), so the script and `.local/settings.json` resolve. In the kit repo itself, run it from the repo root.
+On `vm-dev01`, run it from the `factory/` folder of your repo so the script and `.local/settings.json` resolve. In the kit repo itself, run it from the repo root.
 
 ```powershell
 cd factory
@@ -292,17 +292,12 @@ services subscription IDs (`.local/settings.json`) and the signed-in deployer's 
 zero hits. Built-in Azure policy/role definition GUIDs (public, not tenant-specific) are expected
 and fine.
 
-### Run APEX in the dev container, not natively on Windows
+### Preserve Bicep parameter file line endings
 
-APEX's `.gitattributes` forces LF for `*.bicep` but not for `*.bicepparam`; with `* text=auto`, a
-native Windows git checkout turns `main.bicepparam`'s line endings to CRLF, which changes its hash
-and breaks `tree_hash` (declared vs actual mismatch). This kit's own `.gitattributes`
-(`* text=auto eol=lf`) keeps the committed `archetype/` bytes LF, but a member who then clones
-*their* APEX repo natively on Windows can reintroduce the problem. Run APEX (and `apex-recall`) in
-the dev container or GitHub Codespaces, not natively on Windows; if you must clone on Windows for
-some other reason, use `git -c core.autocrlf=false -c core.eol=lf clone ...` and verify `tree_hash`
-before relying on it. Follow-up filed upstream: `apex-accelerator`'s `.gitattributes` should add
-`*.bicepparam text eol=lf`.
+`Import-Kit.ps1` sets `*.bicepparam text eol=lf` in the member repository before it is cloned on
+`vm-dev01`. Keep the rule: changing `main.bicepparam` to CRLF changes its APEX `tree_hash`.
+For standalone APEX repositories outside the event, check that the same rule is present before
+cloning on Windows and verify `tree_hash` before relying on it.
 
 ## Azure Hybrid Benefit
 

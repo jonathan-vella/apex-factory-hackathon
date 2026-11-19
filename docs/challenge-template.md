@@ -46,7 +46,7 @@ The scenario and the facts the team needs, and nothing else.
 - **Starting point.** What exists when you begin: the output of the earlier challenges, by name.
 - **Fixed by the kit.** What you don't decide, so nobody spends time debating it.
 - **You decide.** The choices that are yours.
-- **Where to work.** Dev container, `vm-dev01` or the portal, in one line.
+- **Where to work.** Name the workstation, portal or source VM for each task.
 
 Add a diagram only if it saves words. Use the `Diagram` component.
 

@@ -242,7 +242,7 @@ For deployment or connectivity errors, check [Troubleshooting](../../reference/t
 Work through these in order:
 
 1. Requirement 1 must have finished with `The source is ready for MI link.` Read `C:\LabTools\logs\Prepare-MiLinkSource.log` on `vm-app01`. An `ERROR:` line that says the instance is not ready means a datacenter setting is missing: tell your coach.
-2. The prefix you passed must be your own `10.20.<n>.128/26` (or the exact `-MiSubnetPrefix` printed by the dev-container command when `<n>` is `256` or higher). A wrong prefix opens port 5022 to the wrong subnet and the link can't connect. Run the script again with the right one: it fixes the firewall rule.
+2. The prefix you passed must be your own `10.20.<n>.128/26` (or the exact `-MiSubnetPrefix` printed by the setup command on `vm-dev01` when `<n>` is `256` or higher). A wrong prefix opens port 5022 to the wrong subnet and the link can't connect. Run the script again with the right one: it fixes the firewall rule.
 3. `vm-app01` must be running with its Arc entry **Connected**, and the SQL Server service must be running.
 4. **Test connection** can pass while creation still fails, so read the error the portal shows on **Monitor migrations** and send it to your coach. Don't change firewall, network or certificate settings by hand.
 5. To retry, select **Cancel migration**, delete the leftover copy on the managed instance (the next hint), and start again from requirement 2. Requirement 1 doesn't need repeating.

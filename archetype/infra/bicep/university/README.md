@@ -45,7 +45,7 @@ Nothing in this folder contains a tenant, subscription or object ID. Values come
 
 ## Hooks
 
-Both hooks are PowerShell 7 and use the Azure CLI only. They run on the dev VM, the dev container and Cloud Shell.
+Both hooks use PowerShell 7 and Azure CLI. During C5, `azd` runs them on `vm-dev01`.
 The logic lives in standalone scripts that the kit's `archetype/deploy.ps1` can call directly.
 
 | Script                         | Purpose                                                                                          |
