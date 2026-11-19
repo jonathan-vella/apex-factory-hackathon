@@ -210,10 +210,11 @@ body:not(:has(.landing-hero)) .sl-markdown-content table {
   padding-block: 0.25rem;
 }
 
-.deploy-path {
+.sl-markdown-content .deploy-path {
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 0.45rem;
+  margin-block-start: 0;
   border-block-start: 1px solid var(--sl-color-accent);
   padding-block: 0.75rem;
 }
