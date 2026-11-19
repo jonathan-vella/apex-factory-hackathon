@@ -6,7 +6,7 @@ Shared helpers for the DB perf kit scripts: loads the SqlServer module and build
 .DESCRIPTION
 Imported by Start-Workload.ps1 and Reset-PerfKit.ps1. SqlPassword connects as contosoapp with the password
 from -SqlPassword; else from the newest .local/<subscription-id>/datacenter.json in the kit folder (the
-file Deploy-Datacenter.ps1 writes, in the dev container's factory/ folder); else the documented lab password.
+file Deploy-Datacenter.ps1 writes); else the documented lab password.
 The VM's clone of the kit (C:\src\factory) has no .local folder, so if you deployed the datacenter with
 -SqlAppPassword, pass it as -SqlPassword there. ActiveDirectoryDefault connects as the signed-in Entra
 identity, which SQL MI needs after cutover because it's Entra-only. On vm-dev01 use

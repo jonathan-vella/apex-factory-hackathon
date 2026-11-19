@@ -128,7 +128,7 @@ function Add-HookExclusion {
 }
 
 if (-not (Get-Command tar -ErrorAction SilentlyContinue)) {
-    throw 'tar was not found on PATH. It ships with Windows 10 1803+, macOS, Linux and the dev container.'
+    throw 'tar was not found on PATH. Run the import in Azure Cloud Shell or make tar available on PATH.'
 }
 
 if (-not $Destination) {

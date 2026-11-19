@@ -13,7 +13,7 @@ takes up to 60 minutes and is unattended.
 labadmin (both VMs) and the SQL login contosoapp use the fixed, documented lab password
 FactoryLab-2026-Pw unless you pass -AdminPassword or -SqlAppPassword. The VMs have no public IPs
 and are reachable only through Bastion, so a documented lab password is acceptable here, and only here.
-The script saves the values it deploys in .local/<subscription-id>/datacenter.json (git-ignored, in the repo folder so it survives a dev container rebuild).
+The script saves the values it deploys in .local/<subscription-id>/datacenter.json in the repo folder. Git ignores the file.
 Re-runs converge an existing datacenter to those values.
 
 A re-run is safe before vending (Deploy-Vending.ps1) and Arc onboarding (Connect-DatacenterArc.ps1). It resets
@@ -237,8 +237,8 @@ The datacenter is deployed ($([int] $elapsed.TotalMinutes) minutes).
   $($outputs.devVmName.value)  $($outputs.devVmPrivateIp.value)
   Bastion   $($outputs.bastionName.value)
 
-Connect with your local Remote Desktop client (a Windows host only, not the dev container; needs az login and the Azure CLI bastion extension:
-  az extension add --name bastion). Your account needs Reader on the VM, its NIC and bas-datacenter:
+Optional on Windows: connect with the Remote Desktop client. Sign in with az login and install the
+Azure CLI Bastion extension (az extension add --name bastion). Your account needs Reader on the VM, its NIC and bas-datacenter:
   ./scripts/Connect-DatacenterVm.ps1 -SubscriptionId <subscription-id> -VmName vm-dev01
   Or in the Azure portal (also from Cloud Shell, macOS or Linux): open $resourceGroup > vm-dev01 >
   Connect > Bastion. Sign in as labadmin. Bastion Standard allows several sessions at once, so you can

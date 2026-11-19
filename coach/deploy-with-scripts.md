@@ -7,7 +7,7 @@ This page is the coach's repair path, only when an Actions run can't be repaired
 
 There are two roles. **Member** is each member's datacenter (`n >= 1`). **Team lead** (called the platform lead in the workflow and scripts) deploys the foundation and vends every member, is also a member on index `1`, and in **Path B (Lead-provisioned cohort)** also provisions the student repositories (`Initialize-CohortRepos.ps1`) and runs the member and teardown stages across the cohort. The [Readiness check](readiness.md) and [C2](c02-secure-ai-ready-foundation.md) hold the checks and the hints. This page is the short sequence.
 
-Run every command from `factory/` in the member's dev container, signed in with `az login`. In each new terminal, load the member's settings first:
+Use PowerShell in Azure Cloud Shell for these repairs. Open the relevant lead or member repo's `factory/` folder and confirm the Azure sign-in and subscription before running anything. In each new terminal, load the settings for the environment you are repairing:
 
 ```powershell
 $s = Get-Content .local/settings.json | ConvertFrom-Json

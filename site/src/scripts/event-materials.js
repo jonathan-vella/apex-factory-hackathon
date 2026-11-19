@@ -18,7 +18,8 @@ export function createEventDrafts(details = {}) {
   const resources = detail(details.resources, "event materials and setup link");
 
   if (setupMode === "lead-provisioned") {
-    const leadGuides = `Requirements: https://factory.apexops.pro/getting-started/requirements/
+    const leadGuides = `Event overview: https://factory.apexops.pro/getting-started/event-overview/
+Requirements: https://factory.apexops.pro/getting-started/requirements/
 Roles: https://factory.apexops.pro/getting-started/roles/
 Student onboarding: https://factory.apexops.pro/deploy/lead-setup/student-onboarding/
 Lead cohort setup: https://factory.apexops.pro/deploy/lead-setup/step-1-cohort-and-preflight/`;
@@ -39,7 +40,7 @@ Know Before You Go
 
 Join the briefing on ${briefingWhen} at ${briefingLocation}. We'll introduce the scenario, explain the hackathon, review student onboarding and answer questions.
 
-Before the briefing, read Partner-Modernization-Factory-Hackathon-and-What-You-Need.pptx (6 slides), attached to this email, and the Requirements and Roles guides.
+Before the briefing, read the Event overview, Requirements and Roles guides below.
 
 Event materials: ${resources}
 ${leadGuides}
@@ -48,8 +49,8 @@ How pre-event setup works (lead-provisioned cohort)
 
 - Your platform team lead pre-creates your private GitHub repository and deploys the shared landing zone, your simulated datacenter and spoke vending ahead of Day 1 (including the T-7 directory grant after foundation deployment and tenant-owner approval). You do not need to create a repository from a template or run the T-14 to T-1 deployment pipelines yourself.
 - Reply privately to your team lead with your GitHub username (and your Microsoft Entra object ID and work email if requested), then accept the GitHub repository invitation as soon as it arrives.
-- Each attendee needs unconditional Owner on their assigned paid workload subscription, MFA, a GitHub account with a paid GitHub Copilot seat (with agent mode, MCP servers and required models allowed), and a laptop with latest stable VS Code, Docker Desktop, Git, Dev Containers and GitHub Copilot Chat for local dev-container setups (or a browser when organizer-enabled GitHub Codespaces is used; Windows 11 local setups also use WSL 2). Check Docker Desktop and Windows 11 licensing and Windows Server Azure Hybrid Benefit entitlement in the Requirements guide.
-- Once your team lead confirms your environment is vended, complete Student onboarding before Day 1 so your dev container and vm-dev01 workstation are signed in and ready: https://factory.apexops.pro/deploy/lead-setup/student-onboarding/
+- Each attendee needs unconditional Owner on their assigned paid workload subscription, MFA, and a GitHub account with a paid GitHub Copilot seat (with agent mode, MCP servers and required models allowed). Check Windows 11 licensing and Windows Server Azure Hybrid Benefit entitlement in the Requirements guide.
+- Once your team lead confirms your environment is vended, connect to vm-dev01 through Azure Bastion in your browser and complete Student onboarding before Day 1.
 
 No coach is on duty during pre-event setup. Your designated team lead is your first point of contact, and support before the event is best-effort. Share your GitHub username and account details privately, not in public channels.
 
@@ -82,7 +83,7 @@ We'll cover:
 - How lead-provisioned setup works: sharing your GitHub username privately, accepting your repository invitation and completing Student onboarding
 - Questions and next steps
 
-Before the briefing, read the six-slide Hackathon and What You Need orientation deck shared with the overview email, and the Requirements and Roles guides.
+Before the briefing, read the Event overview, Requirements and Roles guides below.
 
 Event materials: ${resources}
 ${leadGuides}
@@ -110,9 +111,9 @@ Day 1 includes the kickoff, customer-outcome and assessment activities, target-s
 
 Please arrive with your Student onboarding complete:
 
-- You have accepted your GitHub repository invitation, opened your pre-created private repository in its dev container or GitHub Codespaces, and verified GitHub Copilot.
+- You have accepted your GitHub repository invitation.
 - Your assigned Azure access is in place, including unconditional Owner on your own workload subscription.
-- Your team lead has deployed and vended your datacenter and spoke, and you have signed in to vm-dev01 and verified Copilot Chat.
+- Your team lead has deployed your datacenter and vended your spoke. You have connected to vm-dev01 through Bastion, opened your repo and verified Copilot Chat.
 - Both datacenter VMs are running when you arrive. Keep vm-dev01 running throughout the event.
 
 Bring your laptop and any setup questions. Review the event materials and student onboarding guide: ${resources}
@@ -126,7 +127,8 @@ Contact: ${contact}`,
     ];
   }
 
-  const guides = `Requirements: https://factory.apexops.pro/getting-started/requirements/
+  const guides = `Event overview: https://factory.apexops.pro/getting-started/event-overview/
+Requirements: https://factory.apexops.pro/getting-started/requirements/
 Roles: https://factory.apexops.pro/getting-started/roles/
 Deploy: https://factory.apexops.pro/deploy/`;
 
@@ -146,7 +148,7 @@ Know Before You Go
 
 Join the briefing on ${briefingWhen} at ${briefingLocation}. We'll introduce the scenario, explain the hackathon, review preparation milestones and answer questions.
 
-Before the briefing, read Partner-Modernization-Factory-Hackathon-and-What-You-Need.pptx (6 slides), attached to this email, and the Requirements and Roles guides.
+Before the briefing, read the Event overview, Requirements and Roles guides below.
 
 Event materials: ${resources}
 ${guides}
@@ -155,7 +157,7 @@ High-level requirements
 
 - Each platform team shares a dedicated non-production Entra tenant and empty, supported paid subscriptions: one shared-services subscription per hub and one workload subscription per member, including a nominated team lead (larger cohorts group into breakout pods of three to five people for team challenges). Each member needs unconditional Owner on their workload subscription and MFA.
 - Each member needs a GitHub account in the partner organization, a private repository and a paid GitHub Copilot seat. The organization's policies must allow agent mode, MCP servers and the required models. Verify GitHub plan support and Actions billing.
-- Use latest stable VS Code, Docker Desktop, Git, Dev Containers and GitHub Copilot Chat (plus WSL 2 on Windows 11). Copilot CLI is optional. Check Docker Desktop and Windows 11 licensing, Windows Server Azure Hybrid Benefit entitlement and regional Azure quota in the Requirements guide. Preflight does not check quota or subscription offer type.
+- Start setup in Azure Cloud Shell in your browser. For the challenges, connect to vm-dev01 through Azure Bastion and use the tools on that workstation. Check Windows 11 licensing, Windows Server Azure Hybrid Benefit entitlement and regional Azure quota in the Requirements guide. Preflight does not check quota or subscription offer type.
 - The team lead additionally needs Owner on shared services and at Tenant Root. Book a Privileged Role Administrator for the T-7 directory grant, which follows foundation deployment and tenant-owner approval.
 
 Preparation happens in stages: repository setup and preflight by T-14; shared foundation and directory permissions at T-7; each member's datacenter, assessment and workstation by T-3; and team vending at T-1. Allow time for access and quota requests.
@@ -191,7 +193,7 @@ We'll cover:
 - Preparation milestones: T-14, T-7, T-3 and T-1
 - Questions and next steps
 
-Before the briefing, read the six-slide Hackathon and What You Need orientation deck shared with the overview email, and the Requirements and Roles guides.
+Before the briefing, read the Event overview, Requirements and Roles guides below.
 
 Event materials: ${resources}
 ${guides}

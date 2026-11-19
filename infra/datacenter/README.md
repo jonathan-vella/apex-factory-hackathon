@@ -136,7 +136,7 @@ You need PowerShell 7.4 or later and the Azure CLI, signed in to the member's te
 
 The script:
 
-1. Saves the credentials it deploys (the lab password, or your overrides) in `.local/<subscription-id>/datacenter.json` next to the kit's scripts (git-ignored, so it survives a dev container rebuild), with the keys `adminUsername`, `adminPassword`, `sqlAppLogin` and `sqlAppPassword`. Later items read this file.
+1. Saves the credentials it deploys (the lab password, or your overrides) in the kit folder's git-ignored `.local/<subscription-id>/datacenter.json`, with the keys `adminUsername`, `adminPassword`, `sqlAppLogin` and `sqlAppPassword`. Later steps read this file.
 2. Prints what it deploys, the cost and the Hybrid Benefit setting. It doesn't check quota.
 3. Deploys `infra/datacenter/main.bicep` at subscription scope, passing the passwords in a temporary parameters file that it deletes afterwards. This takes up to 60 minutes, unattended.
 4. Sets the `vm-dev01` OS disk to performance tier P30. The VM's `osDisk` block has no tier property, so it's set on the disk. It changes without downtime.

@@ -26,8 +26,8 @@ The Azure region. Defaults to swedencentral.
 .PARAMETER SharedSubscriptionId
 The team's shared services subscription ID. Optional until Step 4; the team lead shares it with the team.
 .PARAMETER Suffix
-Restores your resource-name suffix on a machine that has lost .local/settings.json, for example a deleted
-dev container. The script generates the suffix once: a random six-character string of lowercase letters and
+Restores your resource-name suffix when .local/settings.json is missing.
+The script generates the suffix once: a random six-character string of lowercase letters and
 digits. Use that one; the parameter accepts 4 to 6 lowercase letters or digits.
 It is refused when settings.json already holds a different suffix: the suffix is never changed.
 .PARAMETER WriteLabCredentials

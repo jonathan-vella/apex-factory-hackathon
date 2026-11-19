@@ -9,7 +9,7 @@ bas-datacenter (Bastion Standard with native client support), using az network b
 as labadmin with the lab password. The command returns when you close the session.
 
 It is optional: the portal (rg-datacenter > the VM > Connect > Bastion) does the same and needs nothing installed.
-Run it from a Windows host computer, not from the dev container, which has no Remote Desktop client.
+Run it from a Windows computer with the Remote Desktop client.
 It needs a Windows computer with the Azure CLI, the Azure CLI bastion extension
 (az extension add --name bastion) and az login to the member's tenant. Your account needs Reader on
 the VM, its NIC and bas-datacenter. It doesn't work in Azure Cloud Shell, macOS or Linux: there, use

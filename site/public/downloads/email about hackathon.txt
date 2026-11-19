@@ -7,14 +7,14 @@ You’re invited to take part in the Partner Modernization Factory, a two-day, h
 
 Working in teams, you’ll take on the role of a delivery team engaged by the fictional Contoso University. The university’s enrollment application runs on a legacy .NET and Windows platform. During the hackathon, you’ll assess the application, choose a target state, deploy a reusable CoE archetype, modernize the application, migrate its database, and prepare a handover. The goal is to learn a repeatable approach that you can adapt for customer engagements. This is a non-production learning lab.
 
-Attached: Partner-Modernization-Factory-Hackathon-and-What-You-Need.pptx (6 slides), the attendee orientation deck on the scenario, the two-day journey, roles and what to prepare.
+Event overview: https://factory.apexops.pro/getting-started/event-overview/
 
 Know Before You Go
 
 Please join the Know Before You Go session on [Briefing date and time] [Time zone] at [Venue or meeting link]. We’ll introduce the scenario, explain how the hackathon works, review the preparation milestones and answer questions.
 
 Before the session, please read:
-- The attached orientation deck
+- The Event overview
 - Requirements: https://factory.apexops.pro/getting-started/requirements/
 - Roles: https://factory.apexops.pro/getting-started/roles/
 
@@ -24,7 +24,7 @@ Each platform team shares a dedicated, non-production Microsoft Entra tenant and
 
 - Their own paid workload subscription in the team’s tenant, with unconditional Owner assigned (Contributor does not qualify) and MFA registered. Azure Pass, Sponsorship and Microsoft Partner Network benefit offers are not supported.
 - A GitHub account in the partner organization, a private repository, and a paid GitHub Copilot seat. The organization’s policies must allow agent mode, MCP servers and the models used in the event, and GitHub Actions billing must be in place for private repositories.
-- A computer with the latest stable VS Code, Docker Desktop, Git, and the Dev Containers and GitHub Copilot Chat extensions for local dev-container setups (in a lead-provisioned cohort with organizer-enabled GitHub Codespaces, attendees can work in the browser without local Docker Desktop or WSL). Windows users running locally should use the documented WSL 2 setup. Larger organizations using Docker Desktop need a paid Docker subscription.
+- A browser for Azure Bastion, GitHub and the Azure portal. Path A members and team leads use Azure Cloud Shell for setup. Attendees use the tools on vm-dev01 for the challenges.
 - An eligible Windows 11 per-user license for the vm-dev01 workstation. Windows Server Azure Hybrid Benefit is on by default for vm-app01; use the documented opt-out if you hold no eligible licenses.
 - Enough regional vCPU quota in the event region (swedencentral unless told otherwise) for two Standard_D8as_v6 VMs (16 vCPUs) plus the services deployed in C5. Preflight does not check quota or the subscription offer type.
 
