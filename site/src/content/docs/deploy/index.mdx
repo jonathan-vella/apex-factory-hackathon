@@ -9,10 +9,24 @@ sidebar:
 
 import Diagram from "../../../components/Diagram.astro";
 
-Before day one, every attendee gets a simulated datacenter in their own workload subscription and spoke connectivity to a shared Azure landing zone, deployed with GitHub Actions. Pick **one** pre-event operating model for your group and follow its track from start to finish without mixing steps between the two paths:
+Before day one, every attendee gets a simulated datacenter in their own workload subscription and spoke connectivity to a shared Azure landing zone, deployed with GitHub Actions. Follow **one** setup path from start to finish. Don't mix steps between the two paths.
 
-- **Path A — Self-service teams:** Each attendee creates their own private repository; the team lead sets up the `Lead` pipeline in theirs while every other member sets up a `Member` pipeline, everyone deploys their own datacenter in Step 3, and everyone removes their member scope at T+2 while the team lead runs the shared foundation (Step 2) and spoke vending (Step 4). Self-service teams typically have 3 to 5 members, including the team lead.
-- **Path B — Lead-provisioned cohort (1 team, `n` attendees):** One team lead (or platform facilitator) creates all `n` private student repositories, runs preflight, deploys the shared foundation, deploys all `n` datacenters with Azure Arc, and runs spoke vending centrally from a single `Lead` pipeline repository—then asks attendees for their **GitHub username** to invite them as Write (`push`) collaborators to their assigned student repository. Attendees skip Steps 1 to 4 and complete only [Student onboarding (before Day 1)](/deploy/lead-setup/student-onboarding/). A cohort can have any `n` attendees, optionally organized into 3-to-5-person breakout pods for team challenges C1, C4, and C10.
+<nav class="deploy-paths" aria-label="Pre-event setup paths">
+  <div class="deploy-path">
+    <a class="deploy-path__title" href="#path-a-self-service-teams">
+      Path A: Self-service teams
+    </a>
+    <p>Each attendee sets up their own repository and datacenter. The team lead runs the shared stages.</p>
+    <a href="/deploy/set-up-your-repo/">Start Step 1: Repo and preflight</a>
+  </div>
+  <div class="deploy-path">
+    <a class="deploy-path__title" href="#path-b-lead-provisioned-cohort-1-team-n-attendees">
+      Path B: Lead-provisioned cohort
+    </a>
+    <p>The team lead runs Steps 1 to 4 for everyone. Attendees skip straight to student onboarding.</p>
+    <a href="/deploy/lead-setup/student-onboarding/">Go to student onboarding</a>
+  </div>
+</nav>
 
 Ground rules across both paths:
 
@@ -22,7 +36,7 @@ Ground rules across both paths:
 
 ## Path A: Self-service teams
 
-Use this track when every attendee provisions their own repository and workload subscription pipeline. Follow **Step 1 to Step 4** in chronological order before day one.
+Each attendee creates their own private repository; the team lead sets up the `Lead` pipeline in theirs while every other member sets up a `Member` pipeline. Everyone deploys their own datacenter in Step 3 and removes their member scope at T+2. The team lead runs the shared foundation (Step 2) and spoke vending (Step 4). Self-service teams typically have 3 to 5 members, including the team lead. Follow **Step 1 to Step 4** in chronological order before day one.
 
 <Diagram
   name="diagram-13-pipeline-who-runs-what"
@@ -43,6 +57,8 @@ Use this track when every attendee provisions their own repository and workload 
 ## Path B: Lead-provisioned cohort (1 team, `n` attendees)
 
 Use this track when one team lead prepares the entire lab centrally for `n` attendees. Only the lead repository (`<event>-lead`) has a GitHub Actions pipeline; each student receives Write (`push`) access to one pre-created `<event>-student-<nn>` repository (never creating a GitHub repo of their own) with no `gh-lab` environment, OIDC identity, or secrets. (If the team lead also takes part in member challenges, they take slot `1` and `<event>-student-01` too.)
+
+The team lead (or platform facilitator) creates the private repositories, runs preflight, deploys the foundation and Arc-connected datacenters, and runs vending centrally. They collect each attendee's **GitHub username** to send the collaborator invitation. Attendees complete only [Student onboarding (before Day 1)](/deploy/lead-setup/student-onboarding/). A cohort can have any `n` attendees, optionally organized into 3-to-5-person breakout pods for team challenges C1, C4, and C10.
 
 | Step | When | Who | What you do | Page |
 | --- | --- | --- | --- | --- |

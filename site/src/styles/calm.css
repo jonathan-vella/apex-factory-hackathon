@@ -24,6 +24,57 @@ body:not(:has(.landing-hero)) .main-pane :is(h1, h2, h3, h4) {
 
 body:not(:has(.landing-hero)) .main-pane h1 {
   line-height: 1.2;
+  text-wrap: balance;
+}
+
+.challenge-brief {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.5rem;
+  margin-block-start: 1rem;
+  font-size: var(--sl-text-sm);
+}
+
+.challenge-brief__facts,
+.challenge-brief__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.challenge-brief__facts {
+  gap: 0.25rem 0.6rem;
+  margin: 0;
+  padding: 0;
+  color: var(--sl-color-gray-2);
+  font-variant-numeric: tabular-nums;
+  list-style: none;
+}
+
+.challenge-brief__facts li + li {
+  padding-inline-start: 0.6rem;
+  border-inline-start: 1px solid var(--sl-color-gray-5);
+}
+
+.challenge-brief__links {
+  gap: 0.25rem 0.9rem;
+}
+
+.challenge-brief__links a {
+  color: var(--sl-color-accent-high);
+  font-weight: 600;
+  text-underline-offset: 0.18em;
+}
+
+.challenge-brief__links a:hover {
+  color: var(--sl-color-white);
+}
+
+@media print {
+  .challenge-brief__links {
+    display: none;
+  }
 }
 
 body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper.level-h2 {
@@ -32,6 +83,10 @@ body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper.level-h2 
 
 body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper.level-h3 {
   margin-top: 2rem;
+}
+
+body:not(:has(.landing-hero)) .sl-markdown-content > .sl-heading-wrapper:first-child {
+  margin-top: 0;
 }
 
 body:not(:has(.landing-hero)) .sl-markdown-content > * + * {
@@ -106,14 +161,14 @@ body:not(:has(.landing-hero)) .sl-markdown-content details > :not(summary) {
 }
 
 /* Task lists: a quiet number and a left rule instead of cards. */
-body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li {
+body:not(:has(.landing-hero)) .sl-markdown-content :is(.sl-heading-wrapper:has(#requirements), .task-bar) + ol > li {
   padding: 0.5rem 0 0.5rem 3rem;
   border: 0;
   border-radius: 0;
   background: transparent;
 }
 
-body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li::before {
+body:not(:has(.landing-hero)) .sl-markdown-content :is(.sl-heading-wrapper:has(#requirements), .task-bar) + ol > li::before {
   left: 0.25rem;
   top: 0.55rem;
   width: 1.6rem;
@@ -124,11 +179,11 @@ body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#requ
   font-weight: 600;
 }
 
-body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li :not(pre) > code {
+body:not(:has(.landing-hero)) .sl-markdown-content :is(.sl-heading-wrapper:has(#requirements), .task-bar) + ol > li :not(pre) > code {
   background: var(--sl-color-gray-6);
 }
 
-body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li.is-done::before {
+body:not(:has(.landing-hero)) .sl-markdown-content :is(.sl-heading-wrapper:has(#requirements), .task-bar) + ol > li.is-done::before {
   border-color: var(--task-done);
   background: var(--task-done);
   color: #fff;
@@ -146,6 +201,40 @@ body:not(:has(.landing-hero)) .sl-markdown-content .sl-heading-wrapper:has(#succ
 /* Tables: hairlines only. */
 body:not(:has(.landing-hero)) .sl-markdown-content table {
   font-size: 0.9375rem;
+}
+
+.deploy-paths {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  gap: 1.25rem 1.5rem;
+  padding-block: 0.25rem;
+}
+
+.deploy-path {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.45rem;
+  border-block-start: 1px solid var(--sl-color-accent);
+  padding-block: 0.75rem;
+}
+
+.deploy-path > * {
+  margin: 0;
+}
+
+.deploy-path__title {
+  font-size: var(--sl-text-lg);
+  font-weight: 650;
+  text-wrap: balance;
+}
+
+.deploy-path p {
+  color: var(--sl-color-gray-2);
+}
+
+.deploy-path > a:last-child {
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
 }
 
 /* Diagrams (the Diagram component) */

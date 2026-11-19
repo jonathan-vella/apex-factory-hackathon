@@ -7,15 +7,6 @@
 :root {
   --task-done: #1a7f37;
   --task-done-text: #1a7f37;
-
-  /* Starlight's mobile table of contents is about 1rem taller than --sl-mobile-toc-height. */
-  --task-bar-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + 1rem);
-}
-
-@media (min-width: 72rem) {
-  :root {
-    --task-bar-top: calc(var(--sl-nav-height) + 0.4rem);
-  }
 }
 
 .task-sr-only {
@@ -109,11 +100,15 @@
   margin-top: 0;
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li.is-done {
+.sl-markdown-content .task-item {
+  scroll-margin-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height) + 1rem);
+}
+
+.sl-markdown-content .task-item.is-done {
   border-color: var(--task-done);
 }
 
-.sl-markdown-content .sl-heading-wrapper:has(#requirements) + ol > li.is-done::before {
+.sl-markdown-content .task-item.is-done::before {
   background: var(--task-done);
 }
 
@@ -136,30 +131,34 @@
   padding: 0.3rem;
 }
 
-/* Sticky task bar, pinned under the header (and under Starlight's mobile table of contents). */
+/* Keep progress with the requirements; pin it only where there is room above the reading column. */
 .task-bar {
-  position: sticky;
-  top: var(--task-bar-top);
-  z-index: 3;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem 0.85rem;
-  margin: 0 0 1rem;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.75rem;
-  background: var(--sl-color-gray-6);
-  /* The first shadow fills the gap above the bar so scrolling content doesn't show through. */
-  box-shadow:
-    0 -0.4rem 0 var(--sl-color-black),
-    0 3px 10px rgba(0, 0, 0, 0.18);
+  gap: 0.35rem 0.75rem;
+  margin: 0.75rem 0 1rem;
+  padding: 0.4rem 0.25rem;
+  border-block: 1px solid var(--sl-color-gray-5);
+  background: var(--sl-color-black);
   color: var(--sl-color-gray-1);
   font-size: var(--sl-text-sm);
 }
 
-html:has(.task-bar) {
-  scroll-padding-top: calc(var(--task-bar-top) + 3.6rem);
+@media (min-width: 72rem) and (min-height: 36rem) {
+  .task-bar {
+    position: sticky;
+    top: var(--sl-nav-height);
+    z-index: 3;
+  }
+
+  html:has(.task-bar) {
+    scroll-padding-top: calc(var(--sl-nav-height) + 5.5rem);
+  }
+
+  .sl-markdown-content .task-item {
+    scroll-margin-top: 0;
+  }
 }
 
 .task-bar__count {
@@ -310,10 +309,6 @@ html:has(.task-bar) {
 
   .task-bar.is-open .task-bar__panel {
     display: flex;
-  }
-
-  html:has(.task-bar.is-open) {
-    scroll-padding-top: calc(var(--task-bar-top) + 6.6rem);
   }
 }
 
