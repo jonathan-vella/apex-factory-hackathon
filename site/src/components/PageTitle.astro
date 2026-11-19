@@ -15,7 +15,7 @@ const challenge = challenges.find(
   </Default>
 )}
 {challenge && (
-  <div class="challenge-brief">
+  <div class="challenge-brief" data-scope={challenge.scope}>
     <ul class="challenge-brief__facts" aria-label="Challenge at a glance">
       <li>{challenge.day}</li>
       <li>{challenge.scope === "Team" ? "Team challenge" : "Member challenge"}</li>

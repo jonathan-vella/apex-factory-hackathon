@@ -9,7 +9,15 @@ prev:
   label: "Step 4: Vending (T-1)"
 ---
 
+import ChallengeRunSheet from "../../../components/ChallengeRunSheet.astro";
+
 Ten challenges take Contoso University from a Windows VM in its own datacenter to a modernized app on Azure. Work through them in order, checking your results as you go. Ask a coach for help with blockers or the handover; C7's cutover decision requires a coach.
+
+## The challenges
+
+<ChallengeRunSheet />
+
+Time boxes are pacing, not hard stops. See the [event overview](../getting-started/event-overview/) for the full timetable, including breaks and the showcase.
 
 ## The scenario
 
@@ -47,31 +55,14 @@ Day one opens at 08:30 with a 30-minute PowerPoint presentation by the tech lead
 2. **The Contoso University scenario:** who the university is, the four leaders you work for (Dana, Priya, Marcus and Tomás), the problems that triggered this engagement and the six business outcomes they need.
 3. **The ten challenges end to end:** how business outcomes (C1) and platform guardrails (C2) connect to source assessment (C3), target-state decisions (C4), CoE archetype provisioning (C5), app modernization and cutover (C6 and C7), acceptance testing and database tuning (C8 and C9), and the final handover review (C10).
 
-## The challenges
-
-| Day | Challenge | Scope | Time box | Business outcome |
-|---|---|---|---|---|
-| Day 1 | [C1: Define the opportunity](./c01-define-the-opportunity/) | Team | 45 min | All six, in order |
-| Day 1 | [C2: Secure, AI-ready foundation](./c02-secure-ai-ready-foundation/) | Member | 45 min | Secure by default |
-| Day 1 | [C3: Assess the source](./c03-assess-the-source/) | Member | 60 min | Safe, repeatable change |
-| Day 1 | [C4: Choose target states](./c04-choose-target-states/) | Team | 45 min | Current platform |
-| Day 1 | [C5: Deploy the CoE archetype with APEX](./c05-deploy-the-coe-archetype/) | Member | 90 min | Repeatable provisioning |
-| Day 1–2 | [C6: Modernize with GitHub Copilot](./c06-modernize-with-ghcp/) | Member | 180 min | Current platform |
-| Day 2 | [C7: Migrate and go live](./c07-migrate-and-go-live/) | Member | 120 min | Safe, repeatable change |
-| Day 2 | [C8: Validate the pattern](./c08-validate-the-pattern/) | Member | 45 min | Secure by default |
-| Day 2 | [C9: Optimize the DB with GitHub Copilot](./c09-optimize-the-db-with-ghcp/) | Member | 60 min | Reliable at enrollment peaks |
-| Day 2 | [C10: Package, hand over, review AI readiness](./c10-package-hand-over-review-ai-readiness/) | Team | 60 min | Documented path to AI |
-
-**Totals: 750 min across 10 challenges.**
-
-Time boxes are pacing, not hard stops. Coaches flex on the day. Members' gates are T-14 and T-3; the team lead's foundation (T-7) and vending (T-1) must also be done before day one. The [event overview](../getting-started/event-overview/#before-the-event) has all four steps. During the event, review progress at the end of each day.
-
 ## Before you start
 
 Before day one, complete the setup for your event:
 
 - **Path A:** Follow [Datacenter and workstation](../deploy/member-steps/) before the team lead runs [vending](../deploy/vending/).
 - **Path B:** After the team lead completes vending, follow [Student onboarding](../deploy/lead-setup/student-onboarding/).
+
+The [pre-event timeline](../getting-started/event-overview/#before-the-event) covers the member gates (T-14 and T-3) and the team lead's foundation (T-7) and vending (T-1). During the event, review progress at the end of each day.
 
 ## Track your progress
 

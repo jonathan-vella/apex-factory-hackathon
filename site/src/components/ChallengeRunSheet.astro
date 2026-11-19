@@ -1,0 +1,67 @@
+---
+import { challenges } from "../data/challenges.json";
+
+const ordered = [...challenges].sort((a, b) => a.order - b.order);
+const link = (file: string) => `/challenges/${file.replace(/\.mdx?$/, "")}/`;
+const hrefFor = (id: string) => {
+  const challenge = ordered.find((item) => item.id === id);
+  if (!challenge) throw new Error(`Missing ${id} in challenge schedule`);
+  return link(challenge.file);
+};
+const days = [
+  {
+    label: "Day 1",
+    start: "08:30 kickoff",
+    rows: ordered.filter(({ day }) => day === "Day 1" || day === "Day 1–2"),
+  },
+  { label: "Day 2", start: "08:30 reconnect", rows: ordered.filter(({ day }) => day === "Day 2") },
+];
+---
+
+<div class="challenge-run-sheet">
+  {days.map(({ label, start, rows }) => (
+    <div class="run-sheet-day">
+      <p class="run-sheet-label">
+        <strong>{label}</strong> <span>{start}</span>
+      </p>
+      {label === "Day 2" && (
+        <div class="run-sheet-handoff">
+          <p>
+            <strong>08:30:</strong> Check both VMs and the Graph grant.{" "}
+            <a href={`${hrefFor("C7")}#requirements`}>
+              Start the MI link (C7 requirements 1 and 2)
+            </a>
+            .
+          </p>
+          <p>
+            <strong>09:00:</strong> <a href={hrefFor("C6")}>Resume C6</a> while the database seeds.
+            Return to C7 at 10:30.
+          </p>
+        </div>
+      )}
+      <ol start={rows[0]?.order} role="list" aria-label={`${label} challenges`}>
+        {rows.map(({ id, title, file, scope, minutes, outcome }) => (
+          <li>
+            <a href={link(file)}>
+              {id}: {title}
+            </a>
+            <span class="run-sheet-facts">
+              {scope} · {minutes} min
+              {id === "C6" ? " across both days" : id === "C7" ? " including early setup" : ""}
+            </span>
+            <span class="run-sheet-outcome">{outcome}</span>
+            {id === "C6" && (
+              <span class="run-sheet-note">
+                Starts at 14:45. SQL Managed Instance provisioning runs in the background.
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
+    </div>
+  ))}
+  <p class="run-sheet-total">
+    <strong>{ordered.length} challenges</strong> ·{" "}
+    {ordered.reduce((total, challenge) => total + challenge.minutes, 0)} min total effort
+  </p>
+</div>

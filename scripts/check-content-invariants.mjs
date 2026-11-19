@@ -150,14 +150,15 @@ export async function runChecks(root = defaultRoot) {
     }
   }
 
-  let overviewRows = [];
+  const overviewPath = "site/src/content/docs/challenges/index.mdx";
   try {
-    overviewRows = (await readFile(join(root, "site/src/content/docs/challenges/index.md"), "utf8"))
-      .replace(/\r\n/g, "\n")
-      .split("\n")
-      .filter((line) => line.startsWith("|"));
-  } catch {
-    // The missing overview is reported by each challenge row below.
+    const overview = await readFile(join(root, overviewPath), "utf8");
+    if (!/^## The challenges\r?\n\s*<ChallengeRunSheet\s*\/>/m.test(overview)) {
+      failures.push(`${overviewPath}: render ChallengeRunSheet under "The challenges"`);
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    failures.push(`${overviewPath}: missing`);
   }
 
   let storyText = "";
@@ -190,40 +191,26 @@ export async function runChecks(root = defaultRoot) {
       continue;
     }
 
-    const infoPattern = new RegExp(`\\*\\*${minutes}\\s+min\\*\\*`);
-    if (!infoPattern.test(text)) {
-      failures.push(`site/src/content/docs/challenges/${fileName}: expected ${minutes} min`);
-    }
-
     const challenge = challengeData.find((c) => c.file === fileName);
     const challengePath = `site/src/content/docs/challenges/${fileName}`;
+    const timing = /^\*\*Time and scope\.\*\*\s+([^\r\n]+)/m.exec(text)?.[1];
+    const expectedDay = challenge.day === "Day 1–2" ? "Day 1" : challenge.day;
+    if (
+      !timing?.startsWith(`${expectedDay},`) ||
+      (challenge.day === "Day 1–2" && !timing.includes("Day 2")) ||
+      !timing.includes(`**${minutes} min**`) ||
+      !timing.includes(`**${challenge.scope}**`)
+    ) {
+      failures.push(
+        `${challengePath}: time and scope must match ${challenge.day}, ${minutes} min, ${challenge.scope} in challenges.json`,
+      );
+    }
     if (!text.includes(`title: "${challenge.id}: ${challenge.title}"`)) {
       failures.push(`${challengePath}: title must be "${challenge.id}: ${challenge.title}"`);
     }
     if (!text.includes(`**Objective.** ${challenge.objective}`)) {
       failures.push(`${challengePath}: objective differs from site/src/data/challenges.json`);
     }
-    const slug = fileName.replace(/\.mdx?$/, "");
-    const row = overviewRows.find((line) => line.includes(`(./${slug}/)`));
-    const expectedRow = [
-      challenge.day,
-      `[${challenge.id}: ${challenge.title}](./${slug}/)`,
-      challenge.scope,
-      `${challenge.minutes} min`,
-      challenge.outcome,
-    ];
-    const cells = row
-      ? row
-          .split("|")
-          .slice(1, -1)
-          .map((cell) => cell.trim())
-      : [];
-    if (JSON.stringify(cells) !== JSON.stringify(expectedRow)) {
-      failures.push(
-        `site/src/content/docs/challenges/index.md: the ${challenge.id} row must read ${expectedRow.join(" | ")}`,
-      );
-    }
-
     totalMinutes += minutes;
   }
 

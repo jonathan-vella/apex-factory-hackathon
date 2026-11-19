@@ -154,6 +154,20 @@ function setupChallengePage(path) {
   const evidenceList = findSectionList("success-criteria", "UL");
   const evidence = evidenceList ? collectItems(evidenceList, "evidence") : [];
 
+  if (evidence.length) {
+    const heading = document.getElementById("success-criteria");
+    const note = document.createElement("p");
+    note.className = "evidence-note";
+    note.textContent = "Ticks stay in this browser. They don't submit evidence. ";
+    const isTeam = document.querySelector(".challenge-brief")?.dataset.scope === "Team";
+    note.append(
+      isTeam
+        ? "The team or pod lead commits the team evidence once on main and shares it in the team channel."
+        : "Commit the requested evidence on main in your own repository.",
+    );
+    (heading.closest(".sl-heading-wrapper") ?? heading).after(note);
+  }
+
   const ui = createBar(tasks.length);
   tasks.forEach((task, i) => {
     if (!task.li.id) task.li.id = `task-${i + 1}`;

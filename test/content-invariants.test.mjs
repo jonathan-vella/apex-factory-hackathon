@@ -47,20 +47,22 @@ test("retired artifact in an Astro component is blocked", async () => {
   }
 });
 
-test("a challenges overview row that differs from challenges.json is blocked", async () => {
+test("the overview must render the shared run sheet and challenge prose must match its metadata", async () => {
   const root = await mkdtemp(join(tmpdir(), "apex-microhack-invariants-"));
   try {
     await mkdir(join(root, "site/src/content/docs/challenges"), { recursive: true });
     await writeFile(
       join(root, "site/src/content/docs/challenges/c01-define-the-opportunity.md"),
-      "# C1\n",
+      "# C1\n\n**Time and scope.** Day 2, **09:00**, **45 min**, **Member**.\n",
     );
     await writeFile(
-      join(root, "site/src/content/docs/challenges/index.md"),
-      "| Day 1 | [C1: Define the opportunity](./c01-define-the-opportunity/) | Team | 50 min | All six, in order |\n",
+      join(root, "site/src/content/docs/challenges/index.mdx"),
+      "## The challenges\n\nA handwritten overview.\n",
     );
     const result = await runChecks(root);
-    assert.match(result.failures.join("\n"), /index\.md: the C1 row must read/);
+    const text = result.failures.join("\n");
+    assert.match(text, /index\.mdx: render ChallengeRunSheet/);
+    assert.match(text, /c01-define-the-opportunity\.md: time and scope must match Day 1, 45 min, Team/);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

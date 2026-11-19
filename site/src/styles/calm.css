@@ -212,7 +212,8 @@ body:not(:has(.landing-hero)) .sl-markdown-content table {
 
 .sl-markdown-content .deploy-path {
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
   gap: 0.45rem;
   margin-block-start: 0;
   border-block-start: 1px solid var(--sl-color-accent);
@@ -233,9 +234,117 @@ body:not(:has(.landing-hero)) .sl-markdown-content table {
   color: var(--sl-color-gray-2);
 }
 
-.deploy-path > a:last-child {
+.deploy-path__links {
+  display: grid;
+  justify-items: start;
+  gap: 0.3rem;
   font-size: var(--sl-text-sm);
   font-weight: 600;
+}
+
+.challenge-run-sheet > .run-sheet-day + .run-sheet-day {
+  margin-block-start: 1.5rem;
+}
+
+.challenge-run-sheet .run-sheet-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 1rem;
+  border-block-end: 1px solid var(--sl-color-gray-5);
+  padding-block-end: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.run-sheet-label strong {
+  color: var(--sl-color-white);
+  font-size: var(--sl-text-lg);
+}
+
+.run-sheet-label span,
+.run-sheet-facts,
+.run-sheet-outcome {
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+}
+
+.challenge-run-sheet ol {
+  list-style: none;
+  padding-inline-start: 0;
+  margin-block-start: 0;
+}
+
+.sl-markdown-content .challenge-run-sheet li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.1rem 1rem;
+  padding-block: 0.55rem;
+  margin: 0;
+  border-block-end: 1px solid var(--sl-color-gray-5);
+}
+
+.challenge-run-sheet li > a {
+  font-weight: 600;
+}
+
+.run-sheet-facts {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.run-sheet-note {
+  grid-column: 1 / -1;
+  font-size: var(--sl-text-sm);
+}
+
+.challenge-run-sheet .run-sheet-handoff {
+  margin-block: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--sl-color-gray-6);
+  font-size: var(--sl-text-sm);
+}
+
+.run-sheet-handoff > p + p {
+  margin-block-start: 0.3rem;
+}
+
+.run-sheet-total {
+  font-size: var(--sl-text-sm);
+}
+
+@container (max-width: 34rem) {
+  .sl-markdown-content .challenge-run-sheet li {
+    grid-template-columns: 1fr;
+  }
+
+  .run-sheet-facts {
+    justify-self: start;
+  }
+}
+
+.challenge-run-sheet {
+  container-type: inline-size;
+}
+
+.sl-markdown-content :is(.doc-scroll-hint, .evidence-note) {
+  color: var(--sl-color-gray-2);
+  font-size: var(--sl-text-sm);
+}
+
+.sl-markdown-content .doc-scroll-hint {
+  margin-block-start: 0.3rem;
+}
+
+.sl-markdown-content .evidence-note {
+  padding: 0.6rem 0.8rem;
+  background: var(--sl-color-gray-6);
+}
+
+@media print {
+  .doc-scroll-hint,
+  .evidence-note {
+    display: none;
+  }
 }
 
 /* Diagrams (the Diagram component) */
