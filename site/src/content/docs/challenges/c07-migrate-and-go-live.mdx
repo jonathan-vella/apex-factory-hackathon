@@ -108,7 +108,9 @@ $mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --qu
 
    The script prints one line per step with the time, and logs the same lines to `C:\LabTools\logs\Prepare-MiLinkSource.log`. You should see, in order: the firewall rule for TCP 5022; an `Instance:` line with availability groups `1`, trace flags on `2 of 2` and SYSTEM sysadmin `1`; the database master key created (or "exists"); the two root certificates `DigiCertPKI` and `MicrosoftPKI` imported (or "exist"); `ContosoUniversity` in the full recovery model; the full backup with checksum; and last, `The source is ready for MI link.`
 
-   Done when the last line is `The source is ready for MI link.` If it stops with an `ERROR:` line, see **If link creation fails** in the hints.
+   **Expected result:** The last line is `The source is ready for MI link.`
+
+   **If it fails:** If you see an `ERROR:` line, see **If link creation fails** in the hints.
 2. **Start the link.** <span class="sl-badge tip">Azure portal</span> Start the MI link migration against your SQL Managed Instance.
 
    1. Open **Azure Arc** > **SQL Server instances** and select the instance whose host machine is `vm-app01`. In the menu, under **Migration**, select **Database migration**. The pane has four tiles: **Assess source instance**, **Select target**, **Migrate data** and **Monitor and cutover**.
@@ -180,7 +182,15 @@ $mi = az sql mi show --resource-group $rg --name "sqlmi-university-$suffix" --qu
 
       An empty table and `Sessions: 0` is what you want. A row means a client is still connected: use `host_name` and `program_name` to find it (an SSMS window on `vm-dev01` is the usual one), close it, and run the check again.
    4. <span class="sl-badge tip">Azure portal</span> **Watch the lag reach zero.** Open the **Monitor and cutover** pane (**Database migration** > **Monitor migrations**). With no writers, the status of `ContosoUniversity` stays **Ready for cutover** and the **Lag** column shows two dashes, which means no lag, within a minute or two. If lag doesn't clear, or a writer keeps appearing, **postpone the cutover**: restart the site and pool (`Start-WebAppPool -Name ContosoUniversity; Start-Website -Name ContosoUniversity`), keep the link running, and agree a later window with your coach.
-   5. <span class="sl-badge tip">Azure portal</span> **Cut over at no lag.** Make the go/no-go decision with your coach after the lag check; proceed only on a go. On a no-go, restart the site and pool, keep the link running and postpone cutover as above. Select `ContosoUniversity`, then **Cutover** (Microsoft Learn's name; some portal builds label the button **Complete cutover**, and it's the same action). Tick the box that confirms you've stopped all incoming traffic to the source, and leave the **forced failover** box clear: a planned failover waits for the lag to reach zero, and forcing it with lag above zero can lose writes. The portal removes the link when the cutover completes: it offers no option to keep it.
+   5. <span class="sl-badge tip">Azure portal</span> **Cut over at no lag.**
+
+      :::caution[Go/no-go: confirm with your coach before selecting Cutover]
+      **Go only when** the replica checks from requirement 3 match, the source writers are stopped, the session check shows `Sessions: 0`, and the portal shows **Ready for cutover** with two dashes in **Lag** (no lag). Wait for the coach's go decision.
+
+      **On a no-go:** Restart the legacy site and pool, keep the link running, and agree on a later window with your coach.
+      :::
+
+      Select `ContosoUniversity`, then **Cutover**. Microsoft Learn uses this label, but some portal builds show **Complete cutover** for the same action. Tick the box that confirms you've stopped all incoming traffic to the source, and leave the **forced failover** box clear: a planned failover waits for the lag to reach zero, and forcing it with lag above zero can lose writes. The portal removes the link when the cutover completes: it offers no option to keep it.
    6. <span class="sl-badge tip">Azure portal</span> <span class="sl-badge note">vm-dev01 · SSMS</span> **Wait for it to finish.** It takes about 2 minutes. On **Monitor and cutover**, the migration for `ContosoUniversity` shows as completed and the link is gone. Then, in SSMS on `vm-dev01` on the replica connection from requirement 3, run `SELECT DATABASEPROPERTYEX('ContosoUniversity', 'Updateability');`. It must return `READ_WRITE` (it said `READ_ONLY` in requirement 3).
 
    Done when the migration shows completed and the managed instance's database returns `READ_WRITE`. The managed instance is now the live database. Leave the legacy site on `vm-app01` stopped: restarting it would write to a source that's no longer authoritative.

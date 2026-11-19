@@ -147,14 +147,26 @@ function createBar(total) {
 
 function setupChallengePage(path) {
   const taskList = findSectionList("requirements", "OL");
-  if (!taskList) return;
-  const content = document.querySelector(".sl-markdown-content");
-  if (!content) return;
+  if (!taskList?.closest(".sl-markdown-content")) return;
 
   const tasks = collectItems(taskList, "task");
   if (tasks.length === 0) return;
   const evidenceList = findSectionList("success-criteria", "UL");
   const evidence = evidenceList ? collectItems(evidenceList, "evidence") : [];
+
+  if (evidence.length) {
+    const heading = document.getElementById("success-criteria");
+    const note = document.createElement("p");
+    note.className = "evidence-note";
+    note.textContent = "Ticks stay in this browser. They don't submit evidence. ";
+    const isTeam = document.querySelector(".challenge-brief")?.dataset.scope === "Team";
+    note.append(
+      isTeam
+        ? "The team or pod lead commits the team evidence once on main and shares it in the team channel."
+        : "Commit the requested evidence on main in your own repository.",
+    );
+    (heading.closest(".sl-heading-wrapper") ?? heading).after(note);
+  }
 
   const ui = createBar(tasks.length);
   tasks.forEach((task, i) => {
@@ -162,14 +174,14 @@ function setupChallengePage(path) {
     const chip = document.createElement("a");
     chip.className = "task-bar__chip";
     chip.href = `#${task.li.id}`;
-    chip.title = task.title.length > 70 ? `${task.title.slice(0, 67)}...` : task.title;
+    chip.title = task.title.length > 70 ? `${task.title.slice(0, 69)}…` : task.title;
     const state = srOnly("");
     chip.append(srOnly("Requirement "), document.createTextNode(String(i + 1)), state);
     task.chip = chip;
     task.chipState = state;
     ui.nav.append(chip);
   });
-  content.prepend(ui.bar);
+  taskList.before(ui.bar);
 
   const challengeId = path.match(CHALLENGE_PATH)?.[1] ?? "";
 

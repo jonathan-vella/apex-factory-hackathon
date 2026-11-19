@@ -6,6 +6,14 @@ The readiness setup has no points. In **Path A (Self-service teams)**, each memb
 
 If a coach is reviewing readiness evidence at kickoff on day one (or helping a team lead troubleshoot a member before T-1), use the checklist below.
 
+## Find the blocker
+
+- **Preflight isn't green.** Check the `whatif` or `member` run summary for the first failed check. [Resolve the preflight failure](../site/src/content/docs/reference/troubleshooting.md#preflight).
+- **Vending stopped or finished with errors.** Check the phase and the member indexes in the run summary. [Find which members to rerun](#how-readiness-is-verified).
+- **Arc is connected but no SQL instance appears.** Check the SQL Server extension on `vm-app01`. [See the Arc and extension hints](#hints) before rerunning anything.
+- **Bastion or Copilot isn't ready.** Check whether `vm-dev01` is running and whether the member can sign in to GitHub from VS Code. [Troubleshoot the workstation](../site/src/content/docs/reference/troubleshooting.md#datacenter-and-arc).
+- **A member's datacenter needs rebuilding.** Check whether Arc onboarding started and whether the member has reached C5. [Use the matching recovery path](#recovery); don't redeploy an Arc-connected datacenter.
+
 ## How readiness is verified
 
 1. **Automated check in Step 4 (`vending` at T-1):** for each member in `roster.json`, `Invoke-PipelineVending.ps1` verifies that `vnet-datacenter` exists in `rg-datacenter` and that the Azure Arc machine `vm-app01` has `properties.status == 'Connected'`. Because the `member` stage only runs `Connect-DatacenterArc.ps1` after `Test-Datacenter.ps1` passes all checks, an Arc `Connected` status proves the datacenter deployed and passed the pre-Arc validation.

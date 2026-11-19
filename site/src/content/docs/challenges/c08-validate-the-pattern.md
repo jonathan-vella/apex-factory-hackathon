@@ -96,13 +96,17 @@ The first time you connect SSMS to the source, tick **Trust server certificate**
 
    Every response must be `200`.
 
-5. **Automated security and acceptance check (`acceptance.json`).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> Run the read-only checker against your archetype's resource group, writing directly to `factory/evidence/c08/acceptance.json`:
+5. **Automated security and acceptance check (`acceptance.json`).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span>
+
+   **Run on:** PowerShell 7 on `vm-dev01`, from `C:\src\<your-repo>\factory`. The read-only checker writes directly to `factory/evidence/c08/acceptance.json`:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
    ./scripts/Test-Acceptance.ps1 -SubscriptionId $s.subscriptionId -ResourceGroup $rg -OutFile evidence/c08/acceptance.json
    ```
 
-   It reports PASS, FAIL or UNKNOWN for the pages, HTTPS redirect, HTTPS-only/minimum TLS 1.2, backend public-access and approved private-endpoint settings, and SQL MI's public data endpoint. `ACCEPT` requires **no FAIL and no UNKNOWN**; otherwise the verdict is `NOT ACCEPTED` and the exit code is 1.
+   **Expected result:** `ACCEPT`, with **no FAIL and no UNKNOWN**. The report covers the pages, HTTPS redirect, HTTPS-only/minimum TLS 1.2, backend public-access and approved private-endpoint settings, and SQL MI's public data endpoint.
+
+   **If it fails:** `NOT ACCEPTED` (exit code 1) means at least one check failed or could not be verified. Use the [acceptance-pack prompt](../../prompts/vscode/06-acceptance-pack/) to diagnose the flagged checks.
 
 6. **Verify Application Insights telemetry and commit `acceptance.json`.** <span class="sl-badge tip">Azure portal</span> <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (pwsh)</span> In the portal open `appi-university-<suffix>` > **Investigate** > **Search (formerly Transaction search)**, set the time range to the **last hour**, and confirm requests and dependencies from your C8 checks appear. Then commit `factory/evidence/c08/acceptance.json` on `main` (live check outcomes are summarized once for the team in C10's `handover-and-ai-review.md`, rather than a per-member 22-row Markdown table):
 

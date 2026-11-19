@@ -1,36 +1,34 @@
 ---
 import Default from "@astrojs/starlight/components/PageTitle.astro";
-import { getCollection } from "astro:content";
+import { challenges } from "../data/challenges.json";
 import ProgressTracker from "./ProgressTracker.astro";
 
-const match = Astro.locals.starlightRoute.entry.id.match(/^challenges\/c(\d+)-/);
-let position;
-if (match && Number(match[1]) >= 1) {
-  const docs = await getCollection("docs");
-  const total = docs.filter((d) => {
-    const m = d.id.match(/^challenges\/c(\d+)-/);
-    return m && Number(m[1]) >= 1;
-  }).length;
-  const index = Number(match[1]);
-  position = { label: `C${index}`, current: index, total };
-}
+const slug = Astro.locals.starlightRoute.entry.id;
+const challenge = challenges.find(
+  ({ file }) => `challenges/${file.replace(/\.mdx?$/, "")}` === slug,
+);
 ---
 
-{position && (
-  <p class="challenge-position">
-    <span class="challenge-position__label">
-      {position.label} · challenge {position.current} of {position.total}
-    </span>
-    <span class="challenge-position__bar" aria-hidden="true">
-      {Array.from({ length: position.total }, (_, i) => (
-        <span class:list={{ "is-done": i < position.current }} />
-      ))}
-    </span>
-  </p>
-)}
 {Astro.url.pathname !== "/" && (
   <Default {...Astro.props}>
     <slot />
   </Default>
+)}
+{challenge && (
+  <div class="challenge-brief" data-scope={challenge.scope}>
+    <ul class="challenge-brief__facts" aria-label="Challenge at a glance">
+      <li>{challenge.day}</li>
+      <li>{challenge.scope === "Team" ? "Team challenge" : "Member challenge"}</li>
+      <li>{challenge.minutes} min</li>
+    </ul>
+    <nav class="challenge-brief__links" aria-label="Challenge shortcuts">
+      <a href="#requirements">
+        Requirements <span aria-hidden="true">↓</span>
+      </a>
+      <a href="#success-criteria">
+        Success criteria <span aria-hidden="true">↓</span>
+      </a>
+    </nav>
+  </div>
 )}
 <ProgressTracker />
