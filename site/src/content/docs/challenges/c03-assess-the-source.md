@@ -25,11 +25,9 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 **Terms.** The **harness** is where the Upgrade agent runs (**Local** means on `vm-dev01`). A **scenario** is the agent's workflow (`dotnet-version-upgrade`). A **gate** is a point where the agent stops so you can review before it continues (the playbook's Step 1 shows each one). The **dashboard** is an optional visual view of the Upgrade session, not a required embedded VS Code tab. [Learn's dashboard reference](https://learn.microsoft.com/dotnet/core/porting/github-copilot-upgrade/dashboard) describes a side panel in the Copilot app and browser access in other clients. If it is unavailable in your VS Code session, review the files named below.
 
-**Validated baseline:** GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, as recorded in `versions.md`. Documentation reviewed **2026-10-31**, not a new runtime test. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`; review `assessment.md` and `assessment.json` for the assessment. The owner retests current versions before the dry run.
-
 :::note[Where to work]
 
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — **Upgrade agent assessment and plan (Requirement 1) and triage table (Requirements 3 to 6)** on `main` in `C:\src\<your-repo>`. Because `.github/upgrades/` sits in your single clone on `main`, `assessment.md` and `plan.md` stay in place alongside `factory/evidence/c03/triage.md` (pre-created by `Import-Kit.ps1`).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — **Upgrade agent assessment and plan (Requirement 1) and triage table (Requirements 3 to 6)** on `main` in `C:\src\<your-repo>`. Because `.github/upgrades/` sits in your single clone on `main`, `assessment.md` and `plan.md` stay in place alongside `factory/evidence/c03/triage.md` (pre-created by `Import-Kit.ps1`).
 - <span class="sl-badge tip">Azure portal</span> — **Arc assessment (Requirement 2)** in your browser.
 - **Paste-ready prompts (optional help):** [Assess and plan](../../prompts/vscode/01-assess-and-plan/) for Requirement 1 and [Triage assessment findings](../../prompts/vscode/07-triage-assessment-findings/) for Requirements 3 to 6.
 
@@ -37,15 +35,15 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 ## Requirements
 
-1. **Assess and plan (about 25 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code)</span> Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks). Don't start task execution: that's C6. Done when `.github/upgrades/scenarios/dotnet-version-upgrade/assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
+1. **Assess and plan (about 25 min).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code)</span> Run the GitHub Copilot Upgrade agent against `app/ContosoUniversity` (harness **Local**, agent **Upgrade**, scenario `dotnet-version-upgrade`), by sending the whole of `.github/modernization/plan-prompt.txt` as the playbook's Step 1 says. Review the assessment at the assessment gate first. Then approve planning and check the plan gate (`plan.md` with seven tasks). Don't start task execution: that's C6. Done when `.github/upgrades/scenarios/dotnet-version-upgrade/assessment.md` and `plan.md` exist and `git status --short -- app` prints nothing.
 
 2. **Review the Arc assessment.** <span class="sl-badge tip">Azure portal</span> In **Azure Arc** > **SQL Server instances**, open the instance on `vm-app01`, then **Migration** > **Assessments**. Select **Run assessment** if needed, open its readiness details and select **Azure SQL Managed Instance** as the target to review. This is the [current documented path](https://learn.microsoft.com/sql/sql-server/azure-arc/migration-assessment); older portal versions use **Database migration** > **Assess source instance** > **View report**. Done when both reports are open side by side and you have listed every finding.
 
-3. **Triage the findings in `factory/evidence/c03/triage.md`** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> from both assessments: classify each finding (`must-fix` / `defer` / `ignore` or blocker / accepted risk / fix) and state its impact on the target state.
+3. **Triage the findings in `factory/evidence/c03/triage.md`** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> from both assessments: classify each finding (`must-fix` / `defer` / `ignore` or blocker / accepted risk / fix) and state its impact on the target state.
 
-4. **Verify the trace-flag finding.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> The Arc assessment reports **"Trace flags not supported in Azure SQL Managed Instance"** (warning) for flags `1800` and `9567`. Check why the kit set them in **Enable startup trace flags** of the MI link preparation article under References, and confirm your `triage.md` row explains why they are needed during MI link seeding and when they are removed (after C7 cutover, with `Prepare-MiLinkSource.ps1 -RemoveTraceFlags`).
+4. **Verify the trace-flag finding.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> The Arc assessment reports **"Trace flags not supported in Azure SQL Managed Instance"** (warning) for flags `1800` and `9567`. Check why the kit set them in **Enable startup trace flags** of the MI link preparation article under References, and confirm your `triage.md` row explains why they are needed during MI link seeding and when they are removed (after C7 cutover, with `Prepare-MiLinkSource.ps1 -RemoveTraceFlags`).
 
-5. **Commit in place on `main`.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> Commit `.github/upgrades/` and `factory/evidence/c03/triage.md` directly on `main` in `C:\src\<your-repo>` (no file copying between folders needed):
+5. **Commit in place on `main`.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (pwsh)</span> Commit `.github/upgrades/` and `factory/evidence/c03/triage.md` directly on `main` in `C:\src\<your-repo>` (no file copying between folders needed):
 
    ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
    cd C:\src\<your-repo>
@@ -57,7 +55,7 @@ Assessment tools produce long lists. A migration only goes well if a person read
 
 ## Success criteria
 
-To complete this challenge, review with your coach in `C:\src\<your-repo>` on `main`:
+To complete this challenge, check your work in `C:\src\<your-repo>` on `main`:
 
 - [ ] `.github/upgrades/scenarios/dotnet-version-upgrade/assessment.md`, `assessment.json`, and `plan.md` committed in place on `main`, with no task started yet and nothing in `app/` changed.
 - [ ] `factory/evidence/c03/triage.md` committed on `main`, covering the DB and app findings and calling out why trace flags `1800` and `9567` stay until C7 cutover completes.
@@ -76,6 +74,13 @@ Ask: does this finding describe something the kit deliberately set up on the sou
 <summary>The Upgrade agent won't produce an assessment</summary>
 
 Check the harness is **Local** (not the Copilot harness) and the agent picker shows **Upgrade**. If the tools report unavailable, reload the VS Code window and start a new chat. If **GitHub Copilot modernization** is enabled for the workspace, or the Upgrade server has no model access, follow step 8 of [Step 3.3](../../deploy/member-steps/#33-set-up-vm-dev01).
+
+</details>
+
+<details>
+<summary>The Upgrade dashboard doesn't open</summary>
+
+The validated baseline is GitHub Copilot upgrade extension **1.1.612** on VS Code **1.139.0**, as recorded in `versions.md`. Documentation reviewed **2026-10-31**, not a new runtime test; the owner retests current versions before the dry run. If no dashboard opens, ask Copilot to show `plan.md` and `tasks.md`; review `assessment.md` and `assessment.json` for the assessment.
 
 </details>
 

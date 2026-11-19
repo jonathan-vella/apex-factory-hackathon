@@ -99,15 +99,9 @@ If an attendee is assigned or swapped after initial vending, update `memberPrinc
 
 :::
 
-## 4.3 Onboard students on `vm-dev01` (or optionally send pre-created repo invites)
+## 4.3 Invite students and send private Handoff Cards
 
-Students can now onboard themselves on `vm-dev01` with **zero GUID handoff cards**: when a student connects to their assigned `vm-dev01` via Bastion and runs `Initialize-Workstation.ps1`, the script automatically detects their `MemberIndex` (from `vm-dev01`'s `10.10.<n>.5` IP), workload subscription, and shared hub subscription (from the VNet peering), creates their own private GitHub repository (`<github-user>/apex-factory-m<nn>`), imports the kit on `main`, and writes `factory/.local/settings.json` and `datacenter.json`. Simply share:
-- which Entra account/subscription slot (`1..n`) each student is assigned to,
-- the `labadmin` Bastion password, and
-- the link to [Student onboarding (before Day 1)](../student-onboarding/).
-
-<details>
-<summary>Optional: If your organization requires pre-created org-owned student repositories (`Initialize-CohortRepos.ps1`)</summary>
+Students use the private repositories created in Step 1, including the readiness evidence pushed in Step 3. After vending, the team lead completes the invitations and shares the Handoff Cards; students do not create new repositories.
 
 <Steps>
 
@@ -127,14 +121,12 @@ Students can now onboard themselves on `vm-dev01` with **zero GUID handoff cards
      -CoachTeamSlug '<existing-coach-team-slug>'
    ```
 
-   For every slot with `githubUsername` set, the script sends a **Write (`push`)** repository collaborator invitation on `<org>/<event>-student-<nn>` and writes a complete private Handoff Card to `factory/.local/handoff/member-<index>.md`.
+   For every slot with `githubUsername` set, the script invites the student as a **Write (`push`)** collaborator on `<org>/<event>-student-<nn>` unless they already have Write access, and writes a complete private Handoff Card to `factory/.local/handoff/member-<index>.md`. Ensure coaches have **Read** access to each student repository, using `-CoachTeamSlug`, `-CoachUsername`, or a separate grant. The readiness evidence pushed in Step 3 stays in each existing repository.
 
-4. **Send each student their Handoff Card and Entra sign-in details privately.** Deliver `factory/.local/handoff/member-<index>.md` over a private direct message or encrypted channel—never in a public channel, issue, or commit—and send them the link to [Student onboarding (before Day 1)](../student-onboarding/).
+4. **Send each student their Handoff Card, assigned Entra sign-in details, and `labadmin` Bastion password privately.** Deliver `factory/.local/handoff/member-<index>.md` over a private direct message or encrypted channel—never in a public channel, issue, or commit—and send them the link to [Student onboarding (before Day 1)](../student-onboarding/).
 
 </Steps>
 
-</details>
-
-Done when `vending` is green for all `1..n` slots and students have their Entra slot assignment and the link to [Student onboarding (before Day 1)](../student-onboarding/).
+Done when `vending` is green for all `1..n` slots, each student has a Write invitation or existing Write access and a private Handoff Card, and coaches have Read access to the student repositories.
 
 Next: students complete [Student onboarding (before Day 1)](../student-onboarding/).

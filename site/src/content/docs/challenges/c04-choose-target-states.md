@@ -25,7 +25,7 @@ C3 told you what the source looks like. C4 turns that into decisions the team st
 
 :::note[Where to work]
 
-<span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work together on one shared screen in the team/pod lead's clone (`C:\src\<your-repo>` on `main` on `vm-dev01`). `Import-Kit.ps1` already pre-created `factory/evidence/c04/decisions-and-register.md` in your repository. Commit once in the team/pod lead's repository and share the completed file in the team channel.
+<span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work together on one shared screen in the team/pod lead's clone (`C:\src\<your-repo>` on `main` on `vm-dev01`). `Import-Kit.ps1` already pre-created `factory/evidence/c04/decisions-and-register.md` in your repository. Commit once in the team/pod lead's repository and share the completed file in the team channel.
 
 :::
 
@@ -33,7 +33,7 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 ## Requirements
 
-1. **Open `factory/evidence/c04/decisions-and-register.md` (5 min).** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> Open the pre-created file in VS Code on the team/pod lead's `vm-dev01` (if missing, copy `factory/templates/attendee/decisions-and-register.md` to `factory/evidence/c04/decisions-and-register.md`).
+1. **Open `factory/evidence/c04/decisions-and-register.md` (5 min).** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> Open the pre-created file in VS Code on the team/pod lead's `vm-dev01` (if missing, copy `factory/templates/attendee/decisions-and-register.md` to `factory/evidence/c04/decisions-and-register.md`).
 
 2. **Complete the four-row Target-state decisions table (20 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> Review and tailor the four rows in **Target-state decisions**:
    - **Platform:** CoE archetype in the vended spoke (`App Service Linux P1v3`, `SQL MI GP Gen5 4 vCores`, private endpoints) vs custom Bicep from scratch or VM lift-and-shift.
@@ -58,7 +58,7 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 ## Success criteria
 
-To complete this challenge, review with your coach in the team/pod lead's repo:
+To complete this challenge, check the following in the team/pod lead's repo:
 
 - [ ] `factory/evidence/c04/decisions-and-register.md` committed on `main` in the team/pod lead's repo and shared in the team channel.
 - [ ] All four rows (**Platform**, **Migration method**, **Application**, **Data**) state the chosen target, an alternative considered, the reasoning tied to C1/C3, and the consequence/trade-off.

@@ -9,7 +9,7 @@ C10 is a synthesis challenge — review for honesty and completeness rather than
 
 **Timing cues:** by 30 minutes, the asset and `handover-and-ai-review.md` should be drafted; reserve the final 15 minutes for committing and preparing the 5-minute showcase.
 
-- One packaged reusable asset (the archetype adaptation, the modernization playbook and plan, or the C9 perf kit fixes), committed in `factory/evidence/c10/reusable-asset/` in the team/pod lead's repository on `main`, with a short `README.md` usable by someone who wasn't in the room.
+- One reusable asset (the archetype adaptation, the modernization playbook and plan, or the C9 perf kit fixes), copied into `factory/evidence/c10/reusable-asset/` in the team/pod lead's repository on `main`, with a short `README.md` usable by someone who wasn't in the room. A README pointing to a fixed commit is also acceptable if the next team has confirmed access and the source repository will be retained.
 - `factory/evidence/c10/handover-and-ai-review.md` committed once in the team/pod lead's repository on `main` (and shared in the team channel), covering:
   - Every team member's C8 `acceptance.json` verdict (`ACCEPT`), C8 live check results, and C9 Query Store `baseline` vs `after` CPU/duration improvement.
   - The AI-readiness gap register, with an entry each time a human or coach had to step in (including any lifeline used, plus the human review gates in C3, C5, C6 and C7).
@@ -24,7 +24,7 @@ A credible AI-readiness gap register entry for a team that used no lifelines:
 > **Why the agent could not complete it alone:** a wrong cutover risks data loss, and no automated check in the kit makes this call for you.
 > **Next step for customer engagements:** keep migration cutover as an explicit human-approved gate even in automated pipelines.
 
-A reusable asset that passes the bar: the adapted archetype folder or the five C9 `.sql` fix scripts committed in `factory/evidence/c10/reusable-asset/` with a short `README.md` explaining what subscription/tenant or database values a new team supplies.
+A reusable asset that passes the bar: the adapted archetype folder or the five C9 `.sql` fix scripts, copied into `factory/evidence/c10/reusable-asset/` or referenced at a fixed commit with confirmed access and retention, with a short `README.md` explaining what subscription/tenant or database values a new team supplies.
 
 ## Business outcome check
 

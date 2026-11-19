@@ -9,7 +9,7 @@ prev:
   label: "Step 4: Vending (T-1)"
 ---
 
-Ten challenges take Contoso University from a Windows VM in its own datacenter to a modernized app on Azure. You work through them in order, and in each one you review your working artifacts with a coach.
+Ten challenges take Contoso University from a Windows VM in its own datacenter to a modernized app on Azure. Work through them in order, checking your results as you go. Ask a coach for help with blockers or the handover; C7's cutover decision requires a coach.
 
 ## The scenario
 
@@ -18,7 +18,7 @@ Contoso University is a fictional public university. Its student enrollment app 
 ## How the challenges work
 
 - **Team and member challenges.** Team challenges (C1, C4 and C10) are done together on one shared screen and committed once in the team/pod lead's repository (`C:\src\<your-repo>` on `main`), then shared in the team channel. Member challenges (C2, C3 and C5 to C9) are done by each person in their own repository (`C:\src\<your-repo>` on `main`) and subscription on `vm-dev01`.
-- **Five parts on every page.** Background says why it matters and which business outcome it serves. Challenge gives the starting point, what the kit fixes and what you decide. Requirements say what you must do. Success criteria say what you review with your coach. References link to Microsoft Learn.
+- **Five parts on every page.** Background says why it matters and which business outcome it serves. Challenge gives the starting point, what the kit fixes and what you decide. Requirements say what you must do. Success criteria let you check your results. References link to Microsoft Learn.
 - **Hints are folded away.** Open them when you are stuck. Where a challenge leaves a choice to you (C1, C4 and C10), there is no single right answer, and your coach looks at your reasoning.
 - **Working artifacts live in `factory/evidence/`.** `Import-Kit.ps1` pre-populates the working templates on `main`.
 
@@ -68,18 +68,10 @@ Time boxes are pacing, not hard stops. Coaches flex on the day. Members' gates a
 
 ## Before you start
 
-Before day one, your team completes Steps 1 to 4 in [Deploy](../deploy/): each member's datacenter (`vm-app01` onboarded to Azure Arc as `Connected`) and `vm-dev01` workstation must be ready before the team lead runs `vending` at Step 4.
+Before day one, complete the setup for your event:
 
-:::tip[One-command `vm-dev01` bootstrap (including pre-existing VMs)]
-When you connect to `vm-dev01` via Bastion, run `Initialize-Workstation.ps1` in PowerShell 7 (`pwsh`) to install Node.js 24 LTS and `azd` (if your VM was provisioned before the single-clone update), sign in to GitHub/Azure/`azd`, auto-detect your member index and subscriptions, create or clone your single private repository (`C:\src\<your-repo>` on `main`), and write `factory/.local/settings.json`:
-
-```powershell title="vm-dev01 — PowerShell 7 (pwsh)"
-New-Item -ItemType Directory -Force C:\LabTools | Out-Null
-Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Initialize-Workstation.ps1' -OutFile C:\LabTools\Initialize-Workstation.ps1
-pwsh -NoProfile -File C:\LabTools\Initialize-Workstation.ps1
-```
-
-:::
+- **Path A:** Follow [Datacenter and workstation](../deploy/member-steps/) before the team lead runs [vending](../deploy/vending/).
+- **Path B:** After the team lead completes vending, follow [Student onboarding](../deploy/lead-setup/student-onboarding/).
 
 ## Track your progress
 

@@ -9,7 +9,6 @@ next:
   label: Challenges overview
 ---
 
-import { Steps } from "@astrojs/starlight/components";
 import VmDev01Setup from "../../../../components/VmDev01Setup.astro";
 
 **Who:** **Every student** in a lead-provisioned event.
@@ -19,11 +18,13 @@ Your team lead has already deployed the shared Azure landing zone, your simulate
 
 If anything blocks you, contact your **designated team lead** first.
 
+## 1. Accept your repository invitation
+
+Open the invitation link in your private Handoff Card and accept it with the GitHub account you gave your team lead, unless you already have access. Confirm you can access the assigned private repository. Keep the card private: it contains your repository URL, archetype suffix, and local settings command. Do not create a new repository.
+
 ## 2. Connect to `vm-dev01` through Bastion and set up your workspace
 
-When you run `Initialize-Workstation.ps1` on `vm-dev01`, it automatically installs Node.js 24 LTS and `azd` (if your VM was deployed before the single-clone update), signs you in to GitHub, Azure CLI, and `azd`, auto-detects your `MemberIndex`, workload subscription, and shared hub subscription from the VM's IP and peering (zero GUIDs to type), creates your private repository `<your-github-username>/apex-factory-m<nn>` from `jonathan-vella/apex-accelerator` (or clones your org-assigned repo if your team lead gave you a Handoff Card), imports the kit on `main`, and writes `factory/.local/settings.json` and `datacenter.json`.
-
-*(If your team lead pre-created an organization repository for you on a Handoff Card, accept your GitHub invitation at `https://github.com/<org>/<your-repo>/invitations` first and pass `-GitHubOwner '<org>' -RepoName '<your-repo>' -Suffix '<suffix>'` to `Initialize-Workstation.ps1`.)*
+Use the assigned repository owner, repository name, and archetype suffix from your Handoff Card in the bootstrap command below. The script signs you in, clones that existing repository, imports the kit, and writes local settings. It detects the shared hub subscription from the peering created by vending. The card's `Initialize-Settings.ps1` command is a manual alternative for initializing settings after cloning, not the bootstrap command.
 
 <VmDev01Setup pathMode="lead-provisioned" />
 
@@ -41,7 +42,7 @@ git -C C:\src\<your-repo> status --short --ignored -- app .github/upgrades
 Get-Content C:\src\<your-repo>\factory\.local\settings.json
 ```
 
-Done when GitHub is signed in, git has your name, Azure shows your workload subscription, `AZURE_TOKEN_CREDENTIALS` is `AzureCliCredential`, `C:\src\<your-repo>` is on `main`, `settings.json` has your `suffix` and `memberIndex`, and the `git status` command prints nothing. Keep `vm-dev01` running during the event—never shut down or deallocate it while hacking.
+Done when GitHub is signed in, git has your name, Azure shows your workload subscription, `AZURE_TOKEN_CREDENTIALS` is `AzureCliCredential`, `C:\src\<your-repo>` is on `main`, `settings.json` has your `suffix`, `memberIndex`, and `sharedSubscriptionId`, and the `git status` command prints nothing. If the shared subscription was not detected, contact your team lead; the private Handoff Card also provides a local settings command. Keep `vm-dev01` running during the event—never shut down or deallocate it while hacking.
 
 ## 3. Confirm readiness on `main`
 

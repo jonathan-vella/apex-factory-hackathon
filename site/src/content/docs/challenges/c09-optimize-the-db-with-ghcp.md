@@ -33,10 +33,10 @@ A migrated database can still be slow. The perf kit planted five performance iss
 
 Everything runs on <span class="sl-badge note">vm-dev01 · Bastion</span> in your single clone (`C:\src\<your-repo>` on `main`):
 
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> — Run `./db/perf-kit/Start-Workload.ps1` twice: once for `baseline` and once `after` applying all five fixes (Requirements 1 and 4).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> — Run `./db/perf-kit/Start-Workload.ps1` twice: once for `baseline` and once `after` applying all five fixes (Requirements 1 and 4).
 - <span class="sl-badge note">vm-dev01 · SSMS</span> — Read **Query Store** reports, execute your five `.sql` fix scripts, and compare `baseline` vs `after` against `ContosoUniversity` on `$mi` (Requirements 2, 3 and 4). Sign in with the Microsoft Entra account you used for `azd` in C5.
 - <span class="sl-badge note">vm-dev01 · VS Code (@mssql)</span> — Connect the **MSSQL extension** to `ContosoUniversity` on `$mi` and use `@mssql` in Copilot Chat (or [Diagnose a slow plan](../../prompts/vscode/08-diagnose-a-slow-plan/)) to diagnose P1–P5 (Requirement 3).
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (main)</span> — Save your five `.sql` fix scripts and Query Store comparison in `C:\src\<your-repo>\factory\evidence\c09\` on `main`. Never stop the VM during C9.
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (main)</span> — Save your five `.sql` fix scripts and Query Store comparison in `C:\src\<your-repo>\factory\evidence\c09\` on `main`. Never stop the VM during C9.
 
 :::
 
@@ -74,7 +74,7 @@ You run the 5-minute workload **twice**: once for `baseline` and once `after` ap
 
 ## Requirements
 
-1. **Run the `baseline` workload.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> Use the same duration and concurrency for both runs (`baseline` and `after`) so the numbers are comparable:
+1. **Run the `baseline` workload.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> Use the same duration and concurrency for both runs (`baseline` and `after`) so the numbers are comparable:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
    ./db/perf-kit/Start-Workload.ps1 -Server $mi -Authentication ActiveDirectoryInteractive -DurationMinutes 5 -Concurrency 8
@@ -93,7 +93,7 @@ You run the 5-minute workload **twice**: once for `baseline` and once `after` ap
    - Change each object in place (`ALTER` the same procedure, view or function, with the same name and parameter names), because the workload calls `dbo.usp_SearchStudents`, `dbo.usp_GetStudentEnrollments` and `dbo.vw_EnrollmentStatistics` by name.
    - Apply all five fixes against `ContosoUniversity` on `$mi` in SSMS.
 
-4. **Run the `after` workload and compare `baseline` vs `after`.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> <span class="sl-badge note">vm-dev01 · SSMS</span> Wait at least 5 minutes after the `baseline` run finished so the two runs don't share a Query Store interval, then repeat the exact workload command:
+4. **Run the `after` workload and compare `baseline` vs `after`.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> <span class="sl-badge note">vm-dev01 · SSMS</span> Wait at least 5 minutes after the `baseline` run finished so the two runs don't share a Query Store interval, then repeat the exact workload command:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
    ./db/perf-kit/Start-Workload.ps1 -Server $mi -Authentication ActiveDirectoryInteractive -DurationMinutes 5 -Concurrency 8
@@ -101,7 +101,7 @@ You run the 5-minute workload **twice**: once for `baseline` and once `after` ap
 
    Wait a minute for Query Store to flush, then capture your `baseline` vs `after` comparison from **Top Resource Consuming Queries** (or by running `factory/db/perf-kit/Get-QueryStoreSnapshot.sql` in SSMS for the `baseline` and `after` UTC windows).
 
-5. **Commit your five `.sql` scripts and before/after summary on `main`.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (pwsh)</span> Save your five `.sql` fix scripts (`p1-*.sql` through `p5-*.sql`) and a brief before/after comparison in `factory/evidence/c09/`, then commit and push on `main`:
+5. **Commit your five `.sql` scripts and before/after summary on `main`.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (pwsh)</span> Save your five `.sql` fix scripts (`p1-*.sql` through `p5-*.sql`) and a brief before/after comparison in `factory/evidence/c09/`, then commit and push on `main`:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo> (pwsh)"
    cd C:\src\<your-repo>
@@ -113,7 +113,7 @@ You run the 5-minute workload **twice**: once for `baseline` and once `after` ap
 
 ## Success criteria
 
-To complete this challenge, review with your coach in `factory/evidence/c09/` on `main`:
+To complete this challenge, check the following in `factory/evidence/c09/` on `main`:
 
 - [ ] All five `.sql` fix scripts (`p1-*.sql` to `p5-*.sql`) committed in `factory/evidence/c09/` on `main`.
 - [ ] Query Store `baseline` vs `after` comparison showing the duration/CPU and logical-read improvements across the tuned queries.

@@ -26,17 +26,17 @@ Modernizing one app is only worth it if the next team can repeat it and the cust
 
 :::note[Where to work]
 
-<span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work together on one shared screen in the team/pod lead's clone (`C:\src\<your-repo>` on `main` on `vm-dev01`). `Import-Kit.ps1` already pre-created `factory/evidence/c10/handover-and-ai-review.md` in your repository. Commit `reusable-asset/` and `handover-and-ai-review.md` once in the team/pod lead's repository and share the completed file in the team channel (teammates do not need to copy-paste `member-packs/` or duplicate files across every repository).
+<span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work together on one shared screen in the team/pod lead's clone (`C:\src\<your-repo>` on `main` on `vm-dev01`). `Import-Kit.ps1` already pre-created `factory/evidence/c10/handover-and-ai-review.md` in your repository. Commit `reusable-asset/` and `handover-and-ai-review.md` once in the team/pod lead's repository and share the completed file in the team channel (teammates do not need to copy-paste `member-packs/` or duplicate files across every repository).
 
 :::
 
 ## Requirements
 
-1. **Package one reusable asset (`factory/evidence/c10/reusable-asset/`, 20 min).** <span class="sl-badge note">vm-dev01 · Team/pod lead</span> Package one reusable asset from the engagement—the adapted archetype Bicep (`infra/bicep/university/`), the modernization playbook and `.github/upgrades/scenarios/dotnet-version-upgrade/plan.md`, or the five C9 `.sql` fix scripts (`factory/evidence/c09/*.sql`)—into `factory/evidence/c10/reusable-asset/` in the team/pod lead's repository, along with a short `README.md` explaining what inputs the next delivery team supplies and how to run it.
+1. **Package one reusable asset (`factory/evidence/c10/reusable-asset/`, 20 min).** <span class="sl-badge note">vm-dev01 · Team/pod lead</span> Choose the adapted archetype Bicep (`infra/bicep/university/`), the modernization playbook and `.github/upgrades/scenarios/dotnet-version-upgrade/plan.md`, or the five C9 `.sql` fix scripts (`factory/evidence/c09/*.sql`). Copy the asset into `factory/evidence/c10/reusable-asset/` with a short `README.md` explaining the inputs and how to run it. Alternatively, the README may reference the asset's repository, path and fixed commit instead of copying it, but only if the next team has confirmed read access and the repository will be retained. Otherwise, copy the asset.
 
 2. **Complete `factory/evidence/c10/handover-and-ai-review.md` (25 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> Open the pre-created `factory/evidence/c10/handover-and-ai-review.md` in the team/pod lead's repository (if missing, copy `factory/templates/attendee/handover-and-ai-review.md` to `factory/evidence/c10/handover-and-ai-review.md`) and fill in its four sections:
    - **Member acceptance and optimization summary (C8 & C9):** one row per member recording their C8 `acceptance.json` verdict (`ACCEPT`), their C8 live checks (smoke pages, Blob upload, Service Bus toast, 20-request burst, App Insights), and their C9 Query Store CPU/duration improvement (`baseline` vs `after`).
-   - **Reusable factory asset:** what `factory/evidence/c10/reusable-asset/` packages and how the next engagement runs it.
+   - **Reusable factory asset:** what `factory/evidence/c10/reusable-asset/` packages or references and how the next engagement runs it.
    - **AI-readiness gap register:** where a human had to step in during C1–C9 (including any coach support or lifeline used), why the agent could not complete it alone, and the next step for customer engagements.
    - **Showcase talking points (5 minutes):** business outcomes met from C1, the most valuable GitHub Copilot workflow, one guardrail that caught a mistake, and remaining deferred items handed to operations.
 
@@ -52,7 +52,7 @@ Modernizing one app is only worth it if the next team can repeat it and the cust
 
 ## Success criteria
 
-To complete this challenge, review with your coach in the team/pod lead's repo:
+To complete this challenge, check the following in the team/pod lead's repo:
 
 - [ ] `factory/evidence/c10/reusable-asset/` committed on `main` in the team/pod lead's repo with a short `README.md`.
 - [ ] `factory/evidence/c10/handover-and-ai-review.md` committed on `main` in the team/pod lead's repo (and shared in the team channel), covering every member's C8 and C9 results, the AI-readiness gap register, and the showcase talking points.

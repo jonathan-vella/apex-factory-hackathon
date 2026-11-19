@@ -15,7 +15,7 @@ Committed once in the team/pod lead's repository (`factory/evidence/c10/handover
 ## Reusable factory asset
 
 - Path in this repository: `factory/evidence/c10/reusable-asset/`
-- What it packages and how the next engagement runs it:
+- What it packages or references, its fixed commit if referenced, and how the next engagement runs it:
 
 ## AI-readiness gap register
 

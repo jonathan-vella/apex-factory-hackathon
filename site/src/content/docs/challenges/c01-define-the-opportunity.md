@@ -44,7 +44,7 @@ Problem / Trigger  -->  Business Outcome (CAF category)  -->  Solution  -->  KPI
 
 :::note[Where to work]
 
-<span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work on `vm-dev01` in the team/pod lead's clone (`C:\src\<your-repo>` on `main`) on one shared screen: one person types, everyone contributes. `Import-Kit.ps1` already pre-created `factory/evidence/c01/opportunity-canvas.md` in your repository.
+<span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt; (VS Code &amp; pwsh)</span> — Work on `vm-dev01` in the team/pod lead's clone (`C:\src\<your-repo>` on `main`) on one shared screen: one person types, everyone contributes. `Import-Kit.ps1` already pre-created `factory/evidence/c01/opportunity-canvas.md` in your repository.
 
 :::
 
@@ -61,7 +61,7 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 ## Requirements
 
-1. **Open the pre-created canvas.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> Open `factory/evidence/c01/opportunity-canvas.md` in VS Code on `vm-dev01` (if missing, copy it from `factory/templates/attendee/opportunity-canvas.md`). HTML comments in the template can stay in place.
+1. **Open the pre-created canvas.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> Open `factory/evidence/c01/opportunity-canvas.md` in VS Code on `vm-dev01` (if missing, copy it from `factory/templates/attendee/opportunity-canvas.md`). HTML comments in the template can stay in place.
 
 2. **Map problems and triggers to ranked business outcomes (15 min).** <span class="sl-badge note">vm-dev01 · Shared screen</span> Rank the six outcomes from the customer story from 1 to 6. For each row in the table, fill in:
    - **Problem / Trigger:** the business or technical pain point that forces action now.
@@ -90,7 +90,7 @@ For technical blockers, check [Troubleshooting](../../reference/troubleshooting/
 
 ## Success criteria
 
-To complete this challenge, review with your coach in the team/pod lead's repo:
+To complete this challenge, check the following in the team/pod lead's repo:
 
 - [ ] `factory/evidence/c01/opportunity-canvas.md`, committed on `main` in the team/pod lead's repo and shared in the team channel, with all six outcomes ranked and each mapped to a problem/trigger, a CAF outcome category, a stakeholder voice, a solution, a KPI and a target.
 - [ ] Each of the six dimensions has both a `Today:` and a `Target:` line.

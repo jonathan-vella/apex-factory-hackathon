@@ -30,9 +30,9 @@ The modernized app needs somewhere to run. The CoE archetype is that place: App 
 
 The [APEX guide](../../guides/apex/) explains the adaptation and deployment flow. Open `C:\src\<your-repo>` in VS Code on `vm-dev01`:
 
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> — Check the archetype folders, sign in to `azd`, and run `/apex-adapt-archetype` and `08-As-Built` in Copilot Chat (Requirements 2, 3 and 5).
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\infra\bicep\university (pwsh)</span> — Run `./scripts/preflight.ps1` and `azd provision` in PowerShell 7 (Requirement 4).
-- <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> — Load `$s` (`$s = Get-Content .local/settings.json | ConvertFrom-Json`) and verify the deployed resources (Requirement 6).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> — Check the archetype folders, sign in to `azd`, and run `/apex-adapt-archetype` and `08-As-Built` in Copilot Chat (Requirements 2, 3 and 5).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\infra\bicep\university (pwsh)</span> — Run `./scripts/preflight.ps1` and `azd provision` in PowerShell 7 (Requirement 4).
+- <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> — Load `$s` (`$s = Get-Content .local/settings.json | ConvertFrom-Json`) and verify the deployed resources (Requirement 6).
 
 :::
 
@@ -48,33 +48,36 @@ The highlighted parts are what C5 adds to the spoke that vending created at T-1:
 
 1. **Watch the coach's demo** of the archetype's shape and the `/apex-adapt-archetype` flow.
 
-2. **Confirm the archetype is in your repo.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> In `C:\src\<your-repo>` on `vm-dev01`, confirm `agent-output/university/`, `infra/bicep/university/` and `.github/skills/apex-adapt-archetype/` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1` from `C:\src\<your-repo>`.
+2. **Confirm the archetype is in your repo.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> In `C:\src\<your-repo>` on `vm-dev01`, confirm `agent-output/university/`, `infra/bicep/university/` and `.github/skills/apex-adapt-archetype/` exist at the repo root. If they don't, run `./factory/archetype/Import-Archetype.ps1` from `C:\src\<your-repo>`.
 
    Run `git status --short -- infra/bicep/university` before making C5 edits. It must print nothing: if C2's insecure `registry.bicep` edit remains, restore that file with `git restore --source=HEAD -- infra/bicep/university/modules/registry.bicep`.
 
-3. **Run the `/apex-adapt-archetype` skill on `vm-dev01`:** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;</span> <span class="sl-badge">Copilot Chat (Agent)</span>
+3. **Run the `/apex-adapt-archetype` skill on `vm-dev01`:** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;</span> <span class="sl-badge">Copilot Chat (Agent)</span>
 
    1. Sign in to `azd` first, in PowerShell 7 (`pwsh`): `azd auth login --use-device-code`. `azd` keeps its own sign-in, separate from `az login`, and the skill stops without it. Skip this only if `azd` already says you're signed in.
    2. Open Copilot Chat, set the mode to **Agent** (the built-in one, not `01-Orchestrator`) and type `/apex-adapt-archetype`. It reads your tenant ID, subscription ID and suffix from `factory/.local/settings.json` and asks you to confirm them. It checks that a spoke is already vended, runs a lightweight live governance check, creates an `azd` environment named after your suffix, and stops at `azd provision --preview`.
 
    Done when the skill shows the preview: its output ends with a list of the resources `azd` would create, and no error. Review the resource names for your suffix **before deploying**.
 
-4. **Review the preview, then deploy for real.** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\infra\bicep\university (pwsh)</span> In the terminal where the skill ran, run `azd provision` from `C:\src\<your-repo>\infra\bicep\university`. If you closed that terminal, open a new PowerShell 7 (`pwsh`) terminal on `vm-dev01` and run:
+4. **Review the preview, then deploy for real.** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\infra\bicep\university (pwsh)</span> Review the preview the skill showed in Copilot Chat, then switch from chat to a PowerShell 7 (`pwsh`) terminal on `vm-dev01`.
 
-   **Before you deploy: SQL MI licence check.** The template defaults to Azure Hybrid Benefit. If you do not have eligible SQL Server licences with Software Assurance or subscription rights, set `var licenseType = 'LicenseIncluded'` in the working `infra/bicep/university/modules/sql-mi.bicep` before preview/deployment. Read [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) and the [archetype README](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/infra/bicep/university/README.md). After changing the licence choice, rerun and review the preview.
+   **Before you deploy: SQL MI licence check.** The template defaults to Azure Hybrid Benefit. If you do not have eligible SQL Server licences with Software Assurance or subscription rights, set `var licenseType = 'LicenseIncluded'` in the working `infra/bicep/university/modules/sql-mi.bicep` before preview/deployment. Read [Azure Hybrid Benefit](../../reference/azure-hybrid-benefit/) and the [archetype README](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/archetype/infra/bicep/university/README.md).
+
+   In the terminal, run preflight before deployment: it exports process variables needed by `azd`. Keep this same shell open for any new preview and for deployment:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo>\infra\bicep\university (pwsh)"
    cd C:\src\<your-repo>\infra\bicep\university
    $s = Get-Content ..\..\..\factory\.local\settings.json | ConvertFrom-Json
    ./scripts/preflight.ps1 -TenantId $s.tenantId -SubscriptionId $s.subscriptionId -Suffix $s.suffix
-   azd provision --preview
    ```
 
-   Review that preview, then run `azd provision` only when you accept the changes. Provisioning waits until the SQL Managed Instance is created: about 20 minutes, so keep that terminal open. You can start C6 in another VS Code chat while it runs. Done when `azd provision` returns without an error and `rg-university-<suffix>` exists.
+   If preflight fails, stop and resolve the error before continuing. If inputs or templates changed since the skill's preview (including the licence choice), rerun `azd provision --preview` in that same shell and review the new output. Otherwise use the skill's reviewed preview; don't repeat it.
+
+   Run `azd provision` in that same shell only when you accept the reviewed changes. Provisioning waits until the SQL Managed Instance is created: about 20 minutes, so keep that terminal open. You can start C6 in another VS Code chat while it runs. Done when `azd provision` returns without an error and `rg-university-<suffix>` exists.
 
 5. **Run As-Built.** <span class="sl-badge note">vm-dev01 · Copilot Chat (08-As-Built)</span> When `azd provision` returns, in Copilot Chat in `C:\src\<your-repo>`, pick the `08-As-Built` agent in the chat input area and send `Document the deployed state of the university project.` If `azd`'s output printed an `apex-recall ...` command to run first, run that line in the terminal where `azd` ran. It takes about 30 minutes: continue C6 meanwhile. Done when the `agent-output/university/07-*.md` As-Built suite exists (for example `07-documentation-index.md`).
 
-6. **Confirm the deployment and commit `agent-output/university/`,** <span class="sl-badge note">vm-dev01 · C:\src\&lt;your-repo&gt;\factory (pwsh)</span> with your suffix:
+6. **Confirm the deployment and commit `agent-output/university/`,** <span class="sl-badge note">vm-dev01 · C:\src\\&lt;your-repo&gt;\factory (pwsh)</span> with your suffix:
 
    ```powershell title="vm-dev01 — C:\src\<your-repo>\factory (pwsh)"
    cd C:\src\<your-repo>\factory
@@ -102,7 +105,7 @@ The highlighted parts are what C5 adds to the spoke that vending created at T-1:
 
 ## Success criteria
 
-To complete this challenge, review with your coach in `C:\src\<your-repo>` on `main`:
+To complete this challenge, check your work in `C:\src\<your-repo>` on `main`:
 
 - [ ] `agent-output/university/06-deployment-summary.md` and the `agent-output/university/07-*.md` As-Built suite committed on `main` (with any subscription, tenant and object IDs redacted).
 - [ ] `az resource list -g rg-university-<suffix> -o table` showing every expected resource with private endpoints and `publicNetworkAccess` set to `Disabled` on data backends.

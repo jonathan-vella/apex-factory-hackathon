@@ -18,7 +18,7 @@ git remote get-url origin`;
 
 const stepBootstrapPathB = `New-Item -ItemType Directory -Force C:\\LabTools | Out-Null
 Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Initialize-Workstation.ps1' -OutFile C:\\LabTools\\Initialize-Workstation.ps1
-pwsh -NoProfile -File C:\\LabTools\\Initialize-Workstation.ps1`;
+pwsh -NoProfile -File C:\\LabTools\\Initialize-Workstation.ps1 -GitHubOwner '<org>' -RepoName '<your-repo>' -Suffix '<suffix>'`;
 
 const stepBootstrapPathA = `New-Item -ItemType Directory -Force C:\\LabTools | Out-Null
 Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/jonathan-vella/apex-factory-hackathon/main/scripts/Initialize-Workstation.ps1' -OutFile C:\\LabTools\\Initialize-Workstation.ps1
@@ -118,9 +118,9 @@ const step7Code = `code C:\\src\\<your-repo>`;
             <a href="https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/datacenter/README.md#credentials">
               infra/datacenter/README.md
             </a>{" "}
-            (or from your team lead / Handoff Card). You do not need to look up any subscription or
-            tenant GUIDs—<code>Initialize-Workstation.ps1</code> auto-detects them on{" "}
-            <code>vm-dev01</code>.
+            (or from your team lead). Keep your private Handoff Card available for the assigned
+            repository and suffix. <code>Initialize-Workstation.ps1</code> detects the workload
+            subscription and tenant on <code>vm-dev01</code>.
           </p>
         </>
       ) : (
@@ -170,27 +170,23 @@ const step7Code = `code C:\\src\\<your-repo>`;
         Run <code>Initialize-Workstation.ps1</code> to bootstrap <code>vm-dev01</code> in one
         command. It installs Node.js 24 LTS and <code>azd</code> if your VM was deployed before the
         single-clone update, signs you in to GitHub (<code>repo,workflow</code> scopes), Azure CLI,
-        and <code>azd</code>, sets <code>AZURE_TOKEN_CREDENTIALS=AzureCliCredential</code>,
-        auto-detects your <code>MemberIndex</code>, workload subscription, and shared hub
-        subscription from the VM&apos;s private IP and hub peering, creates (or clones) your private
-        GitHub repository at <code>C:\src\&lt;your-repo&gt;</code> on <code>main</code> with the kit
-        imported, writes <code>factory/.local/settings.json</code> and <code>datacenter.json</code>,
-        and opens VS Code:
+        and <code>azd</code>, sets <code>AZURE_TOKEN_CREDENTIALS=AzureCliCredential</code>, detects
+        your <code>MemberIndex</code> and workload subscription from the VM&apos;s private IP and
+        datacenter network. It detects the shared hub subscription only after hub peering exists;
+        for Path A, add it after vending as described in <a href="/deploy/vending/">Step 4</a>. It{" "}
+        {isPathB ? "clones your assigned" : "creates (or clones) your"} private GitHub repository at{" "}
+        <code>C:\src\&lt;your-repo&gt;</code> on <code>main</code>, imports the kit, writes{" "}
+        <code>factory/.local/settings.json</code> and <code>datacenter.json</code>, and opens VS
+        Code:
       </p>
       <Code code={isPathB ? stepBootstrapPathB : stepBootstrapPathA} lang="powershell" />
       {isPathB && (
         <p>
-          <em>
-            By default this creates a private repository{" "}
-            <code>&lt;your-github-username&gt;/apex-factory-m&lt;nn&gt;</code> from{" "}
-            <code>jonathan-vella/apex-accelerator</code>. If your team lead pre-created an
-            organization repository on a Handoff Card, append{" "}
-            <code>
-              -GitHubOwner &apos;&lt;org&gt;&apos; -RepoName &apos;&lt;your-repo&gt;&apos; -Suffix
-              &apos;&lt;suffix&gt;&apos;
-            </code>
-            .
-          </em>
+          Replace <code>&lt;org&gt;</code> and <code>&lt;your-repo&gt;</code> with the owner and
+          name from your Handoff Card&apos;s assigned repository URL, and{" "}
+          <code>&lt;suffix&gt;</code> with its archetype suffix. Accept the invitation first. If you
+          cannot access the assigned repository, stop and contact your team lead; do not create
+          another repository.
         </p>
       )}
       <details>
