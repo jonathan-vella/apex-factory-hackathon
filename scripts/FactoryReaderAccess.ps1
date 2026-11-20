@@ -45,11 +45,16 @@ function Test-FactoryReaderAssignment {
 
 function Test-FactoryUserReader {
     param([string] $Scope, [guid] $PrincipalId, [string] $GroupId)
-    $filter = [uri]::EscapeDataString("atScope() and assignedTo('$PrincipalId')")
-    $next = "https://management.azure.com$Scope/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01&`$filter=$filter"
+    $next = "https://management.azure.com$Scope/providers/Microsoft.Authorization/roleAssignments?api-version=2022-04-01&`$filter=$([uri]::EscapeDataString("atScope() and assignedTo('$PrincipalId')"))"
     do {
         if ($next -notlike 'https://management.azure.com/*') { throw 'Unexpected Azure RBAC pagination link.' }
-        $page = Invoke-AzureCli -Arguments @('rest', '--method', 'get', '--uri', $next)
+        $uriParts = $next -split '\?', 2
+        $cliArgs = @('rest', '--method', 'get', '--uri', $uriParts[0])
+        if ($uriParts.Count -gt 1 -and $uriParts[1]) {
+            $queryArgs = @($uriParts[1] -split '&' | Where-Object { $_ } | ForEach-Object { [uri]::UnescapeDataString($_) })
+            if ($queryArgs.Count) { $cliArgs += @('--uri-parameters') + $queryArgs }
+        }
+        $page = Invoke-AzureCli -Arguments $cliArgs
         foreach ($assignment in $page.value) {
             if (Test-FactoryReaderAssignment -Assignment $assignment -Scope $Scope -GroupId $GroupId) { return $true }
         }
