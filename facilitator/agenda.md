@@ -10,9 +10,9 @@ Staff at least one coach per six attendees. Before kickoff, read the guide's [ki
 |---|---|---|
 | T-30 to T-14 | Event-owner setup: choose Path A (self-service teams) or Path B (lead-provisioned cohort, with 3-to-5-person breakout pods and pod leads when `n > 5`), tenant and subscription access, nominate the team lead, and book the Privileged Role Administrator for T-7 (see the [guide](guide.md#t-30-to-t-14-event-owner)) | Event owner, team lead |
 | Step 1 (T-14) | Path A: repo setup and preflight; each member shares subscription ID, index, object ID and email privately with the team lead. Path B: team lead runs `Initialize-CohortRepos.ps1` and cohort `whatif`; students share GitHub usernames privately and accept repo invites | Team lead, members |
-| Step 2 (T-7) | Team lead runs the `foundation` stage (ALZ-lite, pipeline run 1), then a Privileged Role Administrator runs the Graph grant for the SQL MI identity | Team lead, Privileged Role Administrator |
+| Step 2 (T-7) | Bootstrap the Entra reader group, run `foundation` (ALZ-lite, pipeline run 1), then grant SQL MI directory read | Authorized Entra operator, team lead, Privileged Role Administrator |
 | Step 3 (T-3) | Path A: each member runs `whatif` and `member` (datacenter, `Test-Datacenter.ps1` before Arc, Arc onboarding). Path B: team lead runs `member` across the cohort. Everyone completes the portal migration assessment, `vm-dev01` Copilot setup and `factory/evidence/readiness/` | Team lead, members |
-| Step 4 (T-1) | Team lead runs the `vending` stage (in batches such as `-f members=1-50` when `n > 60`): it stops at the first member who is not ready; earlier members are vended but not restarted, exempted or probed, and later members are not vended. Fix phase 1 or 2 failures and re-run; phase 3 failures name the members to rerun | Team lead |
+| Step 4 (T-1) | Sync the reader group from the full private roster, then vend (in batches such as `-f members=1-50` when `n > 60`). Vending stops at the first unready member; earlier members are vended but not restarted, exempted or probed, and later members are not vended | Group owner, team lead |
 | Before Day 1 | Start both VMs of every datacenter (idle ones may have been stopped), check the room and projection, stage demo materials and publish this agenda | Event owner, coaches |
 
 ## Day 1

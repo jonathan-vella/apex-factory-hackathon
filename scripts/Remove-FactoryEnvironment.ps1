@@ -50,12 +50,14 @@ $s = Get-Content (Join-Path '.local' 'settings.json') | ConvertFrom-Json
 ./scripts/Remove-FactoryEnvironment.ps1 -Scope Member -SubscriptionId $s.subscriptionId -MemberIndex $s.memberIndex -Suffix $s.suffix -Location $s.location -WhatIf
 .EXAMPLE
 ./scripts/Remove-FactoryEnvironment.ps1 -Scope Team -SharedSubscriptionId $s.sharedSubscriptionId -MgPrefix 'mg-factory' -WhatIf
+.EXAMPLE
+./scripts/Remove-FactoryEnvironment.ps1 -Scope LegacyReader -MgPrefix 'mg-factory' -ReaderGroupId '<reader-group-id>' -VerificationPrincipalId '<test-user-object-id>' -WhatIf
 #>
 
 [CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('Member', 'Team')]
+    [ValidateSet('Member', 'Team', 'LegacyReader')]
     [string] $Scope,
     [string] $SubscriptionId,
     [int] $MemberIndex,
@@ -64,6 +66,8 @@ param(
     [ValidatePattern('^[A-Za-z0-9-]{2,40}$')]
     [string] $MgPrefix = 'mg-factory',
     [string] $ReturnManagementGroupId,
+    [guid] $ReaderGroupId,
+    [guid] $VerificationPrincipalId,
     [switch] $IncludeManagementResources,
     [string] $Location = 'swedencentral',
     [switch] $Force
@@ -71,6 +75,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
+. (Join-Path $PSScriptRoot 'FactoryReaderAccess.ps1')
 $cleanupPlan = [System.Collections.Generic.List[string]]::new()
 
 function Invoke-AzureCli {
@@ -247,12 +252,44 @@ function ConvertTo-ManagementGroupName {
 
 function Get-RoleAssignmentsAtScope {
     param([Parameter(Mandatory)][string] $TargetScope)
-    return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $TargetScope))
+    return @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $TargetScope, '--fill-principal-name', 'false'))
 }
 
 # Vending marks the Owner assignment it creates with this description. A member's own direct Owner assignment doesn't carry
 # it, so teardown leaves that one alone.
 $vendingOwnerDescription = 'Created by Deploy-Vending.ps1 (Partner Modernization Factory)'
+
+if ($Scope -eq 'LegacyReader') {
+    if (-not $ReaderGroupId -or $ReaderGroupId -eq [guid]::Empty -or
+        -not $VerificationPrincipalId -or $VerificationPrincipalId -eq [guid]::Empty) {
+        throw 'LegacyReader requires the reader group ID and a verified non-admin test user object ID.'
+    }
+    $readerScope = "/providers/Microsoft.Management/managementGroups/$MgPrefix"
+    $atScope = @(Get-RoleAssignmentsAtScope -TargetScope $readerScope)
+    if (@($atScope | Where-Object {
+                Test-FactoryReaderAssignment -Assignment $_ -Scope $readerScope -GroupId $ReaderGroupId
+            }).Count -ne 1 -or
+        @($atScope | Where-Object {
+                $_.scope -eq $readerScope -and $_.principalId -eq [string] $VerificationPrincipalId -and
+                ($_.roleDefinitionId -split '/')[-1] -eq $factoryReaderRole
+            }).Count -or
+        -not (Test-FactoryUserReader -Scope $readerScope -PrincipalId $VerificationPrincipalId -GroupId $ReaderGroupId)) {
+        throw 'Cannot verify group-derived Reader without a direct Reader grant for the test user. No legacy grants were removed.'
+    }
+    $legacy = @($atScope | Where-Object { Test-FactoryReaderAssignment -Assignment $_ -Scope $readerScope -Legacy })
+    $inspect = @($atScope | Where-Object {
+        $_.scope -eq $readerScope -and ($_.roleDefinitionId -split '/')[-1] -eq $factoryReaderRole -and
+        -not (Test-FactoryReaderAssignment -Assignment $_ -Scope $readerScope)
+    })
+    if ($inspect.Count -gt $legacy.Count) { Write-Warning 'Reader grants without exact kit provenance will be left alone.' }
+    Write-Information "Found $($legacy.Count) legacy kit Reader assignments on $MgPrefix."
+    if ($legacy.Count -and $PSCmdlet.ShouldProcess($MgPrefix, 'Remove only the verified legacy kit Reader assignments')) {
+        foreach ($role in $legacy) {
+            $null = Invoke-AzureCli -Arguments @('role', 'assignment', 'delete', '--ids', "$readerScope/providers/Microsoft.Authorization/roleAssignments/$($role.name)")
+        }
+    }
+    return
+}
 
 if ($Scope -eq 'Member') {
     if ($SubscriptionId -notmatch '^[0-9a-fA-F-]{36}$') {
@@ -483,12 +520,11 @@ else {
     if ($managementGroupNames -contains $rootGroupName) {
         $rootScope = "/providers/Microsoft.Management/managementGroups/$rootGroupName"
         foreach ($role in @(Get-RoleAssignmentsAtScope -TargetScope $rootScope | Where-Object {
-            $_.scope -eq $rootScope -and $_.roleDefinitionName -eq 'Reader' -and (
-                $_.description -eq $vendingOwnerDescription -or $_.principalId -in $managedIdentityPrincipals
-            )
+            (Test-FactoryReaderAssignment -Assignment $_ -Scope $rootScope) -or
+            (Test-FactoryReaderAssignment -Assignment $_ -Scope $rootScope -Legacy)
         })) {
             [void] $memberReaderRoles.Add($role)
-            Add-CleanupPlan "Delete the vending-created Reader assignment for a member on management group $rootGroupName."
+            Add-CleanupPlan "Delete a verified kit Reader assignment on management group $rootGroupName."
         }
     }
 

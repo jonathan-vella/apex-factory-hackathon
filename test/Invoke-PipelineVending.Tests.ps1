@@ -22,11 +22,15 @@ $work = Join-Path ([System.IO.Path]::GetTempPath()) "vending-test-$([guid]::NewG
 $bin = Join-Path $work 'bin'
 New-Item -ItemType Directory -Path $bin -Force | Out-Null
 Copy-Item $script (Join-Path $work 'Invoke-PipelineVending.ps1')
+$rosterHelper = Join-Path (Split-Path $script -Parent) 'FactoryRoster.ps1'
+Copy-Item $rosterHelper $work
+. $rosterHelper
 
 $stamp = '$([DateTime]::Now.ToString(''HH:mm:ss.fff''))'
 Set-Content (Join-Path $work 'Assert-PipelineGuard.ps1') '[CmdletBinding()] param([Parameter(ValueFromRemainingArguments)] $Rest) exit 0'
 Set-Content (Join-Path $work 'Deploy-Vending.ps1') @"
-[CmdletBinding()] param([string] `$WorkloadSubscriptionId, [string] `$SharedSubscriptionId, [int] `$MemberIndex, [string] `$MgPrefix, [string] `$ParentManagementGroupId, [string] `$Location, [string] `$BudgetEmail, [string] `$MemberPrincipalId)
+[CmdletBinding()] param([string] `$WorkloadSubscriptionId, [string] `$SharedSubscriptionId, [int] `$MemberIndex, [string] `$MgPrefix, [string] `$ParentManagementGroupId, [string] `$Location, [string] `$BudgetEmail, [string] `$MemberPrincipalId, [string] `$ReaderGroupId, [switch] `$PipelineVerifiedNestedGroup)
+if (`$PipelineVerifiedNestedGroup) { Set-Content (Join-Path `$env:TEST_LOG ([guid]::NewGuid())) "$stamp nested `$MemberIndex" }
 Set-Content (Join-Path `$env:TEST_LOG ([guid]::NewGuid())) "$stamp vend-start `$MemberIndex"
 Start-Sleep -Milliseconds 700
 if (`$env:TEST_FAIL -eq "vend-`$MemberIndex") { throw 'vending failed' }
@@ -75,7 +79,7 @@ $guid = { param($n) "{0:x8}-0000-0000-0000-000000000000" -f $n }
 $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = (& $guid $_); budgetEmail = 'a@b.c'; memberPrincipalId = (& $guid 99) } } | ConvertTo-Json -Compress)
 
 function Invoke-Scenario {
-    param([string] $Name, [hashtable] $Environment = @{}, [string[]] $Members = @('1', '2', '3'))
+    param([string] $Name, [hashtable] $Environment = @{}, [string[]] $Members = @('1', '2', '3'), [switch] $StaleVerification)
     $log = Join-Path $work "$Name.log"
     New-Item -ItemType Directory -Path $log -Force | Out-Null
     $oldPath = $env:PATH
@@ -87,7 +91,13 @@ function Invoke-Scenario {
         $env:TEST_ROSTER = $roster
         $env:TEST_MEMBERS = $Members -join ','
         $env:TEST_SHARED = (& $guid 500)
-        $command = "& '$(Join-Path $work 'Invoke-PipelineVending.ps1')' -RosterJson `$env:TEST_ROSTER -MemberIndex (`$env:TEST_MEMBERS -split ',') -SharedSubscriptionId `$env:TEST_SHARED -MgPrefix mg-test; exit `$LASTEXITCODE"
+        $env:TEST_TENANT = & $guid 501
+        $env:TEST_GROUP = & $guid 502
+        $env:TEST_VERIFICATION = @{
+            version = 1; tenantId = $env:TEST_TENANT; groupId = $env:TEST_GROUP; mgPrefix = 'mg-test'; groupIndexes = @(2)
+            digest = if ($StaleVerification) { 'stale' } else { Get-FactoryRosterDigest -Members @($roster | ConvertFrom-Json) }
+        } | ConvertTo-Json -Compress
+        $command = "& '$(Join-Path $work 'Invoke-PipelineVending.ps1')' -RosterJson `$env:TEST_ROSTER -MemberIndex (`$env:TEST_MEMBERS -split ',') -SharedSubscriptionId `$env:TEST_SHARED -MgPrefix mg-test -TenantId `$env:TEST_TENANT -ReaderGroupId `$env:TEST_GROUP -ReaderRosterVerification `$env:TEST_VERIFICATION; exit `$LASTEXITCODE"
         $output = & $pwsh -NoProfile -NonInteractive -Command $command 2>&1 | Out-String
         [pscustomobject]@{ Exit = $LASTEXITCODE; Output = $output; Log = @(Get-ChildItem $log -File | ForEach-Object { (Get-Content $_.FullName -Raw).Trim() } | Sort-Object { Get-Time $_ }) }
     }
@@ -98,6 +108,9 @@ function Get-Time { param($Line) [TimeSpan]::Parse(($Line.Trim() -split '\s+')[0
 function Assert-True { param([bool] $Condition, [string] $Message) if (-not $Condition) { throw "FAIL: $Message" } }
 
 try {
+    $r = Invoke-Scenario -Name stale-verification -Members @('1') -StaleVerification
+    Assert-True ($r.Exit -ne 0 -and $r.Output -match 'missing or stale' -and -not $r.Log.Count) 'a batch must reject stale full-roster verification before vending'
+
     $r = Invoke-Scenario -Name healthy
     Assert-True ($r.Exit -eq 0) "healthy run exited $($r.Exit): $($r.Output)"
     $vendLines = @($r.Log | Where-Object { $_ -match 'vend-(start|end)' })
@@ -114,6 +127,7 @@ try {
     Assert-True (@($r.Log | Where-Object { $_ -match ' probe ' }).Count -eq 3) 'not every member was probed'
     Assert-True ($r.Output -match 'Member 2: vended and connected') 'the summary is missing a member'
     Assert-True ($r.Output -match 'PASS-LINE member 3') 'the probe output was not shown'
+    Assert-True (@($r.Log | Where-Object { $_ -match 'nested 2$' }).Count -eq 1) 'the verified nested roster entry was not forwarded'
     Write-Output 'PASS: serial vending, one parallel restart wave, then parallel probes'
 
     $r = Invoke-Scenario -Name vend-fails -Environment @{ TEST_FAIL = 'vend-2' }
@@ -127,7 +141,7 @@ try {
     Write-Output 'PASS: a single member runs the same phases'
 
     $oldRoster = $roster
-    $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = $(if ($_ -eq 2) { 'fail-vm-0000-0000-0000-000000000000' } else { & $guid $_ }); budgetEmail = 'a@b.c' } } | ConvertTo-Json -Compress)
+    $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = $(if ($_ -eq 2) { 'fail-vm-0000-0000-0000-000000000000' } else { & $guid $_ }); budgetEmail = 'a@b.c'; memberPrincipalId = (& $guid 99) } } | ConvertTo-Json -Compress)
     $r = Invoke-Scenario -Name restart-fails2
     Assert-True ($r.Exit -ne 0) 'a restart failure did not fail the stage'
     Assert-True ($r.Output -match 'Restarting the VMs failed \(member 2') 'the member with the failed restart is not named'
@@ -142,7 +156,7 @@ try {
     Write-Output 'PASS: a failed probe names its member and still reports the others'
 
     $oldRoster = $roster
-    $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = $(if ($_ -eq 2) { 'missing-arc-0000-0000-0000-000000000000' } else { & $guid $_ }); budgetEmail = 'a@b.c' } } | ConvertTo-Json -Compress)
+    $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = $(if ($_ -eq 2) { 'missing-arc-0000-0000-0000-000000000000' } else { & $guid $_ }); budgetEmail = 'a@b.c'; memberPrincipalId = (& $guid 99) } } | ConvertTo-Json -Compress)
     $r = Invoke-Scenario -Name arc-missing
     Assert-True ($r.Exit -ne 0) 'missing Arc machine did not fail the stage'
     Assert-True ($r.Output -match 'Vending stopped at member 2' -and $r.Output -match 'status: missing') 'missing Arc failure did not name member 2 and status'
@@ -151,7 +165,7 @@ try {
     Write-Output 'PASS: missing Arc machine stops before Deploy-Vending for that member'
 
     $oldRoster = $roster
-    $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = $(if ($_ -eq 2) { 'disconnected-arc-0000-0000-0000-000000000000' } else { & $guid $_ }); budgetEmail = 'a@b.c' } } | ConvertTo-Json -Compress)
+    $roster = (1..3 | ForEach-Object { @{ index = $_; subscriptionId = $(if ($_ -eq 2) { 'disconnected-arc-0000-0000-0000-000000000000' } else { & $guid $_ }); budgetEmail = 'a@b.c'; memberPrincipalId = (& $guid 99) } } | ConvertTo-Json -Compress)
     $r = Invoke-Scenario -Name arc-disconnected
     Assert-True ($r.Exit -ne 0) 'disconnected Arc machine did not fail the stage'
     Assert-True ($r.Output -match 'Vending stopped at member 2' -and $r.Output -match 'status: Disconnected') 'disconnected Arc failure did not name member 2 and status'

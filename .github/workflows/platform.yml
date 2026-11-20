@@ -254,6 +254,7 @@ jobs:
         working-directory: ${{ env.KIT_DIR }}
         env:
           SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          READER_GROUP_ID: ${{ secrets.READER_GROUP_ID }}
           PARENT_MG: ${{ vars.PARENT_MG }}
           MG_PREFIX: ${{ vars.MG_PREFIX }}
           LOCATION: ${{ vars.LOCATION }}
@@ -266,7 +267,7 @@ jobs:
             exit 0
           }
           ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
-            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -WhatIf *>&1 | ./scripts/Write-RedactedOutput.ps1
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -ReaderGroupId $env:READER_GROUP_ID -WhatIf *>&1 | ./scripts/Write-RedactedOutput.ps1
           exit $LASTEXITCODE
 
   member:
@@ -422,12 +423,13 @@ jobs:
         working-directory: ${{ env.KIT_DIR }}
         env:
           SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
+          READER_GROUP_ID: ${{ secrets.READER_GROUP_ID }}
           PARENT_MG: ${{ vars.PARENT_MG }}
           MG_PREFIX: ${{ vars.MG_PREFIX }}
           LOCATION: ${{ vars.LOCATION }}
         run: |
           ./scripts/Deploy-AlzLite.ps1 -SharedSubscriptionId $env:SHARED -MgPrefix $env:MG_PREFIX `
-            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION *>&1 | ./scripts/Write-RedactedOutput.ps1
+            -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -ReaderGroupId $env:READER_GROUP_ID *>&1 | ./scripts/Write-RedactedOutput.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           "ALZ-lite is deployed under ``$env:MG_PREFIX``. The firewall bills about `$1.30 an hour until the foundation is removed." |
             Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append
@@ -461,6 +463,8 @@ jobs:
         working-directory: ${{ env.KIT_DIR }}
         env:
           ROSTER_JSON: ${{ secrets.ROSTER_JSON }}
+          READER_GROUP_ID: ${{ secrets.READER_GROUP_ID }}
+          READER_ROSTER_VERIFICATION: ${{ secrets.READER_ROSTER_VERIFICATION }}
           MEMBERS: ${{ needs.plan.outputs.member-list }}
           SHARED: ${{ secrets.SHARED_SUBSCRIPTION_ID }}
           CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -474,6 +478,7 @@ jobs:
         run: |
           # One approval covers the stage; members are vended strictly in order, because each run updates the firewall policy.
           ./scripts/Invoke-PipelineVending.ps1 -RosterJson $env:ROSTER_JSON -MemberIndex ($env:MEMBERS -split ',') `
+            -ReaderGroupId $env:READER_GROUP_ID -ReaderRosterVerification $env:READER_ROSTER_VERIFICATION `
             -SharedSubscriptionId $env:SHARED -ClientId $env:CLIENT_ID -TenantId $env:TENANT_ID -MgPrefix $env:MG_PREFIX `
             -ParentManagementGroupId $env:PARENT_MG -Location $env:LOCATION -AllowedSubscriptionId ($env:ALLOWED -split ',') `
             -DeniedSubscriptionId ($env:DENIED -split ',') -DeniedMgPrefix ($env:DENIED_PREFIXES -split ',') *>&1 | ./scripts/Write-RedactedOutput.ps1

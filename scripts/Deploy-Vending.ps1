@@ -15,10 +15,8 @@ log-management) and prints what it found. Then it:
   firewall, snet-sqlmi sends the datacenter range, snet-servers sends the spoke range and keeps internet
   egress on the NAT gateway;
 - adds rule collection group rcg-member-n to afwp-hub;
-- gives the member Owner on the workload subscription, Reader on <MgPrefix> (inherited by <MgPrefix>-corp and
-  <MgPrefix>-platform) and on the shared services subscription (so governance discovery, Test-Connectivity.ps1
-  and the archetype preflight can read kit management-group policies and the hub with their own sign-in), and
-  Managed Identity Operator on id-sqlmi-directory (all four only if -MemberPrincipalId is set), adds a monthly
+- verifies the member's foundation group Reader at <MgPrefix>, then gives the member workload Owner,
+  shared-services Reader and Managed Identity Operator on id-sqlmi-directory if -MemberPrincipalId is set, adds a monthly
   budget with an alert at 80%, and sets Defender for Cloud to Foundational CSPM only (unless -SkipDefender).
 The platform lead runs it for every member, because it writes to the shared services subscription;
 members get only the Reader and Managed Identity Operator grants above. It needs Owner at the Tenant Root management group. Run it after the
@@ -37,9 +35,11 @@ Prefix of the kit's management groups, as passed to Deploy-AlzLite.ps1.
 .PARAMETER ParentManagementGroupId
 The management group the kit's groups sit under, as passed to Deploy-AlzLite.ps1. Empty means Tenant Root. The script also accepts a service principal or managed identity (a pipeline).
 .PARAMETER MemberPrincipalId
-Object ID of the member (user or group), who gets Owner on the workload subscription, Reader on <MgPrefix>
-and the shared services subscription, and Managed Identity Operator on id-sqlmi-directory, so the archetype
-can inspect kit management-group policies and attach the identity to their SQL Managed Instance. Optional.
+Object ID of the member (user or supported security group). If empty, no member grants are made.
+.PARAMETER ReaderGroupId
+The Entra reader group's object ID from foundation. Required when MemberPrincipalId is set.
+.PARAMETER NestedReaderGroup
+For a manual repair with a group principal, verify its direct linkage in an existing delegated Graph session.
 .PARAMETER BudgetAmount
 Monthly budget on the workload subscription, in the billing currency.
 .PARAMETER BudgetEmail
@@ -75,6 +75,10 @@ param(
     [string] $ParentManagementGroupId = '',
     [ValidatePattern('^$|^[0-9a-fA-F-]{36}$')]
     [string] $MemberPrincipalId = '',
+    [ValidatePattern('^$|^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$')]
+    [string] $ReaderGroupId = '',
+    [switch] $NestedReaderGroup,
+    [switch] $PipelineVerifiedNestedGroup,
     [ValidateRange(1, 1000000)]
     [int] $BudgetAmount = 500,
     [Parameter(Mandatory)]
@@ -86,6 +90,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
+. (Join-Path $PSScriptRoot 'FactoryReaderAccess.ps1')
 $template = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'foundation', 'vending', 'main.bicep'
 $firewallPolicyTemplate = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'foundation', 'alz-lite', 'modules', 'firewall-policy.bicep'
 $budgetName = 'budget-factory-workload'
@@ -194,6 +199,33 @@ $null = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $Workl
 $null = Invoke-AzureCli -Arguments @('account', 'show', '--subscription', $SharedSubscriptionId)
 Assert-ParentOwner -TenantId $tenantId -ParentId $parentId
 
+if ($MemberPrincipalId) {
+    if (-not $ReaderGroupId) { throw 'Vending with a member principal requires the foundation reader group ID. Run Sync-FactoryReaderGroup.ps1.' }
+    $kitMgScope = "/providers/Microsoft.Management/managementGroups/$MgPrefix"
+    $binding = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $kitMgScope, '--fill-principal-name', 'false') | Where-Object {
+        Test-FactoryReaderAssignment -Assignment $_ -Scope $kitMgScope -GroupId $ReaderGroupId
+    })
+    if ($binding.Count -ne 1) { throw 'The expected reader group is not bound at the kit management group. Deploy foundation with the correct group ID.' }
+    if ($PipelineVerifiedNestedGroup) {
+        if ($account.user.type -ne 'servicePrincipal' -or $env:GITHUB_ACTIONS -ne 'true' -or $NestedReaderGroup) {
+            throw 'Pipeline nested-group verification is only supported inside the lead workflow.'
+        }
+    }
+    elseif ($NestedReaderGroup) {
+        $null = & (Join-Path $PSScriptRoot 'Sync-FactoryReaderGroup.ps1') -Mode Verify -TenantId $tenantId `
+            -MgPrefix $MgPrefix -ExpectedGroupId $ReaderGroupId -MemberPrincipalId $MemberPrincipalId -UseExistingSession
+    }
+    else {
+        $verified = $false
+        $attempts = if ($WhatIfPreference) { 1 } else { 5 }
+        for ($attempt = 0; $attempt -lt $attempts -and -not $verified; $attempt++) {
+            $verified = Test-FactoryUserReader -Scope $kitMgScope -PrincipalId $MemberPrincipalId -GroupId $ReaderGroupId
+            if (-not $verified -and $attempt -lt ($attempts - 1)) { Start-Sleep -Seconds ([math]::Pow(2, $attempt + 1)) }
+        }
+        if (-not $verified) { throw 'The member does not resolve to the kit reader-group assignment. Sync the full roster, allow propagation, and retry.' }
+    }
+}
+
 # The hub, by the ALZ-lite names.
 $hubVnet = Get-OptionalResource -Arguments @('network', 'vnet', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-hub', '-n', 'vnet-hub')
 $firewall = Get-OptionalResource -Arguments @('resource', 'show', '--subscription', $SharedSubscriptionId, '-g', 'rg-hub', '-n', 'afw-hub',
@@ -230,21 +262,16 @@ $miNsg = Get-OptionalResource -Arguments @('network', 'nsg', 'show', '--subscrip
 $miRouteTable = Get-OptionalResource -Arguments @('network', 'route-table', 'show', '--subscription', $WorkloadSubscriptionId, '-g', 'rg-spoke', '-n', 'rt-sqlmi')
 $miNetworkExists = [bool] ($miNsg -and $miRouteTable)
 
-# A member who already holds a direct Owner or MG Reader assignment of their own keeps it: ARM rejects a second
+# A member who already holds a direct Owner assignment of their own keeps it: ARM rejects a second
 # identical assignment with a different GUID, and Remove-FactoryEnvironment.ps1 deletes only the ones carrying this description.
 $ownerDescription = 'Created by Deploy-Vending.ps1 (Partner Modernization Factory)'
 $assignMemberOwner = [bool] $MemberPrincipalId
-$assignMemberMgReader = [bool] $MemberPrincipalId
 if ($MemberPrincipalId) {
     $workloadScope = "/subscriptions/$WorkloadSubscriptionId"
     $ownApplied = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $workloadScope, '--role', 'Owner', '--only-show-errors') |
             Where-Object { $_.principalId -eq $MemberPrincipalId -and $_.scope -eq $workloadScope -and $_.description -ne $ownerDescription })
     if ($ownApplied.Count -gt 0) { $assignMemberOwner = $false }
 
-    $kitMgScope = "/providers/Microsoft.Management/managementGroups/$MgPrefix"
-    $mgReaderApplied = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $kitMgScope, '--role', 'Reader', '--only-show-errors') |
-            Where-Object { $_.principalId -eq $MemberPrincipalId -and $_.scope -eq $kitMgScope -and $_.description -ne $ownerDescription })
-    if ($mgReaderApplied.Count -gt 0) { $assignMemberMgReader = $false }
 }
 # A budget's start date can't change: keep the existing one on re-runs.
 $budgetUri = "https://management.azure.com/subscriptions/$WorkloadSubscriptionId/providers/Microsoft.Consumption/budgets/${budgetName}?api-version=2024-08-01"
@@ -264,9 +291,9 @@ Vending member $MemberIndex to ${Location}:
   Spoke              rg-spoke, vnet-spoke $($networkPlan.SpokePrefix): snet-app .0/26, snet-pe .64/26, snet-sqlmi .128/26
   Datacenter         $(if ($connectDatacenter) { 'vnet-datacenter peered with the hub, DNS and rt-servers set' } else { 'not found: not connected. Re-run after deploying it.' })
   Firewall rules     rcg-member-$MemberIndex in afwp-hub
-  Owner              $(if (-not $MemberPrincipalId) { 'skipped (no -MemberPrincipalId)' } elseif ($assignMemberOwner) { $MemberPrincipalId } else { 'kept as it is: the member already holds a direct Owner assignment' })
+  Owner              $(if (-not $MemberPrincipalId) { 'skipped (no -MemberPrincipalId)' } elseif ($assignMemberOwner) { 'the member, on their workload subscription' } else { 'kept as it is: the member already holds a direct Owner assignment' })
   Hub Reader         $(if ($MemberPrincipalId) { 'the member, on the shared services subscription' } else { 'skipped (no -MemberPrincipalId)' })
-  MG Reader          $(if (-not $MemberPrincipalId) { 'skipped (no -MemberPrincipalId)' } elseif ($assignMemberMgReader) { "the member, on $MgPrefix" } else { 'kept as it is: the member already holds a direct Reader assignment' })
+  MG Reader          $(if ($MemberPrincipalId) { "verified via the foundation reader group on $MgPrefix" } else { 'not checked (no -MemberPrincipalId)' })
   Budget             $BudgetAmount a month from $budgetStart, alert at 80% to $BudgetEmail
   Defender for Cloud $(if ($SkipDefender) { 'left as it is (-SkipDefender)' } else { 'Foundational CSPM only on the workload subscription' })
 Cost: no hourly cost. Peering traffic is billed per GB, and the hub's firewall processes it.
@@ -295,7 +322,6 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "vending-$([guid]:
         connectDatacenter = @{ value = $connectDatacenter }
         miNetworkExists = @{ value = $miNetworkExists }
         assignMemberOwner = @{ value = $assignMemberOwner }
-        assignMemberMgReader = @{ value = $assignMemberMgReader }
         setDefenderFoundationalOnly = @{ value = -not $SkipDefender.IsPresent }
     }
 } | ConvertTo-Json -Depth 5 | Set-Content -Path $parametersFile -Encoding utf8NoBOM -WhatIf:$false

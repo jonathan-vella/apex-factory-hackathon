@@ -13,6 +13,7 @@ that order). Three more inputs: `members` (member indexes; empty means the `MEMB
 ## Rules
 
 - **Stage order is the event order**: foundation (T-7), then member (T-3), then vending (T-1). Never put vending before member or foundation. Check [facilitator/guide.md](../../facilitator/guide.md) before changing any order.
+- Before a lead `foundation` or `ci-test/foundation-*` run, bootstrap the Entra reader group and publish `READER_GROUP_ID` to `gh-lab`. Before `vending`, `all` or `ci-test/all-*`, sync the full roster to publish its verification. Member-profile jobs, initial `whatif` and the permission-only smoke workflow do not require reader group secrets.
 - **Every job lives in `platform.yml`.** A reusable workflow (`uses:` a workflow) gets empty environment secrets, so it can't log in. Share steps through composite actions, which take secrets as inputs.
 - **Identifiers are environment secrets, never variables.** Tenant, client, subscription, roster. Only `LOCATION`, `MG_PREFIX`, `PARENT_MG`, `DENIED_MG_PREFIXES`, `MEMBER_INDEXES` and `PIPELINE_PROFILE` are variables. Logs are public.
 - **Every job starts with `./.github/actions/platform-session`**: it masks every ID, reads the roster, runs the guard and logs in. Do not log in any other way. Call it again before a step that runs longer than the token lives (a long deployment, Arc).

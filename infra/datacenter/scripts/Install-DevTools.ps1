@@ -157,7 +157,7 @@ try {
     Add-MachinePath -Directory $nodeDir
 
     if (-not (Test-Path (Join-Path $azdDir 'azd.exe'))) {
-        $file = Get-Download -Url 'https://aka.ms/azd-windows-amd64.msi' -FileName 'azd-windows-amd64.msi'
+        $file = Get-Download -Url 'https://azuresdkartifacts.z5.web.core.windows.net/azd/standalone/release/stable/azd-windows-amd64.msi' -FileName 'azd-windows-amd64.msi'
         Install-Msi -Name 'Azure Developer CLI (azd)' -Path $file -Properties @('ALLUSERS=1')
     }
     Add-MachinePath -Directory $azdDir

@@ -20,16 +20,16 @@ The order of events is fixed. Take it from [facilitator/guide.md](facilitator/gu
 | When | Who | What | Notes |
 |---|---|---|---|
 | Step 1 (T-14) | Team lead, members | Everyone sets up their repo, pipeline and settings, runs `Test-Preflight.ps1` (`whatif` stage), and shares their subscription ID, index, object ID and email privately with the team lead, who keeps `roster.json`. The event owner confirms the rosters | Access, quota, Copilot policy. No coach on duty before day one; team lead is first point of contact |
-| Step 2 (T-7) | Team lead (their repo, lead profile) | The `foundation` stage (runs `Deploy-AlzLite.ps1`), once per team | Needs Owner at Tenant Root, or at the parent group. Creates `id-sqlmi-directory` |
+| Step 2 (T-7) | Team lead and authorized Entra operator | Bootstrap the reader group, then run `foundation` once per team | The deployer needs Owner at Tenant Root or the parent group. Foundation binds Reader at the kit management group and creates `id-sqlmi-directory` |
 | Step 2 (T-7, after ALZ-lite) | A Privileged Role Administrator | `Grant-SqlMiDirectoryRead.ps1`, once per team | Manual, tenant-wide. Can't happen before ALZ-lite, and must happen before C7 |
 | Step 3 (T-3) | **Each member**, in their own repo and their own workload subscription | The `member` stage (`Deploy-Datacenter.ps1`, then `Test-Datacenter.ps1`, then `Connect-DatacenterArc.ps1`; input `no-hybrid-benefit`): the readiness setup | The test goes **before** Arc: Arc turns off the run commands the test uses. Never redeploy the datacenter after Arc. Then the portal assessment, `vm-dev01` setup, and committing `factory/evidence/readiness/` |
-| Step 4 (T-1) | Team lead (after everyone starts their VMs) | The `vending` stage (`Invoke-PipelineVending.ps1`: checks `vnet-datacenter` and `vm-app01` Arc `Connected` status, runs `Deploy-Vending.ps1` for every member one after another, then VM restart, `New-DatacenterExemptions.ps1`, `Test-Connectivity.ps1`) | Needs every member's Arc-connected datacenter **and** the foundation, and comes after `vm-dev01` setup. A datacenter redeploy requires vending again |
+| Step 4 (T-1) | Team lead (after everyone starts their VMs) | Sync the reader group from the full private roster, then run `vending`: serial readiness and deployment, VM restart, exemptions and connectivity probes | Needs the verified roster, each member's Arc-connected datacenter, and the foundation. A datacenter redeploy requires vending again |
 | Day 1 | Everyone | 08:30 tech lead 30-min PPT intro, then C1 at 09:00 (CAF Strategy) and C2 at 09:45 (15 member pts, 45 min: test AI coding agent against repo + ALZ guardrails) | Base score is 170 points (45 team + 125 member), plus up to 30 bonus = 200 max |
 | Day 1, C5 | Each member | The CoE archetype with `azd provision` | Out of scope for the platform pipeline |
 | T+2 | Team lead, members, an admin | The `teardown` stage (`Remove-FactoryEnvironment.ps1`: every member scope first, then the team scope), then `Remove-PlatformPipeline.ps1` | |
 
-So: **datacenter before vending, ALZ-lite before vending, vending before the archetype.** The only hard dependencies are
-ALZ-lite and each datacenter before vending, `Test-Datacenter` before Arc, and the Graph grant after ALZ-lite and before C7.
+So: **datacenter before vending, ALZ-lite before vending, vending before the archetype.** Bootstrap the reader group before
+ALZ-lite and sync the roster before vending. Run `Test-Datacenter` before Arc and the SQL MI Graph grant after ALZ-lite and before C7.
 Vending comes after `vm-dev01` setup. A team has **one shared services subscription and one workload subscription per
 member**, and one Entra tenant. GitHub Actions is the only way students deploy the datacenter, the foundation and vending, and
 tear them down. The scripts are the engine the stages run, they stay in use for challenge tasks, and a coach runs one by hand only

@@ -51,12 +51,19 @@ param(
     [string[]] $AdditionalAllowedLocation = @(),
     [ValidatePattern('^$|^[A-Za-z0-9._()-]{1,90}$')]
     [string] $ParentManagementGroupId = '',
+    [ValidatePattern('^$|^[0-9a-fA-F]{8}(-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$')]
+    [string] $ReaderGroupId = '',
     [switch] $SkipDefender
 )
 
 $ErrorActionPreference = 'Stop'
 $InformationPreference = 'Continue'
+. (Join-Path $PSScriptRoot 'FactoryReaderAccess.ps1')
 $template = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath 'infra', 'foundation', 'alz-lite', 'main.bicep'
+if (-not $ReaderGroupId) {
+    if (-not $WhatIfPreference) { throw 'Foundation requires the Entra reader group ID. Run Sync-FactoryReaderGroup.ps1 in Bootstrap mode first.' }
+    Write-Information 'Reader group assignment is not included in this preview: the group has not been configured.'
+}
 
 function Invoke-AzureCli {
     param([string[]] $Arguments)
@@ -211,6 +218,7 @@ $parametersFile = Join-Path ([System.IO.Path]::GetTempPath()) "alz-lite-$([guid]
         location = @{ value = $Location }
         mgPrefix = @{ value = $MgPrefix }
         sharedSubscriptionId = @{ value = $SharedSubscriptionId }
+        readerGroupId = @{ value = $ReaderGroupId }
         additionalAllowedLocations = @{ value = @($AdditionalAllowedLocation) }
         setDefenderFoundationalOnly = @{ value = -not $SkipDefender.IsPresent }
         extraSnatPrefixes = @{ value = @($extraSnatPrefixes) }
@@ -232,6 +240,15 @@ try {
 }
 finally {
     Remove-Item -Path $parametersFile -Force -ErrorAction SilentlyContinue -WhatIf:$false
+}
+
+$kitScope = "/providers/Microsoft.Management/managementGroups/$MgPrefix"
+$assignments = @(Invoke-AzureCli -Arguments @('role', 'assignment', 'list', '--scope', $kitScope, '--fill-principal-name', 'false'))
+$staleReaders = @($assignments | Where-Object {
+    $_.principalId -ne $ReaderGroupId -and (Test-FactoryReaderAssignment -Assignment $_ -Scope $kitScope)
+})
+if ($staleReaders.Count) {
+    Write-Warning 'An older kit reader group assignment remains. Verify the new binding before reviewing and retiring the older assignment.'
 }
 
 $elapsed = (Get-Date) - $started
