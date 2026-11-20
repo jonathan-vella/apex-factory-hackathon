@@ -485,11 +485,11 @@ Check the setup any time with ./scripts/Test-PipelineSetup.ps1 -PipelineProfile 
 
 Done. Run the preflight by Step 1 (T-14), then repeat it at Step 2 (T-7) before deploying the foundation (approve each Actions run if GitHub asks):
   gh workflow run platform.yml --repo $Repository -f stage=whatif
-At Step 2 (T-7), after Step 1 is complete, run the foundation:
+At Step 2 (T-7), after Step 1 is complete, bootstrap the reader group (Sync-FactoryReaderGroup.ps1 -Mode Bootstrap) and run the foundation:
   gh workflow run platform.yml --repo $Repository -f stage=foundation
 At Step 3 (T-3), run the team lead's member stage for index 1:
   gh workflow run platform.yml --repo $Repository -f stage=member -f members=1
-At Step 4 (T-1), after every member completes Step 3 and starts both VMs, run vending:
+At Step 4 (T-1), after every member completes Step 3 and starts both VMs, sync the full roster (Sync-FactoryReaderGroup.ps1 -Mode Sync) and run vending:
   gh workflow run platform.yml --repo $Repository -f stage=vending
 See https://factory.apexops.pro/deploy/how-it-works/ for stage timings.
 Check the setup any time with ./scripts/Test-PipelineSetup.ps1. To remove everything later, as an admin and

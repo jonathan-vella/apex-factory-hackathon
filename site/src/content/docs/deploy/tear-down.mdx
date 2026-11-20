@@ -95,7 +95,7 @@ az group exists --subscription $s.subscriptionId --name "rg-university-$($s.suff
 az group exists --subscription $s.subscriptionId --name rg-cicd
 ```
 
-Each result must be `false`. The team lead also checks `rg-hub`, the kit management groups, subscription return placement, Arc entries, budgets, policy artifacts and vending-created role assignments. Check `rg-management` is gone unless reuse was explicitly agreed. Group checks alone do not prove every subscription-level artifact is gone.
+Each result must be `false`. The team lead also checks `rg-hub`, the kit management groups, subscription return placement, Arc entries, budgets, policy artifacts and kit-created role assignments, and has the Entra group owner or directory admin delete `<mgPrefix>-readers` (or clear its membership for approved tenant reuse). Check `rg-management` is gone unless reuse was explicitly agreed. Group checks alone do not prove every subscription-level artifact is gone.
 
 Keep the finalizer's verification result. Only then remove temporary human access (Tenant Root Owner, elevation, directory-role activation and repo collaborators) with the person who granted it. See [Troubleshooting](../../reference/troubleshooting/) if cleanup stops.
 
