@@ -158,7 +158,7 @@ if (-not (Get-Command Install-MissingWorkstationTool -ErrorAction SilentlyContin
         if ($InstallAzd -and -not (Test-Path (Join-Path $azdDir 'azd.exe'))) {
             Write-Host 'Installing Azure Developer CLI (azd) on vm-dev01...'
             $msiPath = Join-Path $downloadDir 'azd-windows-amd64.msi'
-            Invoke-WebRequest -Uri 'https://aka.ms/azd-windows-amd64.msi' -OutFile $msiPath -UseBasicParsing
+            Invoke-WebRequest -Uri 'https://azuresdkartifacts.z5.web.core.windows.net/azd/standalone/release/stable/azd-windows-amd64.msi' -OutFile $msiPath -UseBasicParsing
             $proc = Start-Process -FilePath 'msiexec.exe' -ArgumentList @('/i', "`"$msiPath`"", '/qn', '/norestart', 'ALLUSERS=1') -PassThru -WindowStyle Hidden
             $null = $proc.Handle
             $proc.WaitForExit()

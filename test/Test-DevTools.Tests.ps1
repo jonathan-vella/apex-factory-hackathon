@@ -92,7 +92,7 @@ Assert-True ($text -match 'Add-MachinePath -Directory \$pwshDir') 'Install-DevTo
 Assert-True ($text -match 'Add-MachinePath -Directory \$nodeDir') 'Install-DevTools.ps1 must add $nodeDir to the machine PATH.'
 Assert-True ($text -match 'Add-MachinePath -Directory \$azdDir') 'Install-DevTools.ps1 must add $azdDir to the machine PATH.'
 Assert-True ($text -match 'nodejs\.org/dist/index\.json') 'Install-DevTools.ps1 must resolve Node.js 24 LTS from nodejs.org.'
-Assert-True ($text -match 'aka\.ms/azd-windows-amd64\.msi') 'Install-DevTools.ps1 must install Azure Developer CLI (azd).'
+Assert-True ($text -match 'azuresdkartifacts\.z5\.web\.core\.windows\.net/azd/standalone/release/stable/azd-windows-amd64\.msi') 'Install-DevTools.ps1 must install Azure Developer CLI (azd).'
 Assert-True ($text -match 'ExtractToDirectory') 'Install-DevTools.ps1 must extract the PowerShell zip archive.'
 Assert-True ($text -match 'PowerShell 7 \(x64\)\.lnk') 'Install-DevTools.ps1 must create the PowerShell 7 Start Menu shortcut.'
 
