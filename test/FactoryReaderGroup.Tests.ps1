@@ -27,7 +27,13 @@ $rosterPath = Join-Path $work.FullName 'roster.csv'
 $state = @{
     Group = $null; Members = [Collections.Generic.List[string]]::new()
     Calls = [Collections.Generic.List[string]]::new(); Writes = [Collections.Generic.List[string]]::new()
-    RejectAdds = $false; ContextTenant = $tenant
+    RejectAdds = $false; ContextTenant = $tenant; GhMode = 'member'
+}
+
+function gh {
+    if ($state.GhMode -eq '403') { $global:LASTEXITCODE = 1; 'gh: HTTP 403'; return }
+    $global:LASTEXITCODE = 0
+    $state.GhMode
 }
 
 function Assert-True {
@@ -90,9 +96,17 @@ try {
     $common = @{ TenantId = $tenant; MgPrefix = 'mg-test'; UseExistingSession = $true }
     & $sync @common -Mode Bootstrap -OwnerId $owner -WhatIf
     Assert-True (-not $state.Writes.Count) 'bootstrap preview must not write'
-    & $sync @common -Mode Bootstrap -OwnerId $owner
+    $bootInfo = (& $sync @common -Mode Bootstrap -OwnerId $owner 6>&1 | Out-String)
+    Assert-True ($bootInfo -match 'Reader group and expected owners verified') 'bootstrap should emit status information by default'
     & $sync @common -Mode Bootstrap -OwnerId $owner
     Assert-True ($state.Writes.Count -eq 1 -and -not $state.Members.Count) 'bootstrap should create one empty group, then be idempotent'
+
+    $state.GhMode = '403'
+    $gh403Failure = try { & $sync @common -Mode Bootstrap -OwnerId $owner -Repository 'owner/repo' -WhatIf; '' } catch { $_.Exception.Message }
+    Assert-True ($gh403Failure -match 'gh auth refresh') 'HTTP 403 from gh should report a GitHub CLI scope/auth error'
+    $state.GhMode = 'member'
+    $ghMemberFailure = try { & $sync @common -Mode Bootstrap -OwnerId $owner -Repository 'owner/repo' -WhatIf; '' } catch { $_.Exception.Message }
+    Assert-True ($ghMemberFailure -match 'not configured for the lead pipeline') 'non-lead PIPELINE_PROFILE should still fail clearly'
     $state.Members.Add($departedUser)
     $csvHeader = 'Member index,Workload subscription ID,Entra object ID,Budget email'
     Set-Content -LiteralPath $rosterPath -Value @($csvHeader, "1,$(& $fakeId 201),,lead@example.test")

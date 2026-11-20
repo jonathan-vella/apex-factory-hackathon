@@ -34,6 +34,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$InformationPreference = 'Continue'
 . (Join-Path $PSScriptRoot 'FactoryRoster.ps1')
 $key = "$($MgPrefix.ToLowerInvariant())-readers"
 $marker = "Partner Modernization Factory reader group: $key"
@@ -104,16 +105,33 @@ function Set-ReaderGitHubValue {
     $ghArgs = @($Kind, 'set', $Name, '--repo', $Repository)
     if ($Kind -eq 'secret') { $ghArgs += @('--env', 'gh-lab') }
     $PSNativeCommandUseErrorActionPreference = $false
-    $null = $Value | & gh @ghArgs 2>$null
-    if ($LASTEXITCODE -ne 0) { throw "Could not publish $Name. Verify your GitHub repository and environment permissions." }
+    $ghErr = ($Value | & gh @ghArgs 2>&1 | Out-String)
+    if ($LASTEXITCODE -ne 0) {
+        if ($ghErr -match 'HTTP 401|HTTP 403|authentication|not logged into') {
+            throw "GitHub CLI is not authorized to publish $Name in '$Repository'. Refresh scopes (gh auth refresh --hostname github.com --scopes repo,workflow) and retry."
+        }
+        throw "Could not publish $Name. Verify your GitHub repository and environment permissions."
+    }
 }
 
 function Assert-ReaderRepository {
     $PSNativeCommandUseErrorActionPreference = $false
-    $pipelineProfile = & gh variable get PIPELINE_PROFILE --repo $Repository 2>$null
-    if ($LASTEXITCODE -ne 0 -or $pipelineProfile -ne 'lead') { throw 'The target repository is not configured for the lead pipeline.' }
-    $prefix = & gh variable get MG_PREFIX --env gh-lab --repo $Repository 2>$null
-    if ($LASTEXITCODE -ne 0 -or $prefix -ne $MgPrefix) { throw 'The target GitHub environment does not match the kit management group prefix.' }
+    $pipelineProfile = (& gh variable get PIPELINE_PROFILE --repo $Repository 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) {
+        if ($pipelineProfile -match 'HTTP 401|HTTP 403|authentication|not logged into') {
+            throw "GitHub CLI cannot read variables in '$Repository'. Refresh scopes (gh auth refresh --hostname github.com --scopes repo,workflow) and retry."
+        }
+        throw "Could not read PIPELINE_PROFILE in '$Repository'. Run Initialize-PlatformPipeline.ps1 first or verify repository access."
+    }
+    if ($pipelineProfile -ne 'lead') { throw 'The target repository is not configured for the lead pipeline.' }
+    $prefix = (& gh variable get MG_PREFIX --env gh-lab --repo $Repository 2>&1 | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0) {
+        if ($prefix -match 'HTTP 401|HTTP 403|authentication|not logged into') {
+            throw "GitHub CLI cannot read the gh-lab environment in '$Repository'. Refresh scopes (gh auth refresh --hostname github.com --scopes repo,workflow) and retry."
+        }
+        throw "Could not read MG_PREFIX from the gh-lab environment in '$Repository'. Run Initialize-PlatformPipeline.ps1 first."
+    }
+    if ($prefix -ne $MgPrefix) { throw 'The target GitHub environment does not match the kit management group prefix.' }
 }
 
 if ($TenantId -eq [guid]::Empty) { throw 'Specify the intended Entra tenant.' }
