@@ -50,12 +50,14 @@ Before the event, the tenant owner approves the pipeline for the tenant, names w
 | Member | Run `whatif`, `member` and `teardown` in their own repo | Write access to their own repo, Owner on their own workload subscription at setup |
 | Team lead | Run every stage in their own repo | Admin of that repo, Owner at Tenant Root at setup (or at the sandbox group and the subscriptions) |
 | Event owner | Confirms each team's roster and approves the tenant risk | The roster and the tenant decision |
+| Entra group operator / owner | Runs `Sync-FactoryReaderGroup.ps1` (`Bootstrap` before `foundation`, `Sync` before `vending`, and removes `<prefix>-readers` after teardown) | Delegated group creation rights (for example User Administrator if user group creation is restricted) for `Bootstrap`, group ownership for `Sync`, and `gh-lab` access when publishing secrets |
 | Privileged Role Administrator | Runs `Grant-SqlMiDirectoryRead.ps1` once per team | Booked for T-7 |
 
 ## What stays manual
 
 No pipeline does these. Put an owner and a date on each.
 
+- **The Entra reader group** (`Sync-FactoryReaderGroup.ps1`): `Bootstrap` before `foundation`, full-roster `Sync` before `vending`, and deleting `<prefix>-readers` after team teardown. GitHub Actions holds no Microsoft Graph permissions.
 - **The Graph grant**, after ALZ-lite and before C7. Only a Privileged Role Administrator can run it.
 - **Elevated access to Tenant Root** for the team lead (a Global Administrator turns on access management for Azure resources and grants Owner).
 - **The portal Arc assessment** and `vm-dev01` setup (both part of the readiness check).

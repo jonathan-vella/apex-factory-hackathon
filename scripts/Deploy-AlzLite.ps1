@@ -263,7 +263,7 @@ ALZ-lite is deployed ($([int] $elapsed.TotalMinutes) minutes).
 Policies can take up to 30 minutes to take effect.
 Once per team, a Privileged Role Administrator grants id-sqlmi-directory its Microsoft Graph read permissions:
   ./scripts/Grant-SqlMiDirectoryRead.ps1 -SharedSubscriptionId <shared-services-subscription-id>
-At Step 4 (T-1), after Step 2 and every member's Step 3 are complete, the team lead runs the vending stage in GitHub Actions for every member:
+At Step 4 (T-1), after Step 2 and every member's Step 3 are complete, sync the full roster (Sync-FactoryReaderGroup.ps1 -Mode Sync) and run the vending stage in GitHub Actions:
   gh workflow run platform.yml -f stage=vending
 See https://factory.apexops.pro/deploy/how-it-works/ for stage timings.
 "@

@@ -69,6 +69,7 @@ sidebar:
 | Privileged Role Administrator | Microsoft Entra directory role used for the one-time SQL MI directory-read grant; different from Azure resource Owner. |
 | Query Store | SQL Server's built-in record of query plans and run times. C9 uses it to show that each fix worked. |
 | RBAC | Role-based access control: permissions granted to an identity at a defined scope. |
+| Reader group | The Microsoft Entra security group `<mgPrefix>-readers` bootstrapped before `foundation` and synced from the full private roster before `vending` with `Sync-FactoryReaderGroup.ps1`. Holds one built-in `Reader` assignment at `<mgPrefix>`. |
 | Readiness check | The Step 3 checklist before the event that confirms your datacenter (`vm-app01` connected to Azure Arc) and `vm-dev01` are ready. It isn't a challenge. The Step 4 `vending` run checks each member's datacenter and Arc status automatically before vending their subscription. |
 | Run command | An Azure feature that runs a script inside a VM without signing in to it. Arc onboarding turns it off for `vm-app01`, so the datacenter test must run before it (the `member` stage does). |
 | Roster | The team lead's private `.local/roster.json`: member indexes and the values needed to vend each workload subscription. Never commit it. |

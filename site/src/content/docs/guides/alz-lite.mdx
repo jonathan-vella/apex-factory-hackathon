@@ -32,7 +32,7 @@ In most tenants nobody has that role by default. A Global Administrator elevates
 
 The team lead deploys ALZ-lite with the `foundation` stage at T-7, before the event, against the shared services subscription. The `whatif` stage shows the changes first without deploying. [Step 2: Foundation and Graph grant](../../deploy/team-lead-steps/#21-deploy-the-foundation-stage-team-lead) has the steps.
 
-- **Management groups:** `mg-factory` under Tenant Root, with `mg-factory-platform` (holds the shared services subscription) and `mg-factory-corp` (holds the members' workload subscriptions) beneath it.
+- **Management groups and reader group:** `mg-factory` under Tenant Root, with `mg-factory-platform` (holds the shared services subscription) and `mg-factory-corp` (holds the members' workload subscriptions) beneath it, plus one built-in `Reader` role assignment at `mg-factory` for the Entra security group `mg-factory-readers` (bootstrapped beforehand with `Sync-FactoryReaderGroup.ps1`).
 - **`rg-management`:** the `log-management` workspace (30-day retention) and the identity `id-sqlmi-directory`.
 - **`rg-hub`:** `vnet-hub`, `afw-hub` (Azure Firewall Standard) with its public IP and the `afwp-hub` policy (DNS proxy on), and the private DNS zones for Blob, Service Bus, the container registry and Key Vault, linked to the hub.
 - **Defender for Cloud and policy:** Foundational CSPM only (cloud security posture management: recommendations, no paid protection plans), and the core policies at `mg-factory-corp` (summarized in the table below; the full list is in the [foundation README](https://github.com/jonathan-vella/apex-factory-hackathon/blob/main/infra/foundation/README.md)).

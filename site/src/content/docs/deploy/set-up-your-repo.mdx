@@ -211,7 +211,7 @@ Done when `Get-Content .local/settings.json` shows `tenantId`, `subscriptionId`,
    ./scripts/Initialize-PlatformPipeline.ps1 -RosterPath .local/roster.json
    ```
 
-   A repo has one profile: do not run `-Profile Member` in the team lead's repo. To add or swap a member later, edit `.local/roster.json` and run this command again.
+   A repo has one profile: do not run `-Profile Member` in the team lead's repo. To add or swap a member later, edit `.local/roster.json`, run this command again if workload subscriptions changed, and run `Sync-FactoryReaderGroup.ps1 -Mode Sync` before vending.
 
 Done when `Initialize-PlatformPipeline.ps1` reports its checks as passed.
 

@@ -94,7 +94,7 @@ This single command removes `id-factory-pipeline`'s role assignments across Tena
    az group exists --subscription $s.sharedSubscriptionId --name rg-management
    ```
 
-   Every check must return `false` (except `rg-management` if you intentionally omitted `include-management=true`). Also confirm in the portal that `mg-factory*` management groups, Azure Arc machine registrations, budgets, and vending role assignments are removed and workload subscriptions sit back in their return management group.
+   Every check must return `false` (except `rg-management` if you intentionally omitted `include-management=true`). Also confirm in the portal that `mg-factory*` management groups, Azure Arc machine registrations, budgets, and kit-created role assignments are removed and workload subscriptions sit back in their return management group, and have the Entra group owner or directory admin delete `<mgPrefix>-readers` (or clear its membership for approved tenant reuse).
 
 2. **Revoke temporary human privilege elevations.** Only after `Remove-PlatformPipeline.ps1` and the verification loop succeed, remove temporary human **Owner** assignments at Tenant Root, Global Administrator access elevation, and Privileged Role Administrator PIM activations.
 
