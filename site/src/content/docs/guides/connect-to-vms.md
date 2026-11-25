@@ -72,7 +72,7 @@ If you already have the kit on your Windows computer and use **PowerShell 7.4 or
 .\scripts\Connect-DatacenterVm.ps1 -SubscriptionId '<workload-subscription-id>' -VmName vm-dev01
 ```
 
-Use `-VmName vm-app01` for the source server. This existing helper checks VM power state and native-client support before launching the same Azure CLI RDP command. It is not an Az PowerShell connection cmdlet. You do not need a local kit copy for the direct commands above.
+Use `-VmName vm-app01` for the source server. This existing helper checks VM power state and native-client support before launching the same Azure CLI RDP command. You do not need a local kit copy for the direct commands above.
 
 ## Browser fallback
 
