@@ -101,9 +101,9 @@ const step7Code = `code C:\\src\\<your-repo>`;
 </Aside>
 
 <p>
-  Keep two browser windows open on your own computer: one for Azure Bastion, the other for the Azure
-  portal and this guide (allow portal pop-ups and Bastion clipboard access, and enter device sign-in
-  codes on your own computer where your passkeys and password manager work). Each step below labels{" "}
+  Keep the Azure portal and this guide open on your own computer alongside your Remote Desktop
+  session, or use browser-based Bastion as the fallback. Enter device sign-in codes on your own
+  computer where your passkeys and password manager work. Each step below labels{" "}
   <strong>where</strong> you run it:
 </p>
 
@@ -151,14 +151,14 @@ const step7Code = `code C:\\src\\<your-repo>`;
 
     <li>
       <p>
-        <strong>[On your laptop browser — Azure portal]</strong> Connect to <code>vm-dev01</code>{" "}
-        through Bastion so you have a desktop inside the private datacenter network. Filter the
-        portal to your directory and workload subscription, open <strong>Resource groups</strong>{" "}
-        &gt; <strong>rg-datacenter</strong> &gt; <strong>vm-dev01</strong> &gt;{" "}
-        <strong>Connect</strong> &gt; <strong>Bastion</strong>, select <strong>Password</strong>,
-        enter <code>labadmin</code> and the password from step 1, and choose{" "}
-        <strong>Connect</strong>. On first sign-in, wait up to five minutes for VS Code extensions
-        to finish installing.
+        <strong>[On your own computer]</strong> Connect to <code>vm-dev01</code> through Bastion so
+        you have a desktop inside the private datacenter network. On Windows, follow{" "}
+        <a href="/guides/connect-to-vms/">Connect to your VMs</a> to launch native Remote Desktop
+        with Azure CLI from local PowerShell. Use <code>labadmin</code> and the password from step
+        1. If you cannot use native RDP, follow the guide&apos;s{" "}
+        <a href="/guides/connect-to-vms/#browser-fallback">browser fallback</a>, which also works on
+        macOS and Linux. On first sign-in, wait up to five minutes for VS Code extensions to finish
+        installing.
       </p>
     </li>
 
