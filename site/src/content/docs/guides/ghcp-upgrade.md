@@ -15,7 +15,7 @@ sidebar:
 
 ## Switching to vm-dev01
 
-The setup lives in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01) for Path A and [Student onboarding §2](../../deploy/lead-setup/student-onboarding/#2-connect-to-vm-dev01-through-bastion-and-set-up-your-workspace) for Path B, covering Bastion, sign-ins, your single clone (`C:\src\<your-repo>` on `main`) and the Local harness. If you are reconnecting, use [Coming back later](../../deploy/member-steps/#coming-back-later); do not repeat the clone.
+The setup lives in [Step 3.3: Set up vm-dev01](../../deploy/member-steps/#33-set-up-vm-dev01) for Path A and [Student onboarding §2](../../deploy/lead-setup/student-onboarding/#2-connect-to-vm-dev01-through-bastion-and-set-up-your-workspace) for Path B, covering Bastion, sign-ins, your single clone (`C:\src\<your-repo>` on `main`) and the Local harness. Use [Connect to your VMs](../connect-to-vms/) for native RDP from local Windows PowerShell or browser-based Bastion. If you are reconnecting, use [Coming back later](../../deploy/member-steps/#coming-back-later); do not repeat the clone.
 
 ### Check your setup
 

@@ -57,6 +57,7 @@ Attendees need the answers below before they can run preflight at T-14, so settl
 - Confirm each team lead has booked the Privileged Role Administrator for T-7.
 - Check member MFA, resource-provider registration, quota, Copilot policies (including the required agent models) and access to the APEX runtime. Copilot CLI is optional. Do not put tenant, subscription or object IDs in this public kit.
 - Confirm the attendees can use the approved Copilot features and extensions on the dev VM. Escalate organizational Copilot policy issues before the event.
+- Share [Connect to your VMs](../site/src/content/docs/guides/connect-to-vms.md) before attendees first connect. Recommend native RDP through Bastion on local Windows computers with Azure CLI and its Bastion extension; keep browser-based Bastion as the fallback. Check local tool installation is permitted and the event network allows the connection. Attendees still do all challenge work on `vm-dev01`.
 - Confirm the draft roster and publish the agenda, room details and escalation channel. The roster stays open until kickoff, so you can still swap or drop a member who can't get ready.
 
 ### Step 2 (T-7): team lead and Privileged Role Administrator

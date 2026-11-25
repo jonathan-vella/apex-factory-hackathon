@@ -57,11 +57,12 @@ Every member's datacenter, network and archetype live in their own workload subs
 
 ## Tools
 
-Use your browser to connect to **`vm-dev01`** through Azure Bastion. It is your workstation for `C1` to `C10` and comes with Visual Studio Code, GitHub Copilot, PowerShell 7, Azure CLI, Bicep, Node.js 24 LTS, Azure Developer CLI (`azd`), .NET 10 SDK, MSBuild, and SSMS.
+On Windows, use [native Remote Desktop through Azure Bastion](../../guides/connect-to-vms/) to connect to **`vm-dev01`** from your own computer. Browser-based Bastion is the fallback, including on macOS and Linux. The VM is your workstation for `C1` to `C10` and comes with Visual Studio Code, GitHub Copilot, PowerShell 7, Azure CLI, Bicep, Node.js 24 LTS, Azure Developer CLI (`azd`), .NET 10 SDK, MSBuild, and SSMS.
 
 | Tool | Why | Who / by when | Verify |
 | --- | --- | --- | --- |
 | Modern web browser (Microsoft Edge or Google Chrome) | Open the Azure portal, Azure Bastion (`vm-dev01` and `vm-app01`), Azure Cloud Shell, and GitHub | Each attendee, before T-14 | Allow pop-ups and clipboard access for `portal.azure.com` |
+| Local Windows Remote Desktop Connection and [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli-windows) with the `bastion` extension | Recommended native RDP access to either VM through Bastion; run Azure CLI in local PowerShell, not Cloud Shell | Windows attendees, before their first VM connection | Follow [Connect to your VMs](../../guides/connect-to-vms/); browser access needs no local CLI |
 | [Azure Cloud Shell](https://shell.azure.com) (PowerShell) | Run `Import-Kit.ps1`, `Initialize-Settings.ps1`, `Initialize-PlatformPipeline.ps1`, and `gh workflow run` before `vm-dev01` exists at `T-3` (and run `teardown` at `T+2`) | Path A members and team leads, before T-14 | `pwsh --version`, `az version`, `gh --version` in Cloud Shell |
 | `vm-dev01` (provisioned in Step 3 at `T-3`) | Your single workstation for all 10 challenges (`C1`–`C10`), pre-installed with VS Code, Git, `gh`, `pwsh`, `az`, `bicep`, `node` (24 LTS), `azd`, `.NET 10 SDK`, MSBuild, and SSMS | Provisioned by the `member` pipeline stage at T-3 | Checked automatically by `Test-Datacenter.ps1` (`Test-DevVm.ps1`) |
 
