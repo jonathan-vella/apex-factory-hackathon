@@ -3,7 +3,7 @@
 > [!WARNING]
 > Coach material. This page has the answers to C1. Attendees work it out as a team from the opportunity canvas template.
 
-C1 is directional, not a deployment challenge. Attendees work as Solution Architects applying the Cloud Adoption Framework (CAF) Strategy methodology: connecting each customer problem and trigger to a prioritized business outcome, a CAF category, the solution component in this factory, and a measurable KPI verified later in C8, C9 or C10. There is no single right ranking order if the team can defend its reasoning.
+C1 is directional, not a deployment challenge. In a **lead-provisioned cohort (Path B)**, confirm students have completed [Student onboarding (Day 1)](../site/src/content/docs/deploy/lead-setup/student-onboarding.mdx) on `vm-dev01` before starting C1. Attendees work as Solution Architects applying the Cloud Adoption Framework (CAF) Strategy methodology: connecting each customer problem and trigger to a prioritized business outcome, a CAF category, the solution component in this factory, and a measurable KPI verified later in C8, C9 or C10. There is no single right ranking order if the team can defend its reasoning.
 
 ## Expected evidence
 

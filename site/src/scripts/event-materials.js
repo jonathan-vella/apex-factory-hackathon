@@ -50,7 +50,7 @@ How pre-event setup works (lead-provisioned cohort)
 - Your platform team lead pre-creates your private GitHub repository and deploys the shared landing zone, your simulated datacenter and spoke vending ahead of Day 1 (including the T-7 directory grant after foundation deployment and tenant-owner approval). You do not need to create a repository from a template or run the T-14 to T-1 deployment pipelines yourself.
 - Reply privately to your team lead with your GitHub username (and your Microsoft Entra object ID and work email if requested), then accept the GitHub repository invitation as soon as it arrives.
 - Each attendee needs unconditional Owner on their assigned paid workload subscription, MFA, and a GitHub account with a paid GitHub Copilot seat (with agent mode, MCP servers and required models allowed). Check Windows 11 licensing and Windows Server Azure Hybrid Benefit entitlement in the Requirements guide.
-- Once your team lead confirms your environment is vended, connect to vm-dev01 through Azure Bastion in your browser and complete Student onboarding before Day 1.
+- On Day 1, your team lead shares your private Handoff Card and lab sign-in details so you can connect to vm-dev01 through Azure Bastion and complete Student onboarding before starting C1.
 
 No coach is on duty during pre-event setup. Your designated team lead is your first point of contact, and support before the event is best-effort. Share your GitHub username and account details privately, not in public channels.
 
@@ -80,7 +80,7 @@ We'll cover:
 - The hackathon's goals and challenge journey
 - Team and breakout-pod roles and how the work is organized
 - GitHub, Copilot, Azure and workstation requirements
-- How lead-provisioned setup works: sharing your GitHub username privately, accepting your repository invitation and completing Student onboarding
+- How lead-provisioned setup works: sharing your GitHub username privately, accepting your repository invitation before Day 1, and completing Student onboarding on Day 1
 - Questions and next steps
 
 Before the briefing, read the Event overview, Requirements and Roles guides below.
@@ -88,7 +88,7 @@ Before the briefing, read the Event overview, Requirements and Roles guides belo
 Event materials: ${resources}
 ${leadGuides}
 
-Your team lead provisions the repositories and pre-event Azure infrastructure; attendees do not run the T-14 to T-1 pipelines themselves. Reply privately with your GitHub username, accept your repository invitation, and complete Student onboarding before Day 1.
+Your team lead provisions the repositories and pre-event Azure infrastructure; attendees do not run the T-14 to T-1 pipelines themselves. Reply privately with your GitHub username and accept your repository invitation before Day 1; on Day 1 you will receive your Handoff Card and complete Student onboarding on vm-dev01 before starting C1.
 
 Bring any access or workstation questions. Your designated team lead is the first point of contact for pre-event blockers; support before the event is best-effort.
 
@@ -109,12 +109,12 @@ You'll work as a delivery team for fictional Contoso University, modernizing its
 
 Day 1 includes the kickoff, customer-outcome and assessment activities, target-state decisions, CoE archetype deployment and the start of application modernization. Day 2 continues modernization, then focuses on migration and go-live, validation, database optimization and handover.
 
-Please arrive with your Student onboarding complete:
+Please arrive ready for Day 1 Student onboarding:
 
-- You have accepted your GitHub repository invitation.
-- Your assigned Azure access is in place, including unconditional Owner on your own workload subscription.
-- Your team lead has deployed your datacenter and vended your spoke. You have connected to vm-dev01 through Bastion, opened your repo and verified Copilot Chat.
-- Both datacenter VMs are running when you arrive. Keep vm-dev01 running throughout the event.
+- You have shared your GitHub username with your team lead and accepted your GitHub repository invitation.
+- Your GitHub Copilot seat is active on that GitHub account.
+- Your team lead has deployed your datacenter, vended your spoke and started both datacenter VMs.
+- On Day 1 morning, you will receive your private Handoff Card, connect to vm-dev01 through Bastion, open your repo and verify Copilot Chat before starting C1. Keep vm-dev01 running throughout the event.
 
 Bring your laptop and any setup questions. Review the event materials and student onboarding guide: ${resources}
 

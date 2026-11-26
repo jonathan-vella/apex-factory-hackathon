@@ -45,7 +45,7 @@ sidebar:
 | Harness | Where the Upgrade agent runs. **Local** runs next to the app on `vm-dev01`; you pick it in Copilot Chat. |
 | Hub | The team's shared virtual network `vnet-hub` in the shared services subscription, with Azure Firewall. Every member's spoke is peered to it. |
 | Kit | This repository's content as you use it: the scripts, infrastructure, app, templates and archetype, imported into the `factory/` folder of your own repo. |
-| Lead-provisioned cohort | Path B pre-event setup: one platform team lead pre-creates the student repositories (`Initialize-CohortRepos.ps1`), deploys the shared foundation, deploys every student's datacenter and runs spoke vending from the lead repo while attendees complete [Student onboarding](/deploy/lead-setup/student-onboarding/). |
+| Lead-provisioned cohort | Path B setup: one platform team lead pre-creates the student repositories (`Initialize-CohortRepos.ps1`), deploys the shared foundation, deploys every student's datacenter and runs spoke vending from the lead repo before Day 1; attendees share their GitHub username ahead of time and complete [Student onboarding (Day 1)](/deploy/lead-setup/student-onboarding/) on Day 1 before C1. |
 | Key Vault | Azure's secrets service. The app reads its database connection configuration using managed identity. |
 | KPI | Key performance indicator: the measurable evidence that a business outcome was achieved. |
 | Log Analytics | Azure Monitor's workspace for centralized logs; the foundation creates `log-management`. |

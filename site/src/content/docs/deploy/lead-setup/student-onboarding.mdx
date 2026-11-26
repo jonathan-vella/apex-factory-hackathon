@@ -1,5 +1,5 @@
 ---
-title: "Student onboarding (before Day 1)"
+title: "Student onboarding (Day 1)"
 description: Accept your GitHub invite, connect to vm-dev01 through Bastion, clone your student repo on main, run your Handoff Card setup command, and confirm your readiness evidence.
 prev:
   link: /deploy/lead-setup/step-4-vending-and-invites/
@@ -12,15 +12,15 @@ next:
 import VmDev01Setup from "../../../../components/VmDev01Setup.astro";
 
 **Who:** **Every student** in a lead-provisioned event.
-**When:** Before Day 1 kickoff (allow **20 to 30 minutes** once your team lead sends your private Handoff Card).
+**When:** On Day 1 before starting [C1: Define the opportunity](/challenges/c01-define-the-opportunity/). Allow **20 to 30 minutes** once your team lead shares your private Handoff Card and lab sign-in details.
 
-Your team lead has already deployed the shared Azure landing zone, your simulated datacenter (`vm-app01` and `vm-dev01`), Azure Arc, and your spoke network. Connect to `vm-dev01` through Azure Bastion and follow the steps below to get your private repository and Copilot tools ready before Day 1 starts at 08:30. Use the same clone (`C:\src\<your-repo>` on `main`) for all ten challenges.
+Your team lead has already deployed the shared Azure landing zone, your simulated datacenter (`vm-app01` and `vm-dev01`), Azure Arc, and your spoke network. Connect to `vm-dev01` through Azure Bastion on Day 1 and follow the steps below to get your private repository and Copilot tools ready before starting C1. Use the same clone (`C:\src\<your-repo>` on `main`) for all ten challenges.
 
-If anything blocks you, contact your **designated team lead** first.
+If anything blocks you, ask your **team lead** or **coach**.
 
 ## 1. Accept your repository invitation
 
-Open the invitation link in your private Handoff Card and accept it with the GitHub account you gave your team lead, unless you already have access. Confirm you can access the assigned private repository. Keep the card private: it contains your repository URL, archetype suffix, and local settings command. Do not create a new repository.
+If you have not already accepted the GitHub invitation sent before Day 1, open the invitation link in your private Handoff Card and accept it with the GitHub account you gave your team lead. Confirm you can access the assigned private repository. Keep the card private: it contains your repository URL, archetype suffix, and local settings command. Do not create a new repository.
 
 ## 2. Connect to `vm-dev01` through Bastion and set up your workspace
 
@@ -53,4 +53,4 @@ Your team lead already pushed `factory/evidence/readiness/test-datacenter.txt` t
 
 Done when `factory/evidence/readiness/test-datacenter.txt` is present on `main` and VS Code + Copilot Chat are ready on `vm-dev01`. Let your team lead know you are ready!
 
-Next: join the 30-minute hackathon introduction at **08:30 on Day 1**, then start [C1: Define the opportunity](/challenges/c01-define-the-opportunity/) at **09:00**.
+Next: start [C1: Define the opportunity](/challenges/c01-define-the-opportunity/).
