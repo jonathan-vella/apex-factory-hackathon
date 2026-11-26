@@ -3,6 +3,12 @@ title: "C1: Define the opportunity"
 description: Act as Solution Architects to connect Contoso University's problems and triggers to CAF business outcomes, solutions and measurable KPIs.
 ---
 
+:::note[Path B: Complete student onboarding first]
+
+In a **lead-provisioned cohort (Path B)**, complete [Student onboarding (Day 1)](../../deploy/lead-setup/student-onboarding/) first so you have signed in with your Handoff Card details and set up `C:\src\<your-repo>` on `vm-dev01`.
+
+:::
+
 ## Background
 
 You are Solution Architects at the Microsoft Solutions Partner that Contoso University hired. A solution architect does not start a modernization engagement with a list of Azure services. You start with the customer's problems and triggers, define the business outcomes those problems require, map each outcome to the solution that addresses it, and set measurable KPIs to verify that the solution worked.

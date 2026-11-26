@@ -25,10 +25,10 @@ Before day one, every attendee gets a simulated datacenter in their own workload
     <a class="deploy-path__title" href="#path-b-lead-provisioned-cohort-1-team-n-attendees">
       Path B: Lead-provisioned cohort
     </a>
-    <p>The team lead runs Steps 1 to 4 for everyone. Attendees skip straight to student onboarding.</p>
+    <p>The team lead runs Steps 1 to 4 before the event. Attendees share their GitHub username ahead of time and complete student onboarding on Day 1.</p>
     <div class="deploy-path__links">
       <a href="/deploy/lead-setup/step-1-cohort-and-preflight/">Team lead: Start Step 1</a>
-      <a href="/deploy/lead-setup/student-onboarding/">Attendee: Start onboarding</a>
+      <a href="/deploy/lead-setup/student-onboarding/">Attendee: Day 1 onboarding</a>
     </div>
   </div>
 </nav>
@@ -63,16 +63,16 @@ Each attendee creates their own private repository; the team lead sets up the `L
 
 Use this track when one team lead prepares the entire lab centrally for `n` attendees. Only the lead repository (`<event>-lead`) has a GitHub Actions pipeline; each student receives Write (`push`) access to one pre-created `<event>-student-<nn>` repository (never creating a GitHub repo of their own) with no `gh-lab` environment, OIDC identity, or secrets. (If the team lead also takes part in member challenges, they take slot `1` and `<event>-student-01` too.)
 
-The team lead (or platform facilitator) creates the private repositories, runs preflight, deploys the foundation and Arc-connected datacenters, and runs vending centrally. They collect each attendee's **GitHub username** to send the collaborator invitation. Attendees complete only [Student onboarding (before Day 1)](/deploy/lead-setup/student-onboarding/). A cohort can have any `n` attendees, optionally organized into 3-to-5-person breakout pods for team challenges C1, C4, and C10.
+The team lead (or platform facilitator) creates the private repositories, runs preflight, deploys the foundation and Arc-connected datacenters, and runs vending centrally. They collect each attendee's **GitHub username** before Day 1 to send the collaborator invitation. Attendees accept their invitation and complete [Student onboarding (Day 1)](/deploy/lead-setup/student-onboarding/) on Day 1 before starting C1. A cohort can have any `n` attendees, optionally organized into 3-to-5-person breakout pods for team challenges C1, C4, and C10.
 
 | Step | When | Who | What you do | Page |
 | --- | --- | --- | --- | --- |
 | **Step 1** | T-14 (14 days before day one) | **Team lead** | Create the lead repo and staging student template repo, assemble `.local/roster.json` for `1..n`, stamp out all `n` private student repos with `Initialize-CohortRepos.ps1`, initialize the `Lead` pipeline, and run `whatif` preflight | [Step 1: Cohort repos, roster and preflight (T-14)](/deploy/lead-setup/step-1-cohort-and-preflight/) |
 | **Step 2** | T-7 (7 days before day one) | **Team lead** + **Privileged Role Administrator** | Bootstrap `<mgPrefix>-readers` (`Sync-FactoryReaderGroup.ps1`), deploy the shared landing zone (`foundation` stage) from the lead repo, and grant `id-sqlmi-directory` its Microsoft Graph read permissions (`Grant-SqlMiDirectoryRead.ps1`) | [Step 2: Foundation and Graph grant (T-7)](/deploy/lead-setup/step-2-foundation/) |
 | **Step 3** | T-3 (3 days before day one) | **Team lead** | Run `member` from the lead repo across all `n` subscriptions (deploying datacenters, passing `Test-Datacenter.ps1`, and onboarding `vm-app01` to Arc), push `test-datacenter.txt` to each student repo, and trigger Arc SQL assessments | [Step 3: Datacenters and Arc (T-3)](/deploy/lead-setup/step-3-datacenters/) |
-| **Step 4** | T-1 (1 day before day one) | **Team lead** | Start all cohort VMs, sync `<mgPrefix>-readers` from the full `memberPrincipalId` roster, run `vending` (batched if `n > 50`), collect attendees' GitHub usernames, send Write collaborator invites, and distribute private Handoff Cards | [Step 4: Vending and collaborator invites (T-1)](/deploy/lead-setup/step-4-vending-and-invites/) |
-| **Onboarding** | Before Day 1 (20–30 min) | **Every student** | Accept your GitHub invite, connect to `vm-dev01` via Bastion, clone `C:\src\<your-repo>` on `main`, run the one-line `Initialize-Settings.ps1` command from your Handoff Card, and confirm readiness evidence on `main` | [Student onboarding (before Day 1)](/deploy/lead-setup/student-onboarding/) |
-| **Event** | Day 1, 08:30 | **Everyone** | Attend the 30-minute tech lead introduction, then start [C1: Define the opportunity](/challenges/c01-define-the-opportunity/) at 09:00 | [Challenges](/challenges/) |
+| **Step 4** | T-1 (1 day before day one) | **Team lead** | Start all cohort VMs, sync `<mgPrefix>-readers` from the full `memberPrincipalId` roster, run `vending` (batched if `n > 50`), collect attendees' GitHub usernames, send Write collaborator invites, and generate private Handoff Cards for Day 1 | [Step 4: Vending and collaborator invites (T-1)](/deploy/lead-setup/step-4-vending-and-invites/) |
+| **Onboarding** | Day 1 (20–30 min, before C1) | **Every student** | Receive your private Handoff Card, accept your GitHub invite if not already accepted, connect to `vm-dev01` via Bastion, run `Initialize-Workstation.ps1` to clone `C:\src\<your-repo>` on `main` and write local settings, and confirm readiness evidence on `main` | [Student onboarding (Day 1)](/deploy/lead-setup/student-onboarding/) |
+| **Event** | Day 1, 08:30 | **Everyone** | Attend the 30-minute tech lead introduction, complete Student onboarding if not yet done, then start [C1: Define the opportunity](/challenges/c01-define-the-opportunity/) at 09:00 | [Challenges](/challenges/) |
 | **After** | T+2 | **Students**, **Team lead**, **Admin** | Students push final branches and evidence; the team lead tears down all member scopes and the foundation from the lead repo and removes the single lead pipeline identity | [Tear down: Lead-provisioned cohort (T+2)](/deploy/lead-setup/tear-down/) |
 
 ## Automatic readiness check before vending

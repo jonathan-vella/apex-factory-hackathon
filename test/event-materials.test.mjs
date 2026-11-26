@@ -131,6 +131,8 @@ test("lead-provisioned setupMode tailors all three drafts to Path B student onbo
   assert.match(email.text, /connect to vm-dev01 through Azure Bastion/);
   assert.match(email.text, /do not need to create a repository from a template or run the T-14 to T-1 deployment pipelines yourself/);
   assert.match(briefing.text, /attendees do not run the T-14 to T-1 pipelines themselves/);
-  assert.match(hackathon.text, /opened your repo and verified Copilot Chat/);
+  assert.match(briefing.text, /complete Student onboarding on vm-dev01 before starting C1/);
+  assert.match(hackathon.text, /Please arrive ready for Day 1 Student onboarding/);
+  assert.match(hackathon.text, /open your repo and verify Copilot Chat before starting C1/);
   assert.match(hackathon.text, /Keep vm-dev01 running throughout the event/);
 });

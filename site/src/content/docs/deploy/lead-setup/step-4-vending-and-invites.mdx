@@ -1,21 +1,21 @@
 ---
 title: "Step 4: Vending and collaborator invites (T-1)"
-description: Start all cohort VMs, run spoke vending from the lead repo, collect attendees' GitHub usernames, send Write collaborator invitations, and distribute private Handoff Cards.
+description: Start all cohort VMs, run spoke vending from the lead repo, collect attendees' GitHub usernames, send Write collaborator invitations, and prepare private Handoff Cards.
 prev:
   link: /deploy/lead-setup/step-3-datacenters/
   label: "Step 3: Datacenters and Arc (T-3)"
 next:
   link: /deploy/lead-setup/student-onboarding/
-  label: "Student onboarding (before Day 1)"
+  label: "Student onboarding (Day 1)"
 ---
 
 import { Steps } from "@astrojs/starlight/components";
 import Diagram from "../../../../components/Diagram.astro";
 
-**Who:** **Team lead**. Once Step 4 finishes, students complete [Student onboarding (before Day 1)](../student-onboarding/).
+**Who:** **Team lead**. On Day 1, students complete [Student onboarding (Day 1)](../student-onboarding/) before starting C1.
 **When:** By **T-1** (1 day before day one), after [Step 2: Foundation](../step-2-foundation/) and [Step 3: Datacenters and Arc](../step-3-datacenters/) are green.
 
-In Step 4, the team lead starts all cohort VMs, runs `vending` centrally from `<event>-lead` to connect every workload subscription to the shared hub, collects attendees' GitHub usernames, invites each student as a **Write (`push`)** collaborator to their assigned `<event>-student-<nn>` repo, and sends each student their private Handoff Card.
+In Step 4, the team lead starts all cohort VMs, runs `vending` centrally from `<event>-lead` to connect every workload subscription to the shared hub, collects attendees' GitHub usernames, invites each student as a **Write (`push`)** collaborator to their assigned `<event>-student-<nn>` repo, and generates the private Handoff Cards to share on Day 1.
 
 <Diagram
   name="diagram-04-hub-and-spoke-routing"
@@ -95,9 +95,9 @@ If an attendee is assigned or swapped after initial vending, update `memberPrinc
 
 :::
 
-## 4.3 Invite students and send private Handoff Cards
+## 4.3 Invite students and prepare private Handoff Cards
 
-Students use the private repositories created in Step 1, including the readiness evidence pushed in Step 3. After vending, the team lead completes the invitations and shares the Handoff Cards; students do not create new repositories.
+Students use the private repositories created in Step 1, including the readiness evidence pushed in Step 3. After vending, the team lead sends the collaborator invitations and prepares the Handoff Cards for Day 1; students do not create new repositories.
 
 <Steps>
 
@@ -119,10 +119,10 @@ Students use the private repositories created in Step 1, including the readiness
 
    For every slot with `githubUsername` set, the script invites the student as a **Write (`push`)** collaborator on `<org>/<event>-student-<nn>` unless they already have Write access, and writes a complete private Handoff Card to `factory/.local/handoff/member-<index>.md`. Ensure coaches have **Read** access to each student repository, using `-CoachTeamSlug`, `-CoachUsername`, or a separate grant. The readiness evidence pushed in Step 3 stays in each existing repository.
 
-4. **Send each student their Handoff Card, assigned Entra sign-in details, and `labadmin` Bastion password privately.** Deliver `factory/.local/handoff/member-<index>.md` over a private direct message or encrypted channel—never in a public channel, issue, or commit—and send them the link to [Student onboarding (before Day 1)](../student-onboarding/).
+4. **Share each student's Handoff Card, assigned Entra sign-in details, and `labadmin` Bastion password privately on Day 1.** Deliver `factory/.local/handoff/member-<index>.md` over a private direct message or encrypted channel on Day 1, never in a public channel, issue, or commit, along with the link to [Student onboarding (Day 1)](../student-onboarding/).
 
 </Steps>
 
-Done when `vending` is green for all `1..n` slots, each student has a Write invitation or existing Write access and a private Handoff Card, and coaches have Read access to the student repositories.
+Done when `vending` is green for all `1..n` slots, each student has a Write invitation or existing Write access, private Handoff Cards are ready for Day 1, and coaches have Read access to the student repositories.
 
-Next: students complete [Student onboarding (before Day 1)](../student-onboarding/).
+Next: on Day 1, students complete [Student onboarding (Day 1)](../student-onboarding/) before starting C1.
