@@ -87,6 +87,7 @@ ruleset
 rulesets
 runbook
 runbooks
+siloed
 SKU
 SKUs
 SQL
