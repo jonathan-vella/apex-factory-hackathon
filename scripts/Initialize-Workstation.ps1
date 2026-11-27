@@ -188,6 +188,9 @@ if (-not (Get-Command Install-MissingWorkstationTool -ErrorAction SilentlyContin
             }
         }
         if ($InstallPython) {
+            if ((Test-Path (Join-Path $pythonDir 'python.exe')) -and -not (Test-Path (Join-Path $pythonDir 'python3.exe'))) {
+                Copy-Item -Path (Join-Path $pythonDir 'python.exe') -Destination (Join-Path $pythonDir 'python3.exe') -Force
+            }
             Add-MachinePathEntry -Directory $pythonDir
             Add-MachinePathEntry -Directory (Join-Path $pythonDir 'Scripts')
         }

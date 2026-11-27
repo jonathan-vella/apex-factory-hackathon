@@ -167,6 +167,11 @@ try {
         $file = Get-Download -Url $pythonMatch.Value -FileName "python-$pythonVersion-amd64.exe"
         Invoke-Installer -Name "Python $pythonVersion" -FilePath $file -ArgumentList '/quiet', 'InstallAllUsers=1', 'PrependPath=1', 'Include_test=0', "TargetDir=`"$pythonDir`""
     }
+    # The official Windows installer ships python.exe but not python3.exe; copy the launcher stub
+    # so `python3` resolves here ahead of the Windows 11 Microsoft Store alias in WindowsApps.
+    if ((Test-Path (Join-Path $pythonDir 'python.exe')) -and -not (Test-Path (Join-Path $pythonDir 'python3.exe'))) {
+        Copy-Item -Path (Join-Path $pythonDir 'python.exe') -Destination (Join-Path $pythonDir 'python3.exe') -Force
+    }
     Add-MachinePath -Directory $pythonDir
     Add-MachinePath -Directory (Join-Path $pythonDir 'Scripts')
 

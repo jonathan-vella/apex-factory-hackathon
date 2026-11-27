@@ -66,6 +66,7 @@ MCP
 MI
 microhack
 microhacks
+MSBuild
 MSMQ
 NAT
 onboarded
