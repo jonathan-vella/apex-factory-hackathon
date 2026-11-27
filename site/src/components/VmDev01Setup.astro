@@ -168,10 +168,11 @@ const step7Code = `code C:\\src\\<your-repo>`;
           [On <code>vm-dev01</code> — PowerShell 7 (<code>pwsh</code>)]
         </strong>{" "}
         Run <code>Initialize-Workstation.ps1</code> to bootstrap <code>vm-dev01</code> in one
-        command. It installs Node.js 24 LTS and <code>azd</code> if your VM was deployed before the
-        single-clone update, signs you in to GitHub (<code>repo,workflow</code> scopes), Azure CLI,
-        and <code>azd</code>, sets <code>AZURE_TOKEN_CREDENTIALS=AzureCliCredential</code>, detects
-        your <code>MemberIndex</code> and workload subscription from the VM&apos;s private IP and
+        command. It installs Node.js 24 LTS, Python 3 and <code>azd</code> if your VM was deployed
+        before they were added to <code>Install-DevTools.ps1</code>, signs you in to GitHub (
+        <code>repo,workflow</code> scopes), Azure CLI, and <code>azd</code>, sets{" "}
+        <code>AZURE_TOKEN_CREDENTIALS=AzureCliCredential</code>, detects your{" "}
+        <code>MemberIndex</code> and workload subscription from the VM&apos;s private IP and
         datacenter network. It detects the shared hub subscription only after hub peering exists;
         for Path A, add it after vending as described in <a href="/deploy/vending/">Step 4</a>. It{" "}
         {isPathB ? "clones your assigned" : "creates (or clones) your"} private GitHub repository at{" "}

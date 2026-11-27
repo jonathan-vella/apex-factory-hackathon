@@ -3,7 +3,7 @@
 > [!WARNING]
 > Coach material. This page has the answers to C5. Attendees run APEX's `/apex-adapt-archetype` flow themselves in `C:\src\<your-repo>` on `vm-dev01`.
 
-`Import-Kit.ps1` sets `*.bicepparam text eol=lf` in `.gitattributes` and `Install-DevTools.ps1` installs `node` 24 LTS and `azd` on `vm-dev01`, so `/apex-adapt-archetype` and `azd provision` run cleanly on `vm-dev01`.
+`Import-Kit.ps1` sets `*.bicepparam text eol=lf` in `.gitattributes` and `Install-DevTools.ps1` installs `node` 24 LTS, Python 3 and `azd` on `vm-dev01`, so `/apex-adapt-archetype` and `azd provision` run cleanly on `vm-dev01`.
 
 ## Expected evidence
 

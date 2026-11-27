@@ -189,7 +189,7 @@ function global:Invoke-WebRequest {
     $wsAst = [System.Management.Automation.Language.Parser]::ParseFile($wsScriptPath, [ref] $tokens, [ref] $parseErrors)
     Assert-True ($parseErrors.Count -eq 0) "Initialize-Workstation.ps1 has parse errors: $($parseErrors -join '; ')"
 
-    foreach ($fnName in @('Resolve-MemberIndexFromIp', 'Get-ExpectedDatacenterPrefix')) {
+    foreach ($fnName in @('Resolve-MemberIndexFromIp', 'Get-ExpectedDatacenterPrefix', 'Test-UsablePython')) {
         $fnAst = $wsAst.FindAll({ param($n) $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq $fnName }, $true) | Select-Object -First 1
         Assert-True ($null -ne $fnAst) "Missing function $fnName in Initialize-Workstation.ps1"
         . ([scriptblock]::Create($fnAst.Extent.Text))
@@ -199,6 +199,8 @@ function global:Invoke-WebRequest {
     Assert-True ((Resolve-MemberIndexFromIp -IpAddresses @('10.128.1.5')) -eq 257) '10.128.1.5 must resolve to MemberIndex 257.'
     Assert-True ((Get-ExpectedDatacenterPrefix -Index 3) -eq '10.10.3.0/24') 'Index 3 prefix must be 10.10.3.0/24.'
     Assert-True ((Get-ExpectedDatacenterPrefix -Index 257) -eq '10.128.1.0/24') 'Index 257 prefix must be 10.128.1.0/24.'
+    Assert-True (-not (Test-UsablePython -CommandPath 'C:\Users\labadmin\AppData\Local\Microsoft\WindowsApps\python.exe')) 'Test-UsablePython must reject the WindowsApps Store alias.'
+    Assert-True (Test-UsablePython -CommandPath 'C:\Program Files\Python3\python.exe') 'Test-UsablePython must accept a real Python executable.'
 
     # Prepare a bare remote repo to act as the created student repo when git clone/push runs
     $bareRemote = Join-Path $work 'remote-apex-factory-m03.git'

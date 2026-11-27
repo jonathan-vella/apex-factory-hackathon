@@ -60,6 +60,7 @@ try {
         'Azure CLI'                         = Get-NativeOutput -FilePath 'az' -ArgumentList '--version'
         'Bicep'                             = Get-NativeOutput -FilePath 'bicep' -ArgumentList '--version'
         'Node.js'                           = Get-NativeOutput -FilePath 'node' -ArgumentList '--version'
+        'Python'                            = Get-NativeOutput -FilePath 'python' -ArgumentList '--version'
         'Azure Developer CLI'               = Get-NativeOutput -FilePath 'azd' -ArgumentList 'version'
         '.NET SDKs'                         = Get-NativeOutput -FilePath 'dotnet' -ArgumentList '--list-sdks' -All
         '.NET Framework 4.8 Developer Pack' = if (Test-Path 'C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8\mscorlib.dll') { 'installed' } else { 'not found' }
