@@ -299,6 +299,12 @@ function global:az {
         $passed++
     }
 
+    # PerfKit: Save-PSResource must target PSGallery explicitly so PSResourceGet 1.3+ (MAR priority 40)
+    # does not terminate on a 404 under $ErrorActionPreference = 'Stop' before falling back to PSGallery.
+    $perfKitSource = Get-Content -Raw (Join-Path $repoRoot 'db/perf-kit/PerfKit.psm1')
+    Assert-True ($perfKitSource -match 'Save-PSResource\b[^\r\n]*-Repository\s+PSGallery\b') 'PerfKit.psm1 must pass -Repository PSGallery to Save-PSResource.'
+    $passed++
+
     # PerfKit: the SQL password comes from -SqlPassword, then the kit's .local, then the lab password.
     if (Get-Module -ListAvailable -Name SqlServer) {
         $perfKit = Join-Path $work 'perf'

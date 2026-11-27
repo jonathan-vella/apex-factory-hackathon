@@ -4,7 +4,7 @@ Installs the developer tools on vm-dev01, machine-wide and silently.
 .DESCRIPTION
 Runs as a VM run command (Windows PowerShell 5.1) as SYSTEM. Creates C:\src, then installs VS Code
 (system installer), Git, the GitHub CLI, PowerShell 7, the Azure CLI, Bicep (standalone), Node.js 24 LTS,
-the Azure Developer CLI (azd), the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI
+Python 3, the Azure Developer CLI (azd), the .NET 10 SDK, the .NET Framework 4.8 Developer Pack and the NuGet CLI
 from the vendors' official download locations. Tools that are already installed are skipped. Finally it clones the kit (public repo) to
 C:\src\factory if it isn't there yet, as a sparse checkout (non-cone patterns) that leaves out coach/,
 facilitator/, docs/, site/, test/ and the repo's documentation and lint tooling files. Everything the
@@ -36,6 +36,7 @@ $downloadDir = 'C:\LabTools\downloads'
 $pwshDir = 'C:\Program Files\PowerShell\7'
 $bicepDir = 'C:\Program Files\Bicep'
 $nodeDir = 'C:\Program Files\nodejs'
+$pythonDir = 'C:\Program Files\Python3'
 $azdDir = 'C:\Program Files\Azure Dev CLI'
 $nugetDir = 'C:\Program Files\NuGet'
 
@@ -155,6 +156,19 @@ try {
         Install-Msi -Name "Node.js $($node24.version)" -Path $file
     }
     Add-MachinePath -Directory $nodeDir
+
+    if (-not (Test-Path (Join-Path $pythonDir 'python.exe'))) {
+        $pythonPage = (Invoke-WebRequest -Uri 'https://www.python.org/downloads/windows/' -UseBasicParsing).Content
+        $pythonMatch = [regex]::Match($pythonPage, 'https://www\.python\.org/ftp/python/(3\.\d+\.\d+)/python-\1-amd64\.exe')
+        if (-not $pythonMatch.Success) {
+            throw 'No Python 3 Windows x64 installer found at https://www.python.org/downloads/windows/.'
+        }
+        $pythonVersion = $pythonMatch.Groups[1].Value
+        $file = Get-Download -Url $pythonMatch.Value -FileName "python-$pythonVersion-amd64.exe"
+        Invoke-Installer -Name "Python $pythonVersion" -FilePath $file -ArgumentList '/quiet', 'InstallAllUsers=1', 'PrependPath=1', 'Include_test=0', "TargetDir=`"$pythonDir`""
+    }
+    Add-MachinePath -Directory $pythonDir
+    Add-MachinePath -Directory (Join-Path $pythonDir 'Scripts')
 
     if (-not (Test-Path (Join-Path $azdDir 'azd.exe'))) {
         $file = Get-Download -Url 'https://azuresdkartifacts.z5.web.core.windows.net/azd/standalone/release/stable/azd-windows-amd64.msi' -FileName 'azd-windows-amd64.msi'

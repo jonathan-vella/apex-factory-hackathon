@@ -2,11 +2,11 @@
 
 <#
 .SYNOPSIS
-Bootstraps vm-dev01 in one command: installs missing tools (node 24 LTS, azd), signs in to GitHub/Azure/azd, auto-detects member index and subscriptions, creates or clones the student's private repository on main, imports the kit, writes local settings, and opens VS Code.
+Bootstraps vm-dev01 in one command: installs missing tools (node 24 LTS, Python 3, azd), signs in to GitHub/Azure/azd, auto-detects member index and subscriptions, creates or clones the student's private repository on main, imports the kit, writes local settings, and opens VS Code.
 .DESCRIPTION
 Designed for students connecting to vm-dev01 through Azure Bastion (including on pre-existing vm-dev01 VMs deployed before
 the single-clone update):
-1. Installs Node.js 24 LTS and Azure Developer CLI (azd) machine-wide if they are missing on vm-dev01.
+1. Installs Node.js 24 LTS, Python 3 and Azure Developer CLI (azd) machine-wide if they are missing on vm-dev01.
 2. Signs in to GitHub CLI (with repo and workflow scopes), Azure CLI, and azd, configures git user.name and user.email,
    and sets AZURE_TOKEN_CREDENTIALS=AzureCliCredential.
 3. Auto-detects MemberIndex from vm-dev01's private IPv4 address (10.10.<n>.5 or 10.<128..191>.<0..255>.5), verifies the
@@ -40,7 +40,7 @@ Optional 6-character lowercase alphanumeric archetype suffix override.
 .PARAMETER WorkspaceRoot
 Parent directory where the student repository is cloned. Defaults to C:\src on Windows or ~/src on Linux/macOS.
 .PARAMETER SkipToolInstall
-Skip checking and installing Node.js 24 LTS and Azure Developer CLI (azd).
+Skip checking and installing Node.js 24 LTS, Python 3 and Azure Developer CLI (azd).
 .PARAMETER SkipOpenCode
 Skip launching VS Code at the end of setup.
 .EXAMPLE
@@ -104,16 +104,30 @@ function Sync-SessionPath {
     }
 }
 
+function Test-UsablePython {
+    param([string] $CommandPath = '')
+    if (-not $CommandPath) {
+        $cmd = Get-Command python -ErrorAction SilentlyContinue
+        if (-not $cmd) { return $false }
+        $CommandPath = $cmd.Source
+    }
+    if (-not $CommandPath) { return $false }
+    # Windows 11 ships a Microsoft Store App Execution Alias at %LOCALAPPDATA%\Microsoft\WindowsApps\python.exe.
+    if ($CommandPath -match '(?i)[\\/]Microsoft[\\/]WindowsApps[\\/]') { return $false }
+    return $true
+}
+
 if (-not (Get-Command Install-MissingWorkstationTool -ErrorAction SilentlyContinue)) {
     function Install-MissingWorkstationTool {
     [CmdletBinding()]
     param(
         [bool] $NeedNode,
-        [bool] $NeedAzd
+        [bool] $NeedAzd,
+        [bool] $NeedPython = $false
     )
-    if (-not $NeedNode -and -not $NeedAzd) { return }
+    if (-not $NeedNode -and -not $NeedAzd -and -not $NeedPython) { return }
     if (-not $IsWindows) {
-        throw 'Automatic installation of node and azd is supported on Windows (vm-dev01) only. Install node 24 LTS and azd manually on this OS.'
+        throw 'Automatic installation of node, Python and azd is supported on Windows (vm-dev01) only. Install node 24 LTS, Python 3 and azd manually on this OS.'
     }
 
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -121,11 +135,12 @@ if (-not (Get-Command Install-MissingWorkstationTool -ErrorAction SilentlyContin
     $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 
     $installScript = {
-        param([bool] $InstallNode, [bool] $InstallAzd)
+        param([bool] $InstallNode, [bool] $InstallAzd, [bool] $InstallPython)
         $ErrorActionPreference = 'Stop'
         $ProgressPreference = 'SilentlyContinue'
         $downloadDir = 'C:\LabTools\downloads'
         $nodeDir = 'C:\Program Files\nodejs'
+        $pythonDir = 'C:\Program Files\Python3'
         $azdDir = 'C:\Program Files\Azure Dev CLI'
         New-Item -ItemType Directory -Force -Path $downloadDir | Out-Null
 
@@ -155,6 +170,28 @@ if (-not (Get-Command Install-MissingWorkstationTool -ErrorAction SilentlyContin
         }
         if ($InstallNode) { Add-MachinePathEntry -Directory $nodeDir }
 
+        if ($InstallPython -and -not (Test-Path (Join-Path $pythonDir 'python.exe'))) {
+            Write-Host 'Installing Python 3 on vm-dev01...'
+            $pythonPage = (Invoke-WebRequest -Uri 'https://www.python.org/downloads/windows/' -UseBasicParsing).Content
+            $pythonMatch = [regex]::Match($pythonPage, 'https://www\.python\.org/ftp/python/(3\.\d+\.\d+)/python-\1-amd64\.exe')
+            if (-not $pythonMatch.Success) {
+                throw 'No Python 3 Windows x64 installer found at https://www.python.org/downloads/windows/.'
+            }
+            $pythonVersion = $pythonMatch.Groups[1].Value
+            $exePath = Join-Path $downloadDir "python-$pythonVersion-amd64.exe"
+            Invoke-WebRequest -Uri $pythonMatch.Value -OutFile $exePath -UseBasicParsing
+            $proc = Start-Process -FilePath $exePath -ArgumentList @('/quiet', 'InstallAllUsers=1', 'PrependPath=1', 'Include_test=0', "TargetDir=`"$pythonDir`"") -PassThru -WindowStyle Hidden
+            $null = $proc.Handle
+            $proc.WaitForExit()
+            if ($proc.ExitCode -notin 0, 3010) {
+                throw "Python installer failed with exit code $($proc.ExitCode)."
+            }
+        }
+        if ($InstallPython) {
+            Add-MachinePathEntry -Directory $pythonDir
+            Add-MachinePathEntry -Directory (Join-Path $pythonDir 'Scripts')
+        }
+
         if ($InstallAzd -and -not (Test-Path (Join-Path $azdDir 'azd.exe'))) {
             Write-Host 'Installing Azure Developer CLI (azd) on vm-dev01...'
             $msiPath = Join-Path $downloadDir 'azd-windows-amd64.msi'
@@ -170,11 +207,11 @@ if (-not (Get-Command Install-MissingWorkstationTool -ErrorAction SilentlyContin
     }
 
     if ($isAdmin) {
-        & $installScript $NeedNode $NeedAzd
+        & $installScript $NeedNode $NeedAzd $NeedPython
     }
     else {
-        Write-Information 'Elevating to Administrator to install missing workstation tools (node 24 LTS / azd)...'
-        $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes("& { $($installScript.ToString()) } $([int]$NeedNode) $([int]$NeedAzd)"))
+        Write-Information 'Elevating to Administrator to install missing workstation tools (node 24 LTS / Python 3 / azd)...'
+        $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes("& { $($installScript.ToString()) } $([int]$NeedNode) $([int]$NeedAzd) $([int]$NeedPython)"))
         $pwshExe = Join-Path $PSHOME 'pwsh.exe'
         $elevated = Start-Process -FilePath $pwshExe -ArgumentList @('-NoProfile', '-EncodedCommand', $encoded) -Verb RunAs -PassThru -Wait
         if ($elevated.ExitCode -ne 0) {
@@ -286,14 +323,15 @@ function Invoke-Git {
     }
 }
 
-# Step 1: Ensure node 24 LTS and azd are installed on pre-existing vm-dev01 VMs.
+# Step 1: Ensure node 24 LTS, Python 3 and azd are installed on pre-existing vm-dev01 VMs.
 Sync-SessionPath
 if (-not $SkipToolInstall) {
     $needNode = $null -eq (Get-Command node -ErrorAction SilentlyContinue)
     $needAzd = $null -eq (Get-Command azd -ErrorAction SilentlyContinue)
-    if ($needNode -or $needAzd) {
-        if ($PSCmdlet.ShouldProcess('vm-dev01', 'Install missing Node.js 24 LTS and/or Azure Developer CLI (azd)')) {
-            Install-MissingWorkstationTool -NeedNode $needNode -NeedAzd $needAzd
+    $needPython = -not (Test-UsablePython)
+    if ($needNode -or $needAzd -or $needPython) {
+        if ($PSCmdlet.ShouldProcess('vm-dev01', 'Install missing Node.js 24 LTS, Python 3 and/or Azure Developer CLI (azd)')) {
+            Install-MissingWorkstationTool -NeedNode $needNode -NeedAzd $needAzd -NeedPython $needPython
         }
     }
 }

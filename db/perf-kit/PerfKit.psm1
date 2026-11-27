@@ -28,10 +28,12 @@ function Import-PerfKitSqlServer {
     if (-not (Get-Module -ListAvailable -Name SqlServer | Where-Object Version -GE '22.0')) {
         # Save into the first PSModulePath entry, the current user's module folder. Install-PSResource
         # resolves it from the Documents folder, which SYSTEM and some service accounts don't have.
+        # Pin -Repository PSGallery: PSResourceGet 1.3+ registers MicrosoftArtifactRegistry at priority 40
+        # ahead of PSGallery (50), and under $ErrorActionPreference = 'Stop' its 404 aborts before fallback.
         $userModules = ($env:PSModulePath -split [System.IO.Path]::PathSeparator)[0]
         Write-Information "Installing the SqlServer module for the current user, in $userModules."
         New-Item -ItemType Directory -Force -Path $userModules | Out-Null
-        Save-PSResource -Name SqlServer -Path $userModules -TrustRepository -Quiet
+        Save-PSResource -Name SqlServer -Repository PSGallery -Path $userModules -TrustRepository -Quiet
     }
     Import-Module SqlServer -MinimumVersion 22.0 -DisableNameChecking
 }
